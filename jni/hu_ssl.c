@@ -67,14 +67,15 @@
     int                 ret;
     BIO               * cert_bio = NULL;
     BIO               * pkey_bio = NULL;
-#ifdef HU_USB_ERROR
+/*#ifdef HU_USB_ERROR
     SSL_load_error_strings ();                                          // Before or after init ?
     ERR_load_BIO_strings ();
     ERR_load_crypto_strings ();
   #ifdef __arm__
     ERR_load_SSL_strings ();
   #endif
-#endif
+#endif */
+
     ret = SSL_library_init ();                                          // Init
     logd ("SSL_library_init ret: %d", ret);
     if (ret != 1) {                                                     // Always returns "1", so it is safe to discard the return value.

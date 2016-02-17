@@ -26,6 +26,14 @@
   }
 #include "hu_usb.h"
 #include "hu_tcp.h"
+
+//dummy functions
+  int hu_tcp_recv  (byte * buf, int len, int tmo) {}                     // Used by hu_aap:hu_aap_tcp_recv ()
+  int hu_tcp_send  (byte * buf, int len, int tmo)  {}                    // Used by hu_aap:hu_aap_tcp_send ()
+  int hu_tcp_stop  () {}                                                 // Used by hu_aap:hu_aap_stop     ()
+  int hu_tcp_start (byte ep_in_addr, byte ep_out_addr) {}                // Used by hu_aap:hu_aap_start    ()
+
+
   int transport_type = 1; // 1=USB 2=WiFi
   int ihu_tra_recv  (byte * buf, int len, int tmo) {
     if (transport_type == 1)
@@ -57,18 +65,18 @@
   int iaap_tra_send_tmo = 250;//2;//25;//250;//500;//100;//500;//250;
 
   int ihu_tra_start (byte ep_in_addr, byte ep_out_addr) {
-    if (ep_in_addr == 255 && ep_out_addr == 255) {
+/*    if (ep_in_addr == 255 && ep_out_addr == 255) {
       logd ("AA over Wifi");
       transport_type = 2;       // WiFi
       iaap_tra_recv_tmo = 1;
       iaap_tra_send_tmo = 2;
     }
-    else {
+    else { */
       transport_type = 1;       // USB
       logd ("AA over USB");
       iaap_tra_recv_tmo = 150;//100;
       iaap_tra_send_tmo = 250;
-    }
+//    }
     if (transport_type == 1)
       return (hu_usb_start  (ep_in_addr, ep_out_addr));
     else if (transport_type == 2)
@@ -238,11 +246,13 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
 
             // CH 1 Sensors:                      //cq/co[]
 //*
-                        0x0A, 4 + 4*1,//co: int, cm/cn[]
+                        0x0A, 4 + 4*2,//co: int, cm/cn[]
                                       0x08, AA_CH_SEN,
-                                      0x12, 4*1,
+                                      0x12, 4*2,
                                                           0x0A, 2,
                                                                     0x08, 11, // SENSOR_TYPE_DRIVING_STATUS 12
+                                                          0x0A, 2,
+                                                                    0x08, 9, // SENSOR_TYPE_NIGHT_DATA 12
 //*/
 /*  Requested Sensors: 10, 9, 2, 7, 6:
                         0x0A, 4 + 4*6,     //co: int, cm/cn[]
@@ -321,13 +331,13 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
                                      0x4a, 0,
 //*/
 //*
-                        0x12, 4, 'R', 'e', 'i', 'd',//1, 'A', // Car Manuf          Part of "remembered car"
-                        0x1A, 4, 'A', 'l', 'b', 'e',//1, 'B', // Car Model
+                        0x12, 5, 'M', 'a', 'z', 'd', 'a', //1, 'A', // Car Manuf          Part of "remembered car"
+                        0x1A, 6, 'M', 'a', 'z', 'd', 'a', '6', //1, 'B', // Car Model
                         0x22, 4, '2', '0', '1', '6',//1, 'C', // Car Year           Part of "remembered car"
                         0x2A, 4, '0', '0', '0', '1',//1, 'D', // Car Serial     Not Part of "remembered car" ??     (vehicleId=null)
                         0x30, 1,//0,      // driverPosition
-                        0x3A, 4, 'M', 'i', 'k', 'e',//1, 'E', // HU  Make / Manuf
-                        0x42, 4, 'H', 'U', '1', '5',//1, 'F', // HU  Model
+                        0x3A, 5, 'M', 'a', 'z', 'd', 'a', //1, 'E', // HU  Make / Manuf
+                        0x42, 7, 'C', 'o', 'n', 'n', 'e', 'c', 't', //1, 'F', // HU  Model
                         0x4A, 4, 'S', 'W', 'B', '1',//1, 'G', // HU  SoftwareBuild
                         0x52, 4, 'S', 'W', 'V', '1',//1, 'H', // HU  SoftwareVersion
                         0x58, 0,//1,//1,//0,//1,       // ? bool (or int )    canPlayNativeMediaDuringVr
@@ -395,7 +405,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
     return (-1);
   }
 
-  extern int wifi_direct;// = 0;//1;//0;
+//  extern int wifi_direct;// = 0;//1;//0;
   int aa_pro_ctr_a05 (int chan, byte * buf, int len) {                  // Service Discovery Request
     if (len < 4 || buf [2] != 0x0a)
       loge ("Service Discovery Request: %x", buf [2]);
@@ -403,7 +413,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
       logd ("Service Discovery Request");                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
     int sd_buf_len = sizeof (sd_buf);
-    if (wifi_direct && (file_get ("/data/data/ca.yyx.hu/files/nfc_wifi") || file_get ("/sdcard/hu_disable_audio_out")))    // If self or disable file exists...
+//    if (wifi_direct && (file_get ("/data/data/ca.yyx.hu/files/nfc_wifi") || file_get ("/sdcard/hu_disable_audio_out")))    // If self or disable file exists...
       sd_buf_len -= sd_buf_aud_len;                                     // Remove audio outputs from service discovery response buf
 
     return (hu_aap_enc_send (chan, sd_buf, sd_buf_len));                // Send Service Discovery Response from sd_buf
@@ -617,7 +627,11 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
     if (chan == AA_CH_SEN) {                                            // If Sensor channel...
       ms_sleep (2);//20);
       byte rspds [] = {0x80, 0x03, 0x6a, 2, 8, 0};                      // Driving Status = 0 = Parked (1 = Moving)
-      return (hu_aap_enc_send (chan, rspds, sizeof (rspds)));           // Send Sensor Notification
+//      return (hu_aap_enc_send (chan, rspds, sizeof (rspds)));           // Send Sensor Notification
+      hu_aap_enc_send (chan, rspds, sizeof (rspds));           // Send Sensor Notification
+      ms_sleep (2);
+      byte rspds1 [] = {0x80, 0x03, 0x52, 0x02, 0x08, 0x01};    // Day = 0, Night = 1 
+      return (hu_aap_enc_send (chan, rspds1, sizeof (rspds1))); // Send Sensor Night mode
     }
     return (ret);
   }
@@ -726,8 +740,20 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
   int aa_pro_vid_b07 (int chan, byte * buf, int len) {                  // Media Video ? Request...
     if (len != 4 || buf [2] != 0x10)
       loge ("Media Video ? Request");
-    else
-      logd ("Media Video ? Request: %d", buf [3]);
+    else {
+		logd ("Media Video ? Request: %d", buf [3]);
+		buf [0] = 0;                                                        // Use request buffer for response
+		buf [1] = 16;                                                       // Byebye Response
+		buf [2] = 0x08;
+		buf [3] = 0;                                                        // Status 0 = OK
+		int ret = hu_aap_enc_send (AA_CH_CTR, buf, 4);                      // Send Byebye Response
+		ms_sleep (100);                                                     // Wait a bit for response
+		//terminate = 1;
+
+		hu_aap_stop ();
+
+		return (-1);
+	}
     int ret = 0;
     return (ret);
   }

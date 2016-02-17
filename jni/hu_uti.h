@@ -41,7 +41,7 @@
   extern int ena_log_verbo;
 
   #define byte unsigned char
-  #define DEFBUF  65536     //16384                                                 // Default buffer size is maximum for USB
+  #define DEFBUF  16384     //16384                                                 // Default buffer size is maximum for USB
 
   #define DEF_BUF 512                                                   // For Ascii strings and such
 

@@ -14,7 +14,7 @@
   #include <libusb.h>
   #endif
 
-  #ifdef __ANDROID_API__
+//  #ifdef __ANDROID_API__
   #ifndef LIBUSB_LOG_LEVEL_NONE                 
   #define LIBUSB_LOG_LEVEL_NONE     0
   #endif
@@ -30,7 +30,7 @@
   #ifndef LIBUSB_LOG_LEVEL_DEBUG
   #define LIBUSB_LOG_LEVEL_DEBUG    4
   #endif
-  #endif
+//  #endif
 
 /* APIs used:
 
@@ -656,13 +656,15 @@ if (ms_duration > 400)
       }
       logd ("OK iusb_init");
 
-      if (iusb_best_vendor == USB_VID_GOO) {
+// SHAI1 : Commenting out as this seems to force us to disconnect and connect 
+
+/*      if (iusb_best_vendor == USB_VID_GOO) {
         logd ("Already OAP/AA mode, no need to call iusb_oap_start()");
 
         iusb_state = hu_STATE_STARTED;
         logd ("  SET: iusb_state: %d (%s)", iusb_state, state_get (iusb_state));
         return (0);
-      }
+      } */
 
       ret = iusb_oap_start ();
       if (ret < 0) {

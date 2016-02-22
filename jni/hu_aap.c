@@ -630,7 +630,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
 //      return (hu_aap_enc_send (chan, rspds, sizeof (rspds)));           // Send Sensor Notification
       hu_aap_enc_send (chan, rspds, sizeof (rspds));           // Send Sensor Notification
       ms_sleep (2);
-      byte rspds1 [] = {0x80, 0x03, 0x52, 0x02, 0x08, 0x01};    // Day = 0, Night = 1 
+      byte rspds1 [] = {0x80, 0x03, 0x52, 0x02, 0x08, 0x00};    // Day = 0, Night = 1 
       return (hu_aap_enc_send (chan, rspds1, sizeof (rspds1))); // Send Sensor Night mode
     }
     return (ret);

@@ -1,20 +1,13 @@
 #include <glib.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
-#include <linux/input.h>
+#include <gst/interfaces/xoverlay.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_syswm.h>
 
 #include "hu_uti.h"
 #include "hu_aap.h"
-
-#define EVENT_DEVICE    "/dev/input/filtered-touchscreen0"
-#define EVENT_TYPE      EV_ABS
-#define EVENT_CODE_X    ABS_X
-#define EVENT_CODE_Y    ABS_Y
-
-__asm__(".symver realpath1,realpath1@GLIBC_2.11.1");
-
 
 typedef struct {
 	GMainLoop *loop;
@@ -22,33 +15,18 @@ typedef struct {
 	GstAppSrc *src;
 	GstElement *sink;
 	GstElement *decoder;
-	GstElement *queue;
+	GstElement *convert;
 	guint sourceid;
 } gst_app_t;
-
 
 static gst_app_t gst_app;
 
 GstElement *mic_pipeline, *mic_sink;
 
-
-typedef struct {
-	int fd;
-	int x;
-	int y;
-	uint8_t action;
-	int action_recvd;
-} mytouch;
-
-mytouch mTouch = (mytouch){0,0,0,0,0};
-
-//static char nameBuff[] = "/data_persist/dev/mytmpfile-XXXXXX";
-//static char srtBuff[] = "\n1\n00:00:30,150 --> 00:00:45,850\nFREE APP! DO NOT PAY\n";
-//int srtfd = -1;
-
 int mic_change_state = 0;
 
 static GstFlowReturn read_mic_data (GstElement * sink);
+
 
 static gboolean read_data(gst_app_t *app)
 {
@@ -62,7 +40,6 @@ static gboolean read_data(gst_app_t *app)
 	iret = hu_aap_recv_process ();                                    // Process 1 message
 	if (iret != 0) {
 		printf("hu_aap_recv_process() iret: %d\n", iret);
-		g_main_loop_quit(app->loop);		
 		return FALSE;
 	}
 
@@ -73,9 +50,11 @@ static gboolean read_data(gst_app_t *app)
 		g_assert(ptr);
 		memcpy(ptr, vbuf, res_len);
 		
+//		buffer = gst_buffer_new();
 		buffer = gst_buffer_new_and_alloc(res_len);
 		memcpy(GST_BUFFER_DATA(buffer),ptr,res_len);
 
+//		buffer = gst_buffer_new_wrapped(ptr, res_len);
 		ret = gst_app_src_push_buffer(app->src, buffer);
 
 		if(ret !=  GST_FLOW_OK){
@@ -87,12 +66,10 @@ static gboolean read_data(gst_app_t *app)
 	return TRUE;
 }
 
-
-
 static void start_feed (GstElement * pipeline, guint size, gst_app_t *app)
 {
 	if (app->sourceid == 0) {
-		printf("start feeding\n");
+		GST_DEBUG ("start feeding");
 		app->sourceid = g_idle_add ((GSourceFunc) read_data, app);
 	}
 }
@@ -100,10 +77,45 @@ static void start_feed (GstElement * pipeline, guint size, gst_app_t *app)
 static void stop_feed (GstElement * pipeline, gst_app_t *app)
 {
 	if (app->sourceid != 0) {
-		printf("stop feeding\n");
+		GST_DEBUG ("stop feeding");
 		g_source_remove (app->sourceid);
 		app->sourceid = 0;
 	}
+}
+
+static void on_pad_added(GstElement *element, GstPad *pad)
+{
+	GstCaps *caps;
+	GstStructure *str;
+	gchar *name;
+	GstPad *convertsink;
+	GstPadLinkReturn ret;
+
+	g_debug("pad added");
+
+	g_assert(pad);
+
+	caps = gst_pad_get_caps(pad);
+	
+	g_assert(caps);
+	
+	str = gst_caps_get_structure(caps, 0);
+
+	g_assert(str);
+
+	name = (gchar*)gst_structure_get_name(str);
+
+	g_debug("pad name %s", name);
+
+	if(g_strrstr(name, "video")){
+
+		convertsink = gst_element_get_static_pad(gst_app.convert, "sink");
+		g_assert(convertsink);
+		ret = gst_pad_link(pad, convertsink);
+		g_debug("pad_link returned %d\n", ret);
+		gst_object_unref(convertsink);
+	}
+	gst_caps_unref(caps);
 }
 
 static gboolean bus_callback(GstBus *bus, GstMessage *message, gpointer *ptr)
@@ -161,9 +173,8 @@ static int gst_pipeline_init(gst_app_t *app)
 {
 	GstBus *bus;
 	GstStateChangeReturn state_ret;
-	
-	GError *error = NULL;
 
+	GError *error = NULL;
 
 	gst_init(NULL, NULL);
 
@@ -171,17 +182,15 @@ static int gst_pipeline_init(gst_app_t *app)
 	bus = gst_pipeline_get_bus(app->pipeline);
 	gst_bus_add_watch(bus, (GstBusFunc)bus_callback, app);
 	gst_object_unref(bus);
-	
-	app->src = (GstAppSrc*)gst_element_factory_make("appsrc", "mysrc");
-	app->sink = gst_element_factory_make("mfw_v4lsink", "myvsink");	
-	app->decoder = gst_element_factory_make("vpudec", "mydecoder");
-	app->queue = gst_element_factory_make("queue", "myqueue");
-	app->sink = gst_element_factory_make("mfw_v4lsink", "myvsink");
 
+	app->src = (GstAppSrc*)gst_element_factory_make("appsrc", "mysrc");
+	app->decoder = gst_element_factory_make("decodebin", "mydecoder");
+	app->convert = gst_element_factory_make("videoscale", "myconvert");
+	app->sink = gst_element_factory_make("xvimagesink", "myvsink");
 
 	g_assert(app->src);
 	g_assert(app->decoder);
-	g_assert(app->queue);	
+	g_assert(app->convert);
 	g_assert(app->sink);
 
 	g_object_set (G_OBJECT (app->src), "caps",
@@ -191,44 +200,32 @@ static int gst_pipeline_init(gst_app_t *app)
 				     "framerate", GST_TYPE_FRACTION, 30, 1,
 				     NULL), NULL);
 
-	
 	g_object_set(G_OBJECT(app->src), "is-live", TRUE, "block", FALSE,"do-timestamp", TRUE, 
 				  "format",GST_FORMAT_TIME,NULL);
 
-//	g_object_set(G_OBJECT(app->src), "is-live", TRUE, "do-timestamp", TRUE, 
-//				  "format",GST_FORMAT_TIME,NULL);
-
-				  		
-	g_object_set(G_OBJECT(app->decoder), "low-latency", TRUE, NULL);
-	
-	g_object_set(G_OBJECT(app->sink), "max-lateness", -1, NULL);
 
 	g_signal_connect(app->src, "need-data", G_CALLBACK(start_feed), app);
 	g_signal_connect(app->src, "enough-data", G_CALLBACK(stop_feed), app);
+	g_signal_connect(app->decoder, "pad-added",
+			G_CALLBACK(on_pad_added), app->decoder);
 
-//	gst_bin_add_many(GST_BIN(app->pipeline), (GstElement*)app->src, app->decoder, app->queue, app->sink, NULL);
-	gst_bin_add_many(GST_BIN(app->pipeline), (GstElement*)app->src, app->decoder, app->sink, NULL);
+	gst_bin_add_many(GST_BIN(app->pipeline), (GstElement*)app->src,
+			app->decoder, app->convert, app->sink, NULL);
+
+//	gst_bin_add_many(GST_BIN(app->pipeline), (GstElement*)app->src,
+//			app->decoder, app->sink, NULL);
 
 	if(!gst_element_link((GstElement*)app->src, app->decoder)){
-		g_warning("failed to link src and decoder");
+		g_warning("failed to link src anbd decoder");
 	}
 
-	if(!gst_element_link(app->decoder, app->sink)){
-		g_warning("failed to link decoder and sink");
+	if(!gst_element_link(app->convert, app->sink)){
+		g_warning("failed to link convert and sink");
 	}
-		
-/*	if(!gst_element_link(app->decoder, app->queue)){
-		g_warning("failed to link decoder and queue");
-	}
-
-	if(!gst_element_link(app->queue, app->sink)){
-		g_warning("failed to link queue and sink");
-	} */
 
 	gst_app_src_set_stream_type(app->src, GST_APP_STREAM_TYPE_STREAM);
-
-// TO-DO	
-/*	mic_pipeline = gst_parse_launch("alsasrc name=micsrc ! audioconvert ! audio/x-raw-int, rate=16000, channels=1, width=16, depth=16, signed=true ! appsink name=micsink",&error);
+	
+		mic_pipeline = gst_parse_launch("alsasrc name=micsrc ! audioconvert ! audio/x-raw-int, rate=16000, channels=1, width=16, depth=16, signed=true ! appsink name=micsink",&error);
 	
 	if (error != NULL) {
 		printf("could not construct pipeline: %s\n", error->message);
@@ -246,10 +243,9 @@ static int gst_pipeline_init(gst_app_t *app)
 	
 	g_signal_connect(mic_sink, "new-buffer", G_CALLBACK(read_mic_data), NULL);
 	
-	gst_element_set_state (mic_pipeline, GST_STATE_PAUSED); */
+	gst_element_set_state (mic_pipeline, GST_STATE_PAUSED);
 
 	return 0;
-
 }
 
 static int aa_cmd_send(int cmd_len, unsigned char *cmd_buf, int res_max, unsigned char *res_buf)
@@ -259,37 +255,32 @@ static int aa_cmd_send(int cmd_len, unsigned char *cmd_buf, int res_max, unsigne
 	int ret = 0;
 	char *dq_buf;
 
-/*	res_buf = (unsigned char *)malloc(res_max);
+	res_buf = (unsigned char *)malloc(res_max);
 	if (!res_buf) {
 		printf("TOTAL FAIL\n");
 		return -1;
-	} */
+	}
 
 //	printf("chan: %d cmd_len: %d\n", chan, cmd_len);
 	ret = hu_aap_enc_send (chan, cmd_buf+4, cmd_len - 4);
 	if (ret < 0) {
 		printf("aa_cmd_send(): hu_aap_enc_send() failed with (%d)\n", ret);
-	//	free(res_buf);
+		free(res_buf);
 		return ret;
 	}
-	
-	return ret;
 
-//	dq_buf = vid_read_head_buf_get(&res_len);
-//	if (!dq_buf || res_len <= 0) {
-	//	printf("No data dq_buf!\n");
-//		free(res_buf);
-//		return 0;
-//	}
-	
-//	printf("dq_buf %s\n",dq_buf);
-	
-//	memcpy(res_buf, dq_buf, res_len);
+/*	dq_buf = read_head_buffer_get(&res_len);
+	if (!dq_buf || res_len <= 0) {
+		printf("No data dq_buf!\n");
+		free(res_buf);
+		return 0;
+	}
+	memcpy(res_buf, dq_buf, res_len);
 	/* FIXME - we do nothing with this crap, probably check for ack and move along */
 
-//	free(res_buf);
+	free(res_buf);
 
-//    return res_len;
+    return ret;
 }
 
 static size_t uleb128_encode(uint64_t value, uint8_t *data)
@@ -316,7 +307,7 @@ static const uint8_t ts_header[] ={AA_CH_TOU, 0x0b, 0x03, 0x00, 0x80, 0x01, 0x08
 static const uint8_t ts_sizes[] = {0x1a, 0x09, 0x0a, 0x03};
 static const uint8_t ts_footer[] = {0x10, 0x00, 0x18};
 
-static void aa_touch_event(uint8_t action, int x, int y) {
+static int aa_touch_event(uint8_t action, int x, int y) {
 	struct timespec tp;
 	uint8_t *buf;
 	int idx;
@@ -363,9 +354,12 @@ static void aa_touch_event(uint8_t action, int x, int y) {
 	buf[idx++] = action;
 
 	/* Send touch event */
-	aa_cmd_send (idx, buf, 0, NULL);
+	int ret = aa_cmd_send (idx, buf, 0, NULL);
+	
 
 	free(buf);
+	
+	return ret;
 }
 
 static const uint8_t mic_header[] ={AA_CH_MIC, 0x0b, 0x00, 0x00, 0x00, 0x00};
@@ -374,8 +368,6 @@ static GstFlowReturn read_mic_data (GstElement * sink)
 {
 	GstBuffer *gstbuf;
 	
-	printf("SHAI1: inside read_mic_data.\n");
-
 	gstbuf = gst_app_sink_pull_buffer (sink);
 
 
@@ -422,84 +414,56 @@ static GstFlowReturn read_mic_data (GstElement * sink)
 }
 
 
-gboolean input_poll_event(gpointer data)
+gboolean sdl_poll_event(gpointer data)
 {
-	struct input_event event[64];
-	const size_t ev_size = sizeof(struct input_event);
-	const size_t buffer_size = ev_size * 64;
-    ssize_t size;
-    gst_app_t *app = (gst_app_t *)data;
-	
-	fd_set set;
-	struct timeval timeout;
-	int unblocked;
+	SDL_Event event;
+	SDL_MouseButtonEvent *mbevent;
+	gst_app_t *app = (gst_app_t *)data;
+	int ret;
 
-	FD_ZERO(&set);
-	FD_SET(mTouch.fd, &set);
-
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 10000;
-	
-	unblocked = select(mTouch.fd + 1, &set, NULL, NULL, &timeout);
-
-	if (unblocked == -1) {
-		printf("Error in read...\n");
-		g_main_loop_quit(app->loop);
-		return FALSE;
-	}
-	else if (unblocked == 0) {
-			return TRUE;
-	}
-	
-	size = read(mTouch.fd, &event, buffer_size);
-	if (size < ev_size) {
-		printf("Error size when reading\n");
-		g_main_loop_quit(app->loop);
-		return FALSE;
-	}
-	
-	int num_chars = size / ev_size;
-	
-	int i;
-	for (i=0;i < num_chars;i++) {
-		switch (event[i].type) {
-			case EV_ABS:
-				switch (event[i].code) {
-					case ABS_MT_POSITION_X:
-						mTouch.x = event[i].value * 800/4095;
-						break;
-					case ABS_MT_POSITION_Y:
-						mTouch.y = event[i].value * 480/4095;
-						break;
+	if (SDL_PollEvent(&event) >= 0) {
+		switch (event.type) {
+		case SDL_MOUSEBUTTONDOWN:
+			mbevent = &event.button;
+			if (mbevent->button == SDL_BUTTON_LEFT) {
+//				printf("Left button down at x: %d y: %d\n", (int)((float)mbevent->x), (int)((float)mbevent->y));
+//				aa_touch_event(ACTION_DOWN, (int)((float)mbevent->x / 1024 * 800), (int)((float)mbevent->y / 600 * 480));
+				ret = aa_touch_event(ACTION_DOWN, (int)((float)mbevent->x ), (int)((float)mbevent->y));
+				if (ret == -1) {
+					g_main_loop_quit(app->loop);
+					SDL_Quit();
+					return FALSE;
 				}
-				break;
-			case EV_KEY:
-				if (event[i].code == BTN_TOUCH) {
-					mTouch.action_recvd = 1;
-					if (event[i].value == 1) {
-						mTouch.action = ACTION_DOWN;
-					}
-					else {
-						mTouch.action = ACTION_UP;
-					}
+			}
+			break;
+		case SDL_MOUSEBUTTONUP:
+			mbevent = &event.button;
+			if (mbevent->button == SDL_BUTTON_LEFT) {
+//				printf("Left button up at x: %d y: %d\n", (int)((float)mbevent->x / 1024 * 800), (int)((float)mbevent->y / 600 * 480));
+//				aa_touch_event(ACTION_UP, (int)((float)mbevent->x / 1024 * 800), (int)((float)mbevent->y / 600 * 480));
+				ret = aa_touch_event(ACTION_UP, (int)((float)mbevent->x), (int)((float)mbevent->y));
+				if (ret == -1) {
+					g_main_loop_quit(app->loop);
+					SDL_Quit();
+					return FALSE;
 				}
-				break;
-			case EV_SYN:
-				if (mTouch.action_recvd == 0) {
-					mTouch.action = ACTION_MOVE;
-					aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
-				} else {
-				aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
-				//mTouch = (mytouch){0,0,0,0,0};
-				}
-				break;
+			} else if (mbevent->button == SDL_BUTTON_RIGHT) {
+				printf("Quitting...\n");
+				g_main_loop_quit(app->loop);
+//				SDL_Quit();
+				return FALSE;
+			}
+			break;
+		case SDL_QUIT:
+			printf("Quitting...\n");
+			g_main_loop_quit(app->loop);
+			SDL_Quit();
+			return FALSE;
+			break;
 		}
-	} 
+	}
 
-//TO-DO
-	
-/*	int mic_ret = hu_aap_mic_get ();
-	
+	int mic_ret = hu_aap_mic_get ();
 	
 	if (mic_change_state == 0 && mic_ret == 2) {
 		printf("SHAI1 : Mic Started");
@@ -511,8 +475,8 @@ gboolean input_poll_event(gpointer data)
 		printf("SHAI1 : Mic Stopped");
 		mic_change_state = 0;
 		gst_element_set_state (mic_pipeline, GST_STATE_PAUSED);
-	} */
-	
+	}
+
 	return TRUE;
 }
 
@@ -525,19 +489,101 @@ static int gst_loop(gst_app_t *app)
 //	g_warning("set state returned %d\n", state_ret);
 
 	app->loop = g_main_loop_new (NULL, FALSE);
-	g_timeout_add_full(G_PRIORITY_HIGH, 50, input_poll_event, (gpointer)app, NULL);
-
+	g_timeout_add_full(G_PRIORITY_HIGH, 100, sdl_poll_event, (gpointer)app, NULL);
 	printf("Starting Android Auto...\n");
   	g_main_loop_run (app->loop);
 
-// TO-DO
+
 	state_ret = gst_element_set_state((GstElement*)app->pipeline, GST_STATE_NULL);
 //	g_warning("set state null returned %d\n", state_ret);
 
 	gst_object_unref(app->pipeline);
-	gst_object_unref(mic_pipeline);
+	
+	ms_sleep(100);
+	
+	printf("here we are \n");
+	/* Should not reach this? */
+	SDL_Quit();
 
 	return ret;
+}
+
+/* XPM */
+static const char *arrow[] = {
+	/* width height num_colors chars_per_pixel */
+	"    32    32        3            1",
+	/* colors */
+	"X c #000000",
+	". c #ffffff",
+	"  c None",
+	/* pixels */
+	"X                               ",
+	"XX                              ",
+	"X.X                             ",
+	"X..X                            ",
+	"X...X                           ",
+	"X....X                          ",
+	"X.....X                         ",
+	"X......X                        ",
+	"X.......X                       ",
+	"X........X                      ",
+	"X.....XXXXX                     ",
+	"X..X..X                         ",
+	"X.X X..X                        ",
+	"XX  X..X                        ",
+	"X    X..X                       ",
+	"     X..X                       ",
+	"      X..X                      ",
+	"      X..X                      ",
+	"       XX                       ",
+	"                                ",
+	"                                ",
+	"                                ",
+	"                                ",
+	"                                ",
+	"                                ",
+	"                                ",
+	"                                ",
+	"                                ",
+	"                                ",
+	"                                ",
+	"                                ",
+	"                                ",
+	"0,0"
+};
+
+static SDL_Cursor *init_system_cursor(const char *image[])
+{
+	int i, row, col;
+	Uint8 data[4*32];
+	Uint8 mask[4*32];
+	int hot_x, hot_y;
+
+	i = -1;
+	for ( row=0; row<32; ++row ) {
+		for ( col=0; col<32; ++col ) {
+			if ( col % 8 ) {
+				data[i] <<= 1;
+				mask[i] <<= 1;
+			} else {
+				++i;
+				data[i] = mask[i] = 0;
+			}
+			switch (image[4+row][col]) {
+				case 'X':
+					data[i] |= 0x01;
+					mask[i] |= 0x01;
+					break;
+				case '.':
+					mask[i] |= 0x01;
+					break;
+				case ' ':
+					break;
+			}
+		}
+	}
+	sscanf(image[4+row], "%d,%d", &hot_x, &hot_y);
+	return SDL_CreateCursor(data, mask, 32, 32, hot_x, hot_y);
 }
 
 int main (int argc, char *argv[])
@@ -547,72 +593,74 @@ int main (int argc, char *argv[])
 	errno = 0;
 	byte ep_in_addr  = -1;
 	byte ep_out_addr = -1;
-	
-	
-	/* create temp SRT file */
-	/* commenting out as subtitleoverlay plugin is not working !!
-	srtfd = mkstemp(nameBuff);
-	unlink(nameBuff);
-	
-	if (srtfd < 1) {
-		printf("\n Creation of temp file failed with error [%s]\n",strerror(errno));
-		return (srtfd);
-	}
-
-	ret = write(srtfd,srtBuff,sizeof(srtBuff));
-
-	if(ret == -1 )
-    {
-        printf("\n write failed with error [%s]\n",strerror(errno));
-        return ret;
-    } */
+	SDL_Cursor *cursor;
 
 	/* Init gstreamer pipelien */
 	ret = gst_pipeline_init(app);
 	if (ret < 0) {
-		printf("gst_pipeline_init() ret: %d\n", ret);
-		return (-4);
+		printf("STATUS:gst_pipeline_init() ret: %d\n", ret);
+		return (ret);
 	}
+
+
+	/* Overlay gst sink on the Qt window */
+//	WId xwinid = window->winId();
+	
+//#endif
 
 	/* Start AA processing */
 	ret = hu_aap_start (ep_in_addr, ep_out_addr);
 	if (ret < 0) {
 		if (ret == -2)
-			printf("Phone is not connected. Connect a supported phone and restart.\n");
+			printf("STATUS:Phone is not connected. Connect a supported phone and restart.\n");
 		else if (ret == -1)
-			printf("Phone switched to accessory mode. Restart to enter AA mode.\n");
+			printf("STATUS:Phone switched to accessory mode. Restart to enter AA mode.\n");
 		else
-			printf("hu_app_start() ret: %d\n", ret);
+			printf("STATUS:hu_app_start() ret: %d\n", ret);
 		return (ret);
 	}
-
-	printf("SHAI1 : aap start.\n");
 	
-   /* Open Device */
-   mTouch.fd = open(EVENT_DEVICE, O_RDONLY);
-   
-   if (mTouch.fd == -1) {
-        fprintf(stderr, "%s is not a vaild device\n", EVENT_DEVICE);
-        return -3;
-    }
-    
-    
+	SDL_SysWMinfo info;
+
+
+	SDL_Init(SDL_INIT_EVERYTHING);
+	SDL_WM_SetCaption("Android Auto", NULL);
+	SDL_Surface *screen = SDL_SetVideoMode(800, 480, 16, SDL_HWSURFACE);
+
+	struct SDL_SysWMinfo wmInfo;
+	SDL_VERSION(&wmInfo.version);
+
+	if(-1 == SDL_GetWMInfo(&wmInfo))
+		printf("STATUS:errorxxxxx \n");
+	
+	cursor = init_system_cursor(arrow);
+	SDL_SetCursor(cursor);
+	SDL_ShowCursor(SDL_ENABLE);
+	
+	SDL_EventState( SDL_MOUSEMOTION, SDL_IGNORE );
+
+	gst_x_overlay_set_window_handle(GST_X_OVERLAY(app->sink), wmInfo.info.x11.window);
+
+
 	/* Start gstreamer pipeline and main loop */
 	ret = gst_loop(app);
 	if (ret < 0) {
-		printf("gst_loop() ret: %d\n", ret);
-		ret = -5;
+		printf("STATUS:gst_loop() ret: %d\n", ret);
 	}
 
 	/* Stop AA processing */
 	ret = hu_aap_stop ();
 	if (ret < 0) {
-		printf("hu_aap_stop() ret: %d\n", ret);
-		ret = -6;
-//		return (ret);
+		printf("STATUS:hu_aap_stop() ret: %d\n", ret);
+		SDL_Quit();
+		return (ret);
 	}
-		
-	close(mTouch.fd);
+
+	SDL_Quit();
+	
+	if (ret == 0) {
+		printf("STATUS:Press Back or Home button to close\n");
+	}
 
 	return (ret);
 }

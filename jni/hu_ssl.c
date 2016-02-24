@@ -9,6 +9,7 @@
   #include <openssl/pem.h>
   #include <openssl/x509.h>
   #include <openssl/x509_vfy.h>
+  #include <pthread.h>
 
   SSL_METHOD  * hu_ssl_method  = NULL;
   SSL_CTX     * hu_ssl_ctx     = NULL;
@@ -20,6 +21,132 @@
   #include "hu_ssl.h"
 
     // Code:
+
+// START THREAD SAFE
+
+struct CRYPTO_dynlock_value 
+{ 
+    pthread_mutex_t mutex; 
+}; 
+
+static pthread_mutex_t *mutex_buf = NULL; 
+
+/** 
+ * OpenSSL locking function. 
+ * 
+ * @param    mode    lock mode 
+ * @param    n        lock number 
+ * @param    file    source file name 
+ * @param    line    source file line number 
+ * @return    none 
+ */ 
+static void locking_function(int mode, int n, const char *file, int line) 
+{ 
+    if (mode & CRYPTO_LOCK) { 
+        pthread_mutex_lock(&mutex_buf[n]); 
+    } else { 
+        pthread_mutex_unlock(&mutex_buf[n]); 
+    } 
+} 
+
+/** 
+ * OpenSSL uniq id function. 
+ * 
+ * @return    thread id 
+ */ 
+static unsigned long id_function(void) 
+{ 
+    return ((unsigned long) pthread_self()); 
+} 
+
+/** 
+ * OpenSSL allocate and initialize dynamic crypto lock. 
+ * 
+ * @param    file    source file name 
+ * @param    line    source file line number 
+ */ 
+static struct CRYPTO_dynlock_value *dyn_create_function(const char *file, int line) 
+{ 
+    struct CRYPTO_dynlock_value *value; 
+
+    value = (struct CRYPTO_dynlock_value *) 
+        malloc(sizeof(struct CRYPTO_dynlock_value)); 
+    if (!value) { 
+        goto err; 
+    } 
+    pthread_mutex_init(&value->mutex, NULL); 
+
+    return value; 
+
+  err: 
+    return (NULL); 
+} 
+
+/** 
+ * OpenSSL dynamic locking function. 
+ * 
+ * @param    mode    lock mode 
+ * @param    l        lock structure pointer 
+ * @param    file    source file name 
+ * @param    line    source file line number 
+ * @return    none 
+ */ 
+static void dyn_lock_function(int mode, struct CRYPTO_dynlock_value *l, 
+                              const char *file, int line) 
+{ 
+    if (mode & CRYPTO_LOCK) { 
+        pthread_mutex_lock(&l->mutex); 
+    } else { 
+        pthread_mutex_unlock(&l->mutex); 
+    } 
+} 
+
+/** 
+ * OpenSSL destroy dynamic crypto lock. 
+ * 
+ * @param    l        lock structure pointer 
+ * @param    file    source file name 
+ * @param    line    source file line number 
+ * @return    none 
+ */ 
+
+static void dyn_destroy_function(struct CRYPTO_dynlock_value *l, 
+                                 const char *file, int line) 
+{ 
+    pthread_mutex_destroy(&l->mutex); 
+    free(l); 
+} 
+
+/** 
+ * Cleanup TLS library. 
+ * 
+ * @return    0 
+ */ 
+int hu_ssl_cleanup(void) 
+{ 
+    int i; 
+
+    if (mutex_buf == NULL) { 
+        return (0); 
+    } 
+
+    CRYPTO_set_dynlock_create_callback(NULL); 
+    CRYPTO_set_dynlock_lock_callback(NULL); 
+    CRYPTO_set_dynlock_destroy_callback(NULL); 
+
+    CRYPTO_set_locking_callback(NULL); 
+    CRYPTO_set_id_callback(NULL); 
+
+    for (i = 0; i < CRYPTO_num_locks(); i++) { 
+        pthread_mutex_destroy(&mutex_buf[i]); 
+    } 
+    free(mutex_buf); 
+    mutex_buf = NULL; 
+
+    return (0); 
+} 
+
+// END THREAD SAFE
 
   void hu_ssl_inf_log () {
     //logd ("SSL_is_init_finished(): %d", SSL_is_init_finished (hu_ssl_ssl));
@@ -51,7 +178,9 @@
       case SSL_ERROR_SSL:               err_str = ("Error SSL");             break;
       default:                          err_str = ("Error Unknown");         break;
     }
-
+	
+	ERR_print_errors_fp(stderr);
+	
     if (strlen (err_str) == 0)
       logd ("ret: %d  ssl_err: %d (Success)", ret, ssl_err);
     else
@@ -76,12 +205,36 @@
   #endif
 #endif */
 
+// START THREAD SAFE
+    int i; 
+
+    /* static locks area */ 
+    mutex_buf = malloc(CRYPTO_num_locks() * sizeof(pthread_mutex_t)); 
+    if (mutex_buf == NULL) { 
+        return (-1); 
+    } 
+    for (i = 0; i < CRYPTO_num_locks(); i++) { 
+        pthread_mutex_init(&mutex_buf[i], NULL); 
+    } 
+    /* static locks callbacks */ 
+    CRYPTO_set_locking_callback(locking_function); 
+    CRYPTO_set_id_callback(id_function); 
+    /* dynamic locks callbacks */ 
+    CRYPTO_set_dynlock_create_callback(dyn_create_function); 
+    CRYPTO_set_dynlock_lock_callback(dyn_lock_function); 
+    CRYPTO_set_dynlock_destroy_callback(dyn_destroy_function); 
+// END THREAD SAFE
+
+
     ret = SSL_library_init ();                                          // Init
     logd ("SSL_library_init ret: %d", ret);
     if (ret != 1) {                                                     // Always returns "1", so it is safe to discard the return value.
       loge ("SSL_library_init() error");
       return (-1);
     }
+    
+
+    
 #ifdef HU_USB_ERROR
     SSL_load_error_strings ();                                          // Before or after init ?
     ERR_load_BIO_strings ();
@@ -102,7 +255,7 @@
       return (-1);
     }
 
-    //CRYPTO_set_locking_callback (locking_function);
+//    CRYPTO_set_locking_callback (locking_function);
 
     cert_bio = BIO_new_mem_buf (cert_buf, sizeof (cert_buf));           // Read only memory BIO for certificate
     pem_password_cb * ppcb1 = NULL;
@@ -176,7 +329,8 @@
       logd ("SSL_CTX_ctrl() ret: %d", ret);
 */
 
-    //SSL_CTX_set_options (hu_ssl_ctx, SSL_OP_SINGLE_DH_USE);
+
+//    SSL_CTX_set_options (hu_ssl_ctx,SSL_OP_NO_TLSv1|SSL_OP_NO_TLSv1_1 |SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3);
 
     // Must do all CTX setup before SSL_new() !!
     hu_ssl_ssl = SSL_new (hu_ssl_ctx);
@@ -185,6 +339,8 @@
       return (-1);
     }
     logd ("SSL_new() hu_ssl_ssl: %p", hu_ssl_ssl);
+    
+//	SSL_set_mode (hu_ssl_ssl, SSL_OP_NO_TLSv1|SSL_OP_NO_TLSv1_1 |SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3);
 
     ret = SSL_check_private_key (hu_ssl_ssl);
     if (ret != 1) {
@@ -257,6 +413,8 @@ BIO_set_write_buf_size (hu_ssl_wm_bio, DEFBUF);
         hu_ssl_ret_log (ret);
         hu_ssl_inf_log ();
       }
+
+      hu_ssl_inf_log ();
 
       ret = BIO_read (hu_ssl_wm_bio, & hs_buf [6], sizeof (hs_buf) - 6);         // Read from the BIO Client request: Hello/Key Exchange
       if (ret <= 0) {
@@ -358,27 +516,9 @@ BIO_set_write_buf_size (hu_ssl_wm_bio, DEFBUF);
     }
 */
 
+
+
 /*
-  #include <pthread.h>
-
-  #define MUTEX_TYPE       pthread_mutex_t
-  #define MUTEX_SETUP(x)   pthread_mutex_init(&(x), NULL)
-  #define MUTEX_CLEANUP(x) pthread_mutex_destroy(&(x))
-  #define MUTEX_LOCK(x)    pthread_mutex_lock(&(x))
-  #define MUTEX_UNLOCK(x)  pthread_mutex_unlock(&(x))
-  #define THREAD_ID        pthread_self(  )
-
-
-  static MUTEX_TYPE * mutex_buf= NULL;    // This array will store all of the mutexes available to OpenSSL.
-
-  static void locking_function (int mode, int n, const char * file, int line) {
-    if (mode & CRYPTO_LOCK)
-      MUTEX_LOCK (mutex_buf [n]);
-    else
-      MUTEX_UNLOCK (mutex_buf [n]);
-  }
-
-
   int server_verify_peer (SSL * ssl) {
 
     X509 * peer_cert = SSL_get_peer_certificate (ssl);

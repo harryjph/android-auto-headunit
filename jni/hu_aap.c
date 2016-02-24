@@ -1,6 +1,6 @@
 
   // Android Auto Protocol Handler
-
+  #include <pthread.h>
   #define LOGTAG "hu_aap"
   #include "hu_uti.h"
   #include "hu_ssl.h"
@@ -62,21 +62,21 @@
 
 
   int iaap_tra_recv_tmo = 150;//100;//1;//10;//100;//250;//100;//250;//100;//25; // 10 doesn't work ? 100 does
-  int iaap_tra_send_tmo = 250;//2;//25;//250;//500;//100;//500;//250;
+  int iaap_tra_send_tmo = 500;//2;//25;//250;//500;//100;//500;//250;
 
   int ihu_tra_start (byte ep_in_addr, byte ep_out_addr) {
-/*    if (ep_in_addr == 255 && ep_out_addr == 255) {
+    if (ep_in_addr == 255 && ep_out_addr == 255) {
       logd ("AA over Wifi");
       transport_type = 2;       // WiFi
       iaap_tra_recv_tmo = 1;
       iaap_tra_send_tmo = 2;
     }
-    else { */
+    else { 
       transport_type = 1;       // USB
       logd ("AA over USB");
       iaap_tra_recv_tmo = 150;//100;
       iaap_tra_send_tmo = 250;
-//    }
+    }
     if (transport_type == 1)
       return (hu_usb_start  (ep_in_addr, ep_out_addr));
     else if (transport_type == 2)
@@ -142,6 +142,7 @@
       return (-1);
     }
 
+	
     int ret = ihu_tra_send (buf, len, tmo);
     if (ret < 0 || ret != len) {
       loge ("Error ihu_tra_send() error so stop Transport & AAP  ret: %d  len: %d", ret, len);
@@ -180,6 +181,7 @@
       int rmv = hu_aad_dmp (prefix, "HU", chan, flags, buf, len);
     }
 #endif
+
     int bytes_written = SSL_write (hu_ssl_ssl, buf, len);               // Write plaintext to SSL
     if (bytes_written <= 0) {
       loge ("SSL_write() bytes_written: %d", bytes_written);
@@ -194,6 +196,7 @@
       logd ("SSL_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, chan_get (chan));
 
     int bytes_read = BIO_read (hu_ssl_wm_bio, & enc_buf [4], sizeof (enc_buf) - 4); // Read encrypted from SSL BIO to enc_buf + 
+        
     if (bytes_read <= 0) {
       loge ("BIO_read() bytes_read: %d", bytes_read);
       hu_aap_stop ();
@@ -252,7 +255,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
                                                           0x0A, 2,
                                                                     0x08, 11, // SENSOR_TYPE_DRIVING_STATUS 12
                                                           0x0A, 2,
-                                                                    0x08, 9, // SENSOR_TYPE_NIGHT_DATA 12
+                                                                    0x08, 10, // SENSOR_TYPE_NIGHT_DATA 10
 //*/
 /*  Requested Sensors: 10, 9, 2, 7, 6:
                         0x0A, 4 + 4*6,     //co: int, cm/cn[]
@@ -331,7 +334,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
                                      0x4a, 0,
 //*/
 //*
-                        0x12, 5, 'M', 'a', 'z', 'd', 'a', //1, 'A', // Car Manuf          Part of "remembered car"
+                        0x12, 13, 'M', 'a', 'z', 'd', 'a', ' ', 'C', 'o', 'n', 'n', 'e', 'c', 't', //1, 'A', // Car Manuf          Part of "remembered car"
                         0x1A, 6, 'M', 'a', 'z', 'd', 'a', '6', //1, 'B', // Car Model
                         0x22, 4, '2', '0', '1', '6',//1, 'C', // Car Year           Part of "remembered car"
                         0x2A, 4, '0', '0', '0', '1',//1, 'D', // Car Serial     Not Part of "remembered car" ??     (vehicleId=null)
@@ -627,11 +630,11 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
     if (chan == AA_CH_SEN) {                                            // If Sensor channel...
       ms_sleep (2);//20);
       byte rspds [] = {0x80, 0x03, 0x6a, 2, 8, 0};                      // Driving Status = 0 = Parked (1 = Moving)
-//      return (hu_aap_enc_send (chan, rspds, sizeof (rspds)));           // Send Sensor Notification
-      hu_aap_enc_send (chan, rspds, sizeof (rspds));           // Send Sensor Notification
-      ms_sleep (2);
-      byte rspds1 [] = {0x80, 0x03, 0x52, 0x02, 0x08, 0x00};    // Day = 0, Night = 1 
-      return (hu_aap_enc_send (chan, rspds1, sizeof (rspds1))); // Send Sensor Night mode
+      return (hu_aap_enc_send (chan, rspds, sizeof (rspds)));           // Send Sensor Notification
+
+ //     ms_sleep (2);
+ //     byte rspds1 [] = {0x80, 0x03, 0x52, 0x02, 0x08, 0x00};    // Day = 0, Night = 1 
+ //     return (hu_aap_enc_send (chan, rspds1, sizeof (rspds1))); // Send Sensor Night mode
     }
     return (ret);
   }
@@ -1054,6 +1057,8 @@ ms: 337, 314                                                                    
   int iaap_video_process (int msg_type, int flags, byte * buf, int len) {    // Process video packet
 // MaxUnack
 //loge ("????????????????????? !!!!!!!!!!!!!!!!!!!!!!!!!   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   vid_ack_ctr: %d  len: %d", vid_ack_ctr ++, len);
+
+
 int ret = hu_aap_enc_send (AA_CH_VID, vid_ack, sizeof (vid_ack));      // Respond with ACK (for all fragments ?)
 /*
     int ret = 0;
@@ -1156,7 +1161,7 @@ int ret = hu_aap_enc_send (AA_CH_VID, vid_ack, sizeof (vid_ack));      // Respon
     int ret = ihu_tra_stop ();                                           // Stop Transport/USBACC/OAP
     iaap_state = hu_STATE_STOPPED;
     logd ("  SET: iaap_state: %d (%s)", iaap_state, state_get (iaap_state));
-
+	hu_ssl_cleanup();
     return (ret);
   }
 
@@ -1231,8 +1236,10 @@ http://www.cisco.com/c/en/us/support/docs/security-vpn/secure-socket-layer-ssl/1
 
 
   int iaap_recv_dec_process (int chan, int flags, byte * buf, int len) {// Decrypt & Process 1 received encrypted message
-
+	
     int bytes_written = BIO_write (hu_ssl_rm_bio, buf, len);           // Write encrypted to SSL input BIO
+    
+    
     if (bytes_written <= 0) {
       loge ("BIO_write() bytes_written: %d", bytes_written);
       return (-1);

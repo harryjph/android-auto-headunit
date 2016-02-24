@@ -5,6 +5,8 @@
 #include <gst/interfaces/xoverlay.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_syswm.h>
+#include <time.h>
+
 
 #include "hu_uti.h"
 #include "hu_aap.h"
@@ -25,8 +27,7 @@ GstElement *mic_pipeline, *mic_sink;
 
 int mic_change_state = 0;
 
-static GstFlowReturn read_mic_data (GstElement * sink);
-
+static void read_mic_data (GstElement * sink);
 
 static gboolean read_data(gst_app_t *app)
 {
@@ -40,6 +41,7 @@ static gboolean read_data(gst_app_t *app)
 	iret = hu_aap_recv_process ();                                    // Process 1 message
 	if (iret != 0) {
 		printf("hu_aap_recv_process() iret: %d\n", iret);
+		g_main_loop_quit(app->loop);
 		return FALSE;
 	}
 
@@ -225,7 +227,9 @@ static int gst_pipeline_init(gst_app_t *app)
 
 	gst_app_src_set_stream_type(app->src, GST_APP_STREAM_TYPE_STREAM);
 	
-		mic_pipeline = gst_parse_launch("alsasrc name=micsrc ! audioconvert ! audio/x-raw-int, rate=16000, channels=1, width=16, depth=16, signed=true ! appsink name=micsink",&error);
+//	mic_pipeline = gst_parse_launch("alsasrc name=micsrc ! audioconvert ! audio/x-raw-int, rate=16000, channels=1, width=16, depth=16, signed=true ! appsink name=micsink",&error);
+
+	mic_pipeline = gst_parse_launch("alsasrc name=micsrc ! audioconvert ! audio/x-raw-int, signed=true, endianness=1234, depth=16, width=16, channels=1, rate=16000 ! queue !appsink name=micsink async=false emit-signals=true blocksize=8192",&error);
 	
 	if (error != NULL) {
 		printf("could not construct pipeline: %s\n", error->message);
@@ -233,17 +237,24 @@ static int gst_pipeline_init(gst_app_t *app)
 		return -1;
 	}
 	
-	GstElement *mic_src = gst_bin_get_by_name (GST_BIN (mic_pipeline), "micsrc");
+//	GstElement *mic_src = gst_bin_get_by_name (GST_BIN (mic_pipeline), "micsrc");
 	
-	g_object_set(G_OBJECT(mic_src), "do-timestamp", TRUE, NULL);
+//	g_object_set(G_OBJECT(mic_src), "blocksize", 8192, NULL);
+
+//	g_object_set(G_OBJECT(mic_src), "num-buffers", 1, NULL);
 	
 	mic_sink = gst_bin_get_by_name (GST_BIN (mic_pipeline), "micsink");
 	
-	g_object_set(G_OBJECT(mic_sink), "async", FALSE, "emit-signals", TRUE, NULL);
+//	g_object_set(G_OBJECT(mic_sink), "async", FALSE, "emit-signals", TRUE, NULL);
 	
+//	g_object_set(G_OBJECT(mic_sink), "blocksize", 8192, NULL);
+
+//	g_object_set(G_OBJECT(mic_sink), "max-buffers", 1, NULL); 
+	
+		
 	g_signal_connect(mic_sink, "new-buffer", G_CALLBACK(read_mic_data), NULL);
 	
-	gst_element_set_state (mic_pipeline, GST_STATE_PAUSED);
+	gst_element_set_state (mic_pipeline, GST_STATE_READY);
 
 	return 0;
 }
@@ -253,32 +264,13 @@ static int aa_cmd_send(int cmd_len, unsigned char *cmd_buf, int res_max, unsigne
 	int chan = cmd_buf[0];
 	int res_len = 0;
 	int ret = 0;
-	char *dq_buf;
 
-	res_buf = (unsigned char *)malloc(res_max);
-	if (!res_buf) {
-		printf("TOTAL FAIL\n");
-		return -1;
-	}
-
-//	printf("chan: %d cmd_len: %d\n", chan, cmd_len);
 	ret = hu_aap_enc_send (chan, cmd_buf+4, cmd_len - 4);
 	if (ret < 0) {
 		printf("aa_cmd_send(): hu_aap_enc_send() failed with (%d)\n", ret);
 		free(res_buf);
 		return ret;
 	}
-
-/*	dq_buf = read_head_buffer_get(&res_len);
-	if (!dq_buf || res_len <= 0) {
-		printf("No data dq_buf!\n");
-		free(res_buf);
-		return 0;
-	}
-	memcpy(res_buf, dq_buf, res_len);
-	/* FIXME - we do nothing with this crap, probably check for ack and move along */
-
-	free(res_buf);
 
     return ret;
 }
@@ -298,6 +290,8 @@ static size_t uleb128_encode(uint64_t value, uint8_t *data)
 
 	return enc_size;
 }
+
+
 
 #define ACTION_DOWN	0
 #define ACTION_UP	1
@@ -354,68 +348,104 @@ static int aa_touch_event(uint8_t action, int x, int y) {
 	buf[idx++] = action;
 
 	/* Send touch event */
+	
 	int ret = aa_cmd_send (idx, buf, 0, NULL);
 	
 
 	free(buf);
-	
+		
 	return ret;
 }
 
-static const uint8_t mic_header[] ={AA_CH_MIC, 0x0b, 0x00, 0x00, 0x00, 0x00};
-
-static GstFlowReturn read_mic_data (GstElement * sink)
+static size_t uptime_encode(uint64_t value, uint8_t *data)
 {
+	uint8_t cbyte;
+	size_t enc_size = 0;
+
+	int ctr = 0;
+	for (ctr = 7; ctr >= 0; ctr --) {                           // Fill 8 bytes backwards
+		data [6 + ctr] = (uint8_t)(value & 0xFF);
+		value = value >> 8;
+	}
+
+	return 8;
+}
+
+static const uint8_t mic_header[] ={AA_CH_MIC, 0x0b, 0x00, 0x00, 0x00, 0x00};
+static const int max_size = 8192;
+
+struct timespec old_tp = {0,0};
+
+
+static void read_mic_data (GstElement * sink)
+{
+		
 	GstBuffer *gstbuf;
 	
-	gstbuf = gst_app_sink_pull_buffer (sink);
-
-
+	g_signal_emit_by_name (sink, "pull-buffer", &gstbuf,NULL);
+	
 	if (gstbuf) {
 
+		/* if mic is stopped, don't bother sending */	
+
 		if (mic_change_state == 0) {
+			printf("xx Mic stopped \n");
 			gst_buffer_unref(gstbuf);
-			return GST_FLOW_OK;
-		}
-		
-		struct timespec tp;
-		uint8_t *buf;
-		int idx;
-
-		int mic_buf_sz = GST_BUFFER_SIZE(gstbuf);
-
-		buf = (uint8_t *)malloc(14 + mic_buf_sz);
-		if(!buf) {
-			printf("Failed to allocate mic data buffer\n");
 			return;
 		}
 
+		gint mic_buf_sz = GST_BUFFER_SIZE (gstbuf);
+		
+		struct timespec tp;
+		uint8_t *mic_buffer;
+		int idx;
+		
+		if (mic_buf_sz <= 64) {
+			printf("Mic data < 64 \n");
+			return;
+		}
+		
+		mic_buffer = (uint8_t *)malloc(14 + mic_buf_sz);
+
 		/* Fetch the time stamp */
 		clock_gettime(CLOCK_REALTIME, &tp);
-
+		
 		/* Copy header */
-		memcpy(buf, mic_header, sizeof(mic_header));
-		idx = sizeof(mic_header) +
-			  uleb128_encode(tp.tv_nsec, buf + sizeof(mic_header));
+		memcpy(mic_buffer, mic_header, sizeof(mic_header));
+		
+		idx = sizeof(mic_header) + uptime_encode(tp.tv_nsec * 0.001, mic_buffer);
 
 		/* Copy PCM Audio Data */
-		memcpy(buf+idx, GST_BUFFER_DATA(gstbuf), mic_buf_sz);
-		idx += sizeof(mic_buf_sz);
-
-		/* Send Mic Audio */
-		aa_cmd_send (idx, buf, 0, NULL);
-
-		free(buf);
+		memcpy(mic_buffer+idx, GST_BUFFER_DATA(gstbuf), mic_buf_sz);
+		idx += mic_buf_sz;
+	
+		aa_cmd_send (idx, mic_buffer, 0, NULL);
 		
 		gst_buffer_unref(gstbuf);
+		
+		free(mic_buffer);
+		
 	}
-
-	return GST_FLOW_OK;
 }
 
+int nightmode = 0;
 
 gboolean sdl_poll_event(gpointer data)
-{
+{	
+	int mic_ret = hu_aap_mic_get ();
+	
+	if (mic_change_state == 0 && mic_ret == 2) {
+		printf("SHAI1 : Mic Started\n");
+		mic_change_state = 2;
+		gst_element_set_state (mic_pipeline, GST_STATE_PLAYING);
+	}
+		
+	if (mic_change_state == 2 && mic_ret == 1) {
+		printf("SHAI1 : Mic Stopped\n");
+		mic_change_state = 0;
+		gst_element_set_state (mic_pipeline, GST_STATE_READY);
+	}	
+	
 	SDL_Event event;
 	SDL_MouseButtonEvent *mbevent;
 	gst_app_t *app = (gst_app_t *)data;
@@ -462,21 +492,27 @@ gboolean sdl_poll_event(gpointer data)
 			break;
 		}
 	}
-
-	int mic_ret = hu_aap_mic_get ();
 	
-	if (mic_change_state == 0 && mic_ret == 2) {
-		printf("SHAI1 : Mic Started");
-		mic_change_state = 2;
-		gst_element_set_state (mic_pipeline, GST_STATE_PLAYING);
+//  CHECK NIGHT MODE	
+	time_t rawtime;
+	struct tm *timenow;
+
+	time( &rawtime );
+	timenow = localtime( &rawtime );
+	
+	int nightmodenow = 1;
+	
+	if (timenow->tm_hour >= 6 && timenow->tm_hour <= 18)
+		nightmodenow = 0;
+	
+	if (nightmode != nightmodenow) {
+		nightmode = nightmodenow;
+		byte rspds [] = {-128, 0x03, 0x52, 0x02, 0x08, 0x01}; 	// Day = 0, Night = 1 
+		if (nightmode == 0)
+			rspds[5]= 0x00;
+		hu_aap_enc_send (AA_CH_SEN, rspds, sizeof (rspds)); 	// Send Sensor Night mode
 	}
 	
-	if (mic_change_state == 2 && mic_ret == 1) {
-		printf("SHAI1 : Mic Stopped");
-		mic_change_state = 0;
-		gst_element_set_state (mic_pipeline, GST_STATE_PAUSED);
-	}
-
 	return TRUE;
 }
 
@@ -498,6 +534,8 @@ static int gst_loop(gst_app_t *app)
 //	g_warning("set state null returned %d\n", state_ret);
 
 	gst_object_unref(app->pipeline);
+	gst_object_unref(mic_pipeline);
+	
 	
 	ms_sleep(100);
 	
@@ -591,8 +629,8 @@ int main (int argc, char *argv[])
 	gst_app_t *app = &gst_app;
 	int ret = 0;
 	errno = 0;
-	byte ep_in_addr  = -1;
-	byte ep_out_addr = -1;
+	byte ep_in_addr  = -2;
+	byte ep_out_addr = -2;
 	SDL_Cursor *cursor;
 
 	/* Init gstreamer pipelien */

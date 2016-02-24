@@ -4,6 +4,7 @@
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
 #include <linux/input.h>
+#include <time.h>
 
 #include "hu_uti.h"
 #include "hu_aap.h"
@@ -421,6 +422,7 @@ static GstFlowReturn read_mic_data (GstElement * sink)
 	return GST_FLOW_OK;
 }
 
+int nightmode = 0;
 
 gboolean input_poll_event(gpointer data)
 {
@@ -496,6 +498,27 @@ gboolean input_poll_event(gpointer data)
 		}
 	} 
 
+//  CHECK NIGHT MODE	
+	time_t rawtime;
+	struct tm *timenow;
+	
+	time( &rawtime );
+	timenow = localtime( &rawtime );
+	
+	int nightmodenow = 1;
+	
+	if (timenow->tm_hour >= 6 && timenow->tm_hour <= 18)
+		nightmodenow = 0;
+	
+	if (nightmode != nightmodenow) {
+		nightmode = nightmodenow;
+		byte rspds [] = {-128, 0x03, 0x52, 0x02, 0x08, 0x01}; 	// Day = 0, Night = 1 
+		if (nightmode == 0)
+			rspds[5]= 0x00;
+		hu_aap_enc_send (AA_CH_SEN, rspds, sizeof (rspds)); 	// Send Sensor Night mode
+	}
+
+
 //TO-DO
 	
 /*	int mic_ret = hu_aap_mic_get ();
@@ -545,8 +568,8 @@ int main (int argc, char *argv[])
 	gst_app_t *app = &gst_app;
 	int ret = 0;
 	errno = 0;
-	byte ep_in_addr  = -1;
-	byte ep_out_addr = -1;
+	byte ep_in_addr  = -2;
+	byte ep_out_addr = -2;
 	
 	
 	/* create temp SRT file */

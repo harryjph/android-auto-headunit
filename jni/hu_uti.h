@@ -3,7 +3,7 @@
 
 //  #define UTILS_INCLUDED
 
-#undef NDEBUG // Ensure debug stuff
+//#define NDEBUG // Ensure debug stuff
 
   #define hu_STATE_INITIAL   0
   #define hu_STATE_STARTIN   1
@@ -211,6 +211,7 @@ strlcpy(char       *dst,        /* O - Destination string */
 
 #define USB_VID_SON 0x0fce
 #define USB_VID_LGE 0xfff5
+#define USB_VID_LGD 0x1004
 
 #define USB_VID_LIN 0x1d6b
 #define USB_VID_QUA 0x05c6

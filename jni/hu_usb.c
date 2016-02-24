@@ -253,8 +253,11 @@ if (ms_duration > 400)
     }
 
     if (total_bytes_xfrd <= 0 && usb_err < 0) {
-      if (errno == EAGAIN || errno == ETIMEDOUT || usb_err == LIBUSB_ERROR_TIMEOUT)
+      if (errno == EAGAIN || errno == ETIMEDOUT || usb_err == LIBUSB_ERROR_TIMEOUT) {
         return (0);
+	}
+	  
+	  loge ("Done dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)  errno: %d (%s)", dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get (usb_err), errno, strerror (errno));
 
       hu_usb_stop ();  // Other errors here are fatal, so stop USB
       return (-1);
@@ -385,6 +388,8 @@ if (ms_duration > 400)
     else
       logd ("Done libusb_release_interface usb_err: %d (%s)", usb_err, iusb_error_get (usb_err));
 
+	libusb_reset_device (iusb_dev_hndl);
+	
     libusb_close (iusb_dev_hndl);
     logd ("Done libusb_close");
     iusb_dev_hndl = NULL;
@@ -427,9 +432,10 @@ if (ms_duration > 400)
       return (6);
     if (vendor == USB_VID_LGE)
       return (5);
+    if (vendor == USB_VID_LGD)
+      return (5);
     if (vendor == USB_VID_O1A)
       return (4);
-
     if (vendor == USB_VID_QUA)
       return (3);
     if (vendor == USB_VID_LIN)
@@ -454,7 +460,7 @@ if (ms_duration > 400)
     }
     logd ("OK libusb_init usb_err: %d", usb_err);
 
-    libusb_set_debug (NULL, LIBUSB_LOG_LEVEL_WARNING);    // DEBUG);//
+    libusb_set_debug (NULL, LIBUSB_LOG_LEVEL_INFO);    // DEBUG);//
     logd ("Done libusb_set_debug");
 
     libusb_device ** list;
@@ -656,7 +662,6 @@ if (ms_duration > 400)
       }
       logd ("OK iusb_init");
 
-// SHAI1 : Commenting out as this seems to force us to disconnect and connect 
 
       if (iusb_best_vendor == USB_VID_GOO) {
         logd ("Already OAP/AA mode, no need to call iusb_oap_start()");

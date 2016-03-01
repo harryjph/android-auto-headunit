@@ -434,12 +434,22 @@ if (ms_duration > 400)
       return (5);
     if (vendor == USB_VID_LGD)
       return (5);
+    if (vendor == USB_VID_ACE)
+      return (5);
+    if (vendor == USB_VID_HUA)
+      return (5);
+    if (vendor == USB_VID_PAN)
+      return (5);
+    if (vendor == USB_VID_ZTE)
+      return (5);
+    if (vendor == USB_VID_GAR)      
+      return (5);
     if (vendor == USB_VID_O1A)
       return (4);
     if (vendor == USB_VID_QUA)
       return (3);
-    if (vendor == USB_VID_LIN)
-      return (2);
+//    if (vendor == USB_VID_LIN)
+//      return (2);
 
     return (0);
   }
@@ -479,11 +489,11 @@ if (ms_duration > 400)
       device = list [idx];
       int vendor = iusb_vendor_get (device);
       //int product = product_get (device);
-      logd ("iusb_vendor_get vendor: 0x%04x  device: %p", vendor, device);
+      printf ("iusb_vendor_get vendor: 0x%04x  device: %p \n", vendor, device);
       if (vendor) {
         int vendor_priority = iusb_vendor_priority_get (vendor);
         //if (iusb_best_vendor_priority <  vendor_priority) {  // For first
-        if (iusb_best_vendor_priority <= vendor_priority) {  // For last
+        if (iusb_best_vendor_priority < vendor_priority) {  // For last
           iusb_best_vendor_priority = vendor_priority;
           iusb_best_vendor = vendor;
           iusb_best_device = device;
@@ -492,12 +502,14 @@ if (ms_duration > 400)
         }
       }
     }
+
+    
     if (iusb_best_vendor == 0 || iusb_best_device == NULL) {                                             // If no vendor...
-      loge ("Error device not found iusb_best_vendor: 0x%04x  iusb_best_device: %p", iusb_best_vendor, iusb_best_device);
+      printf ("Error device not found iusb_best_vendor: 0x%04x  iusb_best_device: %p \n", iusb_best_vendor, iusb_best_device);
       libusb_free_device_list (list, 1);                                // Free device list now that we are finished with it
-      return (-1);
+      return (-2);
     }
-    logd ("Device found iusb_best_vendor: 0x%04x  iusb_best_device: 0x%04x  iusb_best_man: \"%s\"  iusb_best_pro: \"%s\"", iusb_best_vendor, iusb_best_device, iusb_best_man, iusb_best_pro);
+    printf ("Device found iusb_best_vendor: 0x%04x  iusb_best_device: 0x%04x  iusb_best_man: \"%s\"  iusb_best_pro: \"%s\" \n", iusb_best_vendor, iusb_best_device, iusb_best_man, iusb_best_pro);
 
     //usb_perms_set ();                                                 // Setup USB permissions, where needed
 
@@ -658,7 +670,7 @@ if (ms_duration > 400)
         iusb_deinit ();
         iusb_state = hu_STATE_STOPPED;
         logd ("  SET: iusb_state: %d (%s)", iusb_state, state_get (iusb_state));
-        return (-1);
+        return (ret);
       }
       logd ("OK iusb_init");
 

@@ -23,128 +23,83 @@
     // Code:
 
 // START THREAD SAFE
+#define MAX_THREAD_NUMBER	100
 
-struct CRYPTO_dynlock_value 
-{ 
-    pthread_mutex_t mutex; 
-}; 
 
-static pthread_mutex_t *mutex_buf = NULL; 
+static pthread_mutex_t *lock_cs;
+static long *lock_count;
 
-/** 
- * OpenSSL locking function. 
- * 
- * @param    mode    lock mode 
- * @param    n        lock number 
- * @param    file    source file name 
- * @param    line    source file line number 
- * @return    none 
- */ 
-static void locking_function(int mode, int n, const char *file, int line) 
-{ 
-    if (mode & CRYPTO_LOCK) { 
-        pthread_mutex_lock(&mutex_buf[n]); 
-    } else { 
-        pthread_mutex_unlock(&mutex_buf[n]); 
-    } 
-} 
 
-/** 
- * OpenSSL uniq id function. 
- * 
- * @return    thread id 
- */ 
-static unsigned long id_function(void) 
-{ 
-    return ((unsigned long) pthread_self()); 
-} 
+void pthreads_locking_callback(int mode,int type,char *file,int line);
 
-/** 
- * OpenSSL allocate and initialize dynamic crypto lock. 
- * 
- * @param    file    source file name 
- * @param    line    source file line number 
- */ 
-static struct CRYPTO_dynlock_value *dyn_create_function(const char *file, int line) 
-{ 
-    struct CRYPTO_dynlock_value *value; 
+unsigned long pthreads_thread_id(void );
 
-    value = (struct CRYPTO_dynlock_value *) 
-        malloc(sizeof(struct CRYPTO_dynlock_value)); 
-    if (!value) { 
-        goto err; 
-    } 
-    pthread_mutex_init(&value->mutex, NULL); 
 
-    return value; 
+void thread_setup(void)
+	{
+	int i;
 
-  err: 
-    return (NULL); 
-} 
+	lock_cs=OPENSSL_malloc(CRYPTO_num_locks() * sizeof(pthread_mutex_t));
+	lock_count=OPENSSL_malloc(CRYPTO_num_locks() * sizeof(long));
+	for (i=0; i<CRYPTO_num_locks(); i++)
+		{
+		lock_count[i]=0;
+		pthread_mutex_init(&(lock_cs[i]),NULL);
+		}
 
-/** 
- * OpenSSL dynamic locking function. 
- * 
- * @param    mode    lock mode 
- * @param    l        lock structure pointer 
- * @param    file    source file name 
- * @param    line    source file line number 
- * @return    none 
- */ 
-static void dyn_lock_function(int mode, struct CRYPTO_dynlock_value *l, 
-                              const char *file, int line) 
-{ 
-    if (mode & CRYPTO_LOCK) { 
-        pthread_mutex_lock(&l->mutex); 
-    } else { 
-        pthread_mutex_unlock(&l->mutex); 
-    } 
-} 
+	CRYPTO_set_id_callback((unsigned long (*)())pthreads_thread_id);
+	CRYPTO_set_locking_callback((void (*)())pthreads_locking_callback);
+	}
 
-/** 
- * OpenSSL destroy dynamic crypto lock. 
- * 
- * @param    l        lock structure pointer 
- * @param    file    source file name 
- * @param    line    source file line number 
- * @return    none 
- */ 
+void thread_cleanup(void)
+	{
+	int i;
 
-static void dyn_destroy_function(struct CRYPTO_dynlock_value *l, 
-                                 const char *file, int line) 
-{ 
-    pthread_mutex_destroy(&l->mutex); 
-    free(l); 
-} 
+	CRYPTO_set_locking_callback(NULL);
+	fprintf(stderr,"cleanup\n");
+	for (i=0; i<CRYPTO_num_locks(); i++)
+		{
+		pthread_mutex_destroy(&(lock_cs[i]));
+		fprintf(stderr,"%8ld:%s\n",lock_count[i],
+			CRYPTO_get_lock_name(i));
+		}
+	OPENSSL_free(lock_cs);
+	OPENSSL_free(lock_count);
 
-/** 
- * Cleanup TLS library. 
- * 
- * @return    0 
- */ 
-int hu_ssl_cleanup(void) 
-{ 
-    int i; 
+	fprintf(stderr,"done cleanup\n");
+	}
 
-    if (mutex_buf == NULL) { 
-        return (0); 
-    } 
+void pthreads_locking_callback(int mode, int type, char *file,
+	     int line)
+      {
+//	fprintf(stderr,"thread=%4d mode=%s lock=%s %s:%d\n",
+//		CRYPTO_thread_id(),
+//		(mode&CRYPTO_LOCK)?"l":"u",
+//		(type&CRYPTO_READ)?"r":"w",file,line);
+/*
+	if (CRYPTO_LOCK_SSL_CERT == type)
+		fprintf(stderr,"(t,m,f,l) %ld %d %s %d\n",
+		CRYPTO_thread_id(),
+		mode,file,line);
+*/
+	if (mode & CRYPTO_LOCK)
+		{
+		pthread_mutex_lock(&(lock_cs[type]));
+		lock_count[type]++;
+		}
+	else
+		{
+		pthread_mutex_unlock(&(lock_cs[type]));
+		}
+	}
 
-    CRYPTO_set_dynlock_create_callback(NULL); 
-    CRYPTO_set_dynlock_lock_callback(NULL); 
-    CRYPTO_set_dynlock_destroy_callback(NULL); 
+unsigned long pthreads_thread_id(void)
+	{
+	unsigned long ret;
 
-    CRYPTO_set_locking_callback(NULL); 
-    CRYPTO_set_id_callback(NULL); 
-
-    for (i = 0; i < CRYPTO_num_locks(); i++) { 
-        pthread_mutex_destroy(&mutex_buf[i]); 
-    } 
-    free(mutex_buf); 
-    mutex_buf = NULL; 
-
-    return (0); 
-} 
+	ret=(unsigned long)pthread_self();
+	return(ret);
+	}
 
 // END THREAD SAFE
 
@@ -205,25 +160,6 @@ int hu_ssl_cleanup(void)
   #endif
 #endif */
 
-// START THREAD SAFE
-    int i; 
-
-    /* static locks area */ 
-    mutex_buf = malloc(CRYPTO_num_locks() * sizeof(pthread_mutex_t)); 
-    if (mutex_buf == NULL) { 
-        return (-1); 
-    } 
-    for (i = 0; i < CRYPTO_num_locks(); i++) { 
-        pthread_mutex_init(&mutex_buf[i], NULL); 
-    } 
-    /* static locks callbacks */ 
-    CRYPTO_set_locking_callback(locking_function); 
-    CRYPTO_set_id_callback(id_function); 
-    /* dynamic locks callbacks */ 
-    CRYPTO_set_dynlock_create_callback(dyn_create_function); 
-    CRYPTO_set_dynlock_lock_callback(dyn_lock_function); 
-    CRYPTO_set_dynlock_destroy_callback(dyn_destroy_function); 
-// END THREAD SAFE
 
 
     ret = SSL_library_init ();                                          // Init
@@ -372,6 +308,10 @@ BIO_set_write_buf_size (hu_ssl_wm_bio, DEFBUF);
     SSL_set_connect_state (hu_ssl_ssl);                                        // Set ssl to work in client mode
 
     SSL_set_verify (hu_ssl_ssl, SSL_VERIFY_NONE, NULL);
+    
+    // START THREAD SAFE
+//	thread_setup();
+	// END THREAD SAFE
 
 /*
     X509_STORE * x509_store = X509_STORE_new ();
@@ -424,7 +364,7 @@ BIO_set_write_buf_size (hu_ssl_wm_bio, DEFBUF);
       logd ("BIO_read() HS client req ret: %d", ret);
       int len = ret + 6;
       ret = hu_aap_tra_set (AA_CH_CTR, 3, 3, hs_buf, len);              // chan:0/AA_CH_CTR   flags:first+last    msg_type:SSL
-      ret = hu_aap_tra_send (hs_buf, len, 2000);                       // Send Client request to AA Server
+      ret = hu_aap_tra_send (0, hs_buf, len, 2000);                       // Send Client request to AA Server
       if (ret <= 0 || ret != len) {
         loge ("hu_aap_tra_send() HS client req ret: %d  len: %d", ret, len);
       }      
@@ -452,6 +392,7 @@ BIO_set_write_buf_size (hu_ssl_wm_bio, DEFBUF);
       loge ("Handshake did not finish !!!!");
       return (-1);
     }
+
 
     return (0);
 

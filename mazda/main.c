@@ -168,65 +168,27 @@ static int gst_pipeline_init(gst_app_t *app)
 
 	gst_init(NULL, NULL);
 
-	app->pipeline = (GstPipeline*)gst_pipeline_new("mypipeline");
+//	app->pipeline = (GstPipeline*)gst_pipeline_new("mypipeline");
+	
+	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc ! h264parse ! vpudec low-latency=true ! mfw_v4lsink sync=false", &error);
+	
+	if (error != NULL) {
+		printf("could not construct pipeline: %s\n", error->message);
+		g_clear_error (&error);	
+		return -1;
+	}
+	
 	bus = gst_pipeline_get_bus(app->pipeline);
 	gst_bus_add_watch(bus, (GstBusFunc)bus_callback, app);
 	gst_object_unref(bus);
+
+	app->src = (GstAppSrc*)gst_bin_get_by_name (GST_BIN (app->pipeline), "mysrc");
 	
-	app->src = (GstAppSrc*)gst_element_factory_make("appsrc", "mysrc");
-	app->sink = gst_element_factory_make("mfw_v4lsink", "myvsink");	
-	app->decoder = gst_element_factory_make("vpudec", "mydecoder");
-	app->queue = gst_element_factory_make("queue", "myqueue");
-	app->sink = gst_element_factory_make("mfw_v4lsink", "myvsink");
-
-
-	g_assert(app->src);
-	g_assert(app->decoder);
-	g_assert(app->queue);	
-	g_assert(app->sink);
-
-	g_object_set (G_OBJECT (app->src), "caps",
-	gst_caps_new_simple ("video/x-h264",
-				     "width", G_TYPE_INT, 800,
-				     "height", G_TYPE_INT, 480,
-				     "framerate", GST_TYPE_FRACTION, 30, 1,
-				     NULL), NULL);
-
-	
-	g_object_set(G_OBJECT(app->src), "is-live", TRUE, "block", FALSE,"do-timestamp", TRUE, 
-				  "format",GST_FORMAT_TIME,NULL);
-
-//	g_object_set(G_OBJECT(app->src), "is-live", TRUE, "do-timestamp", TRUE, 
-//				  "format",GST_FORMAT_TIME,NULL);
-
-				  		
-	g_object_set(G_OBJECT(app->decoder), "low-latency", TRUE, NULL);
-	
-	g_object_set(G_OBJECT(app->sink), "max-lateness", -1, NULL);
+	gst_app_src_set_stream_type(app->src, GST_APP_STREAM_TYPE_STREAM);
 
 	g_signal_connect(app->src, "need-data", G_CALLBACK(start_feed), app);
 	g_signal_connect(app->src, "enough-data", G_CALLBACK(stop_feed), app);
 
-//	gst_bin_add_many(GST_BIN(app->pipeline), (GstElement*)app->src, app->decoder, app->queue, app->sink, NULL);
-	gst_bin_add_many(GST_BIN(app->pipeline), (GstElement*)app->src, app->decoder, app->sink, NULL);
-
-	if(!gst_element_link((GstElement*)app->src, app->decoder)){
-		g_warning("failed to link src and decoder");
-	}
-
-	if(!gst_element_link(app->decoder, app->sink)){
-		g_warning("failed to link decoder and sink");
-	}
-		
-/*	if(!gst_element_link(app->decoder, app->queue)){
-		g_warning("failed to link decoder and queue");
-	}
-
-	if(!gst_element_link(app->queue, app->sink)){
-		g_warning("failed to link queue and sink");
-	} */
-
-	gst_app_src_set_stream_type(app->src, GST_APP_STREAM_TYPE_STREAM);
 
 // TO-DO	
 /*	mic_pipeline = gst_parse_launch("alsasrc name=micsrc ! audioconvert ! audio/x-raw-int, rate=16000, channels=1, width=16, depth=16, signed=true ! appsink name=micsink",&error);
@@ -267,7 +229,7 @@ static int aa_cmd_send(int cmd_len, unsigned char *cmd_buf, int res_max, unsigne
 	} */
 
 //	printf("chan: %d cmd_len: %d\n", chan, cmd_len);
-	ret = hu_aap_enc_send (chan, cmd_buf+4, cmd_len - 4);
+	ret = hu_aap_enc_send (0, chan, cmd_buf+4, cmd_len - 4);
 	if (ret < 0) {
 		printf("aa_cmd_send(): hu_aap_enc_send() failed with (%d)\n", ret);
 	//	free(res_buf);
@@ -369,7 +331,9 @@ static void aa_touch_event(uint8_t action, int x, int y) {
 	free(buf);
 }
 
-static const uint8_t mic_header[] ={AA_CH_MIC, 0x0b, 0x00, 0x00, 0x00, 0x00};
+
+
+/*static const uint8_t mic_header[] ={AA_CH_MIC, 0x0b, 0x00, 0x00, 0x00, 0x00};
 
 static GstFlowReturn read_mic_data (GstElement * sink)
 {
@@ -400,19 +364,19 @@ static GstFlowReturn read_mic_data (GstElement * sink)
 		}
 
 		/* Fetch the time stamp */
-		clock_gettime(CLOCK_REALTIME, &tp);
+/*		clock_gettime(CLOCK_REALTIME, &tp);
 
 		/* Copy header */
-		memcpy(buf, mic_header, sizeof(mic_header));
+/*		memcpy(buf, mic_header, sizeof(mic_header));
 		idx = sizeof(mic_header) +
 			  uleb128_encode(tp.tv_nsec, buf + sizeof(mic_header));
 
 		/* Copy PCM Audio Data */
-		memcpy(buf+idx, GST_BUFFER_DATA(gstbuf), mic_buf_sz);
+/*		memcpy(buf+idx, GST_BUFFER_DATA(gstbuf), mic_buf_sz);
 		idx += sizeof(mic_buf_sz);
 
 		/* Send Mic Audio */
-		aa_cmd_send (idx, buf, 0, NULL);
+/*		aa_cmd_send (idx, buf, 0, NULL);
 
 		free(buf);
 		
@@ -420,7 +384,7 @@ static GstFlowReturn read_mic_data (GstElement * sink)
 	}
 
 	return GST_FLOW_OK;
-}
+} */
 
 int nightmode = 0;
 
@@ -491,7 +455,7 @@ gboolean input_poll_event(gpointer data)
 					mTouch.action = ACTION_MOVE;
 					aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
 				} else {
-				aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
+					aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
 				//mTouch = (mytouch){0,0,0,0,0};
 				}
 				break;
@@ -515,7 +479,7 @@ gboolean input_poll_event(gpointer data)
 		byte rspds [] = {-128, 0x03, 0x52, 0x02, 0x08, 0x01}; 	// Day = 0, Night = 1 
 		if (nightmode == 0)
 			rspds[5]= 0x00;
-		hu_aap_enc_send (AA_CH_SEN, rspds, sizeof (rspds)); 	// Send Sensor Night mode
+		hu_aap_enc_send (0, AA_CH_SEN, rspds, sizeof (rspds)); 	// Send Sensor Night mode
 	}
 
 
@@ -548,7 +512,7 @@ static int gst_loop(gst_app_t *app)
 //	g_warning("set state returned %d\n", state_ret);
 
 	app->loop = g_main_loop_new (NULL, FALSE);
-	g_timeout_add_full(G_PRIORITY_HIGH, 50, input_poll_event, (gpointer)app, NULL);
+	g_timeout_add_full(G_PRIORITY_HIGH, 100, input_poll_event, (gpointer)app, NULL);
 
 	printf("Starting Android Auto...\n");
   	g_main_loop_run (app->loop);
@@ -558,7 +522,7 @@ static int gst_loop(gst_app_t *app)
 //	g_warning("set state null returned %d\n", state_ret);
 
 	gst_object_unref(app->pipeline);
-	gst_object_unref(mic_pipeline);
+//	gst_object_unref(mic_pipeline);
 
 	return ret;
 }

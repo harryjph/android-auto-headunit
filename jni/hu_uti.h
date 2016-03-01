@@ -3,7 +3,7 @@
 
 //  #define UTILS_INCLUDED
 
-//#define NDEBUG // Ensure debug stuff
+  #define NDEBUG // Ensure debug stuff
 
   #define hu_STATE_INITIAL   0
   #define hu_STATE_STARTIN   1
@@ -205,6 +205,12 @@ strlcpy(char       *dst,        /* O - Destination string */
 
 #define USB_VID_HTC 0x0bb4
 #define USB_VID_MOT 0x22b8
+#define USB_VID_ACE 0x0502
+#define USB_VID_HUA 0x12d1
+#define USB_VID_PAN 0x10a9
+#define USB_VID_ZTE 0x19d2
+#define USB_VID_GAR 0x091e
+
 
 #define USB_VID_SAM 0x04e8
 #define USB_VID_O1A 0xfff6  // Samsung ?

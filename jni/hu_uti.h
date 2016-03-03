@@ -221,6 +221,7 @@ strlcpy(char       *dst,        /* O - Destination string */
 
 #define USB_VID_LIN 0x1d6b
 #define USB_VID_QUA 0x05c6
+#define USB_VID_ONE 0x2a70
 #define USB_VID_COM 0x1519  // Comneon
 
 #define USB_VID_ASE 0x0835  // Action Star Enterprise

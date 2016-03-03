@@ -21,6 +21,8 @@ typedef struct {
 	guint sourceid;
 } gst_app_t;
 
+
+int terminate_app = 0;
 static gst_app_t gst_app;
 
 GstElement *mic_pipeline, *mic_sink;
@@ -32,7 +34,7 @@ static void read_mic_data (GstElement * sink);
 static int aa_cmd_send(int retry, int cmd_len, unsigned char *cmd_buf, int res_max, unsigned char *res_buf);
 
 static gboolean read_data(gst_app_t *app)
-{
+{	
 	GstBuffer *buffer;
 	guint8 *ptr;
 	GstFlowReturn ret;
@@ -206,7 +208,6 @@ static int gst_pipeline_init(gst_app_t *app)
 
 	g_object_set(G_OBJECT(app->src), "is-live", TRUE, "block", FALSE,"do-timestamp", TRUE, 
 				  "format",GST_FORMAT_TIME,NULL);
-
 
 	g_signal_connect(app->src, "need-data", G_CALLBACK(start_feed), app);
 	g_signal_connect(app->src, "enough-data", G_CALLBACK(stop_feed), app);
@@ -405,11 +406,8 @@ static void read_mic_data (GstElement * sink)
 			printf("Mic data < 64 \n");
 			return;
 		}
-		
-		
-		
+				
 		uint8_t *mic_buffer = (uint8_t *)malloc(14 + mic_buf_sz);
-
 		
 		/* Copy header */
 		memcpy(mic_buffer, mic_header, sizeof(mic_header));
@@ -425,14 +423,15 @@ static void read_mic_data (GstElement * sink)
 		aa_cmd_send (1, idx, mic_buffer, 0, NULL);
 		
 		free(mic_buffer);
-		
 	}
 }
 
 int nightmode = 0;
 
 gboolean sdl_poll_event(gpointer data)
-{	
+{
+	gst_app_t *app = (gst_app_t *)data;
+	
 	int mic_ret = hu_aap_mic_get ();
 	
 	if (mic_change_state == 0 && mic_ret == 2) {
@@ -449,7 +448,6 @@ gboolean sdl_poll_event(gpointer data)
 	
 	SDL_Event event;
 	SDL_MouseButtonEvent *mbevent;
-	gst_app_t *app = (gst_app_t *)data;
 	int ret;
 
 	if (SDL_PollEvent(&event) >= 0) {
@@ -517,6 +515,13 @@ gboolean sdl_poll_event(gpointer data)
 	return TRUE;
 }
 
+static gboolean on_sig_received (gpointer data)
+{
+	gst_app_t *app = (gst_app_t *)data;
+	g_main_loop_quit(app->loop);
+	return FALSE;
+}
+
 static int gst_loop(gst_app_t *app)
 {
 	int ret;
@@ -526,6 +531,7 @@ static int gst_loop(gst_app_t *app)
 //	g_warning("set state returned %d\n", state_ret);
 
 	app->loop = g_main_loop_new (NULL, FALSE);
+	g_unix_signal_add (SIGTERM, on_sig_received, app);
 	g_timeout_add_full(G_PRIORITY_HIGH, 100, sdl_poll_event, (gpointer)app, NULL);
 	printf("Starting Android Auto...\n");
   	g_main_loop_run (app->loop);
@@ -536,7 +542,6 @@ static int gst_loop(gst_app_t *app)
 
 	gst_object_unref(app->pipeline);
 	gst_object_unref(mic_pipeline);
-	
 	
 	ms_sleep(100);
 	
@@ -625,8 +630,9 @@ static SDL_Cursor *init_system_cursor(const char *image[])
 	return SDL_CreateCursor(data, mask, 32, 32, hot_x, hot_y);
 }
 
+
 int main (int argc, char *argv[])
-{
+{	
 	gst_app_t *app = &gst_app;
 	int ret = 0;
 	errno = 0;

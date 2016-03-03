@@ -115,6 +115,11 @@ int     LIBUSB_CALL libusb_bulk_transfer          (libusb_device_handle *dev_han
   byte  iusb_curr_pro [256] = {0};
   byte  iusb_best_pro [256] = {0};
 
+struct usbvpid {
+    uint16_t vendor;
+    uint16_t product;
+};
+
 
 #ifndef NDEBUG
 
@@ -402,21 +407,25 @@ if (ms_duration > 400)
   }
 
 
-  int iusb_vendor_get (libusb_device * device) {
+struct usbvpid iusb_vendor_get (libusb_device * device) {
+
+    struct usbvpid dev = {0,0};
+
     if (device == NULL)
-      return (0);
+      return dev;
 
     struct libusb_device_descriptor desc = {0};
 
     int usb_err = libusb_get_device_descriptor (device, & desc);
     if (usb_err != 0) {
       loge ("Error usb_err: %d (%s)", usb_err, iusb_error_get (usb_err));
-      return (0);
+      return dev;
     }
-    uint16_t vendor  = desc.idVendor;
-    uint16_t product = desc.idProduct;
-    logd ("Done usb_err: %d  vendor:product = 0x%04x:0x%04x", usb_err, vendor, product);
-    return (vendor);
+        
+    dev.vendor  = desc.idVendor;
+    dev.product = desc.idProduct;
+    logd ("Done usb_err: %d  vendor:product = 0x%04x:0x%04x", usb_err, dev.vendor, dev.product);
+    return (dev);
   }
 
   int iusb_vendor_priority_get (int vendor) {
@@ -448,8 +457,8 @@ if (ms_duration > 400)
       return (4);
     if (vendor == USB_VID_QUA)
       return (3);
-//    if (vendor == USB_VID_LIN)
-//      return (2);
+    if (vendor == USB_VID_ONE)
+      return (5);
 
     return (0);
   }
@@ -487,8 +496,9 @@ if (ms_duration > 400)
     libusb_device * device;
     for (idx = 0; idx < cnt; idx ++) {                                  // For all USB devices...
       device = list [idx];
-      int vendor = iusb_vendor_get (device);
-      //int product = product_get (device);
+      struct usbvpid dev = iusb_vendor_get (device); 
+      int vendor = dev.vendor;
+      int product = dev.product;
       printf ("iusb_vendor_get vendor: 0x%04x  device: %p \n", vendor, device);
       if (vendor) {
         int vendor_priority = iusb_vendor_priority_get (vendor);
@@ -496,6 +506,7 @@ if (ms_duration > 400)
         if (iusb_best_vendor_priority < vendor_priority) {  // For last
           iusb_best_vendor_priority = vendor_priority;
           iusb_best_vendor = vendor;
+          iusb_best_product = product;
           iusb_best_device = device;
           strncpy (iusb_best_man, iusb_curr_man, sizeof (iusb_best_man));
           strncpy (iusb_best_pro, iusb_curr_pro, sizeof (iusb_best_pro));
@@ -674,8 +685,10 @@ if (ms_duration > 400)
       }
       logd ("OK iusb_init");
 
+	  printf("SHAI1 iusb_best_product id %d \n", iusb_best_product);
 
-      if (iusb_best_vendor == USB_VID_GOO) {
+      if (iusb_best_vendor == USB_VID_GOO && (iusb_best_product >= 0x2d00 && iusb_best_product <= 0x2d05) ) {
+//      if (iusb_best_vendor == USB_VID_GOO ) {
         logd ("Already OAP/AA mode, no need to call iusb_oap_start()");
 
         iusb_state = hu_STATE_STARTED;

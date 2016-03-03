@@ -5,6 +5,8 @@
 #include <gst/app/gstappsrc.h>
 #include <linux/input.h>
 #include <time.h>
+#include <signal.h>
+
 
 #include "hu_uti.h"
 #include "hu_aap.h"
@@ -43,13 +45,9 @@ typedef struct {
 
 mytouch mTouch = (mytouch){0,0,0,0,0};
 
-//static char nameBuff[] = "/data_persist/dev/mytmpfile-XXXXXX";
-//static char srtBuff[] = "\n1\n00:00:30,150 --> 00:00:45,850\nFREE APP! DO NOT PAY\n";
-//int srtfd = -1;
-
 int mic_change_state = 0;
 
-static GstFlowReturn read_mic_data (GstElement * sink);
+static void read_mic_data (GstElement * sink);
 
 static gboolean read_data(gst_app_t *app)
 {
@@ -165,10 +163,8 @@ static int gst_pipeline_init(gst_app_t *app)
 	
 	GError *error = NULL;
 
-
 	gst_init(NULL, NULL);
 
-//	app->pipeline = (GstPipeline*)gst_pipeline_new("mypipeline");
 	
 	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc ! h264parse ! vpudec low-latency=true ! mfw_v4lsink sync=false", &error);
 	
@@ -190,26 +186,21 @@ static int gst_pipeline_init(gst_app_t *app)
 	g_signal_connect(app->src, "enough-data", G_CALLBACK(stop_feed), app);
 
 
-// TO-DO	
-/*	mic_pipeline = gst_parse_launch("alsasrc name=micsrc ! audioconvert ! audio/x-raw-int, rate=16000, channels=1, width=16, depth=16, signed=true ! appsink name=micsink",&error);
+	mic_pipeline = gst_parse_launch("alsasrc name=micsrc ! audioconvert ! audio/x-raw-int, signed=true, endianness=1234, depth=16, width=16, channels=1, rate=16000 ! queue !appsink name=micsink async=false emit-signals=true blocksize=8192",&error);
 	
 	if (error != NULL) {
-		printf("could not construct pipeline: %s\n", error->message);
+		printf("could not construct mic pipeline: %s\n", error->message);
 		g_clear_error (&error);	
 		return -1;
 	}
 	
-	GstElement *mic_src = gst_bin_get_by_name (GST_BIN (mic_pipeline), "micsrc");
-	
-	g_object_set(G_OBJECT(mic_src), "do-timestamp", TRUE, NULL);
-	
 	mic_sink = gst_bin_get_by_name (GST_BIN (mic_pipeline), "micsink");
-	
-	g_object_set(G_OBJECT(mic_sink), "async", FALSE, "emit-signals", TRUE, NULL);
-	
+
+	g_object_set(G_OBJECT(mic_sink), "throttle-time", 3000000, NULL);
+		
 	g_signal_connect(mic_sink, "new-buffer", G_CALLBACK(read_mic_data), NULL);
 	
-	gst_element_set_state (mic_pipeline, GST_STATE_PAUSED); */
+	state_ret = gst_element_set_state (mic_pipeline, GST_STATE_READY);
 
 	return 0;
 
@@ -220,39 +211,15 @@ static int aa_cmd_send(int cmd_len, unsigned char *cmd_buf, int res_max, unsigne
 	int chan = cmd_buf[0];
 	int res_len = 0;
 	int ret = 0;
-	char *dq_buf;
 
-/*	res_buf = (unsigned char *)malloc(res_max);
-	if (!res_buf) {
-		printf("TOTAL FAIL\n");
-		return -1;
-	} */
-
-//	printf("chan: %d cmd_len: %d\n", chan, cmd_len);
 	ret = hu_aap_enc_send (0, chan, cmd_buf+4, cmd_len - 4);
 	if (ret < 0) {
 		printf("aa_cmd_send(): hu_aap_enc_send() failed with (%d)\n", ret);
-	//	free(res_buf);
 		return ret;
 	}
 	
 	return ret;
 
-//	dq_buf = vid_read_head_buf_get(&res_len);
-//	if (!dq_buf || res_len <= 0) {
-	//	printf("No data dq_buf!\n");
-//		free(res_buf);
-//		return 0;
-//	}
-	
-//	printf("dq_buf %s\n",dq_buf);
-	
-//	memcpy(res_buf, dq_buf, res_len);
-	/* FIXME - we do nothing with this crap, probably check for ack and move along */
-
-//	free(res_buf);
-
-//    return res_len;
 }
 
 static size_t uleb128_encode(uint64_t value, uint8_t *data)
@@ -331,65 +298,90 @@ static void aa_touch_event(uint8_t action, int x, int y) {
 	free(buf);
 }
 
-
-
-/*static const uint8_t mic_header[] ={AA_CH_MIC, 0x0b, 0x00, 0x00, 0x00, 0x00};
-
-static GstFlowReturn read_mic_data (GstElement * sink)
+static size_t uptime_encode(uint64_t value, uint8_t *data)
 {
-	GstBuffer *gstbuf;
-	
-	printf("SHAI1: inside read_mic_data.\n");
+	uint8_t cbyte;
+	size_t enc_size = 0;
 
-	gstbuf = gst_app_sink_pull_buffer (sink);
-
-
-	if (gstbuf) {
-
-		if (mic_change_state == 0) {
-			gst_buffer_unref(gstbuf);
-			return GST_FLOW_OK;
-		}
-		
-		struct timespec tp;
-		uint8_t *buf;
-		int idx;
-
-		int mic_buf_sz = GST_BUFFER_SIZE(gstbuf);
-
-		buf = (uint8_t *)malloc(14 + mic_buf_sz);
-		if(!buf) {
-			printf("Failed to allocate mic data buffer\n");
-			return;
-		}
-
-		/* Fetch the time stamp */
-/*		clock_gettime(CLOCK_REALTIME, &tp);
-
-		/* Copy header */
-/*		memcpy(buf, mic_header, sizeof(mic_header));
-		idx = sizeof(mic_header) +
-			  uleb128_encode(tp.tv_nsec, buf + sizeof(mic_header));
-
-		/* Copy PCM Audio Data */
-/*		memcpy(buf+idx, GST_BUFFER_DATA(gstbuf), mic_buf_sz);
-		idx += sizeof(mic_buf_sz);
-
-		/* Send Mic Audio */
-/*		aa_cmd_send (idx, buf, 0, NULL);
-
-		free(buf);
-		
-		gst_buffer_unref(gstbuf);
+	int ctr = 0;
+	for (ctr = 7; ctr >= 0; ctr --) {                           // Fill 8 bytes backwards
+		data [6 + ctr] = (uint8_t)(value & 0xFF);
+		value = value >> 8;
 	}
 
-	return GST_FLOW_OK;
-} */
+	return 8;
+}
+
+static const uint8_t mic_header[] ={AA_CH_MIC, 0x0b, 0x00, 0x00, 0x00, 0x00};
+static const int max_size = 8192;
+
+static void read_mic_data (GstElement * sink)
+{		
+	GstBuffer *gstbuf;
+	
+	g_signal_emit_by_name (sink, "pull-buffer", &gstbuf,NULL);
+	
+	if (gstbuf) {
+
+		struct timespec tp;
+
+		/* if mic is stopped, don't bother sending */	
+
+		if (mic_change_state == 0) {
+			printf("Mic stopped.. dropping buffers \n");
+			gst_buffer_unref(gstbuf);
+			return;
+		}
+		
+		/* Fetch the time stamp */
+		clock_gettime(CLOCK_REALTIME, &tp);
+		
+		gint mic_buf_sz = GST_BUFFER_SIZE (gstbuf);
+		
+		int idx;
+		
+		if (mic_buf_sz <= 64) {
+			printf("Mic data < 64 \n");
+			return;
+		}
+		
+		uint8_t *mic_buffer = (uint8_t *)malloc(14 + mic_buf_sz);
+		
+		/* Copy header */
+		memcpy(mic_buffer, mic_header, sizeof(mic_header));
+		
+		idx = sizeof(mic_header) + uptime_encode(tp.tv_nsec * 0.001, mic_buffer);
+
+		/* Copy PCM Audio Data */
+		memcpy(mic_buffer+idx, GST_BUFFER_DATA(gstbuf), mic_buf_sz);
+		idx += mic_buf_sz;
+		
+		gst_buffer_unref(gstbuf);
+		
+		aa_cmd_send (idx, mic_buffer, 0, NULL);
+		
+		free(mic_buffer);		
+	}
+}
 
 int nightmode = 0;
 
 gboolean input_poll_event(gpointer data)
 {
+	int mic_ret = hu_aap_mic_get ();
+	
+	if (mic_change_state == 0 && mic_ret == 2) {
+		printf("SHAI1 : Mic Started\n");
+		mic_change_state = 2;
+		gst_element_set_state (mic_pipeline, GST_STATE_PLAYING);
+	}
+		
+	if (mic_change_state == 2 && mic_ret == 1) {
+		printf("SHAI1 : Mic Stopped\n");
+		mic_change_state = 0;
+		gst_element_set_state (mic_pipeline, GST_STATE_READY);
+	}	
+	
 	struct input_event event[64];
 	const size_t ev_size = sizeof(struct input_event);
 	const size_t buffer_size = ev_size * 64;
@@ -481,27 +473,12 @@ gboolean input_poll_event(gpointer data)
 			rspds[5]= 0x00;
 		hu_aap_enc_send (0, AA_CH_SEN, rspds, sizeof (rspds)); 	// Send Sensor Night mode
 	}
-
-
-//TO-DO
-	
-/*	int mic_ret = hu_aap_mic_get ();
-	
-	
-	if (mic_change_state == 0 && mic_ret == 2) {
-		printf("SHAI1 : Mic Started");
-		mic_change_state = 2;
-		gst_element_set_state (mic_pipeline, GST_STATE_PLAYING);
-	}
-	
-	if (mic_change_state == 2 && mic_ret == 1) {
-		printf("SHAI1 : Mic Stopped");
-		mic_change_state = 0;
-		gst_element_set_state (mic_pipeline, GST_STATE_PAUSED);
-	} */
 	
 	return TRUE;
 }
+
+GMainLoop *mainloop;
+
 
 static int gst_loop(gst_app_t *app)
 {
@@ -512,6 +489,9 @@ static int gst_loop(gst_app_t *app)
 //	g_warning("set state returned %d\n", state_ret);
 
 	app->loop = g_main_loop_new (NULL, FALSE);
+	
+	mainloop = app->loop;
+	
 	g_timeout_add_full(G_PRIORITY_HIGH, 100, input_poll_event, (gpointer)app, NULL);
 
 	printf("Starting Android Auto...\n");
@@ -522,38 +502,30 @@ static int gst_loop(gst_app_t *app)
 //	g_warning("set state null returned %d\n", state_ret);
 
 	gst_object_unref(app->pipeline);
-//	gst_object_unref(mic_pipeline);
+	gst_object_unref(mic_pipeline);
 
 	return ret;
 }
 
-int main (int argc, char *argv[])
+static void signals_handler (int signum)
 {
+  if (mainloop && g_main_loop_is_running (mainloop))
+    {
+      g_main_loop_quit (mainloop);
+    }
+}
+
+
+int main (int argc, char *argv[])
+{	
+	signal (SIGTERM, signals_handler);
+	
 	gst_app_t *app = &gst_app;
 	int ret = 0;
 	errno = 0;
 	byte ep_in_addr  = -2;
 	byte ep_out_addr = -2;
 	
-	
-	/* create temp SRT file */
-	/* commenting out as subtitleoverlay plugin is not working !!
-	srtfd = mkstemp(nameBuff);
-	unlink(nameBuff);
-	
-	if (srtfd < 1) {
-		printf("\n Creation of temp file failed with error [%s]\n",strerror(errno));
-		return (srtfd);
-	}
-
-	ret = write(srtfd,srtBuff,sizeof(srtBuff));
-
-	if(ret == -1 )
-    {
-        printf("\n write failed with error [%s]\n",strerror(errno));
-        return ret;
-    } */
-
 	/* Init gstreamer pipelien */
 	ret = gst_pipeline_init(app);
 	if (ret < 0) {
@@ -596,7 +568,6 @@ int main (int argc, char *argv[])
 	if (ret < 0) {
 		printf("hu_aap_stop() ret: %d\n", ret);
 		ret = -6;
-//		return (ret);
 	}
 		
 	close(mTouch.fd);

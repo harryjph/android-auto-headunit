@@ -41,7 +41,7 @@
   extern int ena_log_verbo;
 
   #define byte unsigned char
-  #define DEFBUF  16384     //16384                                                 // Default buffer size is maximum for USB
+  #define DEFBUF  16384     //16384 65536                                                // Default buffer size is maximum for USB
 
   #define DEF_BUF 512                                                   // For Ascii strings and such
 
@@ -210,6 +210,9 @@ strlcpy(char       *dst,        /* O - Destination string */
 #define USB_VID_PAN 0x10a9
 #define USB_VID_ZTE 0x19d2
 #define USB_VID_GAR 0x091e
+#define USB_VID_XIA 0x2717
+#define USB_VID_ASU 0x0b05
+#define USB_VID_MEI 0x2a45
 
 
 #define USB_VID_SAM 0x04e8

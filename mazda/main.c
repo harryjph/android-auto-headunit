@@ -6,6 +6,7 @@
 #include <linux/input.h>
 #include <time.h>
 #include <signal.h>
+#include <errno.h>
 
 
 #include "hu_uti.h"
@@ -34,6 +35,8 @@ static gst_app_t gst_app;
 
 GstElement *mic_pipeline, *mic_sink;
 
+pthread_mutex_t mutexsend;
+
 
 typedef struct {
 	int fd;
@@ -45,9 +48,74 @@ typedef struct {
 
 mytouch mTouch = (mytouch){0,0,0,0,0};
 
+
+struct cmd_arg_struct {
+    int retry;
+    int chan;
+    int cmd_len; 
+    unsigned char *cmd_buf; 
+    int res_max; 
+    unsigned char *res_buf;
+    int result;
+};
+
+void *send_aa_cmd_thread(void *arguments)
+{
+    struct cmd_arg_struct *args = arguments;
+    
+	int ret = 0;
+
+	pthread_mutex_lock (&mutexsend);
+
+	ret = hu_aap_enc_send (args->retry, args->chan, args->cmd_buf, args->cmd_len);
+	
+	pthread_mutex_unlock (&mutexsend);
+	
+	
+	if (ret < 0) {
+		printf("send_aa_cmd_thread(): hu_aap_enc_send() failed with (%d)\n", ret);
+	}
+
+    args->result = ret;
+        
+    pthread_exit(NULL);
+}
+
+void *recv_video_thread(void *ret) {
+	
+	int *iret = (int *)ret;
+
+	pthread_mutex_lock (&mutexsend);
+	
+	*iret = hu_aap_recv_process ();                       
+
+	pthread_mutex_unlock (&mutexsend);
+	
+	pthread_exit(NULL);
+}
+
+
 int mic_change_state = 0;
 
 static void read_mic_data (GstElement * sink);
+
+int64_t getRunningTimeUs(gst_app_t *app)
+{
+    GstClock *clock = gst_element_get_clock((GstElement*)app->pipeline);
+    if (clock && GST_IS_CLOCK(clock))
+    {
+        GstClockTime base_time = gst_element_get_base_time((GstElement*)app->pipeline);
+        GstClockTime clock_time = gst_clock_get_time(clock);
+        gst_object_unref(GST_OBJECT (clock));
+        clock = NULL;
+        return (int64_t)GST_TIME_AS_USECONDS(clock_time) - (int64_t)GST_TIME_AS_USECONDS(base_time);
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 
 static gboolean read_data(gst_app_t *app)
 {
@@ -58,7 +126,12 @@ static gboolean read_data(gst_app_t *app)
 	char *vbuf;
 	int res_len = 0;
 
-	iret = hu_aap_recv_process ();                                    // Process 1 message
+	pthread_t recv_thread;
+	
+	pthread_create(&recv_thread, NULL, &recv_video_thread, (void *)&iret);
+
+	pthread_join(recv_thread, NULL);
+
 	if (iret != 0) {
 		printf("hu_aap_recv_process() iret: %d\n", iret);
 		g_main_loop_quit(app->loop);		
@@ -67,6 +140,7 @@ static gboolean read_data(gst_app_t *app)
 
 	/* Is there a video buffer queued? */
 	vbuf = vid_read_head_buf_get (&res_len);
+
 	if (vbuf != NULL) {
 		ptr = (guint8 *)g_malloc(res_len);
 		g_assert(ptr);
@@ -74,6 +148,11 @@ static gboolean read_data(gst_app_t *app)
 		
 		buffer = gst_buffer_new_and_alloc(res_len);
 		memcpy(GST_BUFFER_DATA(buffer),ptr,res_len);
+		
+		g_free(ptr);
+		
+		int64_t timestamp = getRunningTimeUs(app) * GST_USECOND; 
+		GST_BUFFER_TIMESTAMP(buffer) = timestamp;
 
 		ret = gst_app_src_push_buffer(app->src, buffer);
 
@@ -82,28 +161,51 @@ static gboolean read_data(gst_app_t *app)
 			return FALSE;
 		}
 	}
-
+	
 	return TRUE;
 }
 
 
+static void * threadEntry(void *app)
+{    
+	int frameLoadCount = 0;
 
-static void start_feed (GstElement * pipeline, guint size, gst_app_t *app)
-{
-	if (app->sourceid == 0) {
-		printf("start feeding\n");
-		app->sourceid = g_idle_add ((GSourceFunc) read_data, app);
+	while (read_data(app) == TRUE)
+	{        
+		frameLoadCount++;
 	}
+
+	return NULL;
 }
 
-static void stop_feed (GstElement * pipeline, gst_app_t *app)
+pthread_t threadid;
+
+static void start_feed (GstElement * pipeline, guint size, void *app)
 {
-	if (app->sourceid != 0) {
-		printf("stop feeding\n");
-		g_source_remove (app->sourceid);
-		app->sourceid = 0;
-	}
+    if (threadid == 0) {
+//        g_print ("start feeding\n");        
+        pthread_attr_t attr;
+        pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+        if (pthread_create(&threadid, &attr, threadEntry, (void *)app))
+            printf("Couldn't start thread. %s\n", strerror(errno));
+        pthread_attr_destroy(&attr);
+    
+    }
 }
+
+static void stop_feed (GstElement * pipeline, void *app)
+{
+//	printf("stopping feed\n");
+    if (threadid != 0) {
+//        g_print ("stop feeding\n");
+        
+        pthread_join(threadid, NULL);
+        
+        threadid = 0;
+    }
+}
+
 
 static gboolean bus_callback(GstBus *bus, GstMessage *message, gpointer *ptr)
 {
@@ -165,8 +267,11 @@ static int gst_pipeline_init(gst_app_t *app)
 
 	gst_init(NULL, NULL);
 
+	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc is-live=true block=false max-latency=1000000 ! h264parse ! vpudec low-latency=true framedrop=true framedrop-level-mask=0x200 ! mfw_v4lsink max-lateness=1000000000 sync=false async=false", &error);
 	
-	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc ! h264parse ! vpudec low-latency=true ! mfw_v4lsink sync=false", &error);
+//	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc is-live=true block=false do-timestamp=true format=3 min-latency=0 max-latency=10000000 ! h264parse ! queue max-size-bytes=0 max-size-time=0 ! vpudec low-latency=true framedrop=true frame-plus=2 framedrop-level-mask=0x100 ! queue max-size-bytes=0 max-size-time=0 ! mfw_v4lsink async=false", &error);
+
+//	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc is-live=true do-timestamp=true ! h264parse ! vpudec low-latency=true framedrop=true ! queue max-size-bytes=0 max-size-time=0 !mfw_isink axis-left=0 axis-top=0 disp-width=800 disp-height=480 sync=false", &error);
 	
 	if (error != NULL) {
 		printf("could not construct pipeline: %s\n", error->message);
@@ -183,6 +288,7 @@ static int gst_pipeline_init(gst_app_t *app)
 	gst_app_src_set_stream_type(app->src, GST_APP_STREAM_TYPE_STREAM);
 
 	g_signal_connect(app->src, "need-data", G_CALLBACK(start_feed), app);
+		
 	g_signal_connect(app->src, "enough-data", G_CALLBACK(stop_feed), app);
 
 
@@ -206,6 +312,7 @@ static int gst_pipeline_init(gst_app_t *app)
 
 }
 
+/*
 static int aa_cmd_send(int cmd_len, unsigned char *cmd_buf, int res_max, unsigned char *res_buf)
 {
 	int chan = cmd_buf[0];
@@ -220,7 +327,7 @@ static int aa_cmd_send(int cmd_len, unsigned char *cmd_buf, int res_max, unsigne
 	
 	return ret;
 
-}
+} */
 
 static size_t uleb128_encode(uint64_t value, uint8_t *data)
 {
@@ -238,11 +345,34 @@ static size_t uleb128_encode(uint64_t value, uint8_t *data)
 	return enc_size;
 }
 
+static size_t varint_encode (uint64_t val, uint8_t *ba, int idx) {
+	
+	if (val >= 0x7fffffffffffffff) {
+		return 1;
+	}
+
+	uint64_t left = val;
+	int idx2 = 0;
+	
+	for (idx2 = 0; idx2 < 9; idx2 ++) {
+		ba [idx+idx2] = (uint8_t) (0x7f & left);
+		left = left >> 7;
+		if (left == 0) {
+			return (idx2 + 1);
+		}
+		else if (idx2 < 9 - 1) {
+			ba [idx+idx2] |= 0x80;
+		}
+	}
+	
+	return 9;
+}
+
 #define ACTION_DOWN	0
 #define ACTION_UP	1
 #define ACTION_MOVE	2
 #define TS_MAX_REQ_SZ	32
-static const uint8_t ts_header[] ={AA_CH_TOU, 0x0b, 0x03, 0x00, 0x80, 0x01, 0x08};
+static const uint8_t ts_header[] ={0x80, 0x01, 0x08};
 static const uint8_t ts_sizes[] = {0x1a, 0x09, 0x0a, 0x03};
 static const uint8_t ts_footer[] = {0x10, 0x00, 0x18};
 
@@ -266,8 +396,12 @@ static void aa_touch_event(uint8_t action, int x, int y) {
 
 	/* Copy header */
 	memcpy(buf, ts_header, sizeof(ts_header));
+//	idx = sizeof(ts_header) +
+//	      uleb128_encode(tp.tv_nsec, buf + sizeof(ts_header));
+
 	idx = sizeof(ts_header) +
-	      uleb128_encode(tp.tv_nsec, buf + sizeof(ts_header));
+	      varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec, buf + sizeof(ts_header),0);
+
 	size1_idx = idx + 1;
 	size2_idx = idx + 3;
 
@@ -293,15 +427,27 @@ static void aa_touch_event(uint8_t action, int x, int y) {
 	buf[idx++] = action;
 
 	/* Send touch event */
-	aa_cmd_send (idx, buf, 0, NULL);
+//	aa_cmd_send (idx, buf, 0, NULL);
 
+	pthread_t send_thread;
+	struct cmd_arg_struct args;
+		
+	args.retry = 0;
+	args.chan = AA_CH_TOU;
+	args.cmd_len = idx; 
+	args.cmd_buf = buf; 
+	args.res_max = 0; 
+	args.res_buf = NULL;
+
+	pthread_create(&send_thread, NULL, &send_aa_cmd_thread, (void *)&args);
+
+	pthread_join(send_thread, NULL);	
+	
 	free(buf);
 }
 
 static size_t uptime_encode(uint64_t value, uint8_t *data)
 {
-	uint8_t cbyte;
-	size_t enc_size = 0;
 
 	int ctr = 0;
 	for (ctr = 7; ctr >= 0; ctr --) {                           // Fill 8 bytes backwards
@@ -312,8 +458,9 @@ static size_t uptime_encode(uint64_t value, uint8_t *data)
 	return 8;
 }
 
-static const uint8_t mic_header[] ={AA_CH_MIC, 0x0b, 0x00, 0x00, 0x00, 0x00};
+static const uint8_t mic_header[] ={0x00, 0x00};
 static const int max_size = 8192;
+
 
 static void read_mic_data (GstElement * sink)
 {		
@@ -336,7 +483,8 @@ static void read_mic_data (GstElement * sink)
 		/* Fetch the time stamp */
 		clock_gettime(CLOCK_REALTIME, &tp);
 		
-		gint mic_buf_sz = GST_BUFFER_SIZE (gstbuf);
+		gint mic_buf_sz;
+		mic_buf_sz = GST_BUFFER_SIZE (gstbuf);
 		
 		int idx;
 		
@@ -356,17 +504,30 @@ static void read_mic_data (GstElement * sink)
 		memcpy(mic_buffer+idx, GST_BUFFER_DATA(gstbuf), mic_buf_sz);
 		idx += mic_buf_sz;
 		
+		
+//		aa_cmd_send (idx, mic_buffer, 0, NULL);
+		pthread_t send_thread;
+		struct cmd_arg_struct args;
+		
+		args.retry = 1;
+		args.chan = AA_CH_MIC;
+		args.cmd_len = idx; 
+		args.cmd_buf = mic_buffer; 
+		args.res_max = 0; 
+		args.res_buf = NULL;
+
+		pthread_create(&send_thread, NULL, &send_aa_cmd_thread, (void *)&args);
+
+		pthread_join(send_thread, NULL);
+		
 		gst_buffer_unref(gstbuf);
-		
-		aa_cmd_send (idx, mic_buffer, 0, NULL);
-		
-		free(mic_buffer);		
+		free(mic_buffer);
 	}
-}
+} 
 
 int nightmode = 0;
 
-gboolean input_poll_event(gpointer data)
+gboolean touch_poll_event(gpointer data)
 {
 	int mic_ret = hu_aap_mic_get ();
 	
@@ -410,6 +571,10 @@ gboolean input_poll_event(gpointer data)
 	}
 	
 	size = read(mTouch.fd, &event, buffer_size);
+	
+	if (size == 0 || size == -1)
+		return FALSE;
+	
 	if (size < ev_size) {
 		printf("Error size when reading\n");
 		g_main_loop_quit(app->loop);
@@ -457,7 +622,7 @@ gboolean input_poll_event(gpointer data)
 //  CHECK NIGHT MODE	
 	time_t rawtime;
 	struct tm *timenow;
-	
+
 	time( &rawtime );
 	timenow = localtime( &rawtime );
 	
@@ -471,10 +636,136 @@ gboolean input_poll_event(gpointer data)
 		byte rspds [] = {-128, 0x03, 0x52, 0x02, 0x08, 0x01}; 	// Day = 0, Night = 1 
 		if (nightmode == 0)
 			rspds[5]= 0x00;
-		hu_aap_enc_send (0, AA_CH_SEN, rspds, sizeof (rspds)); 	// Send Sensor Night mode
+		hu_aap_enc_send (0,AA_CH_SEN, rspds, sizeof (rspds)); 	// Send Sensor Night mode
 	}
 	
 	return TRUE;
+}
+
+
+//COMMANDER
+//UP:
+uint8_t cd_up1[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x13,0x10,0x01,0x18,0x00,0x20,0x00 };
+uint8_t cd_up2[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x13,0x10,0x00,0x18,0x00,0x20,0x00 };
+
+//DOWN:
+uint8_t cd_down1[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x14,0x10,0x01,0x18,0x00,0x20,0x00 };
+uint8_t cd_down2[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x14,0x10,0x00,0x18,0x00,0x20,0x00 };
+
+
+//LEFT:
+uint8_t cd_left1[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x15,0x10,0x01,0x18,0x00,0x20,0x00 };
+uint8_t cd_left2[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x15,0x10,0x00,0x18,0x00,0x20,0x00 };
+
+//RIGHT
+uint8_t cd_right1[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x16,0x10,0x01,0x18,0x00,0x20,0x00 };
+uint8_t cd_right2[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x16,0x10,0x00,0x18,0x00,0x20,0x00 };
+
+//LEFT turn
+uint8_t cd_lefturn[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x32,0x11,0x0A,0x0F,0x08,-128,-128,0x04,0x10,-1,-1,-1,-1,-1,-1,-1,-1,-1,0x01 };
+
+//RIGHT turn
+uint8_t cd_rightturn[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x32,0x08,0x0A,0x06,0x08,-128,-128,0x04,0x10,0x01 };
+
+//BACK
+uint8_t cd_back1[]  =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x04,0x10,0x01,0x18,0x00,0x20,0x00 };
+uint8_t cd_back2[]  =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x04,0x10,0x00,0x18,0x00,0x20,0x00 };
+
+//ENTER
+uint8_t cd_enter1[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x17,0x10,0x01,0x18,0x00,0x20,0x00 };
+uint8_t cd_enter2[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x17,0x10,0x00,0x18,0x00,0x20,0x00 };
+
+
+/*
+gboolean commander_poll_event(gpointer data)
+{
+	
+	struct input_event event[64];
+	const size_t ev_size = sizeof(struct input_event);
+	const size_t buffer_size = ev_size * 64;
+    ssize_t size;
+    gst_app_t *app = (gst_app_t *)data;
+	
+	fd_set set;
+	struct timeval timeout;
+	int unblocked;
+
+	FD_ZERO(&set);
+	FD_SET(mCommander.fd, &set);
+
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 10000;
+	
+	unblocked = select(mCommander.fd + 1, &set, NULL, NULL, &timeout);
+
+	if (unblocked == -1) {
+		printf("Error in read...\n");
+		g_main_loop_quit(app->loop);
+		return FALSE;
+	}
+	else if (unblocked == 0) {
+			return TRUE;
+	}
+	
+	size = read(mCommander.fd, &event, buffer_size);
+	
+	if (size == 0 || size == -1)
+		return FALSE;
+	
+	if (size < ev_size) {
+		printf("Error size when reading\n");
+		g_main_loop_quit(app->loop);
+		return FALSE;
+	}
+	
+	int num_chars = size / ev_size;
+	
+	int i;
+	for (i=0;i < num_chars;i++) {
+		switch (event[i].type) {
+			case EV_ABS:
+				switch (event[i].code) {
+					case ABS_MT_POSITION_X:
+						mTouch.x = event[i].value * 800/4095;
+						break;
+					case ABS_MT_POSITION_Y:
+						mTouch.y = event[i].value * 480/4095;
+						break;
+				}
+				break;
+			case EV_KEY:
+				if (event[i].code == BTN_TOUCH) {
+					mTouch.action_recvd = 1;
+					if (event[i].value == 1) {
+						mTouch.action = ACTION_DOWN;
+					}
+					else {
+						mTouch.action = ACTION_UP;
+					}
+				}
+				break;
+			case EV_SYN:
+				if (mTouch.action_recvd == 0) {
+					mTouch.action = ACTION_MOVE;
+					aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
+				} else {
+					aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
+				//mTouch = (mytouch){0,0,0,0,0};
+				}
+				break;
+		}
+	} 
+	
+	return TRUE;
+}
+*/
+
+
+static void * input_thread(void *app) {
+	
+	while (touch_poll_event(app)) {		
+		ms_sleep(100);
+	}
 }
 
 GMainLoop *mainloop;
@@ -492,7 +783,7 @@ static int gst_loop(gst_app_t *app)
 	
 	mainloop = app->loop;
 	
-	g_timeout_add_full(G_PRIORITY_HIGH, 100, input_poll_event, (gpointer)app, NULL);
+//	g_timeout_add_full(G_PRIORITY_HIGH, 100, touch_poll_event, (gpointer)app, NULL);
 
 	printf("Starting Android Auto...\n");
   	g_main_loop_run (app->loop);
@@ -526,7 +817,7 @@ int main (int argc, char *argv[])
 	byte ep_in_addr  = -2;
 	byte ep_out_addr = -2;
 	
-	/* Init gstreamer pipelien */
+	/* Init gstreamer pipeline */
 	ret = gst_pipeline_init(app);
 	if (ret < 0) {
 		printf("gst_pipeline_init() ret: %d\n", ret);
@@ -554,7 +845,10 @@ int main (int argc, char *argv[])
         fprintf(stderr, "%s is not a vaild device\n", EVENT_DEVICE);
         return -3;
     }
-    
+ 
+	pthread_t ts_thread;
+
+	pthread_create(&ts_thread, NULL, &input_thread, (void *)app);
     
 	/* Start gstreamer pipeline and main loop */
 	ret = gst_loop(app);
@@ -571,6 +865,8 @@ int main (int argc, char *argv[])
 	}
 		
 	close(mTouch.fd);
+	
+	pthread_join(ts_thread, NULL);
 
 	return (ret);
 }

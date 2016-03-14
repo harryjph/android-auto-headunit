@@ -339,7 +339,8 @@ BIO_set_write_buf_size (hu_ssl_wm_bio, DEFBUF);
     //int have_error_or_done = 1;//0;
 //*/
 
-    byte hs_buf [DEFBUF] = {0};
+    byte hs_buf [DEFBUF] = {0}; 
+//	byte *hs_buf = (byte *)g_malloc(DEFBUF);
     int hs_ctr  = 0;
 
     int hs_finished = 0;//SSL_is_init_finished (hu_ssl_ssl)
@@ -359,6 +360,7 @@ BIO_set_write_buf_size (hu_ssl_wm_bio, DEFBUF);
       ret = BIO_read (hu_ssl_wm_bio, & hs_buf [6], sizeof (hs_buf) - 6);         // Read from the BIO Client request: Hello/Key Exchange
       if (ret <= 0) {
         loge ("BIO_read() HS client req ret: %d", ret);
+//        g_free(hs_buf);
         return (-1);
       }
       logd ("BIO_read() HS client req ret: %d", ret);
@@ -372,6 +374,7 @@ BIO_set_write_buf_size (hu_ssl_wm_bio, DEFBUF);
       ret = hu_aap_tra_recv (hs_buf, sizeof (hs_buf), 2000);           // Get Rx packet from Transport: Receive Server response: Hello/Change Cipher
       if (ret <= 0) {                                                   // If error, then done w/ error
         loge ("HS server rsp ret: %d", ret);
+//        g_free(hs_buf);
         return (-1);
       }  
       logd ("HS server rsp ret: %d", ret);
@@ -379,6 +382,7 @@ BIO_set_write_buf_size (hu_ssl_wm_bio, DEFBUF);
       ret = BIO_write (hu_ssl_rm_bio, & hs_buf [6], ret - 6);          // Write to the BIO Server response
       if (ret <= 0) {
         loge ("BIO_write() server rsp ret: %d", ret);
+//        g_free(hs_buf);
         return (-1);
       }
       logd ("BIO_write() server rsp ret: %d", ret);
@@ -386,13 +390,14 @@ BIO_set_write_buf_size (hu_ssl_wm_bio, DEFBUF);
       //logd ("hs_finished: %d", hs_finished);
     }
 
+//	g_free(hs_buf);
+	
     hs_finished = 1;    // !!!! SSL_is_init_finished() does not work for some reason !!!
 
     if (! hs_finished) {
       loge ("Handshake did not finish !!!!");
       return (-1);
     }
-
 
     return (0);
 

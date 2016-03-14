@@ -99,6 +99,7 @@
   byte vid_ack [] = {0x80, 0x04, 0x08, 0, 0x10,  1};                    // Global Ack: 0, 1
 
   byte  rx_buf [DEFBUF] = {0};                                          // Global Transport Rx buf
+//	byte  *rx_buf;
   //byte dec_buf [DEFBUF] = {0};                                          // Global decrypted receive buffer
   #define dec_buf rx_buf                          // Use same buffer !!!
 
@@ -156,6 +157,7 @@
     return (ret);
   }
 
+   pthread_mutex_t mutexsum;
 
 
   int hu_aap_enc_send (int retry,int chan, byte * buf, int len) {                 // Encrypt data and send: type,...
@@ -177,11 +179,12 @@
 #ifndef NDEBUG
 //    if (ena_log_verbo && ena_log_aap_send) {
     if (log_packet_info) { // && ena_log_aap_send)
-      char prefix [DEFBUF] = {0};
+      char prefix [DEF_BUF] = {0};
       snprintf (prefix, sizeof (prefix), "S %d %s %1.1x", chan, chan_get (chan), flags);  // "S 1 VID B"
       int rmv = hu_aad_dmp (prefix, "HU", chan, flags, buf, len);
     }
 #endif
+	
 
     int bytes_written = SSL_write (hu_ssl_ssl, buf, len);               // Write plaintext to SSL
     if (bytes_written <= 0) {
@@ -279,18 +282,18 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
 //*/
 //*
             // CH 2 Video Sink:
-                        0x0A, 0x15, 0x08, AA_CH_VID,
+                        0x0A, 4+4+11, 0x08, AA_CH_VID,
 //800f
-                                      0x1A, 0x11, // Sink: Video
+                                      0x1A, 4+11, // Sink: Video
                                                   0x08, 3,    // int (codec type) 3 = Video
                                                   //0x10, 1,    // int (audio stream type)
 //                                                  0x1a, 8,    // f        //I44100 = 0xAC44 = 10    10 1  100 0   100 0100  :  -60, -40, 2
                                                                             // 48000 = 0xBB80 = 10    111 0111   000 0000     :  -128, -9, 2
                                                                             // 16000 = 0x3E80 = 11 1110 1   000 0000          :  -128, -3
 
-                                                  0x22, 0x0D,   // cz                                                               // Res        FPS, WidMar, HeiMar, DPI
+                                                  0x22, 11,   // cz                                                               // Res        FPS, WidMar, HeiMar, DPI
                                                               // DPIs:    (FPS doesn't matter ?)
-                                                              0x08, 1, 0x10, 2, 0x18, 0, 0x20, 0, 0x28,  -96, 1, 0x30, 0,     //  800x 480, 30 fps, 0, 0, 160 dpi    0xa0 // Default 160 like 4100NEX
+                                                              0x08, 1, 0x10, 1, 0x18, 0, 0x20, 0, 0x28,  -96, 1,   //0x30, 0,     //  800x 480, 30 fps, 0, 0, 160 dpi    0xa0 // Default 160 like 4100NEX
                                                             //0x08, 1, 0x10, 1, 0x18, 0, 0x20, 0, 0x28, -128, 1,   //0x30, 0,     //  800x 480, 30 fps, 0, 0, 128 dpi    0x80 // 160-> 128 Small, phone/music close to outside
                                                             //0x08, 1, 0x10, 1, 0x18, 0, 0x20, 0, 0x28,  -16, 1,   //0x30, 0,     //  800x 480, 30 fps, 0, 0, 240 dpi    0xf0 // 160-> 240 Big, phone/music close to center
 
@@ -303,17 +306,15 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
 //*/
 //* Crashes on null Point reference without:
             // CH 3 TouchScreen/Input:
-                        0x0A, 4+2+6,//+2+16,
+//                        0x0A, 0x12,
+//                                        0x08, AA_CH_TOU,
+//										0x22,0x0E,
+//											0x0A,0x0C,0x01,0x02,0x04,0x13,0x14,0x15,0x16,0x17,0x54,0xFFFFFF80,0xFFFFFF80,0x04,
+                        0x0A, 4+2+6,
                                         0x08, AA_CH_TOU,
-//                                                              0x08, -128, -9, 2,    0x10, 16,   0x18, 2,
-                                                  //0x28, 0, //1,   boolean
-                                        0x22, 2+6,//+2+16, // ak  Input
-                                                  //0x0a, 16,   0x03, 0x54, 0x55, 0x56, 0x57, 0x58, 0x7e, 0x7f,   -47, 1,   -127, -128, 4,    -124, -128, 4,
-                                                  0x12,  6,        // no int[], am      // 800 = 0x0320 = 11 0    010 0000 : 32+128(-96), 6
-                                                                      // 480 = 0x01e0 = 1 1     110 0000 =  96+128 (-32), 3
-                                                              0x08, -96,   6,    0x10, -32, 3,        //  800x 480
-                                                            //0x08, -128, 10,    0x10, -48, 5,        // 1280x 720     0x80, 0x0a   0xd0, 5
-                                                            //0x08, -128, 15,    0x10, -72, 8,        // 1920x1080     0x80, 0x0f   0xb8, 8
+                                        0x22, 2+6,
+                                                  0x12,  6,
+                                                              0x08, -96,   6,    0x10, -32, 3,
 //*/
 //*
             // CH 7 Microphone Audio Source:
@@ -1167,12 +1168,16 @@ ms: 337, 314                                                                    
     int ret = ihu_tra_stop ();                                           // Stop Transport/USBACC/OAP
     iaap_state = hu_STATE_STOPPED;
     logd ("  SET: iaap_state: %d (%s)", iaap_state, state_get (iaap_state));
+    
+//    g_free(rx_buf);
 //	thread_cleanup();
     return (ret);
   }
 
   int hu_aap_start (byte ep_in_addr, byte ep_out_addr) {                // Starts Transport/USBACC/OAP, then AA protocol w/ VersReq(1), SSL handshake, Auth Complete
 
+//	rx_buf = (byte *)g_malloc(DEFBUF);
+	
     if (iaap_state == hu_STATE_STARTED) {
       loge ("CHECK: iaap_state: %d (%s)", iaap_state, state_get (iaap_state));
       return (0);
@@ -1197,16 +1202,20 @@ ms: 337, 314                                                                    
       return (-1);
     }  
 
-    byte buf [DEFBUF] = {0};
+//    byte buf [DEFBUF] = {0};
+	byte *buf = (byte *)g_malloc(DEFBUF);
     errno = 0;
-    ret = hu_aap_tra_recv (buf, sizeof (buf), 1000);                    // Get Rx packet from Transport:    Wait for Version Response
+    ret = hu_aap_tra_recv (buf, DEFBUF, 1000);                    // Get Rx packet from Transport:    Wait for Version Response
     if (ret <= 0) {
       loge ("Version response recv ret: %d", ret);
+      g_free(buf);
       hu_aap_stop ();
       return (-1);
     }  
     logd ("Version response recv ret: %d", ret);
 
+
+	g_free(buf);
 //*
     ret = hu_ssl_handshake ();                                          // Do SSL Client Handshake with AA SSL server
     if (ret) {
@@ -1280,7 +1289,7 @@ http://www.cisco.com/c/en/us/support/docs/security-vpn/secure-socket-layer-ssl/1
 #ifndef NDEBUG
 ////    if (chan != AA_CH_VID)                                          // If not video...
       if (log_packet_info) {
-        char prefix [DEFBUF] = {0};
+        char prefix [DEF_BUF] = {0};
         snprintf (prefix, sizeof (prefix), "R %d %s %1.1x", chan, chan_get (chan), flags);  // "R 1 VID B"
         int rmv = hu_aad_dmp (prefix, "AA", chan, flags, dec_buf, bytes_read);           // Dump decrypted AA
       }

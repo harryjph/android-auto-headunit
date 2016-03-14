@@ -459,6 +459,12 @@ struct usbvpid iusb_vendor_get (libusb_device * device) {
       return (3);
     if (vendor == USB_VID_ONE)
       return (5);
+    if (vendor == USB_VID_XIA)
+      return (5);
+    if (vendor == USB_VID_ASU)
+      return (5);
+    if (vendor == USB_VID_MEI)
+      return (5);      
 
     return (0);
   }
@@ -673,7 +679,7 @@ struct usbvpid iusb_vendor_get (libusb_device * device) {
 
     iusb_best_vendor = 0;
     int tries = 0;
-    while (iusb_best_vendor != USB_VID_GOO && tries ++ < 4) { //2000) {
+    while (iusb_best_vendor != USB_VID_GOO  && (iusb_best_product < 0x2d00 || iusb_best_product > 0x2d05) && tries ++ < 4) { //2000) {
 
       ret = iusb_init (ep_in_addr, ep_out_addr);
       if (ret < 0) {
@@ -706,7 +712,7 @@ struct usbvpid iusb_vendor_get (libusb_device * device) {
       }
       logd ("OK iusb_oap_start");
 
-      if (iusb_best_vendor != USB_VID_GOO) {
+      if (iusb_best_vendor != USB_VID_GOO && (iusb_best_product < 0x2d00 || iusb_best_product > 0x2d05)) {
         iusb_deinit ();
         ms_sleep (4000);//!!!!!!!!!!!!!!      (1000);                                                // 600 ms not enough; 700 seems OK
         logd ("Done iusb_best_vendor != USB_VID_GOO ms_sleep()");
@@ -715,7 +721,7 @@ struct usbvpid iusb_vendor_get (libusb_device * device) {
         logd ("Done iusb_best_vendor == USB_VID_GOO");
     }
 
-    if (iusb_best_vendor != USB_VID_GOO) {
+    if (iusb_best_vendor != USB_VID_GOO && (iusb_best_product < 0x2d00 || iusb_best_product > 0x2d05)) {
       loge ("No Google AA/Accessory mode iusb_best_vendor: 0x%x", iusb_best_vendor);
       iusb_deinit ();
       iusb_state = hu_STATE_STOPPED;

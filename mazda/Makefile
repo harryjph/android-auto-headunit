@@ -1,9 +1,9 @@
 #CC=gcc
 #LD=ld
-INCLUDES=`pkg-config --cflags gstreamer-0.10 gstreamer-app-0.10 gstreamer-video-0.10 libcrypto libusb-1.0 openssl`-I$(TOP)/jni
+INCLUDES=`pkg-config --cflags gstreamer-0.10 gstreamer-app-0.10 gstreamer-video-0.10 dbus-1 libcrypto libusb-1.0 openssl`-I$(TOP)/jni
 CFLAGS=-fPIC `sdl-config --libs`
 CPPFLAGS=-fPIC 
-LFLAGS=`pkg-config --libs gstreamer-0.10 gstreamer-app-0.10 gstreamer-video-0.10 libcrypto libusb-1.0 openssl `   -lrt
+LFLAGS=`pkg-config --libs gstreamer-0.10 gstreamer-app-0.10 gstreamer-video-0.10 dbus-1 libcrypto libusb-1.0 openssl `   -lrt
 TOP = ..
 SRCS =	$(TOP)/jni/hu_aad.c	\
 	$(TOP)/jni/hu_aap.c	\

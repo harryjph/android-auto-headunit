@@ -309,7 +309,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
 //                        0x0A, 0x12,
 //                                        0x08, AA_CH_TOU,
 //										0x22,0x0E,
-//											0x0A,0x0C,0x01,0x02,0x04,0x13,0x14,0x15,0x16,0x17,0x54,0xFFFFFF80,0xFFFFFF80,0x04,
+//											0x0A,0x0C,0x01,0x02,0x04,0x13,0x14,0x15,0x16,0x17,0x54,-128,-128,0x04,
                         0x0A, 4+2+6,
                                         0x08, AA_CH_TOU,
                                         0x22, 2+6,
@@ -422,7 +422,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
 
     int sd_buf_len = sizeof (sd_buf);
 //    if (wifi_direct && (file_get ("/data/data/ca.yyx.hu/files/nfc_wifi") || file_get ("/sdcard/hu_disable_audio_out")))    // If self or disable file exists...
-      sd_buf_len -= sd_buf_aud_len;                                     // Remove audio outputs from service discovery response buf
+//      sd_buf_len -= sd_buf_aud_len;                                     // Remove audio outputs from service discovery response buf
 
     return (hu_aap_enc_send (0,chan, sd_buf, sd_buf_len));                // Send Service Discovery Response from sd_buf
   }

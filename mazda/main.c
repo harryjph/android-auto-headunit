@@ -7,12 +7,16 @@
 #include <time.h>
 #include <signal.h>
 #include <errno.h>
+#include <dbus/dbus.h>
+#include <poll.h>
+
 
 
 #include "hu_uti.h"
 #include "hu_aap.h"
 
-#define EVENT_DEVICE    "/dev/input/filtered-touchscreen0"
+#define EVENT_DEVICE_TS    "/dev/input/filtered-touchscreen0"
+#define EVENT_DEVICE_CMD   "/dev/input/filtered-keyboard0"
 #define EVENT_TYPE      EV_ABS
 #define EVENT_CODE_X    ABS_X
 #define EVENT_CODE_Y    ABS_Y
@@ -34,6 +38,8 @@ typedef struct {
 static gst_app_t gst_app;
 
 GstElement *mic_pipeline, *mic_sink;
+GstElement *aud_pipeline, *aud_src;
+GstElement *au1_pipeline, *au1_src;
 
 pthread_mutex_t mutexsend;
 
@@ -44,9 +50,16 @@ typedef struct {
 	int y;
 	uint8_t action;
 	int action_recvd;
-} mytouch;
+} mytouchscreen;
 
-mytouch mTouch = (mytouch){0,0,0,0,0};
+mytouchscreen mTouch = (mytouchscreen){0,0,0,0,0};
+
+typedef struct {
+	int fd;
+	uint8_t action;
+} mycommander;
+
+mycommander mCommander = (mycommander){0,0};
 
 
 struct cmd_arg_struct {
@@ -124,6 +137,7 @@ static gboolean read_data(gst_app_t *app)
 	GstFlowReturn ret;
 	int iret;
 	char *vbuf;
+	char *abuf;
 	int res_len = 0;
 
 	pthread_t recv_thread;
@@ -161,6 +175,31 @@ static gboolean read_data(gst_app_t *app)
 			return FALSE;
 		}
 	}
+	
+	/* Is there an audio buffer queued? */
+	abuf = aud_read_head_buf_get (&res_len);
+	if (abuf != NULL) {
+		ptr = (guint8 *)g_malloc(res_len);
+		g_assert(ptr);
+		memcpy(ptr, abuf, res_len);
+		
+//		buffer = gst_buffer_new();
+		buffer = gst_buffer_new_and_alloc(res_len);
+		memcpy(GST_BUFFER_DATA(buffer),ptr,res_len);
+		
+		g_free(ptr);
+
+//		buffer = gst_buffer_new_wrapped(ptr, res_len);
+		if (res_len <= 2048 + 96)
+			ret = gst_app_src_push_buffer((GstAppSrc *)au1_src, buffer);
+		else
+			ret = gst_app_src_push_buffer((GstAppSrc *)aud_src, buffer);
+
+		if(ret !=  GST_FLOW_OK){
+			printf("push buffer returned %d for %d bytes \n", ret, res_len);
+			return FALSE;
+		}
+	}	
 	
 	return TRUE;
 }
@@ -290,6 +329,33 @@ static int gst_pipeline_init(gst_app_t *app)
 	g_signal_connect(app->src, "need-data", G_CALLBACK(start_feed), app);
 		
 	g_signal_connect(app->src, "enough-data", G_CALLBACK(stop_feed), app);
+
+
+	aud_pipeline = gst_parse_launch("appsrc name=audsrc ! audio/x-raw-int, signed=true, endianness=1234, depth=16, width=16, rate=48000, channels=2 ! alsasink ",&error);
+
+	if (error != NULL) {
+		printf("could not construct pipeline: %s\n", error->message);
+		g_clear_error (&error);	
+		return -1;
+	}	
+
+	aud_src = gst_bin_get_by_name (GST_BIN (aud_pipeline), "audsrc");
+	
+	gst_app_src_set_stream_type((GstAppSrc *)aud_src, GST_APP_STREAM_TYPE_STREAM);
+
+
+	au1_pipeline = gst_parse_launch("appsrc name=au1src ! audio/x-raw-int, signed=true, endianness=1234, depth=16, width=16, rate=16000, channels=1 ! alsasink ",&error);
+
+	if (error != NULL) {
+		printf("could not construct pipeline: %s\n", error->message);
+		g_clear_error (&error);	
+		return -1;
+	}	
+
+	au1_src = gst_bin_get_by_name (GST_BIN (au1_pipeline), "au1src");
+	
+	gst_app_src_set_stream_type((GstAppSrc *)au1_src, GST_APP_STREAM_TYPE_STREAM);
+
 
 
 	mic_pipeline = gst_parse_launch("alsasrc name=micsrc ! audioconvert ! audio/x-raw-int, signed=true, endianness=1234, depth=16, width=16, channels=1, rate=16000 ! queue !appsink name=micsink async=false emit-signals=true blocksize=8192",&error);
@@ -613,31 +679,11 @@ gboolean touch_poll_event(gpointer data)
 					aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
 				} else {
 					aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
-				//mTouch = (mytouch){0,0,0,0,0};
 				}
 				break;
 		}
 	} 
 
-//  CHECK NIGHT MODE	
-	time_t rawtime;
-	struct tm *timenow;
-
-	time( &rawtime );
-	timenow = localtime( &rawtime );
-	
-	int nightmodenow = 1;
-	
-	if (timenow->tm_hour >= 6 && timenow->tm_hour <= 18)
-		nightmodenow = 0;
-	
-	if (nightmode != nightmodenow) {
-		nightmode = nightmodenow;
-		byte rspds [] = {-128, 0x03, 0x52, 0x02, 0x08, 0x01}; 	// Day = 0, Night = 1 
-		if (nightmode == 0)
-			rspds[5]= 0x00;
-		hu_aap_enc_send (0,AA_CH_SEN, rspds, sizeof (rspds)); 	// Send Sensor Night mode
-	}
 	
 	return TRUE;
 }
@@ -665,7 +711,7 @@ uint8_t cd_right2[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,
 uint8_t cd_lefturn[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x32,0x11,0x0A,0x0F,0x08,-128,-128,0x04,0x10,-1,-1,-1,-1,-1,-1,-1,-1,-1,0x01 };
 
 //RIGHT turn
-uint8_t cd_rightturn[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x32,0x08,0x0A,0x06,0x08,-128,-128,0x04,0x10,0x01 };
+uint8_t cd_rightturn[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x32,0x08,0x0A,0x06,0x08,-128,-128,0x04,0x10,0x01,0 };
 
 //BACK
 uint8_t cd_back1[]  =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x04,0x10,0x01,0x18,0x00,0x20,0x00 };
@@ -676,99 +722,258 @@ uint8_t cd_enter1[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08
 uint8_t cd_enter2[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x17,0x10,0x00,0x18,0x00,0x20,0x00 };
 
 
-/*
 gboolean commander_poll_event(gpointer data)
-{
+{	
+	return TRUE;
+	
+	const struct timespec timeout = { .tv_sec = 0, .tv_nsec = 10000};
 	
 	struct input_event event[64];
 	const size_t ev_size = sizeof(struct input_event);
 	const size_t buffer_size = ev_size * 64;
-    ssize_t size;
-    gst_app_t *app = (gst_app_t *)data;
-	
-	fd_set set;
-	struct timeval timeout;
-	int unblocked;
+	ssize_t size;
+	gst_app_t *app = (gst_app_t *)data;
+	struct timespec tp;
+	sigset_t sigmask;
+	struct pollfd fds[1];
+	int ret;
 
-	FD_ZERO(&set);
-	FD_SET(mCommander.fd, &set);
+	sigemptyset(&sigmask);
 
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 10000;
-	
-	unblocked = select(mCommander.fd + 1, &set, NULL, NULL, &timeout);
+	fds[0].events = POLLIN;
+    fds[0].fd = mCommander.fd;
+    
+    fds[0].revents = 0;
 
-	if (unblocked == -1) {
-		printf("Error in read...\n");
-		g_main_loop_quit(app->loop);
-		return FALSE;
-	}
-	else if (unblocked == 0) {
-			return TRUE;
-	}
-	
-	size = read(mCommander.fd, &event, buffer_size);
-	
-	if (size == 0 || size == -1)
-		return FALSE;
-	
-	if (size < ev_size) {
-		printf("Error size when reading\n");
-		g_main_loop_quit(app->loop);
-		return FALSE;
-	}
-	
-	int num_chars = size / ev_size;
-	
-	int i;
-	for (i=0;i < num_chars;i++) {
-		switch (event[i].type) {
-			case EV_ABS:
-				switch (event[i].code) {
-					case ABS_MT_POSITION_X:
-						mTouch.x = event[i].value * 800/4095;
-						break;
-					case ABS_MT_POSITION_Y:
-						mTouch.y = event[i].value * 480/4095;
-						break;
-				}
-				break;
-			case EV_KEY:
-				if (event[i].code == BTN_TOUCH) {
-					mTouch.action_recvd = 1;
-					if (event[i].value == 1) {
-						mTouch.action = ACTION_DOWN;
-					}
-					else {
-						mTouch.action = ACTION_UP;
-					}
-				}
-				break;
-			case EV_SYN:
-				if (mTouch.action_recvd == 0) {
-					mTouch.action = ACTION_MOVE;
-					aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
-				} else {
-					aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
-				//mTouch = (mytouch){0,0,0,0,0};
-				}
-				break;
+	ret = ppoll(fds, sizeof(fds) / sizeof(struct pollfd), &timeout, &sigmask);
+
+	if (fds[0].revents & POLLIN) {
+
+		size = read(mCommander.fd, &event, buffer_size);
+		
+		if (size == 0 || size == -1)
+			return FALSE;
+		
+		if (size < ev_size) {
+			printf("Error size when reading\n");
+			g_main_loop_quit(app->loop);
+			return FALSE;
 		}
-	} 
+		
+		int num_chars = size / ev_size;
+		
+		int i;
+		for (i=0;i < num_chars;i++) {			
+			if (event[i].type == EV_KEY && event[i].value == 1) {
+				
+				pthread_t send_thread;
+				struct cmd_arg_struct args;
+					
+				args.retry = 0;
+				args.chan = AA_CH_TOU;
+				args.cmd_len = 0; 
+				args.cmd_buf = NULL; 
+				args.res_max = 0; 
+				args.res_buf = NULL;
+				
+				switch (event[i].code) {
+					case KEY_UP:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 10000000000 +tp.tv_nsec,cd_up1,3);
+						hu_aap_enc_send (0,AA_CH_TOU, cd_up1, sizeof(cd_up1));
+						break;
+							
+					case KEY_DOWN:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 10000000000 +tp.tv_nsec,cd_down1,3);
+						hu_aap_enc_send (0,AA_CH_TOU, cd_down1, sizeof(cd_down1));
+						break;
+										
+					case KEY_LEFT:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 10000000000 +tp.tv_nsec,cd_left1,3);
+						hu_aap_enc_send (0,AA_CH_TOU, cd_left1, sizeof(cd_left1));
+						break;
+						
+					case KEY_RIGHT:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_right1+3,0);
+						args.cmd_buf = cd_right1;
+						args.cmd_len = sizeof(cd_right1);
+						break;
+						
+					case KEY_N:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_lefturn+3,0);
+						args.cmd_buf = cd_lefturn;
+						args.cmd_len = sizeof(cd_lefturn);
+						break;
+						
+					case KEY_M:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_rightturn+3,0);
+						args.cmd_buf = cd_rightturn;
+						args.cmd_len = sizeof(cd_rightturn);
+						break;
+
+					case KEY_ENTER:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_enter1,3);
+						hu_aap_enc_send (0,AA_CH_TOU, cd_enter1, sizeof(cd_enter1));
+						break;
+
+					case KEY_BACKSPACE:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_back1,3);
+						hu_aap_enc_send (0,AA_CH_TOU, cd_back1, sizeof(cd_back1));
+						break;
+				}
+				
+				if (args.cmd_buf != NULL) {
+					pthread_create(&send_thread, NULL, &send_aa_cmd_thread, (void *)&args);
+					pthread_join(send_thread, NULL);	
+
+				}
+				
+			}
+				
+			if (event[i].type == EV_KEY && event[i].value == 0) {
+				switch (event[i].code) {
+					case KEY_UP:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_up2,3);
+						hu_aap_enc_send (0,AA_CH_TOU, cd_up2, sizeof(cd_up2));
+						break;
+							
+					case KEY_DOWN:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_down2,3);
+						hu_aap_enc_send (0,AA_CH_TOU, cd_down2, sizeof(cd_down2));
+						break;
+										
+					case KEY_LEFT:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_left2,3);
+						hu_aap_enc_send (0,AA_CH_TOU, cd_left2, sizeof(cd_left2));
+						break;
+						
+					case KEY_RIGHT:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_right2,3);
+						hu_aap_enc_send (0,AA_CH_TOU, cd_right2, sizeof(cd_right2));
+						break;
+
+					case KEY_ENTER:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_enter2,3);
+						hu_aap_enc_send (0,AA_CH_TOU, cd_enter2, sizeof(cd_enter2));
+						break;
+
+					case KEY_BACKSPACE:
+						clock_gettime(CLOCK_REALTIME, &tp);
+						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_back2,3);
+						hu_aap_enc_send (0,AA_CH_TOU, cd_back2, sizeof(cd_back2));
+						break;
+				}
+			}
+		}
+	}
 	
 	return TRUE;
 }
-*/
+
 
 
 static void * input_thread(void *app) {
 	
-	while (touch_poll_event(app)) {		
+	while (touch_poll_event(app)) {
+		commander_poll_event(app);		
 		ms_sleep(100);
 	}
 }
 
 GMainLoop *mainloop;
+
+#define HMI_BUS_ADDRESS "unix:path=/tmp/dbus_hmi_socket"
+
+ 
+static void * nightmode_thread(void *app) 
+{
+
+	// Initialize HMI bus
+	DBusConnection *hmi_bus;
+	DBusError error;
+
+	hmi_bus = dbus_connection_open(HMI_BUS_ADDRESS, &error);
+
+	if (!hmi_bus) {
+		printf("DBUS: failed to connect to HMI bus: %s: %s\n", error.name, error.message);
+	}
+
+	if (!dbus_bus_register(hmi_bus, &error)) {
+		printf("DBUS: failed to register with HMI bus: %s: %s\n", error.name, error.message);
+	}
+
+	// Wait for mainloop to start
+	ms_sleep(100);
+		
+	while (g_main_loop_is_running (mainloop)) {
+		
+		DBusMessage *msg = dbus_message_new_method_call("com.jci.BLM_TIME", "/com/jci/BLM_TIME", "com.jci.BLM_TIME", "GetClock");
+		DBusPendingCall *pending = NULL;
+
+		if (!msg) {
+			printf("DBUS: failed to create message \n");
+		}
+
+		if (!dbus_connection_send_with_reply(hmi_bus, msg, &pending, -1)) {
+			printf("DBUS: failed to send message \n");
+		}
+
+		dbus_connection_flush(hmi_bus);
+		dbus_message_unref(msg);
+
+		dbus_pending_call_block(pending);
+		msg = dbus_pending_call_steal_reply(pending);
+		if (!msg) {
+		   printf("DBUS: received null reply \n");
+		}
+
+		dbus_uint32_t nm_hour;
+		dbus_uint32_t nm_min;
+		dbus_uint32_t nm_timestamp;
+		dbus_uint64_t nm_calltimestamp;
+		if (!dbus_message_get_args(msg, &error, DBUS_TYPE_UINT32, &nm_hour,
+											  DBUS_TYPE_UINT32, &nm_min,
+											  DBUS_TYPE_UINT32, &nm_timestamp,
+											  DBUS_TYPE_UINT64, &nm_calltimestamp,
+											  DBUS_TYPE_INVALID)) {
+			printf("DBUS: failed to get result %s: %s\n", error.name, error.message);
+		}
+		
+		dbus_message_unref(msg);
+		
+		int nightmodenow = 1;
+
+		if (nm_hour >= 6 && nm_hour <= 18)
+			nightmodenow = 0;
+
+		if (nightmode != nightmodenow) {
+			nightmode = nightmodenow;
+			byte rspds [] = {-128, 0x03, 0x52, 0x02, 0x08, 0x01}; 	// Day = 0, Night = 1 
+			if (nightmode == 0)
+				rspds[5]= 0x00;
+			
+			pthread_mutex_lock (&mutexsend);
+
+			hu_aap_enc_send (0,AA_CH_SEN, rspds, sizeof (rspds)); 	// Send Sensor Night mode
+
+			pthread_mutex_unlock (&mutexsend);
+		}
+		
+		sleep(600);		
+	}
+}
 
 
 static int gst_loop(gst_app_t *app)
@@ -777,6 +982,9 @@ static int gst_loop(gst_app_t *app)
 	GstStateChangeReturn state_ret;
 
 	state_ret = gst_element_set_state((GstElement*)app->pipeline, GST_STATE_PLAYING);
+	state_ret = gst_element_set_state((GstElement*)aud_pipeline, GST_STATE_PLAYING);
+	state_ret = gst_element_set_state((GstElement*)au1_pipeline, GST_STATE_PLAYING);
+
 //	g_warning("set state returned %d\n", state_ret);
 
 	app->loop = g_main_loop_new (NULL, FALSE);
@@ -794,6 +1002,8 @@ static int gst_loop(gst_app_t *app)
 
 	gst_object_unref(app->pipeline);
 	gst_object_unref(mic_pipeline);
+	gst_object_unref(aud_pipeline);
+	gst_object_unref(au1_pipeline);
 
 	return ret;
 }
@@ -838,17 +1048,31 @@ int main (int argc, char *argv[])
 
 	printf("SHAI1 : aap start.\n");
 	
-   /* Open Device */
-   mTouch.fd = open(EVENT_DEVICE, O_RDONLY);
+   /* Open Touchscreen Device */
+   mTouch.fd = open(EVENT_DEVICE_TS, O_RDONLY);
    
    if (mTouch.fd == -1) {
-        fprintf(stderr, "%s is not a vaild device\n", EVENT_DEVICE);
+        fprintf(stderr, "%s is not a vaild device\n", EVENT_DEVICE_TS);
         return -3;
     }
- 
-	pthread_t ts_thread;
 
-	pthread_create(&ts_thread, NULL, &input_thread, (void *)app);
+   /* Open Touchscreen Device */
+   mCommander.fd = open(EVENT_DEVICE_CMD, O_RDONLY);
+   
+   if (mCommander.fd == -1) {
+        fprintf(stderr, "%s is not a vaild device\n", EVENT_DEVICE_CMD);
+        return -3;
+    }
+
+ 
+	pthread_t iput_thread;
+
+	pthread_create(&iput_thread, NULL, &input_thread, (void *)app);
+
+	pthread_t nm_thread;
+
+	pthread_create(&nm_thread, NULL, &nightmode_thread, (void *)app);
+
     
 	/* Start gstreamer pipeline and main loop */
 	ret = gst_loop(app);
@@ -865,8 +1089,10 @@ int main (int argc, char *argv[])
 	}
 		
 	close(mTouch.fd);
+	close(mCommander.fd);
 	
-	pthread_join(ts_thread, NULL);
+	pthread_cancel(nm_thread);
+	pthread_cancel(iput_thread);
 
 	return (ret);
 }

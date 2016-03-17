@@ -27,6 +27,11 @@ static gst_app_t gst_app;
 
 GstElement *mic_pipeline, *mic_sink;
 
+GstElement *aud_pipeline, *aud_src;
+
+GstElement *au1_pipeline, *au1_src;
+
+
 int mic_change_state = 0;
 
 pthread_mutex_t mutexsend;
@@ -86,6 +91,7 @@ static gboolean read_data(gst_app_t *app)
 	GstFlowReturn ret;
 	int iret;
 	char *vbuf;
+	char *abuf;
 	int res_len = 0;
 
 	pthread_t recv_thread;
@@ -114,7 +120,32 @@ static gboolean read_data(gst_app_t *app)
 		g_free(ptr);
 
 //		buffer = gst_buffer_new_wrapped(ptr, res_len);
-		ret = gst_app_src_push_buffer(app->src, buffer);
+		ret = gst_app_src_push_buffer((GstAppSrc *)app->src, buffer);
+
+		if(ret !=  GST_FLOW_OK){
+			printf("push buffer returned %d for %d bytes \n", ret, res_len);
+			return FALSE;
+		}
+	}
+
+	/* Is there an audio buffer queued? */
+	abuf = aud_read_head_buf_get (&res_len);
+	if (abuf != NULL) {
+		ptr = (guint8 *)g_malloc(res_len);
+		g_assert(ptr);
+		memcpy(ptr, abuf, res_len);
+		
+//		buffer = gst_buffer_new();
+		buffer = gst_buffer_new_and_alloc(res_len);
+		memcpy(GST_BUFFER_DATA(buffer),ptr,res_len);
+		
+		g_free(ptr);
+
+//		buffer = gst_buffer_new_wrapped(ptr, res_len);
+		if (res_len <= 2048 + 96)
+			ret = gst_app_src_push_buffer((GstAppSrc *)au1_src, buffer);
+		else
+			ret = gst_app_src_push_buffer((GstAppSrc *)aud_src, buffer);
 
 		if(ret !=  GST_FLOW_OK){
 			printf("push buffer returned %d for %d bytes \n", ret, res_len);
@@ -281,10 +312,35 @@ static int gst_pipeline_init(gst_app_t *app)
 		g_warning("failed to link convert and sink");
 	}
 
-	gst_app_src_set_stream_type(app->src, GST_APP_STREAM_TYPE_STREAM);
+	gst_app_src_set_stream_type((GstAppSrc *)app->src, GST_APP_STREAM_TYPE_STREAM);
 	
-//	mic_pipeline = gst_parse_launch("alsasrc name=micsrc ! audioconvert ! audio/x-raw-int, rate=16000, channels=1, width=16, depth=16, signed=true ! appsink name=micsink",&error);
+	
+	aud_pipeline = gst_parse_launch("appsrc name=audsrc ! audio/x-raw-int, signed=true, endianness=1234, depth=16, width=16, rate=48000, channels=2 ! alsasink ",&error);
 
+	if (error != NULL) {
+		printf("could not construct pipeline: %s\n", error->message);
+		g_clear_error (&error);	
+		return -1;
+	}	
+
+	aud_src = gst_bin_get_by_name (GST_BIN (aud_pipeline), "audsrc");
+	
+	gst_app_src_set_stream_type((GstAppSrc *)aud_src, GST_APP_STREAM_TYPE_STREAM);
+
+
+	au1_pipeline = gst_parse_launch("appsrc name=au1src ! audio/x-raw-int, signed=true, endianness=1234, depth=16, width=16, rate=16000, channels=1 ! alsasink ",&error);
+
+	if (error != NULL) {
+		printf("could not construct pipeline: %s\n", error->message);
+		g_clear_error (&error);	
+		return -1;
+	}	
+
+	au1_src = gst_bin_get_by_name (GST_BIN (au1_pipeline), "au1src");
+	
+	gst_app_src_set_stream_type((GstAppSrc *)au1_src, GST_APP_STREAM_TYPE_STREAM);
+	
+	
 	mic_pipeline = gst_parse_launch("alsasrc name=micsrc ! audioconvert ! audio/x-raw-int, signed=true, endianness=1234, depth=16, width=16, channels=1, rate=16000 ! queue !appsink name=micsink async=false emit-signals=true blocksize=8192",&error);
 	
 	if (error != NULL) {
@@ -292,19 +348,9 @@ static int gst_pipeline_init(gst_app_t *app)
 		g_clear_error (&error);	
 		return -1;
 	}
-	
-//	GstElement *mic_src = gst_bin_get_by_name (GST_BIN (mic_pipeline), "micsrc");
-	
-//	g_object_set(G_OBJECT(mic_src), "blocksize", 8192, NULL);
-
-//	g_object_set(G_OBJECT(mic_src), "num-buffers", 1, NULL);
-	
+		
 	mic_sink = gst_bin_get_by_name (GST_BIN (mic_pipeline), "micsink");
 	
-//	g_object_set(G_OBJECT(mic_sink), "async", FALSE, "emit-signals", TRUE, NULL);
-	
-//	g_object_set(G_OBJECT(mic_sink), "blocksize", 8192, NULL);
-
 	g_object_set(G_OBJECT(mic_sink), "throttle-time", 3000000, NULL);
 		
 	g_signal_connect(mic_sink, "new-buffer", G_CALLBACK(read_mic_data), NULL);
@@ -811,6 +857,8 @@ static int gst_loop(gst_app_t *app)
 	GstStateChangeReturn state_ret;
 
 	state_ret = gst_element_set_state((GstElement*)app->pipeline, GST_STATE_PLAYING);
+	state_ret = gst_element_set_state((GstElement*)aud_pipeline, GST_STATE_PLAYING);
+	state_ret = gst_element_set_state((GstElement*)au1_pipeline, GST_STATE_PLAYING);
 //	g_warning("set state returned %d\n", state_ret);
 
 	app->loop = g_main_loop_new (NULL, FALSE);
@@ -825,6 +873,8 @@ static int gst_loop(gst_app_t *app)
 
 	gst_object_unref(app->pipeline);
 	gst_object_unref(mic_pipeline);
+	gst_object_unref(aud_pipeline);
+	gst_object_unref(au1_pipeline);
 	
 	ms_sleep(100);
 	

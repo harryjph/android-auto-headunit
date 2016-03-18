@@ -94,7 +94,7 @@ void *send_aa_cmd_thread(void *arguments)
     pthread_exit(NULL);
 }
 
-void *recv_video_thread(void *ret) {
+void *recv_buffer_thread(void *ret) {
 	
 	int *iret = (int *)ret;
 
@@ -142,7 +142,7 @@ static gboolean read_data(gst_app_t *app)
 
 	pthread_t recv_thread;
 	
-	pthread_create(&recv_thread, NULL, &recv_video_thread, (void *)&iret);
+	pthread_create(&recv_thread, NULL, &recv_buffer_thread, (void *)&iret);
 
 	pthread_join(recv_thread, NULL);
 
@@ -1036,6 +1036,13 @@ int main (int argc, char *argv[])
 
 	/* Start AA processing */
 	ret = hu_aap_start (ep_in_addr, ep_out_addr);
+	if (ret == -1)
+	{
+		printf("Phone switched to accessory mode. Attempting once more.\n");
+		sleep(1);
+		ret = hu_aap_start (ep_in_addr, ep_out_addr);
+	}
+	
 	if (ret < 0) {
 		if (ret == -2)
 			printf("Phone is not connected. Connect a supported phone and restart.\n");
@@ -1056,7 +1063,7 @@ int main (int argc, char *argv[])
         return -3;
     }
 
-   /* Open Touchscreen Device */
+   /* Open Commander Device */
    mCommander.fd = open(EVENT_DEVICE_CMD, O_RDONLY);
    
    if (mCommander.fd == -1) {
@@ -1093,6 +1100,8 @@ int main (int argc, char *argv[])
 	
 	pthread_cancel(nm_thread);
 	pthread_cancel(iput_thread);
+	
+	printf("END \n");
 
 	return (ret);
 }

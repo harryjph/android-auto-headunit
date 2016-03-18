@@ -49,41 +49,6 @@ struct cmd_arg_struct {
     int result;
 };
 
-void *send_aa_cmd_thread(void *arguments)
-{
-    struct cmd_arg_struct *args = arguments;
-    
-	int ret = 0;
-
-	pthread_mutex_lock (&mutexsend);
-
-	ret = hu_aap_enc_send (args->retry, args->chan, args->cmd_buf, args->cmd_len);
-	
-	pthread_mutex_unlock (&mutexsend);
-	
-	
-	if (ret < 0) {
-		printf("send_aa_cmd_thread(): hu_aap_enc_send() failed with (%d)\n", ret);
-	}
-
-    args->result = ret;
-        
-    pthread_exit(NULL);
-}
-
-void *recv_buffer_thread(void *ret) {
-	
-	int *iret = (int *)ret;
-
-	pthread_mutex_lock (&mutexsend);
-	
-	*iret = hu_aap_recv_process ();                       
-
-	pthread_mutex_unlock (&mutexsend);
-	
-	pthread_exit(NULL);
-}
-
 static gboolean read_data(gst_app_t *app)
 {
 	GstBuffer *buffer;
@@ -94,11 +59,9 @@ static gboolean read_data(gst_app_t *app)
 	char *abuf;
 	int res_len = 0;
 
-	pthread_t recv_thread;
-	
-	pthread_create(&recv_thread, NULL, &recv_buffer_thread, (void *)&iret);
-
-	pthread_join(recv_thread, NULL);
+	pthread_mutex_lock (&mutexsend);
+	iret = hu_aap_recv_process ();                       
+	pthread_mutex_unlock (&mutexsend);
 	
 	if (iret != 0) {
 		printf("hu_aap_recv_process() iret: %d\n", iret);
@@ -109,15 +72,11 @@ static gboolean read_data(gst_app_t *app)
 	/* Is there a video buffer queued? */
 	vbuf = vid_read_head_buf_get (&res_len);
 	if (vbuf != NULL) {
-		ptr = (guint8 *)g_malloc(res_len);
-		g_assert(ptr);
-		memcpy(ptr, vbuf, res_len);
 		
 //		buffer = gst_buffer_new();
 		buffer = gst_buffer_new_and_alloc(res_len);
-		memcpy(GST_BUFFER_DATA(buffer),ptr,res_len);
+		memcpy(GST_BUFFER_DATA(buffer),vbuf,res_len);
 		
-		g_free(ptr);
 
 //		buffer = gst_buffer_new_wrapped(ptr, res_len);
 		ret = gst_app_src_push_buffer((GstAppSrc *)app->src, buffer);
@@ -131,15 +90,11 @@ static gboolean read_data(gst_app_t *app)
 	/* Is there an audio buffer queued? */
 	abuf = aud_read_head_buf_get (&res_len);
 	if (abuf != NULL) {
-		ptr = (guint8 *)g_malloc(res_len);
-		g_assert(ptr);
-		memcpy(ptr, abuf, res_len);
 		
 //		buffer = gst_buffer_new();
 		buffer = gst_buffer_new_and_alloc(res_len);
-		memcpy(GST_BUFFER_DATA(buffer),ptr,res_len);
+		memcpy(GST_BUFFER_DATA(buffer),abuf,res_len);
 		
-		g_free(ptr);
 
 //		buffer = gst_buffer_new_wrapped(ptr, res_len);
 		if (res_len <= 2048 + 96)
@@ -415,6 +370,7 @@ static int aa_touch_event(uint8_t action, int x, int y) {
 	int size1_idx, size2_idx, i;
 	int axis = 0;
 	int coordinates[3] = {x, y, 0};
+	int ret;
 
 	buf = (uint8_t *)malloc(TS_MAX_REQ_SZ);
 	if(!buf) {
@@ -457,23 +413,17 @@ static int aa_touch_event(uint8_t action, int x, int y) {
 
 	/* Send touch event */
 	
-	pthread_t send_thread;
-	struct cmd_arg_struct args;
-		
-	args.retry = 0;
-	args.chan = AA_CH_TOU;
-	args.cmd_len = idx; 
-	args.cmd_buf = buf; 
-	args.res_max = 0; 
-	args.res_buf = NULL;
-
-	pthread_create(&send_thread, NULL, &send_aa_cmd_thread, (void *)&args);
-
-	pthread_join(send_thread, NULL);	
+	pthread_mutex_lock (&mutexsend);
+	ret = hu_aap_enc_send (0, AA_CH_TOU, buf, idx);
+	pthread_mutex_unlock (&mutexsend);
 	
+	if (ret < 0) {
+		printf("aa_touch_event(): hu_aap_enc_send() failed with (%d)\n", ret);
+	}
+
 	free(buf);
 		
-	return args.result;
+	return ret;
 }
 
 static size_t uptime_encode(uint64_t value, uint8_t *data)
@@ -495,6 +445,7 @@ static void read_mic_data (GstElement * sink)
 {
 		
 	GstBuffer *gstbuf;
+	int ret;
 	
 	g_signal_emit_by_name (sink, "pull-buffer", &gstbuf,NULL);
 	
@@ -533,19 +484,13 @@ static void read_mic_data (GstElement * sink)
 		memcpy(mic_buffer+idx, GST_BUFFER_DATA(gstbuf), mic_buf_sz);
 		idx += mic_buf_sz;
 						
-		pthread_t send_thread;
-		struct cmd_arg_struct args;
+		pthread_mutex_lock (&mutexsend);
+		ret = hu_aap_enc_send (1, AA_CH_MIC, mic_buffer, idx);
+		pthread_mutex_unlock (&mutexsend);
 		
-		args.retry = 1;
-		args.chan = AA_CH_MIC;
-		args.cmd_len = idx; 
-		args.cmd_buf = mic_buffer; 
-		args.res_max = 0; 
-		args.res_buf = NULL;
-
-		pthread_create(&send_thread, NULL, &send_aa_cmd_thread, (void *)&args);
-
-		pthread_join(send_thread, NULL);
+		if (ret < 0) {
+			printf("read_mic_data(): hu_aap_enc_send() failed with (%d)\n", ret);
+		}
 		
 		gst_buffer_unref(gstbuf);
 		free(mic_buffer);

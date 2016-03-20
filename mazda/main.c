@@ -72,41 +72,6 @@ struct cmd_arg_struct {
     int result;
 };
 
-void *send_aa_cmd_thread(void *arguments)
-{
-    struct cmd_arg_struct *args = arguments;
-    
-	int ret = 0;
-
-	pthread_mutex_lock (&mutexsend);
-
-	ret = hu_aap_enc_send (args->retry, args->chan, args->cmd_buf, args->cmd_len);
-	
-	pthread_mutex_unlock (&mutexsend);
-	
-	
-	if (ret < 0) {
-		printf("send_aa_cmd_thread(): hu_aap_enc_send() failed with (%d)\n", ret);
-	}
-
-    args->result = ret;
-        
-    pthread_exit(NULL);
-}
-
-void *recv_buffer_thread(void *ret) {
-	
-	int *iret = (int *)ret;
-
-	pthread_mutex_lock (&mutexsend);
-	
-	*iret = hu_aap_recv_process ();                       
-
-	pthread_mutex_unlock (&mutexsend);
-	
-	pthread_exit(NULL);
-}
-
 
 int mic_change_state = 0;
 
@@ -140,11 +105,11 @@ static gboolean read_data(gst_app_t *app)
 	char *abuf;
 	int res_len = 0;
 
-	pthread_t recv_thread;
+	pthread_mutex_lock (&mutexsend);
 	
-	pthread_create(&recv_thread, NULL, &recv_buffer_thread, (void *)&iret);
+	iret = hu_aap_recv_process ();                       
 
-	pthread_join(recv_thread, NULL);
+	pthread_mutex_unlock (&mutexsend);
 
 	if (iret != 0) {
 		printf("hu_aap_recv_process() iret: %d\n", iret);
@@ -156,17 +121,11 @@ static gboolean read_data(gst_app_t *app)
 	vbuf = vid_read_head_buf_get (&res_len);
 
 	if (vbuf != NULL) {
-		ptr = (guint8 *)g_malloc(res_len);
-		g_assert(ptr);
-		memcpy(ptr, vbuf, res_len);
-		
+
+		//buffer = gst_buffer_new();
+		//gst_buffer_set_data(buffer, vbuf, res_len);
 		buffer = gst_buffer_new_and_alloc(res_len);
-		memcpy(GST_BUFFER_DATA(buffer),ptr,res_len);
-		
-		g_free(ptr);
-		
-		int64_t timestamp = getRunningTimeUs(app) * GST_USECOND; 
-		GST_BUFFER_TIMESTAMP(buffer) = timestamp;
+		memcpy(GST_BUFFER_DATA(buffer),vbuf,res_len);
 
 		ret = gst_app_src_push_buffer(app->src, buffer);
 
@@ -179,17 +138,13 @@ static gboolean read_data(gst_app_t *app)
 	/* Is there an audio buffer queued? */
 	abuf = aud_read_head_buf_get (&res_len);
 	if (abuf != NULL) {
-		ptr = (guint8 *)g_malloc(res_len);
-		g_assert(ptr);
-		memcpy(ptr, abuf, res_len);
-		
-//		buffer = gst_buffer_new();
-		buffer = gst_buffer_new_and_alloc(res_len);
-		memcpy(GST_BUFFER_DATA(buffer),ptr,res_len);
-		
-		g_free(ptr);
 
-//		buffer = gst_buffer_new_wrapped(ptr, res_len);
+		//buffer = gst_buffer_new();
+		//gst_buffer_set_data(buffer, abuf, res_len);
+		
+		buffer = gst_buffer_new_and_alloc(res_len);
+		memcpy(GST_BUFFER_DATA(buffer),abuf,res_len);
+
 		if (res_len <= 2048 + 96)
 			ret = gst_app_src_push_buffer((GstAppSrc *)au1_src, buffer);
 		else
@@ -200,7 +155,7 @@ static gboolean read_data(gst_app_t *app)
 			return FALSE;
 		}
 	}	
-	
+
 	return TRUE;
 }
 
@@ -450,6 +405,7 @@ static void aa_touch_event(uint8_t action, int x, int y) {
 	int size1_idx, size2_idx, i;
 	int axis = 0;
 	int coordinates[3] = {x, y, 0};
+	int ret;
 
 	buf = (uint8_t *)malloc(TS_MAX_REQ_SZ);
 	if(!buf) {
@@ -495,19 +451,16 @@ static void aa_touch_event(uint8_t action, int x, int y) {
 	/* Send touch event */
 //	aa_cmd_send (idx, buf, 0, NULL);
 
-	pthread_t send_thread;
-	struct cmd_arg_struct args;
-		
-	args.retry = 0;
-	args.chan = AA_CH_TOU;
-	args.cmd_len = idx; 
-	args.cmd_buf = buf; 
-	args.res_max = 0; 
-	args.res_buf = NULL;
 
-	pthread_create(&send_thread, NULL, &send_aa_cmd_thread, (void *)&args);
+	pthread_mutex_lock (&mutexsend);
 
-	pthread_join(send_thread, NULL);	
+	ret = hu_aap_enc_send (0, AA_CH_TOU, buf, idx);
+
+	pthread_mutex_unlock (&mutexsend);
+	
+	if (ret < 0) {
+		printf("aa_touch_event(): hu_aap_enc_send() failed with (%d)\n", ret);
+	}
 	
 	free(buf);
 }
@@ -531,6 +484,7 @@ static const int max_size = 8192;
 static void read_mic_data (GstElement * sink)
 {		
 	GstBuffer *gstbuf;
+	int ret;
 	
 	g_signal_emit_by_name (sink, "pull-buffer", &gstbuf,NULL);
 	
@@ -570,22 +524,17 @@ static void read_mic_data (GstElement * sink)
 		memcpy(mic_buffer+idx, GST_BUFFER_DATA(gstbuf), mic_buf_sz);
 		idx += mic_buf_sz;
 		
-		
-//		aa_cmd_send (idx, mic_buffer, 0, NULL);
-		pthread_t send_thread;
-		struct cmd_arg_struct args;
-		
-		args.retry = 1;
-		args.chan = AA_CH_MIC;
-		args.cmd_len = idx; 
-		args.cmd_buf = mic_buffer; 
-		args.res_max = 0; 
-		args.res_buf = NULL;
+		pthread_mutex_lock (&mutexsend);
 
-		pthread_create(&send_thread, NULL, &send_aa_cmd_thread, (void *)&args);
-
-		pthread_join(send_thread, NULL);
+		ret = hu_aap_enc_send (1, AA_CH_MIC, mic_buffer, idx);
 		
+		pthread_mutex_unlock (&mutexsend);
+	
+	
+		if (ret < 0) {
+			printf("read_mic_data(): hu_aap_enc_send() failed with (%d)\n", ret);
+		}
+
 		gst_buffer_unref(gstbuf);
 		free(mic_buffer);
 	}
@@ -737,6 +686,8 @@ gboolean commander_poll_event(gpointer data)
 	sigset_t sigmask;
 	struct pollfd fds[1];
 	int ret;
+	unsigned char* buf = 0;
+	int len;
 
 	sigemptyset(&sigmask);
 
@@ -766,16 +717,6 @@ gboolean commander_poll_event(gpointer data)
 		for (i=0;i < num_chars;i++) {			
 			if (event[i].type == EV_KEY && event[i].value == 1) {
 				
-				pthread_t send_thread;
-				struct cmd_arg_struct args;
-					
-				args.retry = 0;
-				args.chan = AA_CH_TOU;
-				args.cmd_len = 0; 
-				args.cmd_buf = NULL; 
-				args.res_max = 0; 
-				args.res_buf = NULL;
-				
 				switch (event[i].code) {
 					case KEY_UP:
 						clock_gettime(CLOCK_REALTIME, &tp);
@@ -798,22 +739,22 @@ gboolean commander_poll_event(gpointer data)
 					case KEY_RIGHT:
 						clock_gettime(CLOCK_REALTIME, &tp);
 						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_right1+3,0);
-						args.cmd_buf = cd_right1;
-						args.cmd_len = sizeof(cd_right1);
+						buf = cd_right1;
+						len = sizeof(cd_right1);
 						break;
 						
 					case KEY_N:
 						clock_gettime(CLOCK_REALTIME, &tp);
 						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_lefturn+3,0);
-						args.cmd_buf = cd_lefturn;
-						args.cmd_len = sizeof(cd_lefturn);
+						buf = cd_lefturn;
+						len = sizeof(cd_lefturn);
 						break;
 						
 					case KEY_M:
 						clock_gettime(CLOCK_REALTIME, &tp);
 						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_rightturn+3,0);
-						args.cmd_buf = cd_rightturn;
-						args.cmd_len = sizeof(cd_rightturn);
+						buf = cd_rightturn;
+						len = sizeof(cd_rightturn);
 						break;
 
 					case KEY_ENTER:
@@ -829,9 +770,16 @@ gboolean commander_poll_event(gpointer data)
 						break;
 				}
 				
-				if (args.cmd_buf != NULL) {
-					pthread_create(&send_thread, NULL, &send_aa_cmd_thread, (void *)&args);
-					pthread_join(send_thread, NULL);	
+				if (buf != NULL) {
+					pthread_mutex_lock (&mutexsend);
+
+					ret = hu_aap_enc_send (0, AA_CH_TOU, NULL, 0);
+					
+					pthread_mutex_unlock (&mutexsend);
+	
+					if (ret < 0) {
+						printf("send_aa_cmd_thread(): hu_aap_enc_send() failed with (%d)\n", ret);
+					}
 
 				}
 				

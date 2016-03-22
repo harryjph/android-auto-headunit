@@ -41,8 +41,7 @@ GstElement *mic_pipeline, *mic_sink;
 GstElement *aud_pipeline, *aud_src;
 GstElement *au1_pipeline, *au1_src;
 
-pthread_mutex_t mutexsend;
-
+GAsyncQueue *sendqueue;
 
 typedef struct {
 	int fd;
@@ -62,38 +61,31 @@ typedef struct {
 mycommander mCommander = (mycommander){0,0};
 
 
-struct cmd_arg_struct {
+typedef struct {
     int retry;
     int chan;
     int cmd_len; 
     unsigned char *cmd_buf; 
-    int res_max; 
-    unsigned char *res_buf;
-    int result;
-};
+	int shouldFree;
+} send_arg;
+
+void queueSend(int retry, int chan, unsigned char* cmd_buf, int cmd_len, int shouldFree)
+{
+	send_arg* cmd = malloc(sizeof(send_arg));
+
+	cmd->retry = retry;
+	cmd->chan = chan;
+	cmd->cmd_buf = cmd_buf;
+	cmd->cmd_len = cmd_len;
+	cmd->shouldFree = shouldFree;
+
+	g_async_queue_push(sendqueue, cmd);
+}
 
 
 int mic_change_state = 0;
 
 static void read_mic_data (GstElement * sink);
-
-int64_t getRunningTimeUs(gst_app_t *app)
-{
-    GstClock *clock = gst_element_get_clock((GstElement*)app->pipeline);
-    if (clock && GST_IS_CLOCK(clock))
-    {
-        GstClockTime base_time = gst_element_get_base_time((GstElement*)app->pipeline);
-        GstClockTime clock_time = gst_clock_get_time(clock);
-        gst_object_unref(GST_OBJECT (clock));
-        clock = NULL;
-        return (int64_t)GST_TIME_AS_USECONDS(clock_time) - (int64_t)GST_TIME_AS_USECONDS(base_time);
-    }
-    else
-    {
-        return 0;
-    }
-}
-
 
 static gboolean read_data(gst_app_t *app)
 {
@@ -105,11 +97,7 @@ static gboolean read_data(gst_app_t *app)
 	char *abuf;
 	int res_len = 0;
 
-	pthread_mutex_lock (&mutexsend);
-	
 	iret = hu_aap_recv_process ();                       
-
-	pthread_mutex_unlock (&mutexsend);
 
 	if (iret != 0) {
 		printf("hu_aap_recv_process() iret: %d\n", iret);
@@ -159,45 +147,16 @@ static gboolean read_data(gst_app_t *app)
 	return TRUE;
 }
 
-
-static void * threadEntry(void *app)
-{    
-	int frameLoadCount = 0;
-
-	while (read_data(app) == TRUE)
-	{        
-		frameLoadCount++;
-	}
-
-	return NULL;
-}
-
-pthread_t threadid;
+static int shouldRead = FALSE;
 
 static void start_feed (GstElement * pipeline, guint size, void *app)
 {
-    if (threadid == 0) {
-//        g_print ("start feeding\n");        
-        pthread_attr_t attr;
-        pthread_attr_init(&attr);
-        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-        if (pthread_create(&threadid, &attr, threadEntry, (void *)app))
-            printf("Couldn't start thread. %s\n", strerror(errno));
-        pthread_attr_destroy(&attr);
-    
-    }
+	shouldRead = TRUE;
 }
 
 static void stop_feed (GstElement * pipeline, void *app)
 {
-//	printf("stopping feed\n");
-    if (threadid != 0) {
-//        g_print ("stop feeding\n");
-        
-        pthread_join(threadid, NULL);
-        
-        threadid = 0;
-    }
+	shouldRead = FALSE;
 }
 
 
@@ -448,21 +407,7 @@ static void aa_touch_event(uint8_t action, int x, int y) {
 
 	buf[idx++] = action;
 
-	/* Send touch event */
-//	aa_cmd_send (idx, buf, 0, NULL);
-
-
-	pthread_mutex_lock (&mutexsend);
-
-	ret = hu_aap_enc_send (0, AA_CH_TOU, buf, idx);
-
-	pthread_mutex_unlock (&mutexsend);
-	
-	if (ret < 0) {
-		printf("aa_touch_event(): hu_aap_enc_send() failed with (%d)\n", ret);
-	}
-	
-	free(buf);
+	queueSend(0, AA_CH_TOU, buf, idx, TRUE);
 }
 
 static size_t uptime_encode(uint64_t value, uint8_t *data)
@@ -524,19 +469,9 @@ static void read_mic_data (GstElement * sink)
 		memcpy(mic_buffer+idx, GST_BUFFER_DATA(gstbuf), mic_buf_sz);
 		idx += mic_buf_sz;
 		
-		pthread_mutex_lock (&mutexsend);
-
-		ret = hu_aap_enc_send (1, AA_CH_MIC, mic_buffer, idx);
-		
-		pthread_mutex_unlock (&mutexsend);
+		queueSend(1, AA_CH_MIC, mic_buffer, idx, TRUE);
 	
-	
-		if (ret < 0) {
-			printf("read_mic_data(): hu_aap_enc_send() failed with (%d)\n", ret);
-		}
-
 		gst_buffer_unref(gstbuf);
-		free(mic_buffer);
 	}
 } 
 
@@ -721,7 +656,7 @@ gboolean commander_poll_event(gpointer data)
 					case KEY_UP:
 						clock_gettime(CLOCK_REALTIME, &tp);
 						varint_encode(tp.tv_sec * 10000000000 +tp.tv_nsec,cd_up1,3);
-						hu_aap_enc_send (0,AA_CH_TOU, cd_up1, sizeof(cd_up1));
+						queueSend(0,AA_CH_TOU, cd_up1, sizeof(cd_up1), FALSE);
 						break;
 							
 					case KEY_DOWN:
@@ -771,11 +706,7 @@ gboolean commander_poll_event(gpointer data)
 				}
 				
 				if (buf != NULL) {
-					pthread_mutex_lock (&mutexsend);
-
 					ret = hu_aap_enc_send (0, AA_CH_TOU, NULL, 0);
-					
-					pthread_mutex_unlock (&mutexsend);
 	
 					if (ret < 0) {
 						printf("send_aa_cmd_thread(): hu_aap_enc_send() failed with (%d)\n", ret);
@@ -831,11 +762,10 @@ gboolean commander_poll_event(gpointer data)
 }
 
 
-
 static void * input_thread(void *app) {
 	
 	while (touch_poll_event(app)) {
-		commander_poll_event(app);		
+		//commander_poll_event(app);		
 		ms_sleep(100);
 	}
 }
@@ -908,21 +838,45 @@ static void * nightmode_thread(void *app)
 
 		if (nightmode != nightmodenow) {
 			nightmode = nightmodenow;
-			byte rspds [] = {-128, 0x03, 0x52, 0x02, 0x08, 0x01}; 	// Day = 0, Night = 1 
+			byte* rspds = malloc(sizeof(byte) * 6);
+			rspds[0] = -128; 
+			rspds[1] = 0x03;
+		   	rspds[2] = 0x52; 
+			rspds[3] = 0x02;
+		   	rspds[4] = 0x08;
 			if (nightmode == 0)
 				rspds[5]= 0x00;
+			else
+				rspds[5] = 0x01;
 			
-			pthread_mutex_lock (&mutexsend);
-
-			hu_aap_enc_send (0,AA_CH_SEN, rspds, sizeof (rspds)); 	// Send Sensor Night mode
-
-			pthread_mutex_unlock (&mutexsend);
+			queueSend(0,AA_CH_SEN, rspds, sizeof (byte) * 6, TRUE); 	// Send Sensor Night mode
 		}
 		
 		sleep(600);		
 	}
 }
 
+
+
+gboolean myMainLoop(gpointer app)
+{
+	if (shouldRead)
+	{
+		read_data(app);
+	}
+
+	send_arg* cmd;
+ 
+	if (cmd = g_async_queue_try_pop(sendqueue))
+	{
+		hu_aap_enc_send(cmd->retry, cmd->chan, cmd->cmd_buf, cmd->cmd_len);
+		if(cmd->shouldFree)
+			free(cmd->cmd_buf);
+		free(cmd);
+	}
+
+	return TRUE; 
+}
 
 static int gst_loop(gst_app_t *app)
 {
@@ -939,7 +893,7 @@ static int gst_loop(gst_app_t *app)
 	
 	mainloop = app->loop;
 	
-//	g_timeout_add_full(G_PRIORITY_HIGH, 100, touch_poll_event, (gpointer)app, NULL);
+	g_timeout_add_full(G_PRIORITY_HIGH, 1, myMainLoop, (gpointer)app, NULL);
 
 	printf("Starting Android Auto...\n");
   	g_main_loop_run (app->loop);
@@ -958,23 +912,22 @@ static int gst_loop(gst_app_t *app)
 
 static void signals_handler (int signum)
 {
-  if (mainloop && g_main_loop_is_running (mainloop))
-    {
-      g_main_loop_quit (mainloop);
-    }
+	if (mainloop && g_main_loop_is_running (mainloop))
+	{
+		g_main_loop_quit (mainloop);
+	}
 }
-
 
 int main (int argc, char *argv[])
 {	
 	signal (SIGTERM, signals_handler);
-	
+
 	gst_app_t *app = &gst_app;
 	int ret = 0;
 	errno = 0;
 	byte ep_in_addr  = -2;
 	byte ep_out_addr = -2;
-	
+
 	/* Init gstreamer pipeline */
 	ret = gst_pipeline_init(app);
 	if (ret < 0) {
@@ -990,7 +943,7 @@ int main (int argc, char *argv[])
 		sleep(1);
 		ret = hu_aap_start (ep_in_addr, ep_out_addr);
 	}
-	
+
 	if (ret < 0) {
 		if (ret == -2)
 			printf("Phone is not connected. Connect a supported phone and restart.\n");
@@ -1002,24 +955,26 @@ int main (int argc, char *argv[])
 	}
 
 	printf("SHAI1 : aap start.\n");
-	
-   /* Open Touchscreen Device */
-   mTouch.fd = open(EVENT_DEVICE_TS, O_RDONLY);
-   
-   if (mTouch.fd == -1) {
-        fprintf(stderr, "%s is not a vaild device\n", EVENT_DEVICE_TS);
-        return -3;
-    }
 
-   /* Open Commander Device */
-   mCommander.fd = open(EVENT_DEVICE_CMD, O_RDONLY);
-   
-   if (mCommander.fd == -1) {
-        fprintf(stderr, "%s is not a vaild device\n", EVENT_DEVICE_CMD);
-        return -3;
-    }
+	/* Open Touchscreen Device */
+	mTouch.fd = open(EVENT_DEVICE_TS, O_RDONLY);
 
- 
+	if (mTouch.fd == -1) {
+		fprintf(stderr, "%s is not a vaild device\n", EVENT_DEVICE_TS);
+		return -3;
+	}
+
+	/* Open Commander Device */
+	mCommander.fd = open(EVENT_DEVICE_CMD, O_RDONLY);
+
+	if (mCommander.fd == -1) {
+		fprintf(stderr, "%s is not a vaild device\n", EVENT_DEVICE_CMD);
+		return -3;
+	}
+
+
+	sendqueue = g_async_queue_new();
+
 	pthread_t iput_thread;
 
 	pthread_create(&iput_thread, NULL, &input_thread, (void *)app);
@@ -1028,7 +983,7 @@ int main (int argc, char *argv[])
 
 	pthread_create(&nm_thread, NULL, &nightmode_thread, (void *)app);
 
-    
+
 	/* Start gstreamer pipeline and main loop */
 	ret = gst_loop(app);
 	if (ret < 0) {
@@ -1042,13 +997,13 @@ int main (int argc, char *argv[])
 		printf("hu_aap_stop() ret: %d\n", ret);
 		ret = -6;
 	}
-		
+
 	close(mTouch.fd);
 	close(mCommander.fd);
-	
+
 	pthread_cancel(nm_thread);
 	pthread_cancel(iput_thread);
-	
+
 	printf("END \n");
 
 	return (ret);

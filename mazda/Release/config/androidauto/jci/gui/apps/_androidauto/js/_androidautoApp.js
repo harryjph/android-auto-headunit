@@ -41,10 +41,11 @@ _androidautoApp.prototype.appInit = function()
             "sbName": "Android Auto",
             "hideHomeBtn" : true,
             "template": "AndroidAutoTmplt",
-//            "properties" : {
-//                "keybrdInputSurface" : "NATGUI_SURFACE", 
-//                "visibleSurfaces" :  ["NATGUI_SURFACE"]    // Do not include JCI_OPERA_PRIMARY in this list            
-//            },// end of list of controlProperties
+            "properties" : {
+				"customBgImage" : "common/images/FullTransparent.png",
+                "keybrdInputSurface" : "TV_TOUCH_SURFACE", 
+                "visibleSurfaces" :  ["TV_TOUCH_SURFACE"]    // Do not include JCI_OPERA_PRIMARY in this list            
+            },// end of list of controlProperties
             "templatePath": "apps/_androidauto/templates/AndroidAuto", //only needed for app-specific templates
             "readyFunction": this._StartContextReady.bind(this),
             "noLongerDisplayedFunction" : this._StartContextOut.bind(this)
@@ -91,10 +92,22 @@ function androidauto() {
 
 	ws.onopen = function() {
 		ws.send("export LD_LIBRARY_PATH=/data_persist/dev/androidauto/custlib:/jci/lib:/jci/opera/3rdpartylibs/freetype:/usr/lib/imx-mm/audio-codec:/usr/lib/imx-mm/parser:/data_persist/dev/lib: \n");
+		ws.send("echo 3 > /proc/sys/vm/drop_caches \n");
+		ws.send("export WAYLAND_IVI_SURFACE_ID=1 \n");
+		ws.send("dbus-send --address=unix:path=/tmp/dbus_service_socket \
+				--type=method_call \
+				--dest=com.xsembedded.service.AudioManagement \
+				/com/xse/service/AudioManagement/AudioApplication \
+				com.xsembedded.ServiceProvider.Request \
+				string:'requestAudioFocus' \
+				string:'{\"sessionId\":13,\"requestType\":\"request\"}'")
+		ws.send("headunit \n");	
+// On Ubuntu
 //		ws.send("export TERM=xterm \n");
 //		ws.send("export DISPLAY=:0.0 \n");
-		ws.send("headunit & \n");
+//		ws.send("headunit & \n");
 	};
+	
 	
 	ws.onmessage = function(event) {
 		var psconsole = $('#aaStatusText');
@@ -102,15 +115,27 @@ function androidauto() {
 		psconsole.append(event.data + '\n');
 		
 		if(psconsole.length)
-			psconsole.scrollTop(psconsole[0].scrollHeight - psconsole.height());
+			psconsole.scrollTop(psconsole[0].scrollHeight - psconsole.height());		
+		if ( event.data == "Starting Android Auto...") {
+			$("#AndroidAutoTmplt1").hide();
+		}
+		if ( event.data == "END ") {
+			$("#AndroidAutoTmplt1").show();
+		}
 	};
-	
-	
 }  
 
 _androidautoApp.prototype._StartContextOut = function ()
 {
 	ws.send("killall headunit \n");
+	ws.send("dbus-send --address=unix:path=/tmp/dbus_service_socket \
+				--type=method_call \
+				--dest=com.xsembedded.service.AudioManagement \
+				/com/xse/service/AudioManagement/AudioApplication \
+				com.xsembedded.ServiceProvider.Request \
+				string:'audioActive' \
+				string:'{\"sessionId\":13,\"playing\": false}'");
+	ws.close();
 };
 
 

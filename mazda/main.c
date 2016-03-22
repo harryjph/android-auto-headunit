@@ -220,12 +220,10 @@ static int gst_pipeline_init(gst_app_t *app)
 
 	gst_init(NULL, NULL);
 
-	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc is-live=true block=false max-latency=1000000 ! h264parse ! vpudec low-latency=true framedrop=true framedrop-level-mask=0x200 ! mfw_v4lsink max-lateness=1000000000 sync=false async=false", &error);
-	
-//	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc is-live=true block=false do-timestamp=true format=3 min-latency=0 max-latency=10000000 ! h264parse ! queue max-size-bytes=0 max-size-time=0 ! vpudec low-latency=true framedrop=true frame-plus=2 framedrop-level-mask=0x100 ! queue max-size-bytes=0 max-size-time=0 ! mfw_v4lsink async=false", &error);
+//	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc is-live=true block=false max-latency=1000000 ! h264parse ! vpudec low-latency=true framedrop=true framedrop-level-mask=0x200 ! mfw_v4lsink max-lateness=1000000000 sync=false async=false", &error);
 
-//	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc is-live=true do-timestamp=true ! h264parse ! vpudec low-latency=true framedrop=true ! queue max-size-bytes=0 max-size-time=0 !mfw_isink axis-left=0 axis-top=0 disp-width=800 disp-height=480 sync=false", &error);
-	
+	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc is-live=true block=false max-latency=1000000 ! h264parse ! vpudec low-latency=true framedrop=true framedrop-level-mask=0x200 ! mfw_isink axis-left=0 axis-top=0 disp-width=800 disp-height=480 max-lateness=1000000000 sync=false async=false", &error);
+		
 	if (error != NULL) {
 		printf("could not construct pipeline: %s\n", error->message);
 		g_clear_error (&error);	
@@ -878,6 +876,16 @@ gboolean myMainLoop(gpointer app)
 	return TRUE; 
 }
 
+static void * main_thread(void *app) {
+
+	ms_sleep(100);
+	
+	while (mainloop && g_main_loop_is_running (mainloop)) {
+		myMainLoop(app);
+	}
+}
+
+
 static int gst_loop(gst_app_t *app)
 {
 	int ret;
@@ -893,7 +901,7 @@ static int gst_loop(gst_app_t *app)
 	
 	mainloop = app->loop;
 	
-	g_timeout_add_full(G_PRIORITY_HIGH, 1, myMainLoop, (gpointer)app, NULL);
+//	g_timeout_add_full(G_PRIORITY_HIGH, 1, myMainLoop, (gpointer)app, NULL);
 
 	printf("Starting Android Auto...\n");
   	g_main_loop_run (app->loop);
@@ -954,7 +962,7 @@ int main (int argc, char *argv[])
 		return (ret);
 	}
 
-	printf("SHAI1 : aap start.\n");
+	printf("Starting Android Auto...\n");
 
 	/* Open Touchscreen Device */
 	mTouch.fd = open(EVENT_DEVICE_TS, O_RDONLY);
@@ -984,6 +992,10 @@ int main (int argc, char *argv[])
 	pthread_create(&nm_thread, NULL, &nightmode_thread, (void *)app);
 
 
+	pthread_t mn_thread;
+
+	pthread_create(&mn_thread, NULL, &main_thread, (void *)app);
+
 	/* Start gstreamer pipeline and main loop */
 	ret = gst_loop(app);
 	if (ret < 0) {
@@ -1002,6 +1014,7 @@ int main (int argc, char *argv[])
 	close(mCommander.fd);
 
 	pthread_cancel(nm_thread);
+	pthread_cancel(mn_thread);
 	pthread_cancel(iput_thread);
 
 	printf("END \n");

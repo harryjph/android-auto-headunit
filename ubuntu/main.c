@@ -73,12 +73,8 @@ static gboolean read_data(gst_app_t *app)
 	vbuf = vid_read_head_buf_get (&res_len);
 	if (vbuf != NULL) {
 		
-//		buffer = gst_buffer_new();
-		buffer = gst_buffer_new_and_alloc(res_len);
-		memcpy(GST_BUFFER_DATA(buffer),vbuf,res_len);
-		
-
-//		buffer = gst_buffer_new_wrapped(ptr, res_len);
+		buffer = gst_buffer_new();
+		gst_buffer_set_data(buffer, vbuf, res_len);
 		ret = gst_app_src_push_buffer((GstAppSrc *)app->src, buffer);
 
 		if(ret !=  GST_FLOW_OK){
@@ -91,12 +87,9 @@ static gboolean read_data(gst_app_t *app)
 	abuf = aud_read_head_buf_get (&res_len);
 	if (abuf != NULL) {
 		
-//		buffer = gst_buffer_new();
-		buffer = gst_buffer_new_and_alloc(res_len);
-		memcpy(GST_BUFFER_DATA(buffer),abuf,res_len);
+		buffer = gst_buffer_new();
+		gst_buffer_set_data(buffer, abuf, res_len);
 		
-
-//		buffer = gst_buffer_new_wrapped(ptr, res_len);
 		if (res_len <= 2048 + 96)
 			ret = gst_app_src_push_buffer((GstAppSrc *)au1_src, buffer);
 		else

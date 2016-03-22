@@ -1,7 +1,7 @@
 #CC=gcc
 #LD=ld
 INCLUDES=`pkg-config --cflags gstreamer-0.10 gstreamer-app-0.10 gstreamer-video-0.10 dbus-1 libcrypto libusb-1.0 openssl`-I$(TOP)/jni
-CFLAGS=-fPIC `sdl-config --libs`
+CFLAGS=-fPIC `sdl-config --libs` -O3
 CPPFLAGS=-fPIC 
 LFLAGS=`pkg-config --libs gstreamer-0.10 gstreamer-app-0.10 gstreamer-video-0.10 dbus-1 libcrypto libusb-1.0 openssl `   -lrt
 TOP = ..

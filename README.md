@@ -1,5 +1,11 @@
-# headunit
-Headunit for Android Auto (tm)
+# Mazda Connect Android Auto Headunit App
+
+Headunit App ported over to Mazda Connect CMU. The app makes extensive use of jni functions that was originally developed by Mike Reid (see below).
+
+See the following thread for details: 
+http://mazda3revolution.com/forums/2014-2016-mazda-3-skyactiv-audio-electronics/121561-android-auto-headunit-app-beta.html
+
+#Headunit for Android Auto (tm)
 
 A new car or a $600+ headunit is NOT required to enjoy the integration and distraction reduced environment of Android Auto.
 

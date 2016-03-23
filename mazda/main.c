@@ -242,8 +242,7 @@ static int gst_pipeline_init(gst_app_t *app)
 		
 	g_signal_connect(app->src, "enough-data", G_CALLBACK(stop_feed), app);
 
-
-	aud_pipeline = gst_parse_launch("appsrc name=audsrc ! audio/x-raw-int, signed=true, endianness=1234, depth=16, width=16, rate=48000, channels=2 ! alsasink ",&error);
+	aud_pipeline = gst_parse_launch("appsrc name=audsrc is-live=true block=false max-latency=1000000 ! audio/x-raw-int, signed=true, endianness=1234, depth=16, width=16, rate=48000, channels=2 ! alsasink ",&error);
 
 	if (error != NULL) {
 		printf("could not construct pipeline: %s\n", error->message);
@@ -256,7 +255,7 @@ static int gst_pipeline_init(gst_app_t *app)
 	gst_app_src_set_stream_type((GstAppSrc *)aud_src, GST_APP_STREAM_TYPE_STREAM);
 
 
-	au1_pipeline = gst_parse_launch("appsrc name=au1src ! audio/x-raw-int, signed=true, endianness=1234, depth=16, width=16, rate=16000, channels=1 ! alsasink ",&error);
+	au1_pipeline = gst_parse_launch("appsrc name=au1src is-live=true block=false max-latency=1000000 ! audio/x-raw-int, signed=true, endianness=1234, depth=16, width=16, rate=16000, channels=1 ! alsasink ",&error);
 
 	if (error != NULL) {
 		printf("could not construct pipeline: %s\n", error->message);
@@ -616,6 +615,9 @@ gboolean commander_poll_event(gpointer data)
 	ssize_t size;
 	gst_app_t *app = (gst_app_t *)data;
 	struct timespec tp;
+	uint8_t *cmd_buf = NULL;
+	int cmd_size = 0; 
+
 	sigset_t sigmask;
 	struct pollfd fds[1];
 	int ret;
@@ -652,59 +654,50 @@ gboolean commander_poll_event(gpointer data)
 				
 				switch (event[i].code) {
 					case KEY_UP:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 10000000000 +tp.tv_nsec,cd_up1,3);
-						queueSend(0,AA_CH_TOU, cd_up1, sizeof(cd_up1), FALSE);
+						cmd_buf = cd_up1;
+						cmd_size = sizeof(cd_up1);
 						break;
 							
 					case KEY_DOWN:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 10000000000 +tp.tv_nsec,cd_down1,3);
-						hu_aap_enc_send (0,AA_CH_TOU, cd_down1, sizeof(cd_down1));
+						cmd_buf = cd_down1;
+						cmd_size = sizeof(cd_down1);
 						break;
 										
 					case KEY_LEFT:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 10000000000 +tp.tv_nsec,cd_left1,3);
-						hu_aap_enc_send (0,AA_CH_TOU, cd_left1, sizeof(cd_left1));
+						cmd_buf = cd_left1;
+						cmd_size = sizeof(cd_left1);
 						break;
 						
 					case KEY_RIGHT:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_right1+3,0);
-						buf = cd_right1;
-						len = sizeof(cd_right1);
+						cmd_buf = cd_right1;
+						cmd_size = sizeof(cd_right1);
 						break;
 						
 					case KEY_N:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_lefturn+3,0);
-						buf = cd_lefturn;
-						len = sizeof(cd_lefturn);
+						cmd_buf = cd_lefturn;
+						cmd_size = sizeof(cd_lefturn);
 						break;
 						
 					case KEY_M:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_rightturn+3,0);
-						buf = cd_rightturn;
-						len = sizeof(cd_rightturn);
+						cmd_buf = cd_rightturn;
+						cmd_size = sizeof(cd_rightturn);
 						break;
 
 					case KEY_ENTER:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_enter1,3);
-						hu_aap_enc_send (0,AA_CH_TOU, cd_enter1, sizeof(cd_enter1));
+						cmd_buf = cd_enter1;
+						cmd_size = sizeof(cd_enter1);
 						break;
 
 					case KEY_BACKSPACE:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_back1,3);
-						hu_aap_enc_send (0,AA_CH_TOU, cd_back1, sizeof(cd_back1));
+						cmd_buf = cd_back1;
+						cmd_size = sizeof(cd_back1);
 						break;
 				}
 				
-				if (buf != NULL) {
-					ret = hu_aap_enc_send (0, AA_CH_TOU, NULL, 0);
+				if (cmd_buf != NULL) {
+					clock_gettime(CLOCK_REALTIME, &tp);
+					varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec, cmd_buf + 3,0);				
+					queueSend(0,AA_CH_TOU, cmd_buf, cmd_size, FALSE);
 	
 					if (ret < 0) {
 						printf("send_aa_cmd_thread(): hu_aap_enc_send() failed with (%d)\n", ret);
@@ -717,40 +710,42 @@ gboolean commander_poll_event(gpointer data)
 			if (event[i].type == EV_KEY && event[i].value == 0) {
 				switch (event[i].code) {
 					case KEY_UP:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_up2,3);
-						hu_aap_enc_send (0,AA_CH_TOU, cd_up2, sizeof(cd_up2));
+						cmd_buf = cd_up2;
+						cmd_size = sizeof(cd_up2);
 						break;
 							
 					case KEY_DOWN:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_down2,3);
-						hu_aap_enc_send (0,AA_CH_TOU, cd_down2, sizeof(cd_down2));
+						cmd_buf = cd_down2;
+						cmd_size = sizeof(cd_down2);
 						break;
 										
 					case KEY_LEFT:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_left2,3);
-						hu_aap_enc_send (0,AA_CH_TOU, cd_left2, sizeof(cd_left2));
+						cmd_buf = cd_left2;
+						cmd_size = sizeof(cd_left2);
 						break;
 						
 					case KEY_RIGHT:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_right2,3);
-						hu_aap_enc_send (0,AA_CH_TOU, cd_right2, sizeof(cd_right2));
+						cmd_buf = cd_right2;
+						cmd_size = sizeof(cd_right2);
 						break;
 
 					case KEY_ENTER:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_enter2,3);
-						hu_aap_enc_send (0,AA_CH_TOU, cd_enter2, sizeof(cd_enter2));
+						cmd_buf = cd_enter2;
+						cmd_size = sizeof(cd_enter2);
 						break;
 
 					case KEY_BACKSPACE:
-						clock_gettime(CLOCK_REALTIME, &tp);
-						varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec,cd_back2,3);
-						hu_aap_enc_send (0,AA_CH_TOU, cd_back2, sizeof(cd_back2));
+						cmd_buf = cd_back2;
+						cmd_size = sizeof(cd_back2);
 						break;
+				}
+				
+				if (cmd_buf != NULL) {
+					clock_gettime(CLOCK_REALTIME, &tp);
+					varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec, cmd_buf + 3,0);
+					if (ret < 0) {
+						printf("send_aa_cmd_thread(): hu_aap_enc_send() failed with (%d)\n", ret);
+					}
 				}
 			}
 		}
@@ -763,7 +758,7 @@ gboolean commander_poll_event(gpointer data)
 static void * input_thread(void *app) {
 	
 	while (touch_poll_event(app)) {
-		//commander_poll_event(app);		
+		commander_poll_event(app);		
 		ms_sleep(100);
 	}
 }

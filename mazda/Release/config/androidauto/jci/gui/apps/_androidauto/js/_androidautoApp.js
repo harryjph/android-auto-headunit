@@ -89,7 +89,13 @@ _androidautoApp.prototype._StartContextReady = function ()
 function androidauto() {
 	
 	ws = new WebSocket('ws://localhost:9999/');
+	
+	debugTxt = '';
+	
+	var credits = document.getElementsByClassName("TemplateWithStatusLeft AndroidAutoTmplt")[0];
 
+    $('#'+credits.id).children().fadeIn().delay(3000).fadeOut();
+ 
 	ws.onopen = function() {
 		ws.send("export LD_LIBRARY_PATH=/data_persist/dev/androidauto/custlib:/jci/lib:/jci/opera/3rdpartylibs/freetype:/usr/lib/imx-mm/audio-codec:/usr/lib/imx-mm/parser:/data_persist/dev/lib: \n");
 		ws.send("echo 3 > /proc/sys/vm/drop_caches \n");
@@ -100,29 +106,32 @@ function androidauto() {
 				/com/xse/service/AudioManagement/AudioApplication \
 				com.xsembedded.ServiceProvider.Request \
 				string:'requestAudioFocus' \
-				string:'{\"sessionId\":13,\"requestType\":\"request\"}'")
-		ws.send("headunit \n");	
+				string:'{\"sessionId\":13,\"requestType\":\"request\"}' \n")
+		ws.send("taskset 0x00000003 headunit \n");	
 // On Ubuntu
 //		ws.send("export TERM=xterm \n");
 //		ws.send("export DISPLAY=:0.0 \n");
 //		ws.send("headunit & \n");
 	};
-	
+
 	
 	ws.onmessage = function(event) {
-		var psconsole = $('#aaStatusText');
-		psconsole.focus();
-		psconsole.append(event.data + '\n');
 		
-		if(psconsole.length)
-			psconsole.scrollTop(psconsole[0].scrollHeight - psconsole.height());		
-		if ( event.data == "Starting Android Auto...") {
-			$("#AndroidAutoTmplt1").hide();
-		}
+		debugTxt = debugTxt + event.data + '\n';
+		
 		if ( event.data == "END ") {
-			$("#AndroidAutoTmplt1").show();
+			var psconsole = $('#aaStatusText');
+			psconsole.focus();
+			psconsole.append(debugTxt);
+
+			if(psconsole.length)
+				psconsole.scrollTop(psconsole[0].scrollHeight - psconsole.height());
+
+			var credits = document.getElementsByClassName("TemplateWithStatusLeft AndroidAutoTmplt")[0];
+
+			$('#'+credits.id).children().fadeIn();
 		}
-	};
+	}; 
 }  
 
 _androidautoApp.prototype._StartContextOut = function ()
@@ -134,7 +143,7 @@ _androidautoApp.prototype._StartContextOut = function ()
 				/com/xse/service/AudioManagement/AudioApplication \
 				com.xsembedded.ServiceProvider.Request \
 				string:'audioActive' \
-				string:'{\"sessionId\":13,\"playing\": false}'");
+				string:'{\"sessionId\":13,\"playing\": false}' \n");
 	ws.close();
 };
 

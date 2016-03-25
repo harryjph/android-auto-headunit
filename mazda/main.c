@@ -405,6 +405,7 @@ static void aa_touch_event(uint8_t action, int x, int y) {
 	buf[idx++] = action;
 
 	queueSend(0, AA_CH_TOU, buf, idx, TRUE);
+	
 }
 
 static size_t uptime_encode(uint64_t value, uint8_t *data)
@@ -560,6 +561,7 @@ gboolean touch_poll_event(gpointer data)
 					aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
 				} else {
 					aa_touch_event(mTouch.action, mTouch.x, mTouch.y);
+					mTouch.action_recvd = 0;
 				}
 				break;
 		}
@@ -592,7 +594,7 @@ uint8_t cd_right2[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,
 uint8_t cd_lefturn[] = { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x32,0x11,0x0A,0x0F,0x08,-128,-128,0x04,0x10,-1,-1,-1,-1,-1,-1,-1,-1,-1,0x01 };
 
 //RIGHT turn
-uint8_t cd_rightturn[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x32,0x08,0x0A,0x06,0x08,-128,-128,0x04,0x10,0x01,0 };
+uint8_t cd_rightturn[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x32,0x08,0x0A,0x06,0x08,-128,-128,0x04,0x10,0x01 };
 
 //BACK
 uint8_t cd_back1[]  =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x04,0x10,0x01,0x18,0x00,0x20,0x00 };
@@ -602,10 +604,9 @@ uint8_t cd_back2[]  =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08
 uint8_t cd_enter1[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x17,0x10,0x01,0x18,0x00,0x20,0x00 };
 uint8_t cd_enter2[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x17,0x10,0x00,0x18,0x00,0x20,0x00 };
 
-
 gboolean commander_poll_event(gpointer data)
 {	
-	return TRUE;
+//	return TRUE;
 	
 	const struct timespec timeout = { .tv_sec = 0, .tv_nsec = 10000};
 	
@@ -649,6 +650,8 @@ gboolean commander_poll_event(gpointer data)
 		int num_chars = size / ev_size;
 		
 		int i;
+		
+		
 		for (i=0;i < num_chars;i++) {			
 			if (event[i].type == EV_KEY && event[i].value == 1) {
 				
@@ -696,8 +699,28 @@ gboolean commander_poll_event(gpointer data)
 				
 				if (cmd_buf != NULL) {
 					clock_gettime(CLOCK_REALTIME, &tp);
-					varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec, cmd_buf + 3,0);				
-					queueSend(0,AA_CH_TOU, cmd_buf, cmd_size, FALSE);
+					
+					uint8_t *buf = (uint8_t *)malloc(cmd_size);
+
+					memcpy(buf, cmd_buf, cmd_size);
+
+					varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec, buf,3);
+
+					printf("\n { ");
+			
+					for (i = 0; i < cmd_size; i++)
+					{
+						
+						if (i > 0) printf(",");
+						printf("0x%02X", (char) buf[i]);
+					}
+					
+					printf(" } \n");
+
+									
+					queueSend(0,AA_CH_TOU, buf, cmd_size, FALSE);
+					
+					free(buf);
 	
 					if (ret < 0) {
 						printf("send_aa_cmd_thread(): hu_aap_enc_send() failed with (%d)\n", ret);
@@ -708,6 +731,8 @@ gboolean commander_poll_event(gpointer data)
 			}
 				
 			if (event[i].type == EV_KEY && event[i].value == 0) {
+				cmd_buf = NULL;
+				
 				switch (event[i].code) {
 					case KEY_UP:
 						cmd_buf = cd_up2;
@@ -742,7 +767,28 @@ gboolean commander_poll_event(gpointer data)
 				
 				if (cmd_buf != NULL) {
 					clock_gettime(CLOCK_REALTIME, &tp);
-					varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec, cmd_buf + 3,0);
+					uint8_t *buf = (uint8_t *)malloc(cmd_size);
+
+					memcpy(buf, cmd_buf, cmd_size);
+
+					printf("\n { ");
+			
+					for (i = 0; i < cmd_size; i++)
+					{
+						
+						if (i > 0) printf(",");
+						printf("0x%02X", (char) buf[i]);
+					}
+					
+					printf(" } \n");
+
+
+					varint_encode(tp.tv_sec * 100000000 +tp.tv_nsec, buf,3);
+					
+					queueSend(0,AA_CH_TOU, buf, cmd_size, FALSE);
+
+					free(buf);
+
 					if (ret < 0) {
 						printf("send_aa_cmd_thread(): hu_aap_enc_send() failed with (%d)\n", ret);
 					}
@@ -843,6 +889,7 @@ static void * nightmode_thread(void *app)
 				rspds[5] = 0x01;
 			
 			queueSend(0,AA_CH_SEN, rspds, sizeof (byte) * 6, TRUE); 	// Send Sensor Night mode
+			free(rspds);
 		}
 		
 		sleep(600);		

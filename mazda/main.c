@@ -718,14 +718,8 @@ gboolean commander_poll_event(gpointer data)
 					printf(" } \n");
 
 									
-					queueSend(0,AA_CH_TOU, buf, cmd_size, FALSE);
+					queueSend(0,AA_CH_TOU, buf, cmd_size, TRUE);
 					
-					free(buf);
-	
-					if (ret < 0) {
-						printf("send_aa_cmd_thread(): hu_aap_enc_send() failed with (%d)\n", ret);
-					}
-
 				}
 				
 			}
@@ -785,13 +779,7 @@ gboolean commander_poll_event(gpointer data)
 
 					varint_encode(tp.tv_sec * 100000000 +tp.tv_nsec, buf,3);
 					
-					queueSend(0,AA_CH_TOU, buf, cmd_size, FALSE);
-
-					free(buf);
-
-					if (ret < 0) {
-						printf("send_aa_cmd_thread(): hu_aap_enc_send() failed with (%d)\n", ret);
-					}
+					queueSend(0,AA_CH_TOU, buf, cmd_size, TRUE);
 				}
 			}
 		}
@@ -889,7 +877,6 @@ static void * nightmode_thread(void *app)
 				rspds[5] = 0x01;
 			
 			queueSend(0,AA_CH_SEN, rspds, sizeof (byte) * 6, TRUE); 	// Send Sensor Night mode
-			free(rspds);
 		}
 		
 		sleep(600);		

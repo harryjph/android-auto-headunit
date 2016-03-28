@@ -213,6 +213,7 @@ strlcpy(char       *dst,        /* O - Destination string */
 #define USB_VID_XIA 0x2717
 #define USB_VID_ASU 0x0b05
 #define USB_VID_MEI 0x2a45
+#define USB_VID_LEN 0x17ef
 
 
 #define USB_VID_SAM 0x04e8

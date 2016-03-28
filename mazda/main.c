@@ -16,7 +16,7 @@
 #include "hu_aap.h"
 
 #define EVENT_DEVICE_TS    "/dev/input/filtered-touchscreen0"
-#define EVENT_DEVICE_CMD   "/dev/input/filtered-keyboard0"
+#define EVENT_DEVICE_CMD   "/dev/input/event1"
 #define EVENT_TYPE      EV_ABS
 #define EVENT_CODE_X    ABS_X
 #define EVENT_CODE_Y    ABS_Y
@@ -606,7 +606,7 @@ uint8_t cd_enter2[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08
 
 gboolean commander_poll_event(gpointer data)
 {	
-//	return TRUE;
+	return TRUE;
 	
 	const struct timespec timeout = { .tv_sec = 0, .tv_nsec = 10000};
 	
@@ -775,7 +775,6 @@ gboolean commander_poll_event(gpointer data)
 					}
 					
 					printf(" } \n");
-
 
 					varint_encode(tp.tv_sec * 100000000 +tp.tv_nsec, buf,3);
 					

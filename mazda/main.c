@@ -21,6 +21,9 @@
 #define EVENT_CODE_X    ABS_X
 #define EVENT_CODE_Y    ABS_Y
 
+#define HMI_BUS_ADDRESS "unix:path=/tmp/dbus_hmi_socket"
+#define SERVICE_BUS_ADDRESS "unix:path=/tmp/dbus_service_socket"
+
 __asm__(".symver realpath1,realpath1@GLIBC_2.11.1");
 
 
@@ -604,203 +607,256 @@ uint8_t cd_back2[]  =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08
 uint8_t cd_enter1[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x17,0x10,0x01,0x18,0x00,0x20,0x00 };
 uint8_t cd_enter2[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x17,0x10,0x00,0x18,0x00,0x20,0x00 };
 
-gboolean commander_poll_event(gpointer data)
-{	
-	return TRUE;
-	
-	const struct timespec timeout = { .tv_sec = 0, .tv_nsec = 10000};
-	
-	struct input_event event[64];
-	const size_t ev_size = sizeof(struct input_event);
-	const size_t buffer_size = ev_size * 64;
-	ssize_t size;
-	gst_app_t *app = (gst_app_t *)data;
-	struct timespec tp;
-	uint8_t *cmd_buf = NULL;
-	int cmd_size = 0; 
 
-	sigset_t sigmask;
-	struct pollfd fds[1];
-	int ret;
-	unsigned char* buf = 0;
-	int len;
+#define _STRINGIFY(x) #x
+#define STRINGIFY(x) _STRINGIFY(x)
+inline int dbus_message_decode_timeval(DBusMessageIter *iter, struct timeval *time)
+{
+	DBusMessageIter sub;
+	uint64_t tv_sec = 0;
+	uint64_t tv_usec = 0;
 
-	sigemptyset(&sigmask);
-
-	fds[0].events = POLLIN;
-    fds[0].fd = mCommander.fd;
-    
-    fds[0].revents = 0;
-
-	ret = ppoll(fds, sizeof(fds) / sizeof(struct pollfd), &timeout, &sigmask);
-
-	if (fds[0].revents & POLLIN) {
-
-		size = read(mCommander.fd, &event, buffer_size);
-		
-		if (size == 0 || size == -1)
-			return FALSE;
-		
-		if (size < ev_size) {
-			printf("Error size when reading\n");
-			g_main_loop_quit(app->loop);
-			return FALSE;
-		}
-		
-		int num_chars = size / ev_size;
-		
-		int i;
-		
-		
-		for (i=0;i < num_chars;i++) {			
-			if (event[i].type == EV_KEY && event[i].value == 1) {
-				
-				switch (event[i].code) {
-					case KEY_UP:
-						cmd_buf = cd_up1;
-						cmd_size = sizeof(cd_up1);
-						break;
-							
-					case KEY_DOWN:
-						cmd_buf = cd_down1;
-						cmd_size = sizeof(cd_down1);
-						break;
-										
-					case KEY_LEFT:
-						cmd_buf = cd_left1;
-						cmd_size = sizeof(cd_left1);
-						break;
-						
-					case KEY_RIGHT:
-						cmd_buf = cd_right1;
-						cmd_size = sizeof(cd_right1);
-						break;
-						
-					case KEY_N:
-						cmd_buf = cd_lefturn;
-						cmd_size = sizeof(cd_lefturn);
-						break;
-						
-					case KEY_M:
-						cmd_buf = cd_rightturn;
-						cmd_size = sizeof(cd_rightturn);
-						break;
-
-					case KEY_ENTER:
-						cmd_buf = cd_enter1;
-						cmd_size = sizeof(cd_enter1);
-						break;
-
-					case KEY_BACKSPACE:
-						cmd_buf = cd_back1;
-						cmd_size = sizeof(cd_back1);
-						break;
-				}
-				
-				if (cmd_buf != NULL) {
-					clock_gettime(CLOCK_REALTIME, &tp);
-					
-					uint8_t *buf = (uint8_t *)malloc(cmd_size);
-
-					memcpy(buf, cmd_buf, cmd_size);
-
-					varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec, buf,3);
-
-					printf("\n { ");
-			
-					for (i = 0; i < cmd_size; i++)
-					{
-						
-						if (i > 0) printf(",");
-						printf("0x%02X", (char) buf[i]);
-					}
-					
-					printf(" } \n");
-
-									
-					queueSend(0,AA_CH_TOU, buf, cmd_size, TRUE);
-					
-				}
-				
-			}
-				
-			if (event[i].type == EV_KEY && event[i].value == 0) {
-				cmd_buf = NULL;
-				
-				switch (event[i].code) {
-					case KEY_UP:
-						cmd_buf = cd_up2;
-						cmd_size = sizeof(cd_up2);
-						break;
-							
-					case KEY_DOWN:
-						cmd_buf = cd_down2;
-						cmd_size = sizeof(cd_down2);
-						break;
-										
-					case KEY_LEFT:
-						cmd_buf = cd_left2;
-						cmd_size = sizeof(cd_left2);
-						break;
-						
-					case KEY_RIGHT:
-						cmd_buf = cd_right2;
-						cmd_size = sizeof(cd_right2);
-						break;
-
-					case KEY_ENTER:
-						cmd_buf = cd_enter2;
-						cmd_size = sizeof(cd_enter2);
-						break;
-
-					case KEY_BACKSPACE:
-						cmd_buf = cd_back2;
-						cmd_size = sizeof(cd_back2);
-						break;
-				}
-				
-				if (cmd_buf != NULL) {
-					clock_gettime(CLOCK_REALTIME, &tp);
-					uint8_t *buf = (uint8_t *)malloc(cmd_size);
-
-					memcpy(buf, cmd_buf, cmd_size);
-
-					printf("\n { ");
-			
-					for (i = 0; i < cmd_size; i++)
-					{
-						
-						if (i > 0) printf(",");
-						printf("0x%02X", (char) buf[i]);
-					}
-					
-					printf(" } \n");
-
-					varint_encode(tp.tv_sec * 100000000 +tp.tv_nsec, buf,3);
-					
-					queueSend(0,AA_CH_TOU, buf, cmd_size, TRUE);
-				}
-			}
-		}
+	if (dbus_message_iter_get_arg_type(iter) != DBUS_TYPE_STRUCT) {
+		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(iter));
+		return TRUE;
 	}
-	
+
+	dbus_message_iter_recurse(iter, &sub);
+
+	if (dbus_message_iter_get_arg_type(&sub) != DBUS_TYPE_UINT64) {
+		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(iter));
+		return FALSE;
+	}
+	dbus_message_iter_get_basic(&sub, &tv_sec);
+	dbus_message_iter_next(&sub);
+
+	if (dbus_message_iter_get_arg_type(&sub) != DBUS_TYPE_UINT64) {
+		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(iter));
+		return FALSE;
+	}
+	dbus_message_iter_get_basic(&sub, &tv_usec);
+
+	dbus_message_iter_next(iter);
+
+	time->tv_sec = tv_sec;
+	time->tv_usec = tv_usec;
+
+	return TRUE;
+}
+inline int dbus_message_decode_input_event(DBusMessageIter *iter, struct input_event *event)
+{
+	DBusMessageIter sub;
+
+	if (dbus_message_iter_get_arg_type(iter) != DBUS_TYPE_STRUCT) {
+		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(iter));
+		return TRUE;
+	}
+
+	dbus_message_iter_recurse(iter, &sub);
+
+	if (!dbus_message_decode_timeval(&sub, &event->time)) {
+		printf("ERROR: failed to decode timeval");
+		return FALSE;
+	}
+
+	if (dbus_message_iter_get_arg_type(&sub) != DBUS_TYPE_UINT16) {
+		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(&sub));
+		return FALSE;
+	}
+	dbus_message_iter_get_basic(&sub, &event->type);
+	dbus_message_iter_next(&sub);
+
+	if (dbus_message_iter_get_arg_type(&sub) != DBUS_TYPE_UINT16) {
+		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(&sub));
+		return FALSE;
+	}
+	dbus_message_iter_get_basic(&sub, &event->code);
+	dbus_message_iter_next(&sub);
+
+	if (dbus_message_iter_get_arg_type(&sub) != DBUS_TYPE_INT32) {
+		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(&sub));
+		return FALSE;
+	}
+	dbus_message_iter_get_basic(&sub, &event->value);
+
+	dbus_message_iter_next(iter);
+
 	return TRUE;
 }
 
+static DBusHandlerResult handle_keyboard_message(DBusConnection *c, DBusMessage *message, void *p)
+{
+	if (strcmp("KeyEvent", dbus_message_get_member(message)) == 0)
+	{
+		int i;
+		struct input_event event;
+		struct timespec tp;
+		unsigned char* cmd_buf = NULL;
+		int cmd_size;
+
+		DBusMessageIter iter;
+		dbus_message_iter_init(message, &iter);
+		dbus_message_decode_input_event(&iter, &event);
+
+		if (event.type == EV_KEY && event.value == 1) {
+			switch (event.code) {
+				case KEY_UP:
+					cmd_buf = cd_up1;
+					cmd_size = sizeof(cd_up1);
+					break;
+
+				case KEY_DOWN:
+					cmd_buf = cd_down1;
+					cmd_size = sizeof(cd_down1);
+					break;
+
+				case KEY_LEFT:
+					cmd_buf = cd_left1;
+					cmd_size = sizeof(cd_left1);
+					break;
+
+				case KEY_RIGHT:
+					cmd_buf = cd_right1;
+					cmd_size = sizeof(cd_right1);
+					break;
+
+				case KEY_N:
+					cmd_buf = cd_lefturn;
+					cmd_size = sizeof(cd_lefturn);
+					break;
+
+				case KEY_M:
+					cmd_buf = cd_rightturn;
+					cmd_size = sizeof(cd_rightturn);
+					break;
+
+				case KEY_ENTER:
+					cmd_buf = cd_enter1;
+					cmd_size = sizeof(cd_enter1);
+					break;
+
+				case KEY_BACKSPACE:
+					cmd_buf = cd_back1;
+					cmd_size = sizeof(cd_back1);
+					break;
+			}
+
+			if (cmd_buf != NULL) {
+				clock_gettime(CLOCK_REALTIME, &tp);
+
+				uint8_t *buf = (uint8_t *)malloc(cmd_size);
+
+				memcpy(buf, cmd_buf, cmd_size);
+
+				varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec, buf,3);
+
+				printf("\n { ");
+
+				for (i = 0; i < cmd_size; i++)
+				{
+
+					if (i > 0) printf(",");
+					printf("0x%02X", (char) buf[i]);
+				}
+
+				printf(" } \n");
+
+
+				queueSend(0,AA_CH_TOU, buf, cmd_size, TRUE);
+
+			}
+
+		}
+
+		if (event.type == EV_KEY && event.value == 0) {
+			cmd_buf = NULL;
+
+			switch (event.code) {
+				case KEY_UP:
+					cmd_buf = cd_up2;
+					cmd_size = sizeof(cd_up2);
+					break;
+
+				case KEY_DOWN:
+					cmd_buf = cd_down2;
+					cmd_size = sizeof(cd_down2);
+					break;
+
+				case KEY_LEFT:
+					cmd_buf = cd_left2;
+					cmd_size = sizeof(cd_left2);
+					break;
+
+				case KEY_RIGHT:
+					cmd_buf = cd_right2;
+					cmd_size = sizeof(cd_right2);
+					break;
+
+				case KEY_ENTER:
+					cmd_buf = cd_enter2;
+					cmd_size = sizeof(cd_enter2);
+					break;
+
+				case KEY_BACKSPACE:
+					cmd_buf = cd_back2;
+					cmd_size = sizeof(cd_back2);
+					break;
+			}
+
+			if (cmd_buf != NULL) {
+				clock_gettime(CLOCK_REALTIME, &tp);
+				uint8_t *buf = (uint8_t *)malloc(cmd_size);
+
+				memcpy(buf, cmd_buf, cmd_size);
+
+				printf("\n { ");
+
+				for (i = 0; i < cmd_size; i++)
+				{
+
+					if (i > 0) printf(",");
+					printf("0x%02X", (char) buf[i]);
+				}
+
+				printf(" } \n");
+
+				varint_encode(tp.tv_sec * 100000000 +tp.tv_nsec, buf,3);
+
+				queueSend(0,AA_CH_TOU, buf, cmd_size, TRUE);
+			}
+		}
+
+	}
+	return DBUS_HANDLER_RESULT_HANDLED;
+}
 
 static void * input_thread(void *app) {
-	
+
+	DBusConnection *hmi_bus;
+	DBusError error;
+
+	hmi_bus = dbus_connection_open(HMI_BUS_ADDRESS, &error);
+
+	if (!hmi_bus) {
+		printf("DBUS: failed to connect to HMI bus: %s: %s\n", error.name, error.message);
+	}
+
+	if (!dbus_bus_register(hmi_bus, &error)) {
+		printf("DBUS: failed to register with HMI bus: %s: %s\n", error.name, error.message);
+	}
+
+	dbus_connection_add_filter(hmi_bus, handle_keyboard_message, NULL, NULL);
+	dbus_bus_add_match(hmi_bus, "type='signal',interface='us.insolit.mazda.connector',member='KeyEvent'", &error);
+
 	while (touch_poll_event(app)) {
-		commander_poll_event(app);		
-		ms_sleep(100);
+		//commander_poll_event(app);		
+		dbus_connection_read_write_dispatch(hmi_bus, 100);
+		//ms_sleep(100);
 	}
 }
 
 GMainLoop *mainloop;
 
-#define HMI_BUS_ADDRESS "unix:path=/tmp/dbus_hmi_socket"
-
- 
 static void * nightmode_thread(void *app) 
 {
 
@@ -820,9 +876,9 @@ static void * nightmode_thread(void *app)
 
 	// Wait for mainloop to start
 	ms_sleep(100);
-		
+
 	while (g_main_loop_is_running (mainloop)) {
-		
+
 		DBusMessage *msg = dbus_message_new_method_call("com.jci.BLM_TIME", "/com/jci/BLM_TIME", "com.jci.BLM_TIME", "GetClock");
 		DBusPendingCall *pending = NULL;
 
@@ -840,7 +896,7 @@ static void * nightmode_thread(void *app)
 		dbus_pending_call_block(pending);
 		msg = dbus_pending_call_steal_reply(pending);
 		if (!msg) {
-		   printf("DBUS: received null reply \n");
+			printf("DBUS: received null reply \n");
 		}
 
 		dbus_uint32_t nm_hour;
@@ -848,15 +904,15 @@ static void * nightmode_thread(void *app)
 		dbus_uint32_t nm_timestamp;
 		dbus_uint64_t nm_calltimestamp;
 		if (!dbus_message_get_args(msg, &error, DBUS_TYPE_UINT32, &nm_hour,
-											  DBUS_TYPE_UINT32, &nm_min,
-											  DBUS_TYPE_UINT32, &nm_timestamp,
-											  DBUS_TYPE_UINT64, &nm_calltimestamp,
-											  DBUS_TYPE_INVALID)) {
+					DBUS_TYPE_UINT32, &nm_min,
+					DBUS_TYPE_UINT32, &nm_timestamp,
+					DBUS_TYPE_UINT64, &nm_calltimestamp,
+					DBUS_TYPE_INVALID)) {
 			printf("DBUS: failed to get result %s: %s\n", error.name, error.message);
 		}
-		
+
 		dbus_message_unref(msg);
-		
+
 		int nightmodenow = 1;
 
 		if (nm_hour >= 6 && nm_hour <= 18)
@@ -867,17 +923,17 @@ static void * nightmode_thread(void *app)
 			byte* rspds = malloc(sizeof(byte) * 6);
 			rspds[0] = -128; 
 			rspds[1] = 0x03;
-		   	rspds[2] = 0x52; 
+			rspds[2] = 0x52; 
 			rspds[3] = 0x02;
-		   	rspds[4] = 0x08;
+			rspds[4] = 0x08;
 			if (nightmode == 0)
 				rspds[5]= 0x00;
 			else
 				rspds[5] = 0x01;
-			
+
 			queueSend(0,AA_CH_SEN, rspds, sizeof (byte) * 6, TRUE); 	// Send Sensor Night mode
 		}
-		
+
 		sleep(600);		
 	}
 }
@@ -892,7 +948,7 @@ gboolean myMainLoop(gpointer app)
 	}
 
 	send_arg* cmd;
- 
+
 	if (cmd = g_async_queue_try_pop(sendqueue))
 	{
 		hu_aap_enc_send(cmd->retry, cmd->chan, cmd->cmd_buf, cmd->cmd_len);
@@ -907,7 +963,7 @@ gboolean myMainLoop(gpointer app)
 static void * main_thread(void *app) {
 
 	ms_sleep(100);
-	
+
 	while (mainloop && g_main_loop_is_running (mainloop)) {
 		myMainLoop(app);
 	}
@@ -923,20 +979,20 @@ static int gst_loop(gst_app_t *app)
 	state_ret = gst_element_set_state((GstElement*)aud_pipeline, GST_STATE_PLAYING);
 	state_ret = gst_element_set_state((GstElement*)au1_pipeline, GST_STATE_PLAYING);
 
-//	g_warning("set state returned %d\n", state_ret);
+	//	g_warning("set state returned %d\n", state_ret);
 
 	app->loop = g_main_loop_new (NULL, FALSE);
-	
+
 	mainloop = app->loop;
-	
-//	g_timeout_add_full(G_PRIORITY_HIGH, 1, myMainLoop, (gpointer)app, NULL);
+
+	//	g_timeout_add_full(G_PRIORITY_HIGH, 1, myMainLoop, (gpointer)app, NULL);
 
 	printf("Starting Android Auto...\n");
-  	g_main_loop_run (app->loop);
+	g_main_loop_run (app->loop);
 
-// TO-DO
+	// TO-DO
 	state_ret = gst_element_set_state((GstElement*)app->pipeline, GST_STATE_NULL);
-//	g_warning("set state null returned %d\n", state_ret);
+	//	g_warning("set state null returned %d\n", state_ret);
 
 	gst_object_unref(app->pipeline);
 	gst_object_unref(mic_pipeline);
@@ -954,6 +1010,60 @@ static void signals_handler (int signum)
 	}
 }
 
+static void switch_audio()
+{
+	DBusConnection *service_bus;
+	DBusError error;
+	DBusMessageIter args;
+
+	service_bus = dbus_connection_open(SERVICE_BUS_ADDRESS, &error);
+
+	if (!service_bus) {
+		printf("DBUS: failed to connect to service bus: %s: %s\n", error.name, error.message);
+	}
+
+	if (!dbus_bus_register(service_bus, &error)) {
+		printf("DBUS: failed to register with service bus: %s: %s\n", error.name, error.message);
+	}
+
+	DBusMessage *msg = dbus_message_new_method_call("com.xsembedded.service.AudioManagement", "/com/xse/service/AudioManagement/AudioApplication", "com.xsembedded.ServiceProvider", "Request");
+	if (msg == NULL)
+	{
+		printf("DBUS: msg null\n");
+		return;
+	}
+
+	dbus_message_iter_init_append(msg, &args);
+	char* action = "requestAudioFocus";
+	if(!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &action))
+	{
+		printf("DBUS: iter append failed\n");
+		return;
+	}
+	printf("here\n");
+	char* session = "{\"sessionId\":13}";
+	if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &session))
+	{
+		printf("DBUS: iter append failed 2\n");
+		return;
+	}
+
+	if (!dbus_connection_send(service_bus, msg, 0))
+	{
+		printf("DBUS: send failed\n");
+		return;
+	}
+
+	dbus_connection_flush(service_bus);
+	dbus_message_unref(msg);
+
+}
+
+void dbus_input_handler()
+{
+
+}
+
 int main (int argc, char *argv[])
 {	
 	signal (SIGTERM, signals_handler);
@@ -963,6 +1073,8 @@ int main (int argc, char *argv[])
 	errno = 0;
 	byte ep_in_addr  = -2;
 	byte ep_out_addr = -2;
+
+	switch_audio();
 
 	/* Init gstreamer pipeline */
 	ret = gst_pipeline_init(app);

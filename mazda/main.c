@@ -607,9 +607,8 @@ uint8_t cd_back2[]  =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08
 uint8_t cd_enter1[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x17,0x10,0x01,0x18,0x00,0x20,0x00 };
 uint8_t cd_enter2[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08,0x08,0x17,0x10,0x00,0x18,0x00,0x20,0x00 };
 
+GMainLoop *mainloop;
 
-#define _STRINGIFY(x) #x
-#define STRINGIFY(x) _STRINGIFY(x)
 inline int dbus_message_decode_timeval(DBusMessageIter *iter, struct timeval *time)
 {
 	DBusMessageIter sub;
@@ -617,21 +616,18 @@ inline int dbus_message_decode_timeval(DBusMessageIter *iter, struct timeval *ti
 	uint64_t tv_usec = 0;
 
 	if (dbus_message_iter_get_arg_type(iter) != DBUS_TYPE_STRUCT) {
-		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(iter));
 		return TRUE;
 	}
 
 	dbus_message_iter_recurse(iter, &sub);
 
 	if (dbus_message_iter_get_arg_type(&sub) != DBUS_TYPE_UINT64) {
-		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(iter));
 		return FALSE;
 	}
 	dbus_message_iter_get_basic(&sub, &tv_sec);
 	dbus_message_iter_next(&sub);
 
 	if (dbus_message_iter_get_arg_type(&sub) != DBUS_TYPE_UINT64) {
-		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(iter));
 		return FALSE;
 	}
 	dbus_message_iter_get_basic(&sub, &tv_usec);
@@ -648,33 +644,28 @@ inline int dbus_message_decode_input_event(DBusMessageIter *iter, struct input_e
 	DBusMessageIter sub;
 
 	if (dbus_message_iter_get_arg_type(iter) != DBUS_TYPE_STRUCT) {
-		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(iter));
 		return TRUE;
 	}
 
 	dbus_message_iter_recurse(iter, &sub);
 
 	if (!dbus_message_decode_timeval(&sub, &event->time)) {
-		printf("ERROR: failed to decode timeval");
 		return FALSE;
 	}
 
 	if (dbus_message_iter_get_arg_type(&sub) != DBUS_TYPE_UINT16) {
-		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(&sub));
 		return FALSE;
 	}
 	dbus_message_iter_get_basic(&sub, &event->type);
 	dbus_message_iter_next(&sub);
 
 	if (dbus_message_iter_get_arg_type(&sub) != DBUS_TYPE_UINT16) {
-		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(&sub));
 		return FALSE;
 	}
 	dbus_message_iter_get_basic(&sub, &event->code);
 	dbus_message_iter_next(&sub);
 
 	if (dbus_message_iter_get_arg_type(&sub) != DBUS_TYPE_INT32) {
-		printf("[" STRINGIFY(__LINE__) "]: received unexpected type: %c\n", dbus_message_iter_get_arg_type(&sub));
 		return FALSE;
 	}
 	dbus_message_iter_get_basic(&sub, &event->value);
@@ -683,6 +674,8 @@ inline int dbus_message_decode_input_event(DBusMessageIter *iter, struct input_e
 
 	return TRUE;
 }
+
+uint8_t micButton[] = {0x80, 0x01, 0x08, 0xe8, 0x9f, 0x9d, 0xd0, 0xe9, 0x96, 0xe5, 0x8b, 0x14, 0x22, 0x0A, 0x0A, 0x08, 0x08, 0x54, 0x10, 0x00, 0x18, 0x00, 0x20, 0x00};
 
 static DBusHandlerResult handle_keyboard_message(DBusConnection *c, DBusMessage *message, void *p)
 {
@@ -698,136 +691,23 @@ static DBusHandlerResult handle_keyboard_message(DBusConnection *c, DBusMessage 
 		dbus_message_iter_init(message, &iter);
 		dbus_message_decode_input_event(&iter, &event);
 
+		//key press
 		if (event.type == EV_KEY && event.value == 1) {
 			switch (event.code) {
-				case KEY_UP:
-					cmd_buf = cd_up1;
-					cmd_size = sizeof(cd_up1);
-					break;
-
-				case KEY_DOWN:
-					cmd_buf = cd_down1;
-					cmd_size = sizeof(cd_down1);
-					break;
-
-				case KEY_LEFT:
-					cmd_buf = cd_left1;
-					cmd_size = sizeof(cd_left1);
-					break;
-
-				case KEY_RIGHT:
-					cmd_buf = cd_right1;
-					cmd_size = sizeof(cd_right1);
-					break;
-
-				case KEY_N:
-					cmd_buf = cd_lefturn;
-					cmd_size = sizeof(cd_lefturn);
-					break;
-
 				case KEY_M:
-					cmd_buf = cd_rightturn;
-					cmd_size = sizeof(cd_rightturn);
+					queueSend(0,AA_CH_TOU, micButton, sizeof(micButton), FALSE);
 					break;
-
-				case KEY_ENTER:
-					cmd_buf = cd_enter1;
-					cmd_size = sizeof(cd_enter1);
+				case KEY_HOME:
+					g_main_loop_quit (mainloop);
 					break;
-
-				case KEY_BACKSPACE:
-					cmd_buf = cd_back1;
-					cmd_size = sizeof(cd_back1);
-					break;
-			}
-
-			if (cmd_buf != NULL) {
-				clock_gettime(CLOCK_REALTIME, &tp);
-
-				uint8_t *buf = (uint8_t *)malloc(cmd_size);
-
-				memcpy(buf, cmd_buf, cmd_size);
-
-				varint_encode(tp.tv_sec * 1000000000 +tp.tv_nsec, buf,3);
-
-				printf("\n { ");
-
-				for (i = 0; i < cmd_size; i++)
-				{
-
-					if (i > 0) printf(",");
-					printf("0x%02X", (char) buf[i]);
-				}
-
-				printf(" } \n");
-
-
-				queueSend(0,AA_CH_TOU, buf, cmd_size, TRUE);
-
-			}
-
-		}
-
-		if (event.type == EV_KEY && event.value == 0) {
-			cmd_buf = NULL;
-
-			switch (event.code) {
-				case KEY_UP:
-					cmd_buf = cd_up2;
-					cmd_size = sizeof(cd_up2);
-					break;
-
-				case KEY_DOWN:
-					cmd_buf = cd_down2;
-					cmd_size = sizeof(cd_down2);
-					break;
-
-				case KEY_LEFT:
-					cmd_buf = cd_left2;
-					cmd_size = sizeof(cd_left2);
-					break;
-
-				case KEY_RIGHT:
-					cmd_buf = cd_right2;
-					cmd_size = sizeof(cd_right2);
-					break;
-
-				case KEY_ENTER:
-					cmd_buf = cd_enter2;
-					cmd_size = sizeof(cd_enter2);
-					break;
-
-				case KEY_BACKSPACE:
-					cmd_buf = cd_back2;
-					cmd_size = sizeof(cd_back2);
-					break;
-			}
-
-			if (cmd_buf != NULL) {
-				clock_gettime(CLOCK_REALTIME, &tp);
-				uint8_t *buf = (uint8_t *)malloc(cmd_size);
-
-				memcpy(buf, cmd_buf, cmd_size);
-
-				printf("\n { ");
-
-				for (i = 0; i < cmd_size; i++)
-				{
-
-					if (i > 0) printf(",");
-					printf("0x%02X", (char) buf[i]);
-				}
-
-				printf(" } \n");
-
-				varint_encode(tp.tv_sec * 100000000 +tp.tv_nsec, buf,3);
-
-				queueSend(0,AA_CH_TOU, buf, cmd_size, TRUE);
 			}
 		}
+		//key release
+		//else if (event.type == EV_KEY && event.value == 1)
 
+		return DBUS_HANDLER_RESULT_HANDLED;
 	}
-	return DBUS_HANDLER_RESULT_HANDLED;
+
 }
 
 static void * input_thread(void *app) {
@@ -854,8 +734,6 @@ static void * input_thread(void *app) {
 		//ms_sleep(100);
 	}
 }
-
-GMainLoop *mainloop;
 
 static void * nightmode_thread(void *app) 
 {

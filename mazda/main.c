@@ -24,6 +24,9 @@
 #define HMI_BUS_ADDRESS "unix:path=/tmp/dbus_hmi_socket"
 #define SERVICE_BUS_ADDRESS "unix:path=/tmp/dbus_service_socket"
 
+#define AUDIO_AA 13
+#define AUDIO_RADIO 6
+
 __asm__(".symver realpath1,realpath1@GLIBC_2.11.1");
 
 
@@ -609,6 +612,60 @@ uint8_t cd_enter2[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08
 
 GMainLoop *mainloop;
 
+int audioStatus = AUDIO_AA;
+
+static void switch_audio(int sessionId)
+{
+	DBusConnection *service_bus;
+	DBusError error;
+	DBusMessageIter args;
+
+	audioStatus = sessionId;
+
+	service_bus = dbus_connection_open(SERVICE_BUS_ADDRESS, &error);
+
+	if (!service_bus) {
+		printf("DBUS: failed to connect to service bus: %s: %s\n", error.name, error.message);
+	}
+
+	if (!dbus_bus_register(service_bus, &error)) {
+		printf("DBUS: failed to register with service bus: %s: %s\n", error.name, error.message);
+	}
+
+	DBusMessage *msg = dbus_message_new_method_call("com.xsembedded.service.AudioManagement", "/com/xse/service/AudioManagement/AudioApplication", "com.xsembedded.ServiceProvider", "Request");
+	if (msg == NULL)
+	{
+		printf("DBUS: msg null\n");
+		return;
+	}
+
+	dbus_message_iter_init_append(msg, &args);
+	char* action = "requestAudioFocus";
+	if(!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &action))
+	{
+		printf("DBUS: iter append failed\n");
+		return;
+	}
+	char* session = malloc(30);
+	snprintf(session, 30, "{\"sessionId\":%d}", sessionId);
+	puts(session);
+	if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &session))
+	{
+		printf("DBUS: iter append failed 2\n");
+		return;
+	}
+
+	if (!dbus_connection_send(service_bus, msg, 0))
+	{
+		printf("DBUS: send failed\n");
+		return;
+	}
+
+	dbus_connection_flush(service_bus);
+	dbus_message_unref(msg);
+	dbus_connection_close(service_bus);
+}
+
 inline int dbus_message_decode_timeval(DBusMessageIter *iter, struct timeval *time)
 {
 	DBusMessageIter sub;
@@ -675,17 +732,16 @@ inline int dbus_message_decode_input_event(DBusMessageIter *iter, struct input_e
 	return TRUE;
 }
 
-uint8_t micButton[] = {0x80, 0x01, 0x08, 0xe8, 0x9f, 0x9d, 0xd0, 0xe9, 0x96, 0xe5, 0x8b, 0x14, 0x22, 0x0A, 0x0A, 0x08, 0x08, 0x54, 0x10, 0x00, 0x18, 0x00, 0x20, 0x00};
+uint8_t micButton[] =  {0x80, 0x01, 0x08, 0xe8, 0x9f, 0x9d, 0xd0, 0xe9, 0x96, 0xe5, 0x8b, 0x14, 0x22, 0x0A, 0x0A, 0x08, 0x08, 0x54, 0x10, 0x00, 0x18, 0x00, 0x20, 0x00};
+uint8_t nextButton[] = {0x80, 0x01, 0x08, 0xe8, 0x9f, 0x9d, 0xd0, 0xe9, 0x96, 0xe5, 0x8b, 0x14, 0x22, 0x0A, 0x0A, 0x08, 0x08, 0x57, 0x10, 0x01, 0x18, 0x00, 0x20, 0x00};
+uint8_t prevButton[] = {0x80, 0x01, 0x08, 0xe8, 0x9f, 0x9d, 0xd0, 0xe9, 0x96, 0xe5, 0x8b, 0x14, 0x22, 0x0A, 0x0A, 0x08, 0x08, 0x58, 0x10, 0x01, 0x18, 0x00, 0x20, 0x00};
+
 
 static DBusHandlerResult handle_keyboard_message(DBusConnection *c, DBusMessage *message, void *p)
 {
 	if (strcmp("KeyEvent", dbus_message_get_member(message)) == 0)
 	{
-		int i;
 		struct input_event event;
-		struct timespec tp;
-		unsigned char* cmd_buf = NULL;
-		int cmd_size;
 
 		DBusMessageIter iter;
 		dbus_message_iter_init(message, &iter);
@@ -694,8 +750,20 @@ static DBusHandlerResult handle_keyboard_message(DBusConnection *c, DBusMessage 
 		//key press
 		if (event.type == EV_KEY && event.value == 1) {
 			switch (event.code) {
-				case KEY_M:
+				case KEY_G:
 					queueSend(0,AA_CH_TOU, micButton, sizeof(micButton), FALSE);
+					break;
+				case KEY_LEFTBRACE:
+					queueSend(0,AA_CH_TOU, nextButton, sizeof(nextButton), FALSE);
+					break;
+				case KEY_RIGHTBRACE:
+					queueSend(0,AA_CH_TOU, prevButton, sizeof(prevButton), FALSE);
+					break;
+				case KEY_T:
+					if (audioStatus == AUDIO_AA)
+						switch_audio(AUDIO_RADIO);
+					else
+						switch_audio(AUDIO_AA);
 					break;
 				case KEY_HOME:
 					g_main_loop_quit (mainloop);
@@ -888,60 +956,6 @@ static void signals_handler (int signum)
 	}
 }
 
-static void switch_audio()
-{
-	DBusConnection *service_bus;
-	DBusError error;
-	DBusMessageIter args;
-
-	service_bus = dbus_connection_open(SERVICE_BUS_ADDRESS, &error);
-
-	if (!service_bus) {
-		printf("DBUS: failed to connect to service bus: %s: %s\n", error.name, error.message);
-	}
-
-	if (!dbus_bus_register(service_bus, &error)) {
-		printf("DBUS: failed to register with service bus: %s: %s\n", error.name, error.message);
-	}
-
-	DBusMessage *msg = dbus_message_new_method_call("com.xsembedded.service.AudioManagement", "/com/xse/service/AudioManagement/AudioApplication", "com.xsembedded.ServiceProvider", "Request");
-	if (msg == NULL)
-	{
-		printf("DBUS: msg null\n");
-		return;
-	}
-
-	dbus_message_iter_init_append(msg, &args);
-	char* action = "requestAudioFocus";
-	if(!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &action))
-	{
-		printf("DBUS: iter append failed\n");
-		return;
-	}
-	printf("here\n");
-	char* session = "{\"sessionId\":13}";
-	if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &session))
-	{
-		printf("DBUS: iter append failed 2\n");
-		return;
-	}
-
-	if (!dbus_connection_send(service_bus, msg, 0))
-	{
-		printf("DBUS: send failed\n");
-		return;
-	}
-
-	dbus_connection_flush(service_bus);
-	dbus_message_unref(msg);
-
-}
-
-void dbus_input_handler()
-{
-
-}
-
 int main (int argc, char *argv[])
 {	
 	signal (SIGTERM, signals_handler);
@@ -952,7 +966,7 @@ int main (int argc, char *argv[])
 	byte ep_in_addr  = -2;
 	byte ep_out_addr = -2;
 
-	switch_audio();
+	switch_audio(AUDIO_AA);
 
 	/* Init gstreamer pipeline */
 	ret = gst_pipeline_init(app);
@@ -990,15 +1004,6 @@ int main (int argc, char *argv[])
 		return -3;
 	}
 
-	/* Open Commander Device */
-	mCommander.fd = open(EVENT_DEVICE_CMD, O_RDONLY);
-
-	if (mCommander.fd == -1) {
-		fprintf(stderr, "%s is not a vaild device\n", EVENT_DEVICE_CMD);
-		return -3;
-	}
-
-
 	sendqueue = g_async_queue_new();
 
 	pthread_t iput_thread;
@@ -1029,7 +1034,6 @@ int main (int argc, char *argv[])
 	}
 
 	close(mTouch.fd);
-	close(mCommander.fd);
 
 	pthread_cancel(nm_thread);
 	pthread_cancel(mn_thread);

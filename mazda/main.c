@@ -228,7 +228,7 @@ static int gst_pipeline_init(gst_app_t *app)
 
 //	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc is-live=true block=false max-latency=1000000 ! h264parse ! vpudec low-latency=true framedrop=true framedrop-level-mask=0x200 ! mfw_v4lsink max-lateness=1000000000 sync=false async=false", &error);
 
-	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc is-live=true block=false max-latency=1000000 ! h264parse ! vpudec low-latency=true framedrop=true framedrop-level-mask=0x200 ! mfw_isink axis-left=0 axis-top=0 disp-width=800 disp-height=480 max-lateness=1000000000 sync=false async=false", &error);
+	app->pipeline = (GstPipeline*)gst_parse_launch("appsrc name=mysrc is-live=true block=false max-latency=1000000 ! h264parse ! vpudec low-latency=true framedrop=true framedrop-level-mask=0x200 ! mfw_isink name=mysink axis-left=0 axis-top=0 disp-width=800 disp-height=480 max-lateness=1000000000 sync=false async=false", &error);
 		
 	if (error != NULL) {
 		printf("could not construct pipeline: %s\n", error->message);
@@ -241,6 +241,7 @@ static int gst_pipeline_init(gst_app_t *app)
 	gst_object_unref(bus);
 
 	app->src = (GstAppSrc*)gst_bin_get_by_name (GST_BIN (app->pipeline), "mysrc");
+	app->sink = (GstElement*)gst_bin_get_by_name (GST_BIN (app->pipeline), "mysink");
 	
 	gst_app_src_set_stream_type(app->src, GST_APP_STREAM_TYPE_STREAM);
 
@@ -613,6 +614,7 @@ uint8_t cd_enter2[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08
 GMainLoop *mainloop;
 
 int audioStatus = AUDIO_AA;
+int displayStatus = 1;
 
 static void switch_audio(int sessionId)
 {
@@ -739,6 +741,8 @@ uint8_t prevButton[] = {0x80, 0x01, 0x08, 0xe8, 0x9f, 0x9d, 0xd0, 0xe9, 0x96, 0x
 
 static DBusHandlerResult handle_keyboard_message(DBusConnection *c, DBusMessage *message, void *p)
 {
+	gst_app_t *app = &gst_app;
+
 	if (strcmp("KeyEvent", dbus_message_get_member(message)) == 0)
 	{
 		struct input_event event;
@@ -767,6 +771,18 @@ static DBusHandlerResult handle_keyboard_message(DBusConnection *c, DBusMessage 
 					break;
 				case KEY_HOME:
 					g_main_loop_quit (mainloop);
+					break;
+				case KEY_R:
+					if (displayStatus)
+					{
+						g_object_set(G_OBJECT(app->sink), "should-display", FALSE, NULL);
+						displayStatus = FALSE;
+					}
+					else
+					{
+						g_object_set(G_OBJECT(app->sink), "should-display", TRUE, NULL);
+						displayStatus = TRUE;
+					}
 					break;
 			}
 		}
@@ -950,15 +966,35 @@ static int gst_loop(gst_app_t *app)
 
 static void signals_handler (int signum)
 {
-	if (mainloop && g_main_loop_is_running (mainloop))
+	gst_app_t *app = &gst_app;
+	if (signum == SIGUSR1)
 	{
-		g_main_loop_quit (mainloop);
+		if (displayStatus)
+		{
+			g_object_set(G_OBJECT(app->sink), "should-display", FALSE, NULL);
+			displayStatus = FALSE;
+		}
+		else
+		{
+			g_object_set(G_OBJECT(app->sink), "should-display", TRUE, NULL);
+			displayStatus = TRUE;
+		}
+
+	}
+	else if (signum == SIGINT)
+	{
+		if (mainloop && g_main_loop_is_running (mainloop))
+		{
+			g_main_loop_quit (mainloop);
+		}
 	}
 }
 
 int main (int argc, char *argv[])
 {	
 	signal (SIGTERM, signals_handler);
+	signal (SIGUSR1, signals_handler);
+
 
 	gst_app_t *app = &gst_app;
 	int ret = 0;
@@ -1038,6 +1074,7 @@ int main (int argc, char *argv[])
 	pthread_cancel(nm_thread);
 	pthread_cancel(mn_thread);
 	pthread_cancel(iput_thread);
+	system("kill -SIGUSR2 $(pgrep input_filter)");
 
 	printf("END \n");
 

@@ -1002,15 +1002,6 @@ int main (int argc, char *argv[])
 	byte ep_in_addr  = -2;
 	byte ep_out_addr = -2;
 
-	switch_audio(AUDIO_AA);
-
-	/* Init gstreamer pipeline */
-	ret = gst_pipeline_init(app);
-	if (ret < 0) {
-		printf("gst_pipeline_init() ret: %d\n", ret);
-		return (-4);
-	}
-
 	/* Start AA processing */
 	ret = hu_aap_start (ep_in_addr, ep_out_addr);
 	if (ret == -1)
@@ -1031,6 +1022,15 @@ int main (int argc, char *argv[])
 	}
 
 	printf("Starting Android Auto...\n");
+
+	switch_audio(AUDIO_AA);
+
+	/* Init gstreamer pipeline */
+	ret = gst_pipeline_init(app);
+	if (ret < 0) {
+		printf("gst_pipeline_init() ret: %d\n", ret);
+		return (-4);
+	}
 
 	/* Open Touchscreen Device */
 	mTouch.fd = open(EVENT_DEVICE_TS, O_RDONLY);

@@ -734,20 +734,29 @@ inline int dbus_message_decode_input_event(DBusMessageIter *iter, struct input_e
 	return TRUE;
 }
 
+static GSourceFunc delayedShouldDisplayTrue(gpointer data)
+{
+	gst_app_t *app = &gst_app;
+	g_object_set(G_OBJECT(app->sink), "should-display", TRUE, NULL);
+	displayStatus = TRUE;
+
+	return FALSE;
+}
+
 uint8_t micButton[] =  {0x80, 0x01, 0x08, 0xe8, 0x9f, 0x9d, 0xd0, 0xe9, 0x96, 0xe5, 0x8b, 0x14, 0x22, 0x0A, 0x0A, 0x08, 0x08, 0x54, 0x10, 0x00, 0x18, 0x00, 0x20, 0x00};
 uint8_t nextButton[] = {0x80, 0x01, 0x08, 0xe8, 0x9f, 0x9d, 0xd0, 0xe9, 0x96, 0xe5, 0x8b, 0x14, 0x22, 0x0A, 0x0A, 0x08, 0x08, 0x57, 0x10, 0x01, 0x18, 0x00, 0x20, 0x00};
 uint8_t prevButton[] = {0x80, 0x01, 0x08, 0xe8, 0x9f, 0x9d, 0xd0, 0xe9, 0x96, 0xe5, 0x8b, 0x14, 0x22, 0x0A, 0x0A, 0x08, 0x08, 0x58, 0x10, 0x01, 0x18, 0x00, 0x20, 0x00};
 
 
-static DBusHandlerResult handle_keyboard_message(DBusConnection *c, DBusMessage *message, void *p)
+static DBusHandlerResult handle_dbus_message(DBusConnection *c, DBusMessage *message, void *p)
 {
 	gst_app_t *app = &gst_app;
+	DBusMessageIter iter;
 
 	if (strcmp("KeyEvent", dbus_message_get_member(message)) == 0)
 	{
 		struct input_event event;
 
-		DBusMessageIter iter;
 		dbus_message_iter_init(message, &iter);
 		dbus_message_decode_input_event(&iter, &event);
 
@@ -789,8 +798,28 @@ static DBusHandlerResult handle_keyboard_message(DBusConnection *c, DBusMessage 
 		//key release
 		//else if (event.type == EV_KEY && event.value == 1)
 
-		return DBUS_HANDLER_RESULT_HANDLED;
 	}
+	else if(strcmp("DisplayMode", dbus_message_get_member(message)) == 0)
+	{
+		int displayMode;
+		if (dbus_message_iter_init(message, &iter) && dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_UINT32)
+		{
+			dbus_message_iter_get_basic(&iter, &displayMode);
+			if (displayMode)
+			{
+				g_object_set(G_OBJECT(app->sink), "should-display", FALSE, NULL);
+				displayStatus = FALSE;
+			}
+			else
+			{
+				g_timeout_add(750, delayedShouldDisplayTrue, NULL);
+			}
+		}
+
+	}
+
+	dbus_message_unref(message);
+	return DBUS_HANDLER_RESULT_HANDLED;
 
 }
 
@@ -809,8 +838,9 @@ static void * input_thread(void *app) {
 		printf("DBUS: failed to register with HMI bus: %s: %s\n", error.name, error.message);
 	}
 
-	dbus_connection_add_filter(hmi_bus, handle_keyboard_message, NULL, NULL);
+	dbus_connection_add_filter(hmi_bus, handle_dbus_message, NULL, NULL);
 	dbus_bus_add_match(hmi_bus, "type='signal',interface='us.insolit.mazda.connector',member='KeyEvent'", &error);
+	dbus_bus_add_match(hmi_bus, "type='signal',interface='com.jci.bucpsa',member='DisplayMode'", &error);
 
 	while (touch_poll_event(app)) {
 		//commander_poll_event(app);		
@@ -966,22 +996,7 @@ static int gst_loop(gst_app_t *app)
 
 static void signals_handler (int signum)
 {
-	gst_app_t *app = &gst_app;
-	if (signum == SIGUSR1)
-	{
-		if (displayStatus)
-		{
-			g_object_set(G_OBJECT(app->sink), "should-display", FALSE, NULL);
-			displayStatus = FALSE;
-		}
-		else
-		{
-			g_object_set(G_OBJECT(app->sink), "should-display", TRUE, NULL);
-			displayStatus = TRUE;
-		}
-
-	}
-	else if (signum == SIGINT)
+	if (signum == SIGINT)
 	{
 		if (mainloop && g_main_loop_is_running (mainloop))
 		{
@@ -993,8 +1008,6 @@ static void signals_handler (int signum)
 int main (int argc, char *argv[])
 {	
 	signal (SIGTERM, signals_handler);
-	signal (SIGUSR1, signals_handler);
-
 
 	gst_app_t *app = &gst_app;
 	int ret = 0;
@@ -1009,6 +1022,18 @@ int main (int argc, char *argv[])
 		printf("Phone switched to accessory mode. Attempting once more.\n");
 		sleep(1);
 		ret = hu_aap_start (ep_in_addr, ep_out_addr);
+	}
+
+	if (ret == -1)
+	{
+		hu_aap_stop ();
+		ret = hu_aap_start (ep_in_addr, ep_out_addr);
+		if (ret == -1)
+		{
+			printf("Phone switched to accessory mode. Attempting once more.\n");
+			sleep(1);
+			ret = hu_aap_start (ep_in_addr, ep_out_addr);
+		}
 	}
 
 	if (ret < 0) {

@@ -5,9 +5,6 @@
     <!-- Match all devices -->
     <usb-device />
 
-<!--
--->
-
     <!-- Android USB accessory: accessory
     -->
     <usb-device vendor-id="16601" product-id="11520" />

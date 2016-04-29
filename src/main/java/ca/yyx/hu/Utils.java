@@ -12,36 +12,22 @@ import android.os.Looper;
 import android.os.StrictMode;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.IllegalFormatException;
+import java.util.Locale;
 
 
 public final class Utils {
 
     public static final String TAG = "Headunit";
-    // Stats:
-    private static int m_obinits = 0;
-
     public static final int android_version = android.os.Build.VERSION.SDK_INT;
-
-    public Utils() {
-        final String tag = tag_prefix_get() + "comuti";
-        m_obinits++;
-        Log.d(TAG, "[" + tag + "] m_obinits: " + m_obinits);
-
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            public void uncaughtException(Thread aThread, Throwable aThrowable) {
-                //Utils.loge ("!!!!!!!! Uncaught exception: " + aThrowable);
-                Log.e(TAG, "!!!!!!!! Uncaught exception: " + aThrowable.getMessage(), aThrowable);
-            }
-        });
-
-        Log.e(TAG, "[" + tag + "] done");
-    }
 
     // Android Logging Levels:
     public static final boolean ena_log_verbo = false;
@@ -49,73 +35,66 @@ public final class Utils {
     private static final boolean ena_log_warni = true;//false;//true;
     private static final boolean ena_log_error = true;
 
-    private static String tag_prefix = "";
-    private static final int max_log_char = 7;//8;
+    public static void logd(String msg) {
+        if (ena_log_debug) Log.d(TAG, format(msg));
+    }
 
-    private static String tag_prefix_get() {
-        try {
-            if (tag_prefix != null && !tag_prefix.equals(""))
-                return (tag_prefix);
-            String pkg = "ca.yyx.hu";
-            tag_prefix = pkg.substring(7);
-            if (tag_prefix.equals(""))
-                tag_prefix = "s!";
-        } catch (Throwable e) {
-            Log.e(TAG, e.getMessage(), e);
-            tag_prefix = "E!";
+    public static void logd(final String msg, final Object... params) {
+        if (ena_log_debug) Log.d(TAG, format(msg, params));
+    }
+
+    public static void logv(String msg) {
+        Log.v(TAG, format(msg));
+    }
+
+    public static void loge(String msg) {
+        Log.e(TAG, format(msg));
+    }
+
+    public static void logw(String msg) {
+        if (ena_log_warni) Log.w(TAG, format(msg));
+    }
+
+    public static void loge(String msg, Throwable tr) {
+        Log.e(TAG, format(msg), tr);
+    }
+
+    public static void loge(Throwable tr) {
+        Log.e(TAG, tr.getMessage(), tr);
+    }
+
+    public static void loge(String msg, final Object... params) {
+        Log.e(TAG, format(msg, params));
+    }
+
+    public static void logv(String msg, final Object... params) {
+        Log.v(TAG, format(msg, params));
+    }
+
+    private static String format(final String msg, final Object... array) {
+        String formatted;
+        if (array == null || array.length == 0) {
+            formatted = msg;
+        } else {
+            try {
+                formatted = String.format(Locale.US, msg, array);
+            } catch (IllegalFormatException ex) {
+                loge("IllegalFormatException: formatString='%s' numArgs=%d", msg, array.length);
+                formatted = msg + " (An error occurred while formatting the message.)";
+            }
         }
-        return (tag_prefix);
-    }
-
-    private static void log(int level, String text) {
-
-        final StackTraceElement stack_trace_el = new Exception().getStackTrace()[2];
-        String method = stack_trace_el.getMethodName();
-        String full_txt = String.format("[%36.36s] %s", method, text);
-
-        if (level == Log.ERROR)
-            Log.e(TAG, full_txt);
-        else if (level == Log.WARN)
-            Log.w(TAG, full_txt);
-        else if (level == Log.DEBUG)
-            Log.d(TAG, full_txt);
-        else if (level == Log.VERBOSE)
-            Log.v(TAG, full_txt);
-    }
-
-    public static void logv(String text) {
-        if (ena_log_verbo)
-            log(Log.VERBOSE, text);
-    }
-
-    public static void logd(String text) {
-        if (ena_log_debug)
-            log(Log.DEBUG, text);
-    }
-
-    public static void logw(String text) {
-        if (ena_log_warni)
-            log(Log.WARN, text);
-    }
-
-    public static void loge(String text) {
-        if (ena_log_error)
-            log(Log.ERROR, text);
-    }
-
-
-    public static String app_version_get(Context act) {                                             // Get versionName (from AndroidManifest.xml)
-        String version = "";
-        PackageInfo package_info;
-        try {
-            package_info = act.getPackageManager().getPackageInfo(act.getPackageName(), 0);
-            version = package_info.versionName;
-        } catch (Exception e) {//NameNotFoundException e) {
-            //e.printStackTrace ();
+        final StackTraceElement[] stackTrace = new Throwable().fillInStackTrace().getStackTrace();
+        String string = "<unknown>";
+        for (int i = 2; i < stackTrace.length; ++i) {
+            final String className = stackTrace[i].getClassName();
+            if (!className.equals(Utils.class.getName())) {
+                final String substring = className.substring(1 + className.lastIndexOf(46));
+                string = substring.substring(1 + substring.lastIndexOf(36)) + "." + stackTrace[i].getMethodName();
+                break;
+            }
         }
-        return (version);
+        return String.format(Locale.US, "[%d] %s: %s", Thread.currentThread().getId(), string, formatted);
     }
-
 
     public static boolean main_thread_get(String source) {
         boolean ret = (Looper.myLooper() == Looper.getMainLooper());
@@ -126,39 +105,7 @@ public final class Utils {
         return (ret);
     }
 
-    //public static boolean strict_mode = false;
-    //StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-    //StrictMode.setThreadPolicy(policy);
-
-    public static void strict_mode_set(boolean strict_mode) {
-        if (!strict_mode) {
-            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-                    .permitAll()
-                    .build());
-
-            return;
-        }
-
-        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-                .detectDiskReads()
-                .detectDiskWrites()
-                .detectNetwork()
-                .detectAll()                                                     // For all detectable problems
-                .penaltyLog()
-                .build());
-
-        StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-                .detectLeakedSqlLiteObjects()
-                .detectLeakedClosableObjects()
-                .penaltyLog()
-                //.penaltyDeath ()
-                //.penaltyDialog ()   ????
-                .build());
-    }
-
-    public static long ms_sleep(long ms) {
-        //main_thread_get ("ms_sleep ms: " + ms);
-
+      public static long ms_sleep(long ms) {
         //Utils.logw ("ms: " + ms);                                          // Warning
 
         try {
@@ -173,18 +120,10 @@ public final class Utils {
     }
 
     public static long tmr_ms_get() {        // Current timestamp of the most precise timer available on the local system, in nanoseconds. Equivalent to Linux's CLOCK_MONOTONIC.
-        long ms = System.nanoTime() / 1000000; // Should only be used to measure a duration by comparing it against another timestamp on the same device.
         // Values returned by this method do not have a defined correspondence to wall clock times; the zero value is typically whenever the device last booted
         //Utils.logd ("ms: " + ms);           // Changing system time will not affect results.
-        return (ms);
+        return (System.nanoTime() / 1000000);
     }
-
-    public static long utc_ms_get() {        // Current time in milliseconds since January 1, 1970 00:00:00.0 UTC.
-        long ms = System.currentTimeMillis();  // Always returns UTC times, regardless of the system's time zone. This is often called "Unix time" or "epoch time".
-        //Utils.logd ("ms: " + ms);           // This method shouldn't be used for measuring timeouts or other elapsed time measurements, as changing the system time can affect the results.
-        return (ms);
-    }
-
 
     public static byte[] hexstr_to_ba(String s) {
         int len = s.length();
@@ -201,8 +140,9 @@ public final class Utils {
 
     public static String ba_to_hexstr(byte[] ba) {
         String hex = "";
-        for (int ctr = 0; ctr < ba.length; ctr++)
+        for (int ctr = 0; ctr < ba.length; ctr++) {
             hex += hex_get(ba[ctr]);    //hex += "" + hex_get ((byte) (ba [ctr] >> 4));
+        }
         return (hex.toString());
     }
 
@@ -221,16 +161,13 @@ public final class Utils {
         else
             buffer[1] = (byte) (c2 + 'A' - 10);
 
-        String str = new String(buffer);
-
-        return (str);
+        return new String(buffer);
     }
 
     public static String hex_get(short s) {
         byte byte_lo = (byte) (s >> 0 & 0xFF);
         byte byte_hi = (byte) (s >> 8 & 0xFF);
-        String res = hex_get(byte_hi) + hex_get(byte_lo);
-        return (res);
+        return (hex_get(byte_hi) + hex_get(byte_lo));
     }
 
     public static String hex_get(int i) {
@@ -238,8 +175,7 @@ public final class Utils {
         byte byte_1 = (byte) (i >> 8 & 0xFF);
         byte byte_2 = (byte) (i >> 16 & 0xFF);
         byte byte_3 = (byte) (i >> 24 & 0xFF);
-        String res = hex_get(byte_3) + hex_get(byte_2) + hex_get(byte_1) + hex_get(byte_0);
-        return (res);
+        return (hex_get(byte_3) + hex_get(byte_2) + hex_get(byte_1) + hex_get(byte_0));
     }
 
     public static void hex_dump(String prefix, byte[] ba, int size) {
@@ -262,21 +198,6 @@ public final class Utils {
         Utils.hex_dump(prefix, content.array(), size);
     }
 
-    /*
-      private static byte [] str_to_ba (String s) {                          // String to byte array
-        //s += "�";     // RDS test ?
-        char [] buffer = s.toCharArray ();
-        byte [] content = new byte [buffer.length];
-        for (int i = 0; i < content.length; i ++) {
-          content [i] = (byte) buffer [i];
-          //if (content [i] == -3) {            // ??
-          //  Utils.loge ("s: " + s);//content [i]);
-          //  content [i] = '~';
-          //}
-        }
-        return (content);
-      }
-    */
     private static int int_get(byte lo) {
         int ret = lo;
         if (ret < 0)
@@ -322,25 +243,6 @@ public final class Utils {
         return (9);
     }
 
-/*
-  private long varint_decode (byte [] ba, int len) {
-    int idx = 0;
-    long val = 0, new7 = 0;
-    while (idx < len) {
-      new7 =
-      val |= (0x7f & ba [idx]);
-      val = val
-    }
-  }
-
-  private int varint_encode (long val, byte [] ba, int idx) {
-    long left = val;
-    while (left > 0) {
-      if (left < 127)
-    }
-  }
-*/
-
     public static int file_write(Context context, String filename, byte[] buf) {
         try {                                                               // File /data/data/ca.yyx.hu/hu.log contains a path separator
             FileOutputStream fos = context.openFileOutput(filename, Context.MODE_PRIVATE); // | MODE_WORLD_WRITEABLE      // NullPointerException here unless permissions 755
@@ -348,7 +250,6 @@ public final class Utils {
             fos.write(buf);                                                  // Copy to file
             fos.close();                                                     // Close file
         } catch (Throwable t) {
-            //Utils.loge ("Throwable t: " + t);
             Log.e(TAG, "[hucomuti] " + t.getMessage(), t);
             t.printStackTrace();
             return (-1);
@@ -460,32 +361,15 @@ public final class Utils {
     }
 
 
-    public static long file_size_get(String filename) {
-        main_thread_get("file_size_get filename: " + filename);
-        File ppFile = null;
-        long ret = -1;
-        try {
-            ppFile = new File(filename);
-            if (ppFile.exists())
-                ret = ppFile.length();
-        } catch (Exception e) {
-            //e.printStackTrace ();
-        }
-        logd("ret: " + ret + "  \'" + filename + "\'");
-        return (ret);
-    }
-
-    public static boolean file_delete(final String filename) {
+   public static boolean file_delete(final String filename) {
         main_thread_get("file_delete filename: " + filename);
         java.io.File f = null;
         boolean ret = false;
         try {
             f = new File(filename);
-            f.delete();
-            ret = true;
+            ret = f.delete();
         } catch (Throwable e) {
-            Utils.logd("Throwable e: " + e);
-            e.printStackTrace();
+            Utils.loge(e);
         }
         Utils.logd("ret: " + ret);
         return (ret);
@@ -506,67 +390,17 @@ public final class Utils {
         return (ret);
     }
 
-    public static String res_file_create(Context context, int id, String filename) {
-        //main_thread_get ("res_file_create filename: " + filename);
+    public static byte[] toByteArray(InputStream is) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        int buffSize = 16384 * 1024; // 16M
+        byte[] data = new byte[buffSize];
 
-        if (context == null)
-            return ("");
-
-        String full_filename = context.getFilesDir() + "/" + filename;
-        try {
-            InputStream ins = context.getResources().openRawResource(id);          // Open raw resource file as input
-            int size = ins.available();                                      // Get input file size (actually bytes that can be read without indefinite wait)
-
-            if (size > 0 && file_size_get(full_filename) == size) {          // If file already exists and size is unchanged... (assumes size will change on update !!)
-                Utils.logd("file exists size unchanged");                            // !! Have to deal with updates !! Could check filesize, assuming filesize always changes.
-                // Could use indicator file w/ version in file name... SSD running problem for update ??
-                // Hypothetically, permissions may not be set for ssd due to sh failure
-
-//!! Disable to re-write all non-EXE w/ same permissions and all EXE w/ permissions 755 !!!!        return (full_filename);                                         // Done
-
-            }
-
-            byte[] buffer = new byte[size];                                 // Allocate a buffer
-            ins.read(buffer);                                                // Read entire file into buffer. (Largest file is s.wav = 480,044 bytes)
-            ins.close();                                                     // Close input file
-
-            FileOutputStream fos = context.openFileOutput(filename, Context.MODE_PRIVATE); // | MODE_WORLD_WRITEABLE      // NullPointerException here unless permissions 755
-            // Create/open output file for writing
-            fos.write(buffer);                                               // Copy input to output file
-            fos.close();                                                     // Close output file
-
-            //Utils.sys_run ("chmod 755 " + full_filename + " 1>/dev/null 2>/dev/null" , false);              // Set execute permission; otherwise rw-rw----
-            //perms_all (full_filename);
-
-        } catch (Exception e) {
-            //e.printStackTrace ();
-            Utils.loge("Exception e: " + e);
-            return (null);
+        while ((nRead = is.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
         }
-
-        return (full_filename);
+        buffer.flush();
+        return buffer.toByteArray();
     }
-
-    public static byte[] file_read_16m(String filename) {               // Read file up to 16 megabytes into byte array
-        //main_thread_get ("file_read_16m filename: " + filename);
-        byte[] content = new byte[0];
-        int bufSize = 16384 * 1024;
-        byte[] content1 = new byte[bufSize];
-        try {
-            FileInputStream in = new FileInputStream(filename);
-            int n = in.read(content1, 0, bufSize);
-            in.close();
-            content = new byte[n];
-            for (int ctr = 0; ctr < n; ctr++)
-                content[ctr] = content1[ctr];
-        } catch (Exception e) {
-            Utils.logd("Exception: " + e);
-            //e.printStackTrace ();
-        }
-        return (content);
-    }
-
-
-
 }
 

@@ -20,20 +20,24 @@ import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.Map;
 
-public class UsbTransport {
+import ca.yyx.hu.decoder.AudioDecoder;
+import ca.yyx.hu.decoder.MediaDecoder;
 
+public class HeadUnitTransport {
+
+    private final AudioDecoder mAudioDecoder;
+    private final MediaDecoder mMediaDecoder;
     private Context m_context;
     private HeadUnitActivity mHeadUnitActivity;                                     // Activity for callbacks
     private tra_thread m_tra_thread;                                 // Transport Thread
 
     private UsbManager m_usb_mgr;
-    private usb_receiver m_usb_receiver;
     private boolean m_usb_connected;
     private UsbDevice m_usb_device;
 
     private boolean m_autolaunched = false;
 
-    private static final int AA_CH_CTR = 0;                               // Sync with UsbTransport.java, hu_aap.h and hu_aap.c:aa_type_array[]
+    private static final int AA_CH_CTR = 0;                               // Sync with HeadUnitTransport.java, hu_aap.h and hu_aap.c:aa_type_array[]
     private static final int AA_CH_SEN = 1;
     private static final int AA_CH_VID = 2;
     private static final int AA_CH_TOU = 3;
@@ -42,11 +46,14 @@ public class UsbTransport {
     public static final int AA_CH_AU2 = 6;
     private static final int AA_CH_MIC = 7;
     private static final int AA_CH_MAX = 7;
+    private UseReceiver mUseReceiver;
 
 
-    public UsbTransport(HeadUnitActivity HeadUnitActivity) {
+    public HeadUnitTransport(HeadUnitActivity HeadUnitActivity, MediaDecoder mediaDecoder) {
         mHeadUnitActivity = HeadUnitActivity;
         m_context = HeadUnitActivity;
+        mMediaDecoder = mediaDecoder;
+        mAudioDecoder = mediaDecoder.getAudioDecoder();
         m_usb_mgr = (UsbManager) m_context.getSystemService(Context.USB_SERVICE);
         m_autolaunched = false;
     }
@@ -72,7 +79,7 @@ public class UsbTransport {
   Context.finish ();
 
 External Data used from HeadUnitActivity:
-m_mic_bufsize
+MIC_BUFFER_SIZE
 disable_video_started_set
 PRESET_LEN_USB
 
@@ -83,7 +90,7 @@ PRESET_LEN_USB
 
 7 Public APIs provided for HeadUnitActivity:
 
-  public      UsbTransport          (HeadUnitActivity HeadUnitActivity);                          // Constructor
+  public      HeadUnitTransport          (HeadUnitActivity HeadUnitActivity);                          // Constructor
   public int  jni_aap_start   ();                                       // Start JNI Android Auto Protocol and Main Thread. Called only by usb_attach_handler(), usb_force() & HeadUnitActivity.wifi_long_start()
   public void touch_send      (byte action, int x, int y);              // Touch event send. Called only by HeadUnitActivity:touch_send()
   public int  transport_start (Intent intent);                          // USB Transport Start. Called only by HeadUnitActivity:onCreate()
@@ -99,7 +106,7 @@ Internal classes:
 
 ///*
 
-    private byte[] mic_audio_buf = new byte[HeadUnitActivity.m_mic_bufsize];
+    private byte[] mic_audio_buf = new byte[AudioDecoder.MIC_BUFFER_SIZE];
     private int mic_audio_len = 0;
 
     private byte[] test_buf = null;
@@ -114,6 +121,22 @@ Internal classes:
 
     private boolean m_mic_active = false;
     private boolean touch_sync = true;//      // Touch sync times out within 200 ms on second touch with TCP for some reason.
+
+    public void registerUsbReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        filter.addAction(Utils.str_usb_perm);                             // Our App specific Intent for permission request
+        mUseReceiver = new HeadUnitTransport.UseReceiver();                               // Register BroadcastReceiver for USB attached/detached
+        Intent first_sticky_intent = m_context.registerReceiver(mUseReceiver, filter);
+        Utils.logd("first_sticky_intent: " + first_sticky_intent);
+    }
+
+    public void unregisterUsbReceiver() {
+        if (mUseReceiver != null)
+            m_context.unregisterReceiver(mUseReceiver);
+        mUseReceiver = null;
+    }
 
     private final class tra_thread extends Thread {                       // Main Transport Thread
         private volatile boolean m_stopping = false;                        // Set true when stopping
@@ -147,7 +170,7 @@ Internal classes:
 
 //Utils.loge ("2");
                 if (!m_stopping && ret >= 0 && m_mic_active) {                 // If Mic active...
-                    mic_audio_len = mHeadUnitActivity.mic_audio_read(mic_audio_buf, HeadUnitActivity.m_mic_bufsize);
+                    mic_audio_len = mAudioDecoder.mic_audio_read(mic_audio_buf, mAudioDecoder.MIC_BUFFER_SIZE);
                     if (mic_audio_len >= 64) {                                    // If we read at least 64 bytes of audio data
                         byte[] ba_mic = new byte[14 + mic_audio_len];//0x02, 0x0b, 0x03, 0x00,
                         ba_mic[0] = AA_CH_MIC;// Mic channel
@@ -197,8 +220,7 @@ Internal classes:
 
     public int jni_aap_start() {                                         // Start JNI Android Auto Protocol and Main Thread. Called only by usb_attach_handler(), usb_force() & HeadUnitActivity.wifi_long_start()
 
-        if (mHeadUnitActivity.disable_video_started_set)
-            mHeadUnitActivity.ui_video_started_set(true);                             // Enable video/disable log view
+        mHeadUnitActivity.ui_video_started_set(true);                             // Enable video/disable log view
 
         byte[] cmd_buf = {121, -127, 2};                                   // Start Request w/ m_ep_in_addr, m_ep_out_addr
         cmd_buf[1] = (byte) m_ep_in_addr;
@@ -244,7 +266,7 @@ Internal classes:
         if (ret == 1) {                                                     // If mic stop...
             Utils.logd("Microphone Stop");
             m_mic_active = false;
-            mHeadUnitActivity.mic_audio_stop();
+            mAudioDecoder.mic_audio_stop();
             return (0);
         } else if (ret == 2) {                                                // Else if mic start...
             Utils.logd("Microphone Start");
@@ -252,25 +274,23 @@ Internal classes:
             return (0);
         } else if (ret == 3) {                                                // Else if audio stop...
             Utils.logd("Audio Stop");
-            mHeadUnitActivity.out_audio_stop(AA_CH_AUD);
+            mAudioDecoder.out_audio_stop(AA_CH_AUD);
             return (0);
         } else if (ret == 4) {                                                // Else if audio1 stop...
             Utils.logd("Audio1 Stop");
-            mHeadUnitActivity.out_audio_stop(AA_CH_AU1);
+            mAudioDecoder.out_audio_stop(AA_CH_AU1);
             return (0);
         } else if (ret == 5) {                                                // Else if audio2 stop...
             Utils.logd("Audio2 Stop");
-            mHeadUnitActivity.out_audio_stop(AA_CH_AU2);
+            mAudioDecoder.out_audio_stop(AA_CH_AU2);
             return (0);
         } else if (ret > 0) {                                                 // Else if audio or video returned...
             ByteBuffer bb = ByteBuffer.wrap(res_buf);
             bb.limit(ret);
             bb.position(0);
-            if (mHeadUnitActivity != null)
-                mHeadUnitActivity.media_decode(bb);                                     // Decode audio or H264 video content
+            mMediaDecoder.decode(bb);                                     // Decode audio or H264 video content
         }
         return (ret);
-        //}
     }
 
 
@@ -378,14 +398,6 @@ Internal classes:
             action = intent.getAction();
         Utils.logd("intent: " + intent);// + "  action: " + action);
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        filter.addAction(Utils.str_usb_perm);                             // Our App specific Intent for permission request
-        m_usb_receiver = new usb_receiver();                               // Register BroadcastReceiver for USB attached/detached
-        Intent first_sticky_intent = m_context.registerReceiver(m_usb_receiver, filter);
-        Utils.logd("first_sticky_intent: " + first_sticky_intent);
-
         if (action != null &&
                 action.equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {      // If launched by a USB connection event... (Do nothing, let BCR handle)
             //m_autolaunched = true;
@@ -430,7 +442,7 @@ Internal classes:
     private boolean aap_running = false;
 
     public void transport_stop() {                                       // USB Transport Stop. Called only by HeadUnitActivity.all_stop()
-        Utils.logd("m_usb_receiver: " + m_usb_receiver + "  aap_running: " + aap_running);
+        Utils.logd("  aap_running: " + aap_running);
 
         if (!aap_running)
             return;
@@ -442,15 +454,11 @@ Internal classes:
         if (m_tra_thread != null)                                           // If Transport Thread...
             m_tra_thread.quit();                                             // Terminate Transport Thread using it's quit() API
 
-        if (m_usb_receiver != null)
-            m_context.unregisterReceiver(m_usb_receiver);
-        m_usb_receiver = null;
-
         usb_disconnect();                                                  // Disconnect
     }
 
 
-    private final class usb_receiver extends BroadcastReceiver {          // USB Broadcast Receiver enabled by transport_start() & disabled by transport_stop()
+    private final class UseReceiver extends BroadcastReceiver {          // USB Broadcast Receiver enabled by transport_start() & disabled by transport_stop()
         @Override
         public void onReceive(Context context, Intent intent) {
             UsbDevice device = intent.<UsbDevice>getParcelableExtra(UsbManager.EXTRA_DEVICE);
@@ -467,7 +475,7 @@ Internal classes:
                     // If permission granted...
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         Utils.logd("USB BCR permission granted");
-                        Utils.logd("mHeadUnitActivity.sys_ui_hide (): " + mHeadUnitActivity.sys_ui_hide());
+                        mHeadUnitActivity.sys_ui_hide();
                         usb_attach_handler(device, false);                         // Handle same as attached device except NOT NEW so don't add to USB device list
                     } else {
                         Utils.loge("USB BCR permission denied");
@@ -591,7 +599,7 @@ Internal classes:
 07-10 17:53:51.771 E/UsbManager(31496): 	at android.os.Parcel.readException(Parcel.java:1499)
 07-10 17:53:51.771 E/UsbManager(31496): 	at android.hardware.usb.IUsbManager$Stub$Proxy.openDevice(IUsbManager.java:373)
 07-10 17:53:51.771 E/UsbManager(31496): 	at android.hardware.usb.UsbManager.openDevice(UsbManager.java:265)
-07-10 17:53:51.771 E/UsbManager(31496): 	at ca.yyx.hu.UsbTransport.usb_open(UsbTransport.java:564)
+07-10 17:53:51.771 E/UsbManager(31496): 	at ca.yyx.hu.HeadUnitTransport.usb_open(HeadUnitTransport.java:564)
 */
 
             Utils.logd("Request USB Permission");    // Request permission

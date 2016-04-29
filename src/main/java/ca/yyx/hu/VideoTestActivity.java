@@ -2,7 +2,7 @@ package ca.yyx.hu;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.graphics.SurfaceTexture;
 import android.net.Uri;
@@ -13,17 +13,17 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import ca.yyx.hu.decoder.VideoDecoder;
 
 
 public class VideoTestActivity extends Activity implements TextureView.SurfaceTextureListener {
 
-    public static final String RES_FILE = "android.resource://ca.yyx.hu/raw/husam_h264";
+    public static final String RES_FILE = ContentResolver.SCHEME_ANDROID_RESOURCE + "://ca.yyx.hu/raw/husam_h264";
     private static String[] sFiles = {
             "/sdcard/Download/husam.h264",
             "/sdcard/Download/husam.mp4",
@@ -40,7 +40,7 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_test);
 
-        mTexuterView = (TextureView)findViewById(R.id.tv_vid);
+        mTexuterView = (TextureView) findViewById(R.id.tv_vid);
         mVideoDecoder = new VideoDecoder(this);
 
         mTexuterView.setSurfaceTextureListener(this);
@@ -70,9 +70,11 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
 
     private void onFileSelected(String filePath) {
         InputStream stream;
-        if (filePath.equals(RES_FILE))
-        {
-            stream = getResources().openRawResource(R.raw.husam_h264);
+        if (filePath.startsWith(ContentResolver.SCHEME_ANDROID_RESOURCE)) {
+            Uri uri = Uri.parse(filePath);
+            List<String> path = uri.getPathSegments();
+            int resId = getResources().getIdentifier(path.get(1), path.get(0), uri.getAuthority());
+            stream = getResources().openRawResource(resId);
         } else {
             File file = new File(filePath);
             if (!file.exists()) {
@@ -119,8 +121,6 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
 
 
     private void present(InputStream stream) {
-//             h264_full_filename = Utils.res_file_create(m_context, R.raw.husam_h264, "husam.h264");
-                // Utils.file_get("/sdcard/Download/husam.h264")
 
         byte[] ba;            // Read entire file, up to 16 MB to byte array ba
         try {

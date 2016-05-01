@@ -1024,21 +1024,12 @@ int main (int argc, char *argv[])
 		ret = hu_aap_start (ep_in_addr, ep_out_addr);
 	}
 
-	if (ret == -1)
-	{
-		hu_aap_stop ();
-		ret = hu_aap_start (ep_in_addr, ep_out_addr);
-		if (ret == -1)
-		{
-			printf("Phone switched to accessory mode. Attempting once more.\n");
-			sleep(1);
-			ret = hu_aap_start (ep_in_addr, ep_out_addr);
-		}
-	}
-
 	if (ret < 0) {
 		if (ret == -2)
+		{
 			printf("Phone is not connected. Connect a supported phone and restart.\n");
+			return 0;
+		}
 		else if (ret == -1)
 			printf("Phone switched to accessory mode. Restart to enter AA mode.\n");
 		else
@@ -1103,5 +1094,5 @@ int main (int argc, char *argv[])
 
 	printf("END \n");
 
-	return (ret);
+	return 0;
 }

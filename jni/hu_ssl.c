@@ -63,6 +63,7 @@ void thread_cleanup(void)
 		fprintf(stderr,"%8ld:%s\n",lock_count[i],
 			CRYPTO_get_lock_name(i));
 		}
+	SSL_shutdown(hu_ssl_ssl);
 	OPENSSL_free(lock_cs);
 	OPENSSL_free(lock_count);
 

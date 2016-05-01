@@ -28,6 +28,31 @@ public class AudioDecoder {
     }
 
 
+    public void decode(ByteBuffer content) {                       // Decode audio or H264 video content. Called only by video_test() & HeadUnitTransport.aa_cmd_send()
+        int pos = content.position();
+        int siz = content.remaining();
+        byte[] ba = content.array();                                      // Create content byte array
+
+        if (Utils.quiet_file_get("/sdcard/hureca"))                     // If audio record flag file exists...
+            audio_record_write(content);
+        else if (isRecording())                                         // Else if was recording... (file must have been removed)
+            audio_record_stop();
+
+        if (siz <= 2048 + 96)
+            out_audio_write(HeadUnitTransport.AA_CH_AU1, ba, pos + siz);                     // Position always 0 so just use siz as len ?
+        else
+            out_audio_write(HeadUnitTransport.AA_CH_AUD, ba, pos + siz);                     // Position always 0 so just use siz as len ?
+    }
+
+    public void stop() {
+
+        audio_record_stop();
+
+        out_audio_stop(HeadUnitTransport.AA_CH_AUD);                                         // In case Byebye terminates without proper audio stop
+        out_audio_stop(HeadUnitTransport.AA_CH_AU1);
+        out_audio_stop(HeadUnitTransport.AA_CH_AU2);
+    }
+
     void audio_record_stop() {
         try {
             if (audio_record_fos != null)

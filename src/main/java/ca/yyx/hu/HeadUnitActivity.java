@@ -63,9 +63,7 @@ package ca.yyx.hu;
 import android.app.Activity;
 import android.app.UiModeManager;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.SurfaceTexture;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.support.v4.widget.DrawerLayout;
@@ -79,7 +77,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import ca.yyx.hu.decoder.MediaDecoder;
+import java.nio.ByteBuffer;
+
+import ca.yyx.hu.decoder.AudioDecoder;
+import ca.yyx.hu.decoder.VideoDecoder;
 
 
 public class HeadUnitActivity extends Activity implements TextureView.SurfaceTextureListener, WifiManager.Listener {
@@ -117,7 +118,6 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
     private ListView mDrawerListView;
     private View mContentView;
 
-    private MediaDecoder mDecoder;
     private WifiManager mWifiManager;
 
     private double m_scr_wid = 0;
@@ -139,6 +139,8 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
     public static final int PRESET_LEN_USB = PRESET_LEN_TOT - PRESET_LEN_FIX;  // Room left over for USB entries
     private String[] mDrawerSections;
     private boolean isVideoStarted;
+    private AudioDecoder mAudioDecoder;
+    private VideoDecoder mVideoDecoder;
 
     public void presets_update(String[] usb_list_name) {                // Update Presets. Called only by HeadUnitActivity:usb_add() & HeadUnitActivity:usb_del()
         for (int idx = 0; idx < PRESET_LEN_USB; idx++) {
@@ -243,7 +245,8 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
         mWakelock = m_pwr_mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "HeadUnitWakelockTag");
         mWakelock.acquire();                                          // Android M exception for WAKE_LOCK
 
-        mDecoder = new MediaDecoder(this);
+        mAudioDecoder = new AudioDecoder(this);
+        mVideoDecoder = new VideoDecoder(this);
 
         displayIntroMessage();
 
@@ -256,7 +259,7 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
         else
             Utils.sys_run("rm -f /data/data/ca.yyx.hu/files/nfc_wifi 1>/dev/null 2>/dev/null", false);
 
-        mTransport = new HeadUnitTransport(this, mDecoder);                                       // Start USB/SSL/AAP Transport
+        mTransport = new HeadUnitTransport(this, mAudioDecoder);                                       // Start USB/SSL/AAP Transport
         Intent intent = getIntent();                                     // Get launch Intent
 
         int ret = 0;
@@ -484,7 +487,8 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
             car_mode_stop();
         }
 
-        mDecoder.stop();
+        mAudioDecoder.stop();
+        mVideoDecoder.stop();
         isVideoStarted = false;
 
         if (mTransport != null)
@@ -549,7 +553,7 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
     // Called after onCreate(), which calls "mTextureView.setSurfaceTextureListener (HeadUnitActivity.this);"
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         Utils.logd("--- sur_tex: " + surface + "  width: " + width + "  height: " + height);  // N9: width: 2048  height: 1253
-        mDecoder.onSurfaceTextureAvailable(surface, width, height);
+        mVideoDecoder.onSurfaceTextureAvailable(surface, width, height);
     }
 
     @Override
@@ -577,5 +581,17 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
 
     public void sys_ui_hide() {
         SystemUI.hide(mContentView, mDrawerLayout);
+    }
+
+    public void handleMedia(byte[] buffer,int size) {
+        ByteBuffer bb = ByteBuffer.wrap(buffer);
+        bb.limit(size);
+        bb.position(0);
+
+        if (VideoDecoder.isH246Video(buffer)) {
+            mVideoDecoder.decode(bb);
+        } else {
+            mAudioDecoder.decode(bb);
+        }
     }
 }

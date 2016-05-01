@@ -16,17 +16,14 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.widget.Toast;
 
-import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.Map;
 
 import ca.yyx.hu.decoder.AudioDecoder;
-import ca.yyx.hu.decoder.MediaDecoder;
 
 public class HeadUnitTransport {
 
     private final AudioDecoder mAudioDecoder;
-    private final MediaDecoder mMediaDecoder;
     private Context m_context;
     private HeadUnitActivity mHeadUnitActivity;                                     // Activity for callbacks
     private tra_thread m_tra_thread;                                 // Transport Thread
@@ -49,11 +46,10 @@ public class HeadUnitTransport {
     private UseReceiver mUseReceiver;
 
 
-    public HeadUnitTransport(HeadUnitActivity HeadUnitActivity, MediaDecoder mediaDecoder) {
+    public HeadUnitTransport(HeadUnitActivity HeadUnitActivity, AudioDecoder audioDecoder) {
         mHeadUnitActivity = HeadUnitActivity;
         m_context = HeadUnitActivity;
-        mMediaDecoder = mediaDecoder;
-        mAudioDecoder = mediaDecoder.getAudioDecoder();
+        mAudioDecoder = audioDecoder;
         m_usb_mgr = (UsbManager) m_context.getSystemService(Context.USB_SERVICE);
         m_autolaunched = false;
     }
@@ -285,10 +281,7 @@ Internal classes:
             mAudioDecoder.out_audio_stop(AA_CH_AU2);
             return (0);
         } else if (ret > 0) {                                                 // Else if audio or video returned...
-            ByteBuffer bb = ByteBuffer.wrap(res_buf);
-            bb.limit(ret);
-            bb.position(0);
-            mMediaDecoder.decode(bb);                                     // Decode audio or H264 video content
+            mHeadUnitActivity.handleMedia(res_buf, ret);
         }
         return (ret);
     }

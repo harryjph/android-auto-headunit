@@ -33,7 +33,7 @@
 
     <application
         android:hardwareAccelerated="true"
-        android:icon="@drawable/hu_icon_256"
+        android:icon="@mipmap/ic_launcher"
         android:label="Headunit">
         <activity
             android:name=".HeadUnitActivity"

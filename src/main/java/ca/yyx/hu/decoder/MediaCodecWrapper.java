@@ -34,9 +34,18 @@ import ca.yyx.hu.extractor.MediaExtractorInterface;
  */
 public class MediaCodecWrapper {
 
+    private final MediaFormat mTrackFormat;
     // Handler to use for {@code OutputSampleListener} and {code OutputFormatChangedListener}
     // callbacks
     private Handler mHandler;
+
+    public MediaCodec getDecoder() {
+        return mDecoder;
+    }
+
+    public MediaFormat getTrackFormat() {
+        return mTrackFormat;
+    }
 
 
     // Callback when media output format changes.
@@ -80,8 +89,9 @@ public class MediaCodecWrapper {
     // An (optional) stream that will receive decoded data.
     private OutputSampleListener mOutputSampleListener;
 
-    private MediaCodecWrapper(MediaCodec codec) {
+    public MediaCodecWrapper(MediaCodec codec, MediaFormat trackFormat) {
         mDecoder = codec;
+        mTrackFormat = trackFormat;
         codec.start();
         mInputBuffers = codec.getInputBuffers();
         mOutputBuffers = codec.getOutputBuffers();
@@ -149,6 +159,7 @@ public class MediaCodecWrapper {
         // BEGIN_INCLUDE(create_codec)
         final String mimeType = trackFormat.getString(MediaFormat.KEY_MIME);
 
+
         // Check to see if this is actually a video mime type. If it is, then create
         // a codec that can decode this mime type.
         if (mimeType.contains("video/")) {
@@ -159,7 +170,7 @@ public class MediaCodecWrapper {
         // If codec creation was successful, then create a wrapper object around the
         // newly created codec.
         if (videoCodec != null) {
-            result = new MediaCodecWrapper(videoCodec);
+            result = new MediaCodecWrapper(videoCodec, trackFormat);
         }
         // END_INCLUDE(create_codec)
 
@@ -198,7 +209,7 @@ public class MediaCodecWrapper {
         if (size > 0 &&  !mAvailableInputBuffers.isEmpty()) {
             int index = mAvailableInputBuffers.remove();
             ByteBuffer buffer = mInputBuffers[index];
-
+            buffer.clear();
             // we can't write our sample to a lesser capacity input buffer.
             if (size > buffer.capacity()) {
                 throw new MediaCodecWrapper.WriteException(String.format(Locale.US,
@@ -253,7 +264,7 @@ public class MediaCodecWrapper {
         if (!mAvailableInputBuffers.isEmpty()) {
             int index = mAvailableInputBuffers.remove();
             ByteBuffer buffer = mInputBuffers[index];
-
+            buffer.clear();
             // reads the sample from the file using extractor into the buffer
             int size = extractor.readSampleData(buffer, 0);
             if (size <= 0) {
@@ -318,6 +329,10 @@ public class MediaCodecWrapper {
             if (render && mOutputSampleListener != null) {
                 ByteBuffer buffer = mOutputBuffers[index];
                 MediaCodec.BufferInfo info = mOutputBufferInfo[index];
+                if (info.size != 0) {
+                    buffer.position(info.offset);
+                    buffer.limit(info.offset + info.size);
+                }
                 mOutputSampleListener.outputSample(this, info, buffer);
             }
 

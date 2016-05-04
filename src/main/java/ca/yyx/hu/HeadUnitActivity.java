@@ -111,8 +111,6 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
     */
 
     private HeadUnitTransport mTransport;        // Transport API
-    private TextView mLogTextView;
-    private View mLogContainer;
     private TextureView mTextureView;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerListView;
@@ -151,29 +149,6 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
         }
         mDrawerListView.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_list_item, mDrawerSections));
     }
-
-    private void tv_log_append(final String str) {
-        class log_task implements Runnable {
-            String str;
-
-            log_task(String s) {
-                str = s;
-            }
-
-            public void run() {
-                mLogTextView.append(str);
-            }
-        }
-        //Thread t = new Thread(new log_task (s));
-        //t.start();
-        runOnUiThread(new log_task(str));
-    }
-
-    private void screen_logd(final String str) {
-        Utils.logd(str);
-        tv_log_append(str + "\n");           // at ca.yyx.hu.HeadUnitActivity.media_decode(HeadUnitActivity.java:564)
-    }
-
 
     private UiModeManager mUiModeManager = null;
     private PowerManager.WakeLock mWakelock = null;
@@ -227,9 +202,6 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
         mDrawerLayout.openDrawer(Gravity.LEFT);
 
         mUiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
-        mLogTextView = (TextView) findViewById(R.id.tv_log);
-
-        mLogContainer = findViewById(R.id.ll_tv_log);
 
         mTextureView = (TextureView) findViewById(R.id.tv_vid);
         mTextureView.setSurfaceTextureListener(this);
@@ -247,8 +219,6 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
 
         mAudioDecoder = new AudioDecoder(this);
         mVideoDecoder = new VideoDecoder(this);
-
-        displayIntroMessage();
 
         Utils.file_delete("/data/data/ca.yyx.hu/files/nfc_wifi");
 
@@ -296,36 +266,6 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
 
 
     private static boolean starting_car_mode = false;
-
-    private void displayIntroMessage() {
-        String intro1_str = "HEADUNIT for Android Auto (tm)\n" +
-                "You accept all liability for any reason by using, distributing, doing, or not doing anything else in respect of this software.\n" +
-                "This software is experimental and may be distracting. Use it only for testing at this time. Do NOT use this software while operating a vehicle of any sort.\n";
-        screen_logd(intro1_str);
-
-        String intro2_str = "";
-        if (this.getPackageManager().hasSystemFeature(android.content.pm.PackageManager.FEATURE_USB_HOST))
-            intro2_str = "This device/ROM must support USB Host Mode\n";
-        else
-            intro2_str = "This device/ROM must support USB Host Mode AND IT DOES NOT APPEAR TO BE SUPPORTED !!!!!!!!!!\n";
-        screen_logd(intro2_str);
-
-        String intro3_str = "" +
-                "See XDA thread for latest info and ask any question\n" +
-                "\n" +
-                "Connect this device to USB OTG cable\n" +
-                "Connect USB OTG cable to regular phone USB cable\n" +
-                "Connect regular USB cable to Android 5+ device running Google Android Auto app\n" +
-                "Start this Headunit app\n" +
-                "Respond OK to prompts\n" +
-                "First Time with Android Auto check phone screen to see if apps need to be updated or prompts accepted\n" +
-                "If success, this device screen will show Android Auto User Interface and other device screen should go dark\n" +
-                "\n" +
-                "A LOT of USB and OTG cables will not work\n" +
-                "It can be tricky to get working the first time\n" +
-                "\n";
-        screen_logd(intro3_str);
-    }
 
     @Override
     protected void onNewIntent(Intent intent) {    // am start -n ca.yyx.hu/.HeadUnitActivity -a "send" -e data 040b000000130801       #AUDIO_FOCUS_STATE_GAIN
@@ -464,14 +404,12 @@ public class HeadUnitActivity extends Activity implements TextureView.SurfaceTex
         if (started) {
             SystemUI.hide(mContentView, mDrawerLayout);
             mTextureView.setVisibility(View.VISIBLE);                     // Enable  video
-            mLogContainer.setVisibility(View.GONE);                        // Disable log
 //                if (m_scr_land && m_scr_wid / m_scr_hei < 1.5)                  // If closer to 4:3 than 16:9...    16:9 = 1.777     //  4:3 = 1.333
 //                    m_ll_tv_ext.setVisibility(View.VISIBLE);                     // Enable  aspect ratio bar
 //                else
 //                    m_ll_tv_ext.setVisibility(View.GONE);
         } else {
             mTextureView.setVisibility(View.GONE);                    // Disable video
-            mLogContainer.setVisibility(View.VISIBLE);                     // Enable  log
 //                m_ll_tv_ext.setVisibility(View.GONE);                        // Disable aspect ratio bar
         }
 

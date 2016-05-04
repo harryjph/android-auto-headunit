@@ -5,41 +5,19 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-  <FrameLayout
-      android:layout_width="match_parent"
-      android:layout_height="match_parent">
-
-      <TextureView
-          android:id="@+id/tv_vid"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent" />
-
-    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/ll_tv_log"
-        android:paddingBottom="@dimen/default_vertical_margin"
-        android:paddingLeft="@dimen/default_horizontal_margin"
-        android:paddingRight="@dimen/default_horizontal_margin"
-        android:paddingTop="@dimen/default_vertical_margin"
+    <TextureView
+        android:id="@+id/tv_vid"
         android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <ListView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/left_drawer"
+        android:layout_width="160dp"
         android:layout_height="match_parent"
-        >
-
-      <TextView
-          android:id="@+id/tv_log"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content" />
-    </ScrollView>
-
-  </FrameLayout>
-
-  <ListView xmlns:android="http://schemas.android.com/apk/res/android"
-      android:id="@+id/left_drawer"
-      android:layout_width="160dp"
-      android:layout_height="match_parent"
-      android:layout_gravity="left"
-      android:background="#80404040"
-      android:choiceMode="singleChoice"
-      android:divider="@android:color/transparent"
-      android:dividerHeight="0dp" />
+        android:layout_gravity="left"
+        android:background="#80404040"
+        android:choiceMode="singleChoice"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="0dp" />
 
 </android.support.v4.widget.DrawerLayout>

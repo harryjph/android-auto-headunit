@@ -1,7 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextureView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/tv_vid"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="ca.yyx.hu.VideoTestActivity"/>
+    tools:context="ca.yyx.hu.VideoTestActivity">
+
+    <TextureView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/texture"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <SurfaceView
+        android:id="@+id/surface"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <VideoView
+        android:id="@+id/video"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</FrameLayout>

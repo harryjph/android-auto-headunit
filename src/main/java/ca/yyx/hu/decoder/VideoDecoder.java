@@ -5,6 +5,7 @@ import android.graphics.SurfaceTexture;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.view.Surface;
+import android.view.SurfaceHolder;
 
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
@@ -16,7 +17,6 @@ import ca.yyx.hu.Utils;
  * @date 28/04/2016.
  */
 public class VideoDecoder {
-    private SurfaceTexture mSurface;
     private MediaCodec mCodec;
     private MediaCodec.BufferInfo mCodecBufferInfo;
     private final static Object sLock = new Object();
@@ -28,6 +28,7 @@ public class VideoDecoder {
     private ByteBuffer[] mOutputBuffers;
     private int mHeight;
     private int mWidth;
+    private SurfaceHolder mHolder;
 
     public static boolean isH246Video(byte[] ba) {
         return ba[0] == 0 && ba[1] == 0 && ba[2] == 0 && ba[3] == 1;
@@ -125,7 +126,7 @@ public class VideoDecoder {
         try {
             mCodecBufferInfo = new MediaCodec.BufferInfo();                         // Create Buffer Info
             MediaFormat format = MediaFormat.createVideoFormat("video/avc", mWidth, mHeight);
-            mCodec.configure(format, new Surface(mSurface), null, 0);               // Configure codec for H.264 with given width and height, no crypto and no flag (ie decode)
+            mCodec.configure(format, mHolder.getSurface(), null, 0);               // Configure codec for H.264 with given width and height, no crypto and no flag (ie decode)
             mCodec.start();                                             // Start codec
         } catch (Throwable t) {
             Utils.loge("Throwable: " + t);
@@ -174,34 +175,27 @@ public class VideoDecoder {
         return false;                                                     // Error: exception
     }
 
-    private void codec_output_consume() {                                // Called only by media_decode() after codec_input_provide()
-        if (mOutputBuffers == null) {
-            mOutputBuffers = mCodec.getOutputBuffers();               // Set mInputBuffers if needed
-        }
-        boolean sawOutputEOS = false;
-        while (!sawOutputEOS) {
-            int index = mCodec.dequeueOutputBuffer(mCodecBufferInfo, 0);
-            if (index >= 0) {
-                mCodec.releaseOutputBuffer(index, true /* render */);
-                if ((mCodecBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                    Utils.logd("saw output EOS.");
-                    sawOutputEOS = true;
-                }
-            } else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
-                mOutputBuffers = mCodec.getOutputBuffers();
-            } else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                MediaFormat oformat = mCodec.getOutputFormat();
-                Utils.logd("output format has changed to " + oformat);
-            } else {
+    private void codec_output_consume () {                                // Called only by media_decode() after codec_input_provide()
+        int index;
+        for (;;) {                                                          // Until no more buffers...
+            index = mCodec.dequeueOutputBuffer (mCodecBufferInfo, 0);        // Dequeue an output buffer but do not wait
+            if (index >= 0)
+                mCodec.releaseOutputBuffer (index, true /*render*/);           // Return the buffer to the codec
+            else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)         // See this 1st shortly after start. API >= 21: Ignore as getOutputBuffers() deprecated
+                Utils.logd ("INFO_OUTPUT_BUFFERS_CHANGED");
+            else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)          // See this 2nd shortly after start. Output format changed for subsequent data. See getOutputFormat()
+                Utils.logd ("INFO_OUTPUT_FORMAT_CHANGED");
+            else if (index == MediaCodec.INFO_TRY_AGAIN_LATER)
                 break;
-            }
+            else
+                break;
         }
-
+        if (index != MediaCodec.INFO_TRY_AGAIN_LATER)
+            Utils.loge ("index: " + index);
     }
 
-    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-        mSurface = surface;
-        Utils.loge("height: " + mHeight);
+    public void onSurfaceHolderAvailable(SurfaceHolder holder, int width, int height) {
+        mHolder = holder;
         mWidth = width;
         mHeight = (height > 1080) ? 1080 : height;
     }

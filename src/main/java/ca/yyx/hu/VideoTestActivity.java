@@ -13,13 +13,11 @@ import android.media.MediaFormat;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,22 +26,20 @@ import java.io.InputStream;
 import java.util.List;
 
 import ca.yyx.hu.decoder.MediaCodecWrapper;
-import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.extractor.MediaExtractorInterface;
 import ca.yyx.hu.extractor.StreamVideoExtractor;
 import ca.yyx.hu.extractor.SystemMediaExtractor;
 
 
-public class VideoTestActivity extends Activity implements TextureView.SurfaceTextureListener {
+public class VideoTestActivity extends Activity {
 
-    public static final String RES_FILE = ContentResolver.SCHEME_ANDROID_RESOURCE + "://ca.yyx.hu/raw/husam_h264";
+    private static final String RES_FILE = ContentResolver.SCHEME_ANDROID_RESOURCE + "://ca.yyx.hu/raw/husam_h264";
+    private static final String DOWNLOAD = "/sdcard/Download";
     private static String[] sFiles = {
             RES_FILE,
-            "/sdcard/Download/husam.h264",
-            "/sdcard/Download/husam.mp4",
-            "/sdcard/Download/husam.mp4",
-            "/sdcard/Download/husam.mp4",
-            "/sdcard/Download/husam.mp4",
+            DOWNLOAD + "/husam.h264",
+            DOWNLOAD + "/husam.mp4",
+            DOWNLOAD + "/husam.mp4",
     };
 
     private static String[] sFileTitles = {
@@ -51,8 +47,6 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
             "husam.h264 (Stream)",
             "husam.mp4 (MediaCodec)",
             "husam.mp4 (MediaPlayer)",
-            "husam.mp4 (VideoView)",
-            "husam.mp4 (SurfaceView)",
     };
 
     private static final String MIME_TYPE = "video/avc";    // H.264 Advanced Video Coding
@@ -62,13 +56,7 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
     private static final int WIDTH = 1280;
     private static final int HEIGHT = 720;
 
-    private String h264Filename = null;
-    private VideoDecoder mVideoDecoder;
-
-    private TextureView mTextureView;
-    private VideoView mVideoView;
     private SurfaceView mSurfaceView;
-
     private TimeAnimator mTimeAnimator = new TimeAnimator();
 
     // A utility that wraps up the underlying input and output buffer processing operations
@@ -87,35 +75,55 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_test);
 
-        mTextureView = (TextureView) findViewById(R.id.texture);
-        mTextureView.setSurfaceTextureListener(this);
-
         mSurfaceView = (SurfaceView) findViewById(R.id.surface);
         mSurfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
 
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                mSurfaceHolder = holder;
+                Utils.logd("holder: " + holder);
             }
 
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                Utils.logd("holder: " + holder);
+                mWidth = width;
+                mHeight = height;
                 mSurfaceHolder = holder;
+                showSelectDialog();
             }
 
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
+                Utils.logd("holder: " + holder);
                 mSurfaceHolder = null;
             }
         });
         mSurfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        mVideoView = (VideoView) findViewById(R.id.video);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
+        if (mSurfaceHolder != null) {
+            showSelectDialog();
+        }
+
+        int count = MediaCodecList.getCodecCount();
+        Utils.logd("Available codecs:");
+        for (int i = 0; i < count; i++) {
+            MediaCodecInfo info = MediaCodecList.getCodecInfoAt(i);
+            Utils.logd("Codec: " + info.getName() + ", Supported types: ");
+            String[] types = info.getSupportedTypes();
+            for (int j = 0; j < types.length; j++) {
+                MediaCodecInfo.CodecCapabilities caps = info.getCapabilitiesForType(types[j]);
+                Utils.logd("     [%s]", types[j]);
+            }
+        }
+
+    }
+
+    private void showSelectDialog() {
         mDialog = new AlertDialog.Builder(this)
                 .setTitle("Choose a file")
                 .setItems(sFileTitles, new DialogInterface.OnClickListener() {
@@ -138,23 +146,10 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
                 .create();
 
         mDialog.show();
-
-        int count = MediaCodecList.getCodecCount();
-        Utils.logd("Available codecs:");
-        for (int i = 0; i < count; i++) {
-            MediaCodecInfo info = MediaCodecList.getCodecInfoAt(i);
-            Utils.logd("Codec: " + info.getName() + ", Supported types: ");
-            String[] types = info.getSupportedTypes();
-            for (int j = 0; j < types.length; j++) {
-                MediaCodecInfo.CodecCapabilities caps = info.getCapabilitiesForType(types[j]);
-                Utils.logd("     [%s]", types[j]);
-            }
-        }
-
     }
 
     private void onFileSelected(String filePath, int which) throws IOException {
-        Uri uri = null;
+        Uri uri;
 
         if (filePath.startsWith(ContentResolver.SCHEME_ANDROID_RESOURCE)) {
             uri = Uri.parse(filePath);
@@ -168,8 +163,7 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
             uri = Uri.fromFile(file);
         }
 
-        switch (which)
-        {
+        switch (which) {
             case 0:
                 List<String> path = uri.getPathSegments();
                 int resId = getResources().getIdentifier(path.get(1), path.get(0), uri.getAuthority());
@@ -186,21 +180,11 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
             case 3:
                 presentWithMediaPlayer(uri);
                 break;
-            case 4:
-                presentWithVideoView(uri);
-                break;
-            case 5:
-                presentWithSurfaceView(uri);
-                break;
         }
 
     }
 
-    private void presentWithSurfaceView(Uri uri) throws IOException {
-        mSurfaceView.setVisibility(View.VISIBLE);
-        mTextureView.setVisibility(View.GONE);
-        mVideoView.setVisibility(View.GONE);
-
+    private void presentWithMediaPlayer(Uri uri) throws IOException {
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setDataSource(this, uri);
         mMediaPlayer.setDisplay(mSurfaceHolder);
@@ -210,23 +194,6 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
                 mSurfaceView.getHolder().setFixedSize(mp.getVideoWidth(), mp.getVideoHeight());
             }
         });
-        mMediaPlayer.prepare();
-        mMediaPlayer.start();
-    }
-
-    private void presentWithVideoView(Uri uri) {
-        mSurfaceView.setVisibility(View.GONE);
-        mTextureView.setVisibility(View.GONE);
-        mVideoView.setVisibility(View.VISIBLE);
-
-        mVideoView.setVideoURI(uri);
-        mVideoView.start();
-    }
-
-    private void presentWithMediaPlayer(Uri uri) throws IOException {
-        mMediaPlayer = new MediaPlayer();
-        mMediaPlayer.setDataSource(this, uri);
-        mMediaPlayer.setSurface(new Surface(mTextureView.getSurfaceTexture()));
         mMediaPlayer.prepare();
         mMediaPlayer.start();
     }
@@ -261,28 +228,6 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
         }
     }
 
-    @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-        Utils.logd("width: " + width + "  height: " + height);  // N9: width: 2048  height: 1253
-        mWidth = width;
-        mHeight = height;
-    }
-
-    @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-
-    }
-
-    @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-        return false;
-    }
-
-    @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-
-    }
-
     private void present(InputStream fis) throws IOException {
         mExtractor = new StreamVideoExtractor();
         byte[] ba; // Read entire file, up to 16 MB to byte array ba
@@ -309,10 +254,6 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
     }
 
     private void present() throws IOException {
-        mSurfaceView.setVisibility(View.GONE);
-        mTextureView.setVisibility(View.VISIBLE);
-        mVideoView.setVisibility(View.GONE);
-
         // BEGIN_INCLUDE(initialize_extractor)
         int nTracks = mExtractor.getTrackCount();
 
@@ -325,7 +266,7 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
         for (int i = 0; i < nTracks; ++i) {
 
             mCodecWrapper = MediaCodecWrapper.fromVideoFormat(mExtractor.getTrackFormat(i),
-                    new Surface(mTextureView.getSurfaceTexture()));
+                    mSurfaceHolder.getSurface());
             if (mCodecWrapper != null) {
                 mExtractor.selectTrack(i);
                 break;
@@ -361,6 +302,8 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
                     }
                 }
                 // END_INCLUDE(write_sample)
+
+
                 // Examine the sample at the head of the queue to see if its ready to be
                 // rendered and is not zero sized End-of-Stream record.
                 MediaCodec.BufferInfo out_bufferInfo = new MediaCodec.BufferInfo();
@@ -373,6 +316,7 @@ public class VideoTestActivity extends Activity implements TextureView.SurfaceTe
                     mExtractor.release();
                 } else if (out_bufferInfo.presentationTimeUs / 1000 < totalTime) {
                     // Pop the sample off the queue and send it to {@link Surface}
+                    Utils.ms_sleep(10);
                     mCodecWrapper.popSample(true);
                 }
                 // END_INCLUDE(render_sample)

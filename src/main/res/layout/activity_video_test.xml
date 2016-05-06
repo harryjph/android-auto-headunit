@@ -5,18 +5,9 @@
     android:layout_height="match_parent"
     tools:context="ca.yyx.hu.VideoTestActivity">
 
-    <TextureView xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/texture"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
     <SurfaceView
         android:id="@+id/surface"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <VideoView
-        android:id="@+id/video"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
 </FrameLayout>

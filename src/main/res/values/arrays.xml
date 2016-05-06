@@ -4,14 +4,6 @@
     <string-array name="drawer_items">
         <item>Exit</item>
         <item>Test</item>
-        <item>Self</item>
-        <item>Wifi</item>
-        <item>NFC</item>
-
-        <item>Day</item>
-        <item>Night</item>
-        <item>Auto</item>
-        <item>Hide</item>
 
         <item>SUsb</item>
         <item>RUsb</item>

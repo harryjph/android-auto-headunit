@@ -60,6 +60,7 @@ public class HeadUnitTransport {
         System.loadLibrary("hu_jni");
     }
 
+    // Java_ca_yyx_hu_HeadUnitTransport_native_1aa_1cmd
     private static native int native_aa_cmd(int cmd_len, byte[] cmd_buf, int res_len, byte[] res_buf);
 
 

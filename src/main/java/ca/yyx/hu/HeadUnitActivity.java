@@ -75,6 +75,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import ca.yyx.hu.decoder.AudioDecoder;
@@ -125,6 +128,14 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         mDrawerSections = getResources().getStringArray(R.array.drawer_items);
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset)
+            {
+                mDrawerLayout.bringChildToFront(drawerView);
+                mDrawerLayout.requestLayout();
+            }
+        });
         mDrawerListView = (ListView) findViewById(R.id.left_drawer);
         mDrawerListView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mDrawerSections));
         mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -250,7 +261,8 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
             car_mode_stop();
             finish();                                                        // Hangs with TCP
         } else if (idx == 1) {                                               // If Test...
-            startActivity(new Intent(this, VideoTestActivity.class));
+            startVideoTest();
+            //startActivity(new Intent(this, VideoTestActivity.class));
         } else if (idx == 2) {
             mTransport.usb_force();
         } else if (idx == 3) {
@@ -259,6 +271,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
             mTransport.presets_select(idx - PRESET_LEN_FIX);
         }
     }
+
 
     private void car_mode_start() {
         try {
@@ -301,6 +314,87 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         isVideoStarted = started;
     }
 
+    private void startVideoTest() {
+        ui_video_started_set(true);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    videoTestRun();
+                } catch (IOException e) {
+                    Utils.loge(e);
+                }
+            }
+        }, "run_vs").start();
+    }
+
+    private void videoTestRun() throws IOException {
+
+
+        InputStream stream = getResources().openRawResource(R.raw.husam_h264);
+        byte [] ba = convertStreamToByteArray(stream);             // Read entire file, up to 16 MB to byte array ba
+        stream.close();
+        ByteBuffer bb;
+
+        int size = ba.length;
+        int left = size;
+        int idx = 0;
+        int max_chunk_size = 65536 * 4;//16384;
+
+
+        int chunk_size = max_chunk_size;
+        int after = 0;
+        for (idx = 0; idx < size && left > 0; idx = after) {
+
+            after = h264_after_get (ba, idx);                               // Get index of next packet that starts with 0, 0, 0, 1
+            if (after == -1 && left <= max_chunk_size) {
+                after = size;
+                //hu_uti.logd ("Last chunk  chunk_size: " + chunk_size + "  idx: " + idx + "  after: " + after + "  size: " + size + "  left: " + left);
+            }
+            else if (after <= 0 || after > size) {
+                Utils.loge ("Error chunk_size: " + chunk_size + "  idx: " + idx + "  after: " + after + "  size: " + size + "  left: " + left);
+                return;
+            }
+
+            chunk_size = after - idx;
+
+            byte [] bc = new byte [chunk_size];                               // Create byte array bc to hold chunk
+            int ctr = 0;
+            for (ctr = 0; ctr < chunk_size; ctr ++)
+                bc [ctr] = ba [idx + ctr];                                      // Copy chunk_size bytes from byte array ba at idx to byte array bc
+
+            //hu_uti.logd ("chunk_size: " + chunk_size + "  idx: " + idx + "  after: " + after + "  size: " + size + "  left: " + left);
+
+            idx += chunk_size;
+            left -= chunk_size;
+
+            bb = ByteBuffer.wrap (bc);                                        // Wrap chunk byte array bc to create byte buffer bb
+
+            mVideoDecoder.decode(bb);                                                // Decode audio or H264 video content
+            Utils.ms_sleep (20);                                             // Wait a frame
+        }
+    }
+
+    public static byte[] convertStreamToByteArray(InputStream is) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buff = new byte[10240];
+        int i;
+        while ((i = is.read(buff, 0, buff.length)) > 0) {
+            baos.write(buff, 0, i);
+        }
+
+        return baos.toByteArray(); // be sure to close InputStream in calling function
+    }
+
+    int h264_after_get (byte [] ba, int idx) {
+        idx += 4; // Pass 0, 0, 0, 1
+        for (; idx < ba.length - 4; idx ++) {
+            if (idx > 24)   // !!!! HACK !!!! else 0,0,0,1 indicates first size 21, instead of 25
+                if (ba [idx] == 0 && ba [idx+1] == 0 && ba [idx+2] == 0 && ba [idx+3] == 1)
+                    return (idx);
+        }
+        return (-1);
+    }
 
     private void all_stop() {
 
@@ -396,7 +490,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-
+        mVideoDecoder.stop();
     }
 
     public void presets_update(String[] usb_list_name) {                // Update Presets. Called only by HeadUnitActivity:usb_add() & HeadUnitActivity:usb_del()

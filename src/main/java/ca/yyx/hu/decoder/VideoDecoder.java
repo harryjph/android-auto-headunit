@@ -102,6 +102,7 @@ public class VideoDecoder {
 
         synchronized (sLock) {
             if (mCodec == null) {
+                Utils.loge("Codec is not initialized");
                 return;
             }
 
@@ -129,7 +130,7 @@ public class VideoDecoder {
             mCodec.configure(format, mHolder.getSurface(), null, 0);               // Configure codec for H.264 with given width and height, no crypto and no flag (ie decode)
             mCodec.start();                                             // Start codec
         } catch (Throwable t) {
-            Utils.loge("Throwable: " + t);
+            Utils.loge(t);
         }
     }
 
@@ -198,6 +199,7 @@ public class VideoDecoder {
         mHolder = holder;
         mWidth = width;
         mHeight = (height > 1080) ? 1080 : height;
+        codec_init();
     }
 
     public void stop() {

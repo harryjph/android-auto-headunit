@@ -8,6 +8,7 @@ package ca.yyx.hu;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
+import android.os.Build;
 import android.os.Looper;
 import android.os.StrictMode;
 import android.util.Log;
@@ -27,7 +28,7 @@ import java.util.Locale;
 public final class Utils {
 
     public static final String TAG = "Headunit";
-    public static final int android_version = android.os.Build.VERSION.SDK_INT;
+    public static final int SDK_INT = Build.VERSION.SDK_INT;
 
     // Android Logging Levels:
     public static final boolean ena_log_verbo = false;

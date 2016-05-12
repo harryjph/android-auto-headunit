@@ -12,7 +12,7 @@ popd
 /*
 
 Start with USB plugged
-transport_start
+start
   usb_attach_handler
     usb_connect
 
@@ -80,10 +80,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.VideoDecoder;
-
+import ca.yyx.hu.usb.UsbDeviceCompat;
 
 
 public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback {
@@ -178,7 +179,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         mTransport = new HeadUnitTransport(this, mAudioDecoder);                                       // Start USB/SSL/AAP Transport
         Intent intent = getIntent();                                     // Get launch Intent
 
-        int ret = mTransport.transport_start(intent);
+        int ret = mTransport.start(intent);
         if (ret <= 0) {                                                   // If no USB devices...
             if (!Utils.file_get(SDCARD + "/hu_nocarm") && !starting_car_mode) {  // Else if have at least 1 USB device and we are not starting yet car mode...
                 Utils.logd("Before car_mode_start()");
@@ -195,14 +196,15 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
     @Override
     protected void onPause() {
         super.onPause();
+        Utils.logd("unregisterUsbReceiver");
         mTransport.unregisterUsbReceiver();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        Utils.logd("registerUsbReceiver + Hide System UI");
         mTransport.registerUsbReceiver();
-        mDrawerLayout.openDrawer(Gravity.LEFT);
         SystemUI.hide(mContentView, null);
     }
 
@@ -251,6 +253,8 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
     @Override
     protected void onStop() {
         super.onStop();
+        Utils.logd("Stop app");
+
         Utils.logd("--- m_tcp_connected: " + m_tcp_connected);
 
         all_stop();
@@ -418,7 +422,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         ui_video_started_set(false);
 
         if (mTransport != null) {
-            mTransport.transport_stop();
+            mTransport.stop();
         }
 
         try {
@@ -508,14 +512,14 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         mVideoDecoder.stop();
     }
 
-    public void presets_update(String[] usb_list_name) {                // Update Presets. Called only by HeadUnitActivity:usb_add() & HeadUnitActivity:usb_del()
+    public void presets_update(ArrayList<UsbDeviceCompat> devices) {
         for (int idx = 0; idx < PRESET_LEN_USB; idx++) {
-            Utils.logd("idx: " + idx + "  name: " + usb_list_name[idx]);
-            if (usb_list_name[idx] != null) {
-                mDrawerSections[idx + PRESET_LEN_FIX] = usb_list_name[idx];
+            if (idx < devices.size()) {
+                mDrawerSections[idx + PRESET_LEN_FIX] = devices.get(idx).getName();
+            } else {
+                mDrawerSections[idx + PRESET_LEN_FIX] = "";
             }
         }
         mDrawerListView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mDrawerSections));
     }
-
 }

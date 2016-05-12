@@ -16,14 +16,15 @@
         android:layout_height="match_parent"
         android:visibility="invisible"/>
 
-        <ImageButton
+        <Button
             android:id="@+id/drawer_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_menu_white_24dp"
+            android:text="@string/menu"
             android:background="?android:attr/actionBarItemBackground"
             android:padding="8dp"
-            android:layout_gravity="top|left"
+            android:textColor="#757575"
+            android:layout_gravity="center|top"
             />
     </FrameLayout>
     <ListView xmlns:android="http://schemas.android.com/apk/res/android"

@@ -139,7 +139,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
             }
         });
 
-        ((ImageButton) findViewById(R.id.drawer_button)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.drawer_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mDrawerLayout.openDrawer(Gravity.LEFT);
@@ -181,14 +181,9 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
 
         int ret = mTransport.start(intent);
         if (ret <= 0) {                                                   // If no USB devices...
-            if (!Utils.file_get(SDCARD + "/hu_nocarm") && !starting_car_mode) {  // Else if have at least 1 USB device and we are not starting yet car mode...
-                Utils.logd("Before car_mode_start()");
+            if (!starting_car_mode) {  // Else if have at least 1 USB device and we are not starting yet car mode...
                 starting_car_mode = true;
                 car_mode_start();
-                Utils.logd("After  car_mode_start()");
-            } else {
-                Utils.logd("Starting car mode or disabled so don't call car_mode_start()");
-                starting_car_mode = false;
             }
         }
     }
@@ -270,7 +265,6 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
 
     private void drawerSelect(int idx) {
         if (idx == 0) {                                                     // If Exit...
-            car_mode_stop();
             finish();                                                        // Hangs with TCP
         } else if (idx == 1) {                                               // If Test...
             startVideoTest();
@@ -286,6 +280,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
 
 
     private void car_mode_start() {
+        Utils.logd("Start Car Mode");
         try {
             if (mUiModeManager == null) {
                 mUiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
@@ -300,12 +295,11 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         try {
             if (mUiModeManager != null) {                                          // If was used to enable...
                 mUiModeManager.disableCarMode(0);
-                Utils.logd("OK disableCarMode");
             }
         } catch (Throwable t) {
             Utils.loge(t);
         }
-        Utils.logd("After disableCarMode");
+        Utils.logd("Stop Car Mode");
     }
 
 
@@ -344,7 +338,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
 
 
         InputStream stream = getResources().openRawResource(R.raw.husam_h264);
-        byte [] ba = convertStreamToByteArray(stream);             // Read entire file, up to 16 MB to byte array ba
+        byte [] ba = Utils.toByteArray(stream);             // Read entire file, up to 16 MB to byte array ba
         stream.close();
         ByteBuffer bb;
 
@@ -358,7 +352,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         int after = 0;
         for (idx = 0; idx < size && left > 0; idx = after) {
 
-            after = h264_after_get (ba, idx);                               // Get index of next packet that starts with 0, 0, 0, 1
+            after = mVideoDecoder.h264_after_get (ba, idx);                               // Get index of next packet that starts with 0, 0, 0, 1
             if (after == -1 && left <= max_chunk_size) {
                 after = size;
                 //hu_uti.logd ("Last chunk  chunk_size: " + chunk_size + "  idx: " + idx + "  after: " + after + "  size: " + size + "  left: " + left);
@@ -387,34 +381,10 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         }
     }
 
-    public static byte[] convertStreamToByteArray(InputStream is) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buff = new byte[10240];
-        int i;
-        while ((i = is.read(buff, 0, buff.length)) > 0) {
-            baos.write(buff, 0, i);
-        }
-
-        return baos.toByteArray(); // be sure to close InputStream in calling function
-    }
-
-    int h264_after_get (byte [] ba, int idx) {
-        idx += 4; // Pass 0, 0, 0, 1
-        for (; idx < ba.length - 4; idx ++) {
-            if (idx > 24)   // !!!! HACK !!!! else 0,0,0,1 indicates first size 21, instead of 25
-                if (ba [idx] == 0 && ba [idx+1] == 0 && ba [idx+2] == 0 && ba [idx+3] == 1)
-                    return (idx);
-        }
-        return (-1);
-    }
 
     private void all_stop() {
 
-        if (!starting_car_mode) {
-            SystemUI.show(mContentView);
-
-            car_mode_stop();
-        }
+        car_mode_stop();
 
         mAudioDecoder.stop();
         mVideoDecoder.stop();
@@ -430,7 +400,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
                 mWakelock.release();
             }
         } catch (Throwable t) {
-            Utils.loge("Throwable: " + t);
+            Utils.loge(t);
         }
 
     }
@@ -451,19 +421,15 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         int me_action = event.getActionMasked();
         switch (me_action) {
             case MotionEvent.ACTION_DOWN:
-                Utils.logd("event: " + event + " (ACTION_DOWN)    x: " + x + "  y: " + y);
                 aa_action = MotionEvent.ACTION_DOWN;
                 break;
             case MotionEvent.ACTION_MOVE:
-                Utils.logd("event: " + event + " (ACTION_MOVE)    x: " + x + "  y: " + y);
                 aa_action = MotionEvent.ACTION_MOVE;
                 break;
             case MotionEvent.ACTION_CANCEL:
-                Utils.logd("event: " + event + " (ACTION_CANCEL)  x: " + x + "  y: " + y);
                 aa_action = MotionEvent.ACTION_UP;
                 break;
             case MotionEvent.ACTION_UP:
-                Utils.logd("event: " + event + " (ACTION_UP)      x: " + x + "  y: " + y);
                 aa_action = MotionEvent.ACTION_UP;
                 break;
             default:
@@ -471,6 +437,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
                 return;
         }
         if (mTransport != null) {
+            Utils.loge("event: " + event + " (Translated: " + aa_action + ")  x: " + x + "  y: " + y);
             mTransport.touch_send(aa_action, x, y);
         }
 

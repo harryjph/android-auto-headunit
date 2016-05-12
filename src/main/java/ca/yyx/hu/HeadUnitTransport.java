@@ -80,14 +80,14 @@ public class HeadUnitTransport {
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         filter.addAction(Utils.ACTION_USB_DEVICE_PERMISSION);                             // Our App specific Intent for permission request
         mUseReceiver = new UsbReceiver();                               // Register BroadcastReceiver for USB attached/detached
-        Intent first_sticky_intent = mContext.registerReceiver(mUseReceiver, filter);
-        Utils.logd("first_sticky_intent: " + first_sticky_intent);
+        mContext.registerReceiver(mUseReceiver, filter);
     }
 
     public void unregisterUsbReceiver() {
-        if (mUseReceiver != null)
+        if (mUseReceiver != null) {
             mContext.unregisterReceiver(mUseReceiver);
-        mUseReceiver = null;
+            mUseReceiver = null;
+        }
     }
 
     private final class tra_thread extends Thread {                       // Main Transport Thread

@@ -206,4 +206,16 @@ public class VideoDecoder {
         stop_record();
         codec_stop();
     }
+
+
+    public int h264_after_get (byte [] ba, int idx) {
+        idx += 4; // Pass 0, 0, 0, 1
+        for (; idx < ba.length - 4; idx ++) {
+            if (idx > 24)   // !!!! HACK !!!! else 0,0,0,1 indicates first size 21, instead of 25
+                if (ba [idx] == 0 && ba [idx+1] == 0 && ba [idx+2] == 0 && ba [idx+3] == 1)
+                    return (idx);
+        }
+        return (-1);
+    }
+
 }

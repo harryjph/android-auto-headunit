@@ -68,8 +68,7 @@ public class MicRecorder {
         len = mMicAudioRecord.read(aud_buf, 0, max_len);//MIC_BUFFER_SIZE);
         if (len <= 0) {                                               // If no audio data...
             if (len == android.media.AudioRecord.ERROR_INVALID_OPERATION)   // -3
-                Utils.logd("get expected interruption error due to shutdown: " + len);
-                // -2: ERROR_BAD_VALUE
+                Utils.loge("get expected interruption error due to shutdown: " + len);
             else
                 Utils.loge("get error: " + len);
             return (len);
@@ -82,6 +81,7 @@ public class MicRecorder {
             mMicAudioRecord = new AudioRecord( MediaRecorder.AudioSource.DEFAULT, 16000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, 32768);
             int rec_state = mMicAudioRecord.getState();
             Utils.logd("rec_state: " + rec_state);
+
             if (rec_state == AudioRecord.STATE_INITIALIZED) {                 // If Init OK...
                 Utils.logd("Success with m_mic_src: " + MediaRecorder.AudioSource.DEFAULT);
                 mMicAudioRecord.startRecording();                            // Start input
@@ -98,13 +98,12 @@ public class MicRecorder {
                     }
                 }, "mic_audio");
 
-                Utils.logd("thread_mic_audio: " + thread_mic_audio);
                 thread_mic_audio_active = true;
                 thread_mic_audio.start();
                 return (0);
             }
         } catch (Exception e) {
-            Utils.loge("Exception: " + e);  // "java.lang.IllegalArgumentException: Invalid audio source."
+            Utils.loge(e);  // "java.lang.IllegalArgumentException: Invalid audio source."
             mMicAudioRecord = null;
             return (-2);
         }

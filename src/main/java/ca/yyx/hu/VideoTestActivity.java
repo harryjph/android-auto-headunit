@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
-import android.graphics.SurfaceTexture;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
@@ -15,8 +14,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.TextureView;
-import android.view.View;
 import android.widget.Toast;
 
 import java.io.File;

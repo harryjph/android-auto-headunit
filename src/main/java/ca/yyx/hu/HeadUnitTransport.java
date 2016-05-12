@@ -24,11 +24,11 @@ import ca.yyx.hu.decoder.AudioDecoder;
 public class HeadUnitTransport {
 
     private final AudioDecoder mAudioDecoder;
-    private Context m_context;
+    private Context mContext;
     private HeadUnitActivity mHeadUnitActivity;                                     // Activity for callbacks
     private tra_thread m_tra_thread;                                 // Transport Thread
 
-    private UsbManager m_usb_mgr;
+    private UsbManager mUsbMgr;
     private boolean m_usb_connected;
     private UsbDevice m_usb_device;
 
@@ -48,9 +48,9 @@ public class HeadUnitTransport {
 
     public HeadUnitTransport(HeadUnitActivity HeadUnitActivity, AudioDecoder audioDecoder) {
         mHeadUnitActivity = HeadUnitActivity;
-        m_context = HeadUnitActivity;
+        mContext = HeadUnitActivity;
         mAudioDecoder = audioDecoder;
-        m_usb_mgr = (UsbManager) m_context.getSystemService(Context.USB_SERVICE);
+        mUsbMgr = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
         m_autolaunched = false;
     }
 
@@ -123,15 +123,15 @@ Internal classes:
         IntentFilter filter = new IntentFilter();
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        filter.addAction(Utils.str_usb_perm);                             // Our App specific Intent for permission request
+        filter.addAction(Utils.ACTION_USB_DEVICE_PERMISSION);                             // Our App specific Intent for permission request
         mUseReceiver = new HeadUnitTransport.UseReceiver();                               // Register BroadcastReceiver for USB attached/detached
-        Intent first_sticky_intent = m_context.registerReceiver(mUseReceiver, filter);
+        Intent first_sticky_intent = mContext.registerReceiver(mUseReceiver, filter);
         Utils.logd("first_sticky_intent: " + first_sticky_intent);
     }
 
     public void unregisterUsbReceiver() {
         if (mUseReceiver != null)
-            m_context.unregisterReceiver(mUseReceiver);
+            mContext.unregisterReceiver(mUseReceiver);
         mUseReceiver = null;
     }
 
@@ -384,30 +384,28 @@ Internal classes:
 
     // USB:
 
-    public int transport_start(Intent intent) {                          // USB Transport Start. Called only by HeadUnitActivity:onCreate()
+    public int transport_start(Intent intent) {
+        // USB Transport Start. Called only by HeadUnitActivity:onCreate()
         int ret = 0;
         Utils.logd("");
         String action = "";
-        if (intent != null)
+        if (intent != null) {
             action = intent.getAction();
-        Utils.logd("intent: " + intent);// + "  action: " + action);
+        }
 
-        if (action != null &&
-                action.equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {      // If launched by a USB connection event... (Do nothing, let BCR handle)
-            //m_autolaunched = true;
+        Utils.logd("intent: " + intent);
+
+        if (action != null && action.equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {      // If launched by a USB connection event... (Do nothing, let BCR handle)
             UsbDevice device = intent.<UsbDevice>getParcelableExtra(UsbManager.EXTRA_DEVICE);
             Utils.logd("Launched by USB connection event device: " + device);
         } else {                                                              // Else if we were launched manually, look through the USB device list...
             Map<String, UsbDevice> device_list = null;
             try {
-                device_list = m_usb_mgr.getDeviceList();                       // Emulator:  java.lang.NullPointerException: Attempt to invoke interface method 'void android.hardware.usb.IUsbManager.getDeviceList(android.os.Bundle)' on a null object reference
+                device_list = mUsbMgr.getDeviceList();
             } catch (Throwable e) {
-                Utils.loge("getDeviceList: " + e);                            // java.lang.IllegalArgumentException: device /dev/bus/usb/001/019 does not exist or is restricted
-            }
-
-            if (device_list == null) {
-                Utils.loge("device_list == null");
-                return (0);
+                Utils.loge(e);
+                return 0;
+                // java.lang.IllegalArgumentException: device /dev/bus/usb/001/019 does not exist or is restricted
             }
 
             ret = device_list.size();
@@ -415,22 +413,15 @@ Internal classes:
 
             if (device_list.size() > 0) {
                 for (UsbDevice device : device_list.values()) {
-/*
-          if (dev_class == 0 && dev_sclass == 0 && dev_proto == 0) {
-            if (is_android (dev_vend_id) ||
-                dev_man.startsWith ("HTC") || dev_man.startsWith ("MOTO") || dev_man.startsWith ("SONY") || dev_man.startsWith ("SAM") || dev_man.startsWith ("ASUS") || dev_man.startsWith ("SONY") ||
-                dev_man.startsWith ("ANDROID") || dev_man.startsWith ("GOOG") ||
-                dev_prod.startsWith ("NEXUS") || dev_prod.startsWith ("ANDROID") || dev_prod.startsWith ("GOOG") || dev_prod.startsWith ("XPERIA") || dev_prod.startsWith ("GT-") ||
-                dev_prod.startsWith ("ONE") || dev_prod.startsWith ("MOTO") || dev_prod.startsWith ("LT"))
-*/
-                    if (!usb_attach_handler(device, true))                        // Handle as NEW attached device
+                    // Handle as NEW attached device
+                    if (!usb_attach_handler(device, true)) {
                         ret--;   // Reduce number of devices returned.
-//          }
+                    }
                 }
             }
         }
         Utils.logd("end");
-        return (ret);
+        return ret;
     }
 
     private boolean aap_running = false;
@@ -465,7 +456,7 @@ Internal classes:
                     usb_detach_handler(device);                                  // Handle detached device
                 } else if (action.equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {// If attach...
                     usb_attach_handler(device, true);                            // Handle New attached device
-                } else if (action.equals(Utils.str_usb_perm)) {                 // If Our App specific Intent for permission request...
+                } else if (action.equals(Utils.ACTION_USB_DEVICE_PERMISSION)) {                 // If Our App specific Intent for permission request...
                     // If permission granted...
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         Utils.logd("USB BCR permission granted");
@@ -480,14 +471,16 @@ Internal classes:
         }
     }
 
-    private boolean usb_attach_handler(UsbDevice device, boolean add) {     // Handle attached device. Called only by:  transport_start() on autolaunch or device find, and...
+    private boolean usb_attach_handler(UsbDevice device, boolean add) {
+        // Handle attached device. Called only by:  transport_start() on autolaunch or device find, and...
         // usb_receiver() on USB grant permission or USB attach
         String usb_dev_name = usb_dev_name_get(device);
         Utils.logd("usb_attach_handler m_usb_connected: " + m_usb_connected);// + "  usb_dev_name: " + usb_dev_name);  // device: " + device + "
 
         int dev_vend_id = device.getVendorId();                            // mVendorId=2996               HTC
         int dev_prod_id = device.getProductId();                           // mProductId=1562              OneM8
-        //Utils.logd ("dev_vend_id: " + dev_vend_id + "  dev_prod_id: " + dev_prod_id);
+        Utils.logd(device.toString());
+        Utils.logd ("USB dev_vend_id: " + dev_vend_id + "  dev_prod_id: " + dev_prod_id + " usb_dev_name: "+usb_dev_name);
         // om7/xz0 internal: dev_name: /dev/bus/usb/001/002  dev_class: 0  dev_sclass: 0  dev_dev_id: 1002  dev_proto: 0  dev_vend_id: 1478  dev_prod_id: 36936     0x05c6 : 0x9048   Qualcomm
         // gs3/no2 internal: dev_name: /dev/bus/usb/001/002  dev_class: 2  dev_sclass: 0  dev_dev_id: 1002  dev_proto: 0  dev_vend_id: 5401  dev_prod_id: 32        0x1519 : 0x0020   Comneon : HSIC Device
 
@@ -498,9 +491,9 @@ Internal classes:
         if (dev_vend_id == 0x0835)                                          // Ignore "Action Star Enterprise Co., Ltd" = USB Hub
             return (false);
 
-        if (add)
+        if (add) {
             usb_add(usb_dev_name, device);                                   // Add USB Device to list
-
+        }
         //private boolean auto_start = true;
         //if (/*! auto_start ||*/ Utils.file_get ("/sdcard/hu_noas"))
         //  return (false);
@@ -530,7 +523,7 @@ Internal classes:
             Utils.logd("Disconnecting our connected device");
             usb_disconnect();                                                // Disconnect
 
-            Toast.makeText(m_context, "DISCONNECTED !!!", Toast.LENGTH_LONG).show();
+            Toast.makeText(mContext, "DISCONNECTED !!!", Toast.LENGTH_LONG).show();
 
             Utils.ms_sleep(1000);                                           // Wait a bit
             //android.os.Process.killProcess (android.os.Process.myPid ());     // Kill self
@@ -599,10 +592,10 @@ Internal classes:
             Utils.logd("Request USB Permission");    // Request permission
             //a cat /system/etc/permissions/android.hardware.usb.host.xml|el
             //<permissions>    <feature name="android.hardware.usb.host" />   </permissions>
-            Intent intent = new Intent(Utils.str_usb_perm);                 // Our App specific Intent for permission request
-            intent.setPackage(m_context.getPackageName());
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(m_context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-            m_usb_mgr.requestPermission(device, pendingIntent);              // Request permission. BCR called later if we get it.
+            Intent intent = new Intent(Utils.ACTION_USB_DEVICE_PERMISSION);                 // Our App specific Intent for permission request
+            intent.setPackage(mContext.getPackageName());
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+            mUsbMgr.requestPermission(device, pendingIntent);              // Request permission. BCR called later if we get it.
             return;                                                           // Done for now. Wait for permission
         }
 
@@ -639,10 +632,10 @@ Internal classes:
     }
 
     private boolean usb_device_perm_get(UsbDevice device) {              // Get USB device permission state. Called only by usb_connect()
-        boolean perm = m_usb_mgr.hasPermission(device);
+        boolean perm = mUsbMgr.hasPermission(device);
 /*  !! Doesn't work !!
       try {                                                             // hasPermission() lies so check via Throwable or null
-        m_usb_dev_conn = m_usb_mgr.openDevice (device);                 // Open device for connection
+        m_usb_dev_conn = mUsbMgr.openDevice (device);                 // Open device for connection
       }
       catch (Throwable e) {
         Utils.loge ("m_autolaunched Throwable: " + e);   // java.lang.IllegalArgumentException: device /dev/bus/usb/001/019 does not exist or is restricted
@@ -678,10 +671,12 @@ Internal classes:
 
     private int usb_open(UsbDevice device) {                             // Open USB device connection & claim interface. Called only by usb_connect()
         try {
-            if (m_usb_dev_conn == null)
-                m_usb_dev_conn = m_usb_mgr.openDevice(device);                 // Open device for connection
+            if (m_usb_dev_conn == null) {
+                m_usb_dev_conn = mUsbMgr.openDevice(device);                 // Open device for connection
+            }
         } catch (Throwable e) {
-            Utils.loge("Throwable: " + e);                                  // java.lang.IllegalArgumentException: device /dev/bus/usb/001/019 does not exist or is restricted
+            Utils.loge(e);                                  // java.lang.IllegalArgumentException: device /dev/bus/usb/001/019 does not exist or is restricted
+            return -1;
         }
 
         if (m_usb_dev_conn == null) {

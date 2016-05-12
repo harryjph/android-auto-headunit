@@ -12,9 +12,9 @@ public class SystemUI {
 
     public static void hide(View content, DrawerLayout drawer) {
 
-        if (drawer != null)
+        if (drawer != null) {
             drawer.closeDrawer(Gravity.LEFT);
-
+        }
         // Set the IMMERSIVE flag. Set the content to appear under the system bars so that the content doesn't resize when the system bars hide and show.
         content.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE

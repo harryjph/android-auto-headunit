@@ -73,6 +73,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ListView;
 
 import java.io.ByteArrayOutputStream;
@@ -136,6 +137,14 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
                 mDrawerLayout.requestLayout();
             }
         });
+
+        ((ImageButton) findViewById(R.id.drawer_button)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDrawerLayout.openDrawer(Gravity.LEFT);
+            }
+        });
+
         mDrawerListView = (ListView) findViewById(R.id.left_drawer);
         mDrawerListView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mDrawerSections));
         mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -149,15 +158,13 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
 
         mContentView = findViewById(android.R.id.content);
 
-        SystemUI.hide(mContentView, null);
-
         mSurfaceView = (SurfaceView) findViewById(R.id.surface);
         mSurfaceView.getHolder().addCallback(this);
         mSurfaceView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 touch_send(event);
-                return (true);
+                return true;
             }
         });
 
@@ -196,6 +203,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         super.onResume();
         mTransport.registerUsbReceiver();
         mDrawerLayout.openDrawer(Gravity.LEFT);
+        SystemUI.hide(mContentView, null);
     }
 
 
@@ -241,8 +249,8 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
 
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
         Utils.logd("--- m_tcp_connected: " + m_tcp_connected);
 
         all_stop();
@@ -406,15 +414,17 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
 
         mAudioDecoder.stop();
         mVideoDecoder.stop();
-        isVideoStarted = false;
+
+        ui_video_started_set(false);
 
         if (mTransport != null) {
             mTransport.transport_stop();
         }
 
         try {
-            if (mWakelock != null)
+            if (mWakelock != null) {
                 mWakelock.release();
+            }
         } catch (Throwable t) {
             Utils.loge("Throwable: " + t);
         }
@@ -458,6 +468,11 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         }
         if (mTransport != null) {
             mTransport.touch_send(aa_action, x, y);
+        }
+
+        if (mDrawerLayout != null)
+        {
+            mDrawerLayout.closeDrawer(Gravity.LEFT);
         }
     }
 

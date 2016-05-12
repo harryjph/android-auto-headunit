@@ -274,7 +274,7 @@ public final class Utils {
 
     // Strings:
 
-    public static String str_usb_perm = "ca.yyx.hu.ACTION_USB_DEVICE_PERMISSION";
+    public static String ACTION_USB_DEVICE_PERMISSION = "ca.yyx.hu.ACTION_USB_DEVICE_PERMISSION";
 
     public static String str_MAN = "Android";//"Mike";                    // Manufacturer
     public static String str_MOD = "Android Auto";//"Android Open Automotive Protocol"  // Model

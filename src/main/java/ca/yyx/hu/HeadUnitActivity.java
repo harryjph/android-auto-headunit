@@ -61,10 +61,15 @@ if (intent.getAction().equals(USB_OAP_ATTACHED)) {
 package ca.yyx.hu;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.app.UiModeManager;
+import android.content.Context;
 import android.content.Intent;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.support.v4.util.SimpleArrayMap;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -73,21 +78,25 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
 import android.widget.ListView;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
 
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.usb.UsbDeviceCompat;
+import ca.yyx.hu.usb.UsbReceiver;
 
 
-public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback {
+
+
+
+public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback, UsbReceiver.Listener, HeadUnitTransport.Listener {
 
     private HeadUnitTransport mTransport;        // Transport API
     private SurfaceView mSurfaceView;
@@ -106,7 +115,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
     private static final String DATA_DATA = "/data/data/ca.yyx.hu";
     private static final String SDCARD = "/sdcard/";
 
-    private String[] mDrawerSections;
+    private ArrayList<String> mDrawerSections = new ArrayList<>();
     private boolean isVideoStarted;
     private AudioDecoder mAudioDecoder;
     private VideoDecoder mVideoDecoder;
@@ -115,6 +124,11 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
     private PowerManager.WakeLock mWakelock = null;
 
     private boolean m_tcp_connected = false;
+    private UsbReceiver mUsbReceiver;
+
+
+    private SimpleArrayMap<String,UsbDeviceCompat> mDevices = new SimpleArrayMap<>(HeadUnitActivity.PRESET_LEN_USB);
+    private UsbManager mUsbManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,8 +140,6 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
 
         Utils.logd("--- savedInstanceState: " + savedInstanceState);
         Utils.logd("--- m_tcp_connected: " + m_tcp_connected);
-
-        mDrawerSections = getResources().getStringArray(R.array.drawer_items);
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
@@ -176,33 +188,26 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         mAudioDecoder = new AudioDecoder(this);
         mVideoDecoder = new VideoDecoder(this);
 
-        mTransport = new HeadUnitTransport(this, mAudioDecoder);                                       // Start USB/SSL/AAP Transport
-        Intent intent = getIntent();                                     // Get launch Intent
+        mUsbManager =  (UsbManager) getSystemService(Context.USB_SERVICE);
+        loadUsbDevices();
+        updateDrawerList();
 
-        int ret = mTransport.start(intent);
-        if (ret <= 0) {                                                   // If no USB devices...
-            if (!starting_car_mode) {  // Else if have at least 1 USB device and we are not starting yet car mode...
-                starting_car_mode = true;
-                car_mode_start();
-            }
-        }
+        mTransport = new HeadUnitTransport(mUsbManager, mAudioDecoder, mVideoDecoder, this);                                       // Start USB/SSL/AAP Transport
+        mUsbReceiver = new UsbReceiver(this);
     }
+
+
 
     @Override
     protected void onPause() {
         super.onPause();
-        Utils.logd("unregisterUsbReceiver");
-        mTransport.unregisterUsbReceiver();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Utils.logd("registerUsbReceiver + Hide System UI");
-        mTransport.registerUsbReceiver();
         SystemUI.hide(mContentView, null);
     }
-
 
     private static boolean starting_car_mode = false;
 
@@ -212,16 +217,16 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         // am start -n ca.yyx.hu/.HeadUnitActivity -a "send" -e data 000b0000000f0800       Byebye request
         // am start -n ca.yyx.hu/.HeadUnitActivity -a "send" -e data 020b0000800808021001   VideoFocus lost focusState=0 unsolicited=true
         super.onNewIntent(intent);
-        Utils.logd("--- intent: " + intent);
 
-        String action = intent.getAction();
-        if (action == null) {
-            Utils.loge("action == null");
+        if (intent == null || intent.getAction() == null) {
             return;
         }
+
+        if (UsbReceiver.match(intent.getAction())) {
+            mUsbReceiver.onReceive(this, intent);
+        }
         // --- intent: Intent { act=android.hardware.usb.action.USB_DEVICE_ATTACHED flg=0x10000000 cmp=ca.yyx.hu/.HeadUnitActivity (has extras) }
-        if (!action.equals("send")) {                                     // If this is NOT our "fm.a2d.s2.send" Intent...
-            //Utils.logd ("action: " + action);                              // action: android.hardware.usb.action.USB_DEVICE_ATTACHED
+        if (!intent.getAction().equals("send")) {                                     // If this is NOT our "fm.a2d.s2.send" Intent...
             return;
         }
 
@@ -246,9 +251,27 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
 
 
     @Override
+    protected void onStart() {
+        super.onStart();
+
+        registerReceiver(mUsbReceiver, UsbReceiver.createFilter());
+
+        if (!starting_car_mode) {  // Else if have at least 1 USB device and we are not starting yet car mode...
+            starting_car_mode = true;
+            car_mode_start();
+        }
+        if (getIntent() != null && UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(getIntent().getAction())) {      // If launched by a USB connection event... (Do nothing, let BCR handle)
+            UsbDevice device = getIntent().<UsbDevice>getParcelableExtra(UsbManager.EXTRA_DEVICE);
+            connect(new UsbDeviceCompat(device));
+        }
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         Utils.logd("Stop app");
+
+        unregisterReceiver(mUsbReceiver);
 
         Utils.logd("--- m_tcp_connected: " + m_tcp_connected);
 
@@ -274,7 +297,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         } else if (idx == 3) {
             Utils.sys_run(DATA_DATA + "/lib/libusb_reset.so /dev/bus/usb/*/* 1>/dev/null 2>/dev/null", true);
         } else if (idx >= PRESET_LEN_FIX) {
-            mTransport.presets_select(idx - PRESET_LEN_FIX);
+            mTransport.usb_select_device(mDevices.get(mDrawerSections.get(idx)));
         }
     }
 
@@ -447,22 +470,6 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         }
     }
 
-    public void sys_ui_hide() {
-        SystemUI.hide(mContentView, mDrawerLayout);
-    }
-
-    public void handleMedia(byte[] buffer, int size) {
-        ByteBuffer bb = ByteBuffer.wrap(buffer);
-        bb.limit(size);
-        bb.position(0);
-
-        if (VideoDecoder.isH246Video(buffer)) {
-            mVideoDecoder.decode(bb);
-        } else {
-            mAudioDecoder.decode(bb);
-        }
-    }
-
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         Utils.logd("holder" + holder);
@@ -479,14 +486,80 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         mVideoDecoder.stop();
     }
 
-    public void presets_update(ArrayList<UsbDeviceCompat> devices) {
-        for (int idx = 0; idx < PRESET_LEN_USB; idx++) {
-            if (idx < devices.size()) {
-                mDrawerSections[idx + PRESET_LEN_FIX] = devices.get(idx).getName();
-            } else {
-                mDrawerSections[idx + PRESET_LEN_FIX] = "";
-            }
+    public void updateDrawerList() {
+        mDrawerSections.clear();
+        String[] sections = getResources().getStringArray(R.array.drawer_items);
+        mDrawerSections.addAll(Arrays.asList(sections));
+
+        for (int idx = 0; idx < mDevices.size(); idx++) {
+            String name = mDevices.keyAt(idx);
+            mDrawerSections.add(name);
         }
         mDrawerListView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mDrawerSections));
     }
+
+    @Override
+    public void onUsbDetach(UsbDeviceCompat deviceCompat) {
+        mDevices.remove(deviceCompat.getName());
+        updateDrawerList();
+        if (mTransport.isDeviceRunning(deviceCompat)) {
+            finish();
+        }
+    }
+
+    @Override
+    public void onUsbAttach(UsbDeviceCompat deviceCompat) {
+        mDevices.put(deviceCompat.getName(),deviceCompat);
+        updateDrawerList();
+        if (!mTransport.isAapStarted()) {
+            connect(deviceCompat);
+        }
+    }
+
+    @Override
+    public void onUsdPermission(boolean granted, boolean connect, UsbDeviceCompat deviceCompat) {
+        if (granted && connect) {
+            connect(deviceCompat);
+        }
+    }
+
+    private void loadUsbDevices()
+    {
+        Map<String, UsbDevice> device_list = null;
+        try {
+            device_list = mUsbManager.getDeviceList();
+        } catch (Throwable e) {
+            Utils.loge(e);
+        }
+
+        if (device_list != null && device_list.size() > 0) {
+            for (UsbDevice device : device_list.values()) {
+                UsbDeviceCompat deviceCompat = new UsbDeviceCompat(device);
+                if (deviceCompat.isSupported()) {
+                    mDevices.put(deviceCompat.getName(),deviceCompat);
+                }
+            }
+        }
+    }
+
+    private void connect(UsbDeviceCompat deviceCompat) {
+
+        if (!mUsbManager.hasPermission(deviceCompat.getWrappedDevice())) {                               // If we DON'T have permission to access the USB device...
+            Utils.logd("Request USB Permission");    // Request permission
+            Intent intent = new Intent(UsbReceiver.ACTION_USB_DEVICE_PERMISSION);                 // Our App specific Intent for permission request
+            intent.setPackage(getPackageName());
+            intent.putExtra(UsbReceiver.EXTRA_CONNECT, true);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+            mUsbManager.requestPermission(deviceCompat.getWrappedDevice(), pendingIntent);              // Request permission. BCR called later if we get it.
+            return;                                                           // Done for now. Wait for permission
+        }
+
+        mTransport.usb_select_device(deviceCompat);
+    }
+
+    @Override
+    public void onAapStart() {
+        ui_video_started_set(true);                             // Enable video/disable log view
+    }
+
 }

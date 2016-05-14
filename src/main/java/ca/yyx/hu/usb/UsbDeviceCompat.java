@@ -182,4 +182,21 @@ public class UsbDeviceCompat {
     public UsbDevice getWrappedDevice() {
         return mUsbDevice;
     }
+
+    public boolean isSupported()
+    {
+        int dev_vend_id = mUsbDevice.getVendorId();                            // mVendorId=2996               HTC
+        int dev_prod_id = mUsbDevice.getProductId();                           // mProductId=1562              OneM8
+        // om7/xz0 internal: dev_name: /dev/bus/usb/001/002  dev_class: 0  dev_sclass: 0  dev_dev_id: 1002  dev_proto: 0  dev_vend_id: 1478  dev_prod_id: 36936     0x05c6 : 0x9048   Qualcomm
+        // gs3/no2 internal: dev_name: /dev/bus/usb/001/002  dev_class: 2  dev_sclass: 0  dev_dev_id: 1002  dev_proto: 0  dev_vend_id: 5401  dev_prod_id: 32        0x1519 : 0x0020   Comneon : HSIC Device
+
+        if (dev_vend_id == 0x05c6 && dev_prod_id >= 0x9000)                 // Ignore Qualcomm OM7/XZ0 internal
+            return false;
+        if (dev_vend_id == 0x1519)// && dev_prod_id == 0x020)               // Ignore Comneon  GS3/NO2 internal
+            return false;
+        if (dev_vend_id == 0x0835)                                          // Ignore "Action Star Enterprise Co., Ltd" = USB Hub
+            return false;
+
+        return true;
+    }
 }

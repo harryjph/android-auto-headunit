@@ -3,50 +3,57 @@
 
 package ca.yyx.hu;
 
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
-import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.Map;
+import java.nio.ByteBuffer;
 
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
+import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.usb.UsbDeviceCompat;
 
 public class HeadUnitTransport {
 
     private final AudioDecoder mAudioDecoder;
-    private final MicRecorder mMicRecoder;
-    private Context mContext;
-    private HeadUnitActivity mHeadUnitActivity;                                     // Activity for callbacks
+    private final MicRecorder mMicRecorder;
+    private final Listener mListener;
+    private final VideoDecoder mVideoDecoder;
     private tra_thread m_tra_thread;                                 // Transport Thread
 
     private UsbManager mUsbMgr;
     private UsbDevice mUsbDeviceConnected;
-
-    private UsbReceiver mUseReceiver;
 
     public static final int AA_CH_CTR = 0;                               // Sync with HeadUnitTransport.java, hu_aap.h and hu_aap.c:aa_type_array[]
     private static final int AA_CH_TOU = 3;
     private static final int AA_CH_SEN = 1;
     private static final int AA_CH_VID = 2;
 
-    public HeadUnitTransport(HeadUnitActivity HeadUnitActivity, AudioDecoder audioDecoder) {
-        mHeadUnitActivity = HeadUnitActivity;
-        mContext = HeadUnitActivity;
+    public boolean isAapStarted() {
+        return aap_running;
+    }
+
+    public boolean isDeviceRunning(UsbDeviceCompat deviceCompat) {
+        if (aap_running) {
+            return deviceCompat.getWrappedDevice().equals(mUsbDeviceConnected);
+        }
+        return false;
+    }
+
+    interface Listener {
+        void onAapStart();
+    }
+
+    public HeadUnitTransport(UsbManager usbManager, AudioDecoder audioDecoder, VideoDecoder videoDecoder, Listener listener) {
         mAudioDecoder = audioDecoder;
-        mMicRecoder = new MicRecorder();
-        mUsbMgr = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
+        mVideoDecoder = videoDecoder;
+        mMicRecorder = new MicRecorder();
+        mUsbMgr = usbManager;
+        mListener = listener;
     }
 
     // Native API:
@@ -73,22 +80,6 @@ public class HeadUnitTransport {
 
     private boolean m_mic_active = false;
     private boolean touch_sync = true;//      // Touch sync times out within 200 ms on second touch with TCP for some reason.
-
-    public void registerUsbReceiver() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        filter.addAction(Utils.ACTION_USB_DEVICE_PERMISSION);                             // Our App specific Intent for permission request
-        mUseReceiver = new UsbReceiver();                               // Register BroadcastReceiver for USB attached/detached
-        mContext.registerReceiver(mUseReceiver, filter);
-    }
-
-    public void unregisterUsbReceiver() {
-        if (mUseReceiver != null) {
-            mContext.unregisterReceiver(mUseReceiver);
-            mUseReceiver = null;
-        }
-    }
 
     private final class tra_thread extends Thread {                       // Main Transport Thread
         private volatile boolean m_stopping = false;                        // Set true when stopping
@@ -117,7 +108,7 @@ public class HeadUnitTransport {
                 }
 
                 if (!m_stopping && ret >= 0 && m_mic_active) {                 // If Mic active...
-                    mic_audio_len = mMicRecoder.mic_audio_read(mic_audio_buf, MicRecorder.MIC_BUFFER_SIZE);
+                    mic_audio_len = mMicRecorder.mic_audio_read(mic_audio_buf, MicRecorder.MIC_BUFFER_SIZE);
                     if (mic_audio_len >= 64) {                                    // If we read at least 64 bytes of audio data
                         byte[] ba_mic = new byte[14 + mic_audio_len];//0x02, 0x0b, 0x03, 0x00,
                         ba_mic[0] = MicRecorder.AA_CH_MIC;// Mic channel
@@ -161,8 +152,7 @@ public class HeadUnitTransport {
 
     public int jni_aap_start() {                                         // Start JNI Android Auto Protocol and Main Thread. Called only by usb_attach_handler(), usb_force() & HeadUnitActivity.wifi_long_start()
 
-        mHeadUnitActivity.ui_video_started_set(true);                             // Enable video/disable log view
-
+        mListener.onAapStart();
         byte[] cmd_buf = {121, -127, 2};                                   // Start Request w/ m_ep_in_addr, m_ep_out_addr
         cmd_buf[1] = (byte) m_ep_in_addr;
         cmd_buf[2] = (byte) m_ep_out_addr;
@@ -207,7 +197,7 @@ public class HeadUnitTransport {
         if (ret == 1) {                                                     // If mic stop...
             Utils.logd("Microphone Stop");
             m_mic_active = false;
-            mMicRecoder.mic_audio_stop();
+            mMicRecorder.mic_audio_stop();
             return (0);
         } else if (ret == 2) {                                                // Else if mic start...
             Utils.logd("Microphone Start");
@@ -226,11 +216,22 @@ public class HeadUnitTransport {
             mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AU2);
             return (0);
         } else if (ret > 0) {                                                 // Else if audio or video returned...
-            mHeadUnitActivity.handleMedia(res_buf, ret);
+            handleMedia(res_buf, ret);
         }
         return (ret);
     }
 
+    public void handleMedia(byte[] buffer, int size) {
+        ByteBuffer bb = ByteBuffer.wrap(buffer);
+        bb.limit(size);
+        bb.position(0);
+
+        if (VideoDecoder.isH246Video(buffer)) {
+            mVideoDecoder.decode(bb);
+        } else {
+            mAudioDecoder.decode(bb);
+        }
+    }
 
     private long last_move_ms = 0;
     private int len_touch = 0;
@@ -308,39 +309,6 @@ public class HeadUnitTransport {
 
     // USB:
 
-    public int start(Intent intent) {
-        Utils.logd("intent: " + intent);
-
-        int ret = 0;
-
-        if (intent != null && UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {      // If launched by a USB connection event... (Do nothing, let BCR handle)
-            UsbDevice device = intent.<UsbDevice>getParcelableExtra(UsbManager.EXTRA_DEVICE);
-            Utils.logd("Launched by USB connection event device: " + device);
-        } else {                                                             // Else if we were launched manually, look through the USB device list...
-            Map<String, UsbDevice> device_list;
-            try {
-                device_list = mUsbMgr.getDeviceList();
-            } catch (Throwable e) {
-                Utils.loge(e);
-                return 0;
-            }
-
-            ret = device_list.size();
-            Utils.logd("Found USB devices: " + ret);
-
-            if (device_list.size() > 0) {
-                for (UsbDevice device : device_list.values()) {
-                    // Handle as NEW attached device
-                    if (usb_attach_handler(device, true)) {
-                        return 0;
-                    } else {
-                        ret--;
-                    }
-                }
-            }
-        }
-        return ret;
-    }
 
     private boolean aap_running = false;
 
@@ -348,9 +316,10 @@ public class HeadUnitTransport {
         Utils.logd("  aap_running: " + aap_running);
 
         if (aap_running) {
-            byebye_send();                                                     // Terminate AA Protocol with ByeBye
             aap_running = false;
         }
+
+        byebye_send();                                                     // Terminate AA Protocol with ByeBye
 
         if (m_tra_thread != null) {                                           // If Transport Thread...
             m_tra_thread.quit();                                             // Terminate Transport Thread using it's quit() API
@@ -359,96 +328,21 @@ public class HeadUnitTransport {
         usb_disconnect();                                                  // Disconnect
     }
 
-
-    private final class UsbReceiver extends BroadcastReceiver {          // USB Broadcast Receiver enabled by start() & disabled by stop()
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            UsbDevice device = intent.<UsbDevice>getParcelableExtra(UsbManager.EXTRA_DEVICE);
-            Utils.logd("USB BCR intent: " + intent);
-
-            if (device != null) {
-                String action = intent.getAction();
-
-                if (action.equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {    // If detach...
-                    usb_detach_handler(device);                                  // Handle detached device
-                } else if (action.equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {// If attach...
-                    usb_attach_handler(device, true);                            // Handle New attached device
-                } else if (action.equals(Utils.ACTION_USB_DEVICE_PERMISSION)) {                 // If Our App specific Intent for permission request...
-                    // If permission granted...
-                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        Utils.logd("USB BCR permission granted");
-                        mHeadUnitActivity.sys_ui_hide();
-                        usb_attach_handler(device, false);                         // Handle same as attached device except NOT NEW so don't add to USB device list
-                    } else {
-                        Utils.loge("USB BCR permission denied");
-                    }
-                }
-
-            }
-        }
-    }
-
-    private boolean usb_attach_handler(UsbDevice device, boolean add) {
-        // Handle attached device. Called only by:  start() on autolaunch or device find, and...
-        // usb_receiver() on USB grant permission or USB attach
-
-        UsbDeviceCompat deviceCompat = new UsbDeviceCompat(device);
-
-        int dev_vend_id = device.getVendorId();                            // mVendorId=2996               HTC
-        int dev_prod_id = device.getProductId();                           // mProductId=1562              OneM8
-        // om7/xz0 internal: dev_name: /dev/bus/usb/001/002  dev_class: 0  dev_sclass: 0  dev_dev_id: 1002  dev_proto: 0  dev_vend_id: 1478  dev_prod_id: 36936     0x05c6 : 0x9048   Qualcomm
-        // gs3/no2 internal: dev_name: /dev/bus/usb/001/002  dev_class: 2  dev_sclass: 0  dev_dev_id: 1002  dev_proto: 0  dev_vend_id: 5401  dev_prod_id: 32        0x1519 : 0x0020   Comneon : HSIC Device
-
-        if (dev_vend_id == 0x05c6 && dev_prod_id >= 0x9000)                 // Ignore Qualcomm OM7/XZ0 internal
-            return false;
-        if (dev_vend_id == 0x1519)// && dev_prod_id == 0x020)               // Ignore Comneon  GS3/NO2 internal
-            return false;
-        if (dev_vend_id == 0x0835)                                          // Ignore "Action Star Enterprise Co., Ltd" = USB Hub
-            return false;
-
-        Utils.logd("Attach USB :"+deviceCompat.toString());
-
-        if (add) {
-            usb_add(deviceCompat);                                   // Add USB Device to list
-        }
-        //private boolean auto_start = true;
-        //if (/*! auto_start ||*/ Utils.file_get ("/sdcard/hu_noas"))
-        //  return (false);
-
-        if (mUsbDeviceConnected != null) {                                            // If not already connected...
-            Utils.logd("Try connect");
-            usb_connect(device);                                             // Attempt to connect
+    public void usb_select_device(UsbDeviceCompat deviceCompat) {
+        if (mUsbDeviceConnected != null) {
+            usb_disconnect();
         }
 
-        if (mUsbDeviceConnected != null) {                                              // If connected now, or was connected already...
-            Utils.logd("Connected so start JNI");
-            //Utils.ms_sleep (2000);                                         // Wait to settle
-            //Utils.logd ("connected done sleep");
-            jni_aap_start();                                                 // Start JNI Android Auto Protocol and Main Thread
+        Utils.logd("Try connect");
+        // Attempt to connect
+        if (usb_connect(deviceCompat.getWrappedDevice())) {
+            // If connected now, or was connected already...
+            Utils.logd("Connected to device, start JNI");
+            // Start JNI Android Auto Protocol and Main Thread
+            jni_aap_start();
         } else {
             Utils.logd("Not connected");
         }
-        return true;
-    }
-
-    private void usb_detach_handler(UsbDevice device) {                  // Handle detached device.  Called only by usb_receiver() if device detached while app is running (only ?)
-
-        UsbDeviceCompat deviceCompat = new UsbDeviceCompat(device);
-        Utils.logd(deviceCompat.toString());
-        usb_del(deviceCompat);                                     // Delete USB Device from list
-
-        if (mUsbDeviceConnected != null && device.equals(mUsbDeviceConnected)) {
-            Utils.logd("Disconnecting our connected device");
-            usb_disconnect();                                                // Disconnect
-
-            Toast.makeText(mContext, "DISCONNECTED !!!", Toast.LENGTH_LONG).show();
-
-            Utils.ms_sleep(1000);                                           // Wait a bit
-            //android.os.Process.killProcess (android.os.Process.myPid ());     // Kill self
-            mHeadUnitActivity.finish();
-            return;
-        }
-        Utils.logd("Not our device so ignore disconnect");
     }
 
     // "Android", "Android Open Automotive Protocol", "Description", "VersionName", "https://developer.android.com/auto/index.html", "62skidoo"
@@ -478,22 +372,13 @@ public class HeadUnitTransport {
     private int m_ep_in_addr = -1;                                      // Input  endpoint Value  129
     private int m_ep_out_addr = -1;                                      // Output endpoint Value    2
 
-    private void usb_connect(UsbDevice device) {                         // Attempt to connect. Called only by usb_attach_handler() & presets_select()
+    private boolean usb_connect(UsbDevice device) {                         // Attempt to connect. Called only by usb_attach_handler() & presets_select()
         mUsbDeviceConnection = null;
-
-        if (!mUsbMgr.hasPermission(device)) {                               // If we DON'T have permission to access the USB device...
-            Utils.logd("Request USB Permission");    // Request permission
-            Intent intent = new Intent(Utils.ACTION_USB_DEVICE_PERMISSION);                 // Our App specific Intent for permission request
-            intent.setPackage(mContext.getPackageName());
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-            mUsbMgr.requestPermission(device, pendingIntent);              // Request permission. BCR called later if we get it.
-            return;                                                           // Done for now. Wait for permission
-        }
 
         int ret = usb_open(device);                                        // Open USB device & claim interface
         if (ret < 0) {                                                      // If error...
             usb_disconnect();                                                // Ensure state is disconnected
-            return;                                                           // Done
+            return false;                                                           // Done
         }
 
         int dev_vend_id = device.getVendorId();                            // mVendorId=2996               HTC
@@ -504,14 +389,16 @@ public class HeadUnitTransport {
             ret = acc_mode_endpoints_set();                                  // Set Accessory mode Endpoints
             if (ret < 0) {                                                    // If error...
                 usb_disconnect();                                              // Ensure state is disconnected
-            } else {
-                mUsbDeviceConnected = device;
+                return false;
             }
-            return;                                                           // Done
+            mUsbDeviceConnected = device;
+            return true;
+
         }
         // Else if not in accessory mode...
-        acc_mode_switch(mUsbDeviceConnection);                                   // Do accessory negotiation and attempt to switch to accessory mode
+        acc_mode_switch(mUsbDeviceConnection);
         usb_disconnect();                                                  // Ensure state is disconnected
+        return false;
     }
 
     private void usb_disconnect() {                                           // Release interface and close USB device connection. Called only by usb_disconnect()
@@ -610,7 +497,7 @@ public class HeadUnitTransport {
         return (0);                                                         // Done success
     }
 
-    private void acc_mode_switch(UsbDeviceConnection conn) {             // Do accessory negotiation and attempt to switch to accessory mode. Called only by usb_connect()
+    private boolean acc_mode_switch(UsbDeviceConnection conn) {             // Do accessory negotiation and attempt to switch to accessory mode. Called only by usb_connect()
         Utils.logd("Attempt acc");
 
         int len = 0;
@@ -618,13 +505,13 @@ public class HeadUnitTransport {
         len = conn.controlTransfer(UsbConstants.USB_DIR_IN | UsbConstants.USB_TYPE_VENDOR, ACC_REQ_GET_PROTOCOL, 0, 0, buffer, 2, 10000);
         if (len != 2) {
             Utils.loge("Error controlTransfer len: " + len);
-            return;
+            return false;
         }
         int acc_ver = (buffer[1] << 8) | buffer[0];                      // Get OAP / ACC protocol version
         Utils.logd("Success controlTransfer len: " + len + "  acc_ver: " + acc_ver);
         if (acc_ver < 1) {                                                  // If error or version too low...
             Utils.loge("No support acc");
-            return;
+            return false;
         }
         Utils.logd("acc_ver: " + acc_ver);
 
@@ -640,9 +527,10 @@ public class HeadUnitTransport {
         len = conn.controlTransfer(UsbConstants.USB_DIR_OUT | UsbConstants.USB_TYPE_VENDOR, ACC_REQ_START, 0, 0, null, 0, 10000);
         if (len != 0) {
             Utils.loge("Error acc start");
-        } else {
-            Utils.logd("OK acc start. Wait to re-enumerate...");
+            return false;
         }
+        Utils.logd("OK acc start. Wait to re-enumerate...");
+        return true;
     }
 
     // Send one accessory identification string.    Called only by acc_mode_switch()
@@ -655,9 +543,6 @@ public class HeadUnitTransport {
             Utils.logd("Success controlTransfer len: " + len + "  index: " + index + "  string: \"" + string + "\"");
         }
     }
-
-
-    private ArrayList<UsbDeviceCompat> mDevices = new ArrayList<>(HeadUnitActivity.PRESET_LEN_USB);
 
     public void usb_force() {                                            // Called only by HeadUnitActivity:preset_select_lstnr:onClick()
         if (mUsbDeviceConnected != null) {
@@ -673,34 +558,6 @@ public class HeadUnitTransport {
         m_ep_out_addr = 0;  // USB Force
         jni_aap_start();
     }
-
-    public void presets_select(int idx) {                                // Called only by HeadUnitActivity:preset_select_lstnr:onClick()
-        if (mUsbDeviceConnected != null) {
-            usb_disconnect();
-        }
-        usb_connect(mDevices.get(idx).getWrappedDevice());
-    }
-
-    private void usb_add(UsbDeviceCompat deviceCompat) {
-        if (mDevices.size() >= HeadUnitActivity.PRESET_LEN_USB) {
-            Utils.loge("usb_list_num >= HeadUnitActivity.PRESET_LEN_USB");
-            return;
-        }
-        mDevices.add(deviceCompat);
-        mHeadUnitActivity.presets_update(mDevices);
-    }
-
-    private void usb_del(UsbDeviceCompat deviceCompat) {
-        String deviceName = deviceCompat.getName();
-        for (int idx = 0; idx < mDevices.size(); idx++) {
-            if (deviceName.equals(mDevices.get(idx).getName())) {
-                mDevices.remove(idx);
-                mHeadUnitActivity.presets_update(mDevices);
-                break;
-            }
-        }
-    }
-
 
 }
 

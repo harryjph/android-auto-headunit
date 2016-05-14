@@ -23,6 +23,7 @@
             android:text="@string/menu"
             android:background="?android:attr/actionBarItemBackground"
             android:padding="8dp"
+            android:paddingTop="4dp"
             android:textColor="#757575"
             android:layout_gravity="center|top"
             />

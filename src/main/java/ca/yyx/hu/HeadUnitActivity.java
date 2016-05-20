@@ -80,6 +80,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import net.hockeyapp.android.CrashManager;
+import net.hockeyapp.android.UpdateManager;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -91,9 +94,6 @@ import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.usb.UsbDeviceCompat;
 import ca.yyx.hu.usb.UsbReceiver;
-
-
-
 
 
 public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback, UsbReceiver.Listener, HeadUnitTransport.Listener {
@@ -129,6 +129,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
 
     private SimpleArrayMap<String,UsbDeviceCompat> mDevices = new SimpleArrayMap<>(HeadUnitActivity.PRESET_LEN_USB);
     private UsbManager mUsbManager;
+    private boolean isShowing = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,7 +166,6 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mDrawerLayout.closeDrawer(Gravity.LEFT);
                 drawerSelect(position);
-                SystemUI.hide(mContentView, mDrawerLayout);
             }
         });
 
@@ -176,6 +176,12 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         mSurfaceView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    if (isShowing) {
+                        SystemUI.hide(getWindow().getDecorView());
+                        isShowing = false;
+                    }
+                }
                 touch_send(event);
                 return true;
             }
@@ -194,19 +200,46 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
 
         mTransport = new HeadUnitTransport(mUsbManager, mAudioDecoder, mVideoDecoder, this);                                       // Start USB/SSL/AAP Transport
         mUsbReceiver = new UsbReceiver(this);
+
+        UpdateManager.register(this);
+
+        getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+            @Override
+            public void onSystemUiVisibilityChange(int visibility) {
+                SystemUI.hide(getWindow().getDecorView());
+            }
+        });
+
+//        getWindow().getDecorView().setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                if (event.getAction() == MotionEvent.ACTION_UP) {
+//                    if (isShowing) {
+//                        SystemUI.hide(getWindow().getDecorView());
+//                        isShowing = false;
+//                    }
+//                }
+//                return false;
+//            }
+//        });
     }
 
-
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        SystemUI.hide(getWindow().getDecorView());
+    }
 
     @Override
     protected void onPause() {
         super.onPause();
+        UpdateManager.unregister();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        SystemUI.hide(mContentView, null);
+        CrashManager.register(this);
     }
 
     private static boolean starting_car_mode = false;
@@ -334,7 +367,7 @@ public class HeadUnitActivity extends Activity implements SurfaceHolder.Callback
         Utils.logd("Started: "+started);
 
         if (started) {
-            SystemUI.hide(mContentView, mDrawerLayout);
+            mDrawerLayout.closeDrawer(Gravity.LEFT);
             mSurfaceView.setVisibility(View.VISIBLE);                     // Enable  video
         } else {
             mSurfaceView.setVisibility(View.GONE);                    // Disable video

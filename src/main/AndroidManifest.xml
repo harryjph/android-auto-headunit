@@ -58,6 +58,8 @@
             android:label="Test video decoder"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/AppTheme"/>
+
+        <meta-data android:name="net.hockeyapp.android.appIdentifier" android:value="${HOCKEYAPP_APP_ID}" />
     </application>
 
 </manifest>

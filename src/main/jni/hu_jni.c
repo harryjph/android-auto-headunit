@@ -138,7 +138,7 @@
     return (res_len);
   }
 
-  JNIEXPORT jint Java_ca_yyx_hu_HeadUnitTransport_native_1aa_1cmd (JNIEnv * env, jobject thiz, jint cmd_len, jbyteArray cmd_buf, jint res_len, jbyteArray res_buf) {
+  JNIEXPORT jint Java_ca_yyx_hu_aap_AapTransport_native_1aa_1cmd (JNIEnv * env, jobject thiz, jint cmd_len, jbyteArray cmd_buf, jint res_len, jbyteArray res_buf) {
 
     if (ena_log_extra)
       logd ("cmd_buf: %p  cmd_len: %d  res_buf: %p  res_len: %d", cmd_buf, cmd_len,  res_buf, res_len);

@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.security.InvalidParameterException;
 import java.util.Map;
 
-import ca.yyx.hu.Utils;
+import ca.yyx.hu.utils.Utils;
 
 
 /**

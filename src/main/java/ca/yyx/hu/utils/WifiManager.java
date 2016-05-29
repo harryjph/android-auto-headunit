@@ -1,4 +1,4 @@
-package ca.yyx.hu;
+package ca.yyx.hu.utils;
 
 import android.app.UiModeManager;
 import android.content.BroadcastReceiver;
@@ -9,13 +9,15 @@ import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.AsyncTask;
 
+import ca.yyx.hu.aap.AapTransport;
+
 /**
  * @author algavris
  * @date 28/04/2016.
  */
 public class WifiManager {
     private final Context mContext;
-    private final HeadUnitTransport mTransport;
+    private final AapTransport mTransport;
     private final Listener mListener;
     private WifiStartTask mStartTask;
 
@@ -29,7 +31,7 @@ public class WifiManager {
         void onWifiStartListener();
     }
 
-    public WifiManager(Context context, HeadUnitTransport transport, Listener listener) {
+    public WifiManager(Context context, AapTransport transport, Listener listener) {
         mContext = context;
         mTransport = transport;
         mListener = listener;
@@ -49,16 +51,16 @@ public class WifiManager {
     }
 
     private class WifiStartTask extends AsyncTask<Object, Void, Integer> {
-        private HeadUnitTransport mTransport;
+        private AapTransport mTransport;
 
-        public WifiStartTask(HeadUnitTransport transport) {//, View statusText) {
+        public WifiStartTask(AapTransport transport) {//, View statusText) {
             mTransport = transport;
         }
 
         @Override
         protected Integer doInBackground(Object... params) {//(Void... params) {// (Params... p) {//Void... v) {//Void... params) {
             Utils.logd("wifi_long_start start ");
-            return mTransport.jni_aap_start();
+            return mTransport.start();
         }
 
         // Start activity that can handle the JPEG image

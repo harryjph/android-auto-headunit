@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:background="@color/primary_dark"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/bluetooth_button"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="64dp"
+            android:layout_gravity="right|bottom"
+            android:src="@drawable/ic_bluetooth_white_24dp"
+            android:background="?android:attr/actionBarItemBackground"
+            android:contentDescription="@string/settings" />
+
+        <ImageButton
+            android:id="@+id/exit_button"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="64dp"
+            android:layout_gravity="right|bottom"
+            android:src="@drawable/ic_exit_to_app_white_24dp"
+            android:background="?android:attr/actionBarItemBackground"
+            android:contentDescription="@string/settings" />
+
+        <ImageButton
+            android:id="@+id/back_button"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="64dp"
+            android:layout_gravity="right|bottom"
+            android:src="@drawable/ic_chevron_left_white_24dp"
+            android:background="?android:attr/actionBarItemBackground"
+            android:contentDescription="@string/settings" />
+
+    </LinearLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="top|center"
+        android:background="@color/primary_dark"
+        android:layout_marginTop="32dp"
+        android:layout_marginLeft="96dp"
+        android:layout_marginRight="96dp"
+        android:layout_marginBottom="96dp"
+        tools:listitem="@layout/list_item_device" />
+</FrameLayout>

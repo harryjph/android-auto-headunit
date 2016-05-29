@@ -1,10 +1,11 @@
 package ca.yyx.hu.usb;
 
 import android.hardware.usb.UsbDevice;
+import android.support.annotation.Nullable;
 
 import java.util.Locale;
 
-import ca.yyx.hu.Utils;
+import ca.yyx.hu.utils.Utils;
 
 /**
  * @author algavris
@@ -30,9 +31,7 @@ public class UsbDeviceCompat {
     private static final int USB_PID_ACC_AUD = 0x2D04;      // Accessory       + Audio    101
     private static final int USB_PID_ACC_AUD_ADB = 0x2D05;      // Accessory + ADB + Audio    111
 
-
     private UsbDevice mUsbDevice;
-
 
     public UsbDeviceCompat(UsbDevice device) {
         mUsbDevice = device;
@@ -119,19 +118,14 @@ public class UsbDeviceCompat {
     private String usb_dev_name_get(android.hardware.usb.UsbDevice device) {
         String usb_dev_name = "";
         String dev_name = device.getDeviceName();                          // mName=/dev/bus/usb/003/007
-        int dev_class = device.getDeviceClass();                         // mClass=255
-        int dev_sclass = device.getDeviceSubclass();                      // mSublass=255
-        int dev_dev_id = device.getDeviceId();                            // mId=2                        1003 for /dev/bus/usb/001/003
-        int dev_proto = device.getDeviceProtocol();                      // mProtocol=0
         int dev_vend_id = device.getVendorId();                            // mVendorId=2996               HTC
         int dev_prod_id = device.getProductId();                           // mProductId=1562              OneM8
-        Utils.logd("dev_name: " + dev_name + "  dev_class: " + dev_class + "  dev_sclass: " + dev_sclass + "  dev_dev_id: " + dev_dev_id + "  dev_proto: " + dev_proto + "  dev_vend_id: " + dev_vend_id + "  dev_prod_id: " + dev_prod_id);
 
         String dev_man = "";
         String dev_prod = "";
         String dev_ser = "";
 
-        if (Utils.SDK_INT >= 21) {                                 // Android 5.0+ only
+        if (Utils.IS_LOLLIPOP) {                                 // Android 5.0+ only
             try {
                 dev_man = usb_man_get(device);                                // mManufacturerName=HTC
                 dev_prod = usb_pro_get(device);                                // mProductName=Android Phone
@@ -151,52 +145,49 @@ public class UsbDeviceCompat {
                 dev_ser = "";
             else
                 dev_ser = dev_ser.toUpperCase(Locale.getDefault());
-
-            Utils.logd("dev_man: " + dev_man + "  dev_prod: " + dev_prod + "  dev_ser: " + dev_ser);
         }
 
         usb_dev_name += vend_id_name_get(dev_vend_id);
         usb_dev_name += ":";
         usb_dev_name += prod_id_name_get(dev_prod_id);
-        usb_dev_name += "\n";
+        usb_dev_name += ":";
 
         usb_dev_name += Utils.hex_get((short) dev_vend_id);
         usb_dev_name += ":";
         usb_dev_name += Utils.hex_get((short) dev_prod_id);
-        usb_dev_name += "\n";
 
-        usb_dev_name += "" + dev_dev_id;
 
         return (usb_dev_name);
     }
 
-    public String getName() {
+    public String getDeviceName()
+    {
+        return mUsbDevice.getDeviceName();
+    }
+
+    public String getUniqueName() {
         return usb_dev_name_get(mUsbDevice);
     }
 
     @Override
     public String toString() {
-        return String.format(Locale.US, "%s - %s", getName(), mUsbDevice.toString());
+        return String.format(Locale.US, "%s - %s", getUniqueName(), mUsbDevice.toString());
     }
 
     public UsbDevice getWrappedDevice() {
         return mUsbDevice;
     }
 
-    public boolean isSupported()
-    {
-        int dev_vend_id = mUsbDevice.getVendorId();                            // mVendorId=2996               HTC
-        int dev_prod_id = mUsbDevice.getProductId();                           // mProductId=1562              OneM8
-        // om7/xz0 internal: dev_name: /dev/bus/usb/001/002  dev_class: 0  dev_sclass: 0  dev_dev_id: 1002  dev_proto: 0  dev_vend_id: 1478  dev_prod_id: 36936     0x05c6 : 0x9048   Qualcomm
-        // gs3/no2 internal: dev_name: /dev/bus/usb/001/002  dev_class: 2  dev_sclass: 0  dev_dev_id: 1002  dev_proto: 0  dev_vend_id: 5401  dev_prod_id: 32        0x1519 : 0x0020   Comneon : HSIC Device
+    public static boolean isInAccessoryMode(UsbDevice device) {
+        int dev_vend_id = device.getVendorId();                            // mVendorId=2996               HTC
+        int dev_prod_id = device.getProductId();                           // mProductId=1562              OneM8
 
-        if (dev_vend_id == 0x05c6 && dev_prod_id >= 0x9000)                 // Ignore Qualcomm OM7/XZ0 internal
-            return false;
-        if (dev_vend_id == 0x1519)// && dev_prod_id == 0x020)               // Ignore Comneon  GS3/NO2 internal
-            return false;
-        if (dev_vend_id == 0x0835)                                          // Ignore "Action Star Enterprise Co., Ltd" = USB Hub
-            return false;
+        return dev_vend_id == UsbDeviceCompat.USB_VID_GOO &&
+                (dev_prod_id == UsbDeviceCompat.USB_PID_ACC
+                        || dev_prod_id == UsbDeviceCompat.USB_PID_ACC_ADB);
+    }
 
-        return true;
+    public boolean isInAccessoryMode() {
+        return isInAccessoryMode(mUsbDevice);
     }
 }

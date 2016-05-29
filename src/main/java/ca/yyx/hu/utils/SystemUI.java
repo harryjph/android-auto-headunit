@@ -1,4 +1,4 @@
-package ca.yyx.hu;
+package ca.yyx.hu.utils;
 
 import android.view.View;
 

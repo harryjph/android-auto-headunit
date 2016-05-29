@@ -3,16 +3,12 @@ package ca.yyx.hu.decoder;
 import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
-import android.media.AudioRecord;
 import android.media.AudioTrack;
-import android.media.MediaRecorder;
 import android.util.SparseArray;
 
-import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 
-import ca.yyx.hu.HeadUnitTransport;
-import ca.yyx.hu.Utils;
+import ca.yyx.hu.utils.Utils;
 
 /**
  * @author algavris
@@ -30,7 +26,7 @@ public class AudioDecoder {
     }
 
 
-    public void decode(ByteBuffer content) {                       // Decode audio or H264 video content. Called only by video_test() & HeadUnitTransport.aa_cmd_send()
+    public void decode(ByteBuffer content) {                       // Decode audio or H264 video content. Called only by video_test() & AapTransport.aa_cmd_send()
         int pos = content.position();
         int siz = content.remaining();
         byte[] ba = content.array();                                      // Create content byte array

@@ -1,16 +1,14 @@
 package ca.yyx.hu.decoder;
 
 import android.content.Context;
-import android.graphics.SurfaceTexture;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 
-import ca.yyx.hu.Utils;
+import ca.yyx.hu.utils.Utils;
 
 /**
  * @author algavris

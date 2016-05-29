@@ -7,7 +7,7 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 
-import ca.yyx.hu.Utils;
+import ca.yyx.hu.utils.Utils;
 
 public class UsbReceiver extends BroadcastReceiver {
     public static String ACTION_USB_DEVICE_PERMISSION = "ca.yyx.hu.ACTION_USB_DEVICE_PERMISSION";
@@ -16,7 +16,6 @@ public class UsbReceiver extends BroadcastReceiver {
 
     public interface Listener {
         void onUsbDetach(UsbDeviceCompat deviceCompat);
-
         void onUsbAttach(UsbDeviceCompat deviceCompat);
         void onUsdPermission(boolean granted, boolean connect, UsbDeviceCompat deviceCompat);
     }
@@ -57,18 +56,14 @@ public class UsbReceiver extends BroadcastReceiver {
             String action = intent.getAction();
 
             UsbDeviceCompat deviceCompat = new UsbDeviceCompat(device);
-            if (!deviceCompat.isSupported()) {
-                return;
-            }
-
             if (action.equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {    // If detach...
                 mListener.onUsbDetach(deviceCompat);                                  // Handle detached device
             } else if (action.equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {// If attach...
                 mListener.onUsbAttach(deviceCompat);
             } else if (action.equals(ACTION_USB_DEVICE_PERMISSION)) {                 // If Our App specific Intent for permission request...
-                boolean permisisonGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false);
+                boolean permissionGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false);
                 boolean connect = intent.getBooleanExtra(EXTRA_CONNECT, false);
-                mListener.onUsdPermission(permisisonGranted, connect, deviceCompat);
+                mListener.onUsdPermission(permissionGranted, connect, deviceCompat);
             }
 
         }

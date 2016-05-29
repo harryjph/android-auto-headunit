@@ -4,7 +4,7 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 
-import ca.yyx.hu.Utils;
+import ca.yyx.hu.utils.Utils;
 
 /**
  * @author algavris
@@ -18,7 +18,6 @@ public class MicRecorder {
 
     private byte[] mic_audio_buf = new byte[MIC_BUFFER_SIZE];
     private int mic_audio_len = 0;
-
 
     private boolean thread_mic_audio_active = false;
     private Thread thread_mic_audio = null;
@@ -39,7 +38,7 @@ public class MicRecorder {
         }
     }
 
-    public int mic_audio_read(byte[] aud_buf, int max_len) {
+    public int mic_audio_read(byte[] aud_buf, int start, int max_len) {
 
         if (!thread_mic_audio_active)                                      // If mic audio thread not active...
             mic_audio_start();                                               // Start it
@@ -51,11 +50,12 @@ public class MicRecorder {
             return (mic_audio_len);
 
         int len = mic_audio_len;
-        if (len > max_len)
+        if (len > max_len) {
             len = max_len;
-        int ctr = 0;
-        for (ctr = 0; ctr < len; ctr++)
+        }
+        for (int ctr = start; ctr < len; ctr++) {
             aud_buf[ctr] = mic_audio_buf[ctr];
+        }
         mic_audio_len = 0;                                                  // Reset for next read into single buffer
         return (len);
     }

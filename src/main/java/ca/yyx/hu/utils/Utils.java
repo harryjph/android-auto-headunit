@@ -4,19 +4,16 @@
 // Utils.log
 
 
-package ca.yyx.hu;
+package ca.yyx.hu.utils;
 
 import android.content.Context;
-import android.content.pm.PackageInfo;
 import android.os.Build;
 import android.os.Looper;
-import android.os.StrictMode;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +25,7 @@ import java.util.Locale;
 public final class Utils {
 
     public static final String TAG = "Headunit";
-    public static final int SDK_INT = Build.VERSION.SDK_INT;
+    public static final boolean IS_LOLLIPOP = Build.VERSION.SDK_INT >= 21;
 
     // Android Logging Levels:
     public static final boolean ena_log_verbo = false;
@@ -271,16 +268,6 @@ public final class Utils {
         }
         return (content);
     }
-
-
-    // Strings:
-
-    public static String str_MAN = "Android";//"Mike";                    // Manufacturer
-    public static String str_MOD = "Android Auto";//"Android Open Automotive Protocol"  // Model
-    public static String str_DES = "Head Unit";                           // Description
-    public static String str_VER = "1.0";                                 // Version
-    public static String str_URI = "http://www.android.com/";             // URI
-    public static String str_SER = "0";//000000012345678";                // Serial #
 
     public static boolean su_installed_get() {
         boolean ret = false;

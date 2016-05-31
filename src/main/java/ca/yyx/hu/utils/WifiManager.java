@@ -60,7 +60,7 @@ public class WifiManager {
         @Override
         protected Integer doInBackground(Object... params) {//(Void... params) {// (Params... p) {//Void... v) {//Void... params) {
             Utils.logd("wifi_long_start start ");
-            return mTransport.start();
+            return mTransport.start(null);
         }
 
         // Start activity that can handle the JPEG image
@@ -70,7 +70,6 @@ public class WifiManager {
             onWifiStarted();
         }
     }
-
 
     void deinitP2P() {
         Utils.logd("m_wifidir_mgr: " + m_wifidir_mgr + "  m_wifidir_chan: " + m_wifidir_chan + "  m_wifidir_bcr: " + m_wifidir_bcr);

@@ -5,7 +5,7 @@
     android:layout_height="match_parent">
 
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:background="@color/primary_dark"
@@ -13,36 +13,15 @@
         android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/bluetooth_button"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="64dp"
-            android:layout_gravity="right|bottom"
-            android:src="@drawable/ic_bluetooth_white_24dp"
-            android:background="?android:attr/actionBarItemBackground"
-            android:contentDescription="@string/settings" />
-
-        <ImageButton
-            android:id="@+id/exit_button"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="64dp"
-            android:layout_gravity="right|bottom"
-            android:src="@drawable/ic_exit_to_app_white_24dp"
-            android:background="?android:attr/actionBarItemBackground"
-            android:contentDescription="@string/settings" />
-
-        <ImageButton
             android:id="@+id/back_button"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_width="128dp"
             android:layout_height="64dp"
             android:layout_gravity="right|bottom"
             android:src="@drawable/ic_chevron_left_white_24dp"
             android:background="?android:attr/actionBarItemBackground"
             android:contentDescription="@string/settings" />
 
-    </LinearLayout>
+    </FrameLayout>
 
     <android.support.v7.widget.RecyclerView
         android:id="@android:id/list"

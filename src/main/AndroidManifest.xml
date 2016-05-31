@@ -32,25 +32,19 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
+        android:name=".App"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="Headunit">
         <activity
             android:name=".HeadUnitActivity"
             android:hardwareAccelerated="true"
-            android:label="Headunit"
-            android:launchMode="singleInstance"
             android:screenOrientation="sensorLandscape"
-            android:theme="@style/AppTheme">
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".UsbAttachedActivity"
+            android:theme="@style/AppTheme.Translucent">
+            <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
 
             <meta-data
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
@@ -61,18 +55,24 @@
             android:label="Test video decoder"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name=".SettingsActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="Headunit"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/AppTheme">
+
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
 
         <meta-data
             android:name="net.hockeyapp.android.appIdentifier"
             android:value="${HOCKEYAPP_APP_ID}" />
-
-        <activity
-            android:name=".SettingsActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_settings"
-            android:screenOrientation="sensorLandscape"
-            android:theme="@style/AppTheme" /><!-- ATTENTION: This was auto-generated to add Google Play services to your project for
-     App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information. -->
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />

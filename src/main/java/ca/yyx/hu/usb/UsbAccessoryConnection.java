@@ -61,33 +61,34 @@ public class UsbAccessoryConnection {
     }
 
     public boolean connect(UsbDeviceCompat device) throws UsbOpenException {                         // Attempt to connect. Called only by usb_attach_handler() & presets_select()
-        if (mUsbDeviceConnection!=null) {
+        if (mUsbDeviceConnection != null) {
             disconnect();
         }
         try {
             usb_open(device.getWrappedDevice());                                        // Open USB device & claim interface
-        } catch (UsbOpenException e)
-        {
+        } catch (UsbOpenException e) {
             disconnect();                                                // Ensure state is disconnected
             throw e;
         }
 
-        // If in accessory mode...
-        int ret;
-        if (UsbDeviceCompat.isInAccessoryMode(device.getWrappedDevice())) {
-            ret = acc_mode_endpoints_set();                                  // Set Accessory mode Endpoints
-            if (ret < 0) {                                                    // If error...
-                disconnect();                                              // Ensure state is disconnected
-                return false;
-            }
-            mUsbDeviceConnected = device;
-            return true;
-
+        int ret = acc_mode_endpoints_set();                                  // Set Accessory mode Endpoints
+        if (ret < 0) {                                                    // If error...
+            disconnect();                                              // Ensure state is disconnected
+            return false;
         }
-        // Else if not in accessory mode...
-        acc_mode_switch(mUsbDeviceConnection);
-        disconnect();                                                  // Ensure state is disconnected
-        return false;
+        mUsbDeviceConnected = device;
+        return true;
+    }
+
+    public boolean switchMode(UsbDeviceCompat device) throws UsbOpenException {
+        UsbDeviceConnection connection;
+        try {
+            connection = mUsbMgr.openDevice(device.getWrappedDevice());                 // Open device for connection
+        } catch (Throwable e) {
+            Utils.loge(e);                                  // java.lang.IllegalArgumentException: device /dev/bus/usb/001/019 does not exist or is restricted
+            throw new UsbOpenException(e);
+        }
+        return acc_mode_switch(connection);
     }
 
     private void usb_open(UsbDevice device) throws UsbOpenException {                             // Open USB device connection & claim interface. Called only by usb_connect()
@@ -150,12 +151,10 @@ public class UsbAccessoryConnection {
         return (0);                                                         // Done success
     }
 
-    private boolean acc_mode_switch(UsbDeviceConnection conn) {             // Do accessory negotiation and attempt to switch to accessory mode. Called only by usb_connect()
-        Utils.logd("Attempt acc");
-
-        int len = 0;
+    private boolean acc_mode_switch(UsbDeviceConnection conn) {
+        // Do accessory negotiation and attempt to switch to accessory mode. Called only by usb_connect()
         byte buffer[] = new byte[2];
-        len = conn.controlTransfer(UsbConstants.USB_DIR_IN | UsbConstants.USB_TYPE_VENDOR, ACC_REQ_GET_PROTOCOL, 0, 0, buffer, 2, 10000);
+        int len = conn.controlTransfer(UsbConstants.USB_DIR_IN | UsbConstants.USB_TYPE_VENDOR, ACC_REQ_GET_PROTOCOL, 0, 0, buffer, 2, 10000);
         if (len != 2) {
             Utils.loge("Error controlTransfer len: " + len);
             return false;
@@ -176,7 +175,8 @@ public class UsbAccessoryConnection {
         //usb_acc_string_send (conn, ACC_IDX_URI, Utils.str_URI);
         //usb_acc_string_send (conn, ACC_IDX_SER, Utils.str_SER);
 
-        Utils.logd("Sending acc start");           // Send accessory start request. Device should re-enumerate as an accessory.
+        Utils.logd("Sending acc start");
+        // Send accessory start request. Device should re-enumerate as an accessory.
         len = conn.controlTransfer(UsbConstants.USB_DIR_OUT | UsbConstants.USB_TYPE_VENDOR, ACC_REQ_START, 0, 0, null, 0, 10000);
         if (len != 0) {
             Utils.loge("Error acc start");
@@ -244,6 +244,10 @@ public class UsbAccessoryConnection {
 
     public int getEndpointOutAddr() {
         return m_ep_out_addr;
+    }
+
+    public boolean isConnected() {
+        return mUsbDeviceConnected != null;
     }
 
     public class UsbOpenException extends Throwable {

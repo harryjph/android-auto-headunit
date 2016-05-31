@@ -5,12 +5,8 @@
     <!-- Match all devices -->
     <usb-device />
 
-    <!-- Android USB accessory: accessory
-    -->
-    <usb-device vendor-id="16601" product-id="11520" />
+    <usb-device vendor-id="0x18D1" product-id="0x2D00" />
+    <usb-device vendor-id="0x18D1" product-id="0x2D01" />
 
-    <!-- Android USB accessory: accessory + adb
-    -->
-    <usb-device vendor-id="16601" product-id="11521" />
 
 </resources>

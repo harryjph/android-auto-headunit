@@ -16,7 +16,6 @@ public class AapTransport {
     private final AudioDecoder mAudioDecoder;
     private final MicRecorder mMicRecorder;
     private final VideoDecoder mVideoDecoder;
-    private final UsbAccessoryConnection mUsbConnection;
     private TransportThread m_tra_thread;                                 // Transport Thread
 
 
@@ -31,11 +30,10 @@ public class AapTransport {
         return aap_running;
     }
 
-    public AapTransport(UsbAccessoryConnection usbConnection, AudioDecoder audioDecoder, VideoDecoder videoDecoder) {
+    public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder) {
         mAudioDecoder = audioDecoder;
         mVideoDecoder = videoDecoder;
         mMicRecorder = new MicRecorder();
-        mUsbConnection = usbConnection;
     }
 
     // Native API:
@@ -125,12 +123,12 @@ public class AapTransport {
         }
     }
 
-    public int start() {
+    public int start(UsbAccessoryConnection connection) {
         // Start JNI Android Auto Protocol and Main Thread.
         byte[] cmd_buf = {121, -127, 2};
         // Start Request w/ m_ep_in_addr, m_ep_out_addr
-        cmd_buf[1] = (byte) mUsbConnection.getEndpointInAddr();
-        cmd_buf[2] = (byte) mUsbConnection.getEndpointOutAddr();
+        cmd_buf[1] = (byte) connection.getEndpointInAddr();
+        cmd_buf[2] = (byte) connection.getEndpointOutAddr();
         // Send: Start USB & AA
         int ret = aa_cmd_send(cmd_buf.length, cmd_buf, 0, null);
 

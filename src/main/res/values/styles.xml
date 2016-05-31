@@ -10,4 +10,5 @@
         <item name="android:textColorSecondary">@color/text_second</item>
     </style>
 
+    <style name="AppTheme.Translucent" parent="android:Theme.Translucent.NoTitleBar.Fullscreen" />
 </resources>

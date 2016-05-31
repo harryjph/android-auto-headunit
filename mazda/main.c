@@ -24,9 +24,6 @@
 #define HMI_BUS_ADDRESS "unix:path=/tmp/dbus_hmi_socket"
 #define SERVICE_BUS_ADDRESS "unix:path=/tmp/dbus_service_socket"
 
-#define AUDIO_AA 13
-#define AUDIO_RADIO 6
-
 __asm__(".symver realpath1,realpath1@GLIBC_2.11.1");
 
 
@@ -613,60 +610,7 @@ uint8_t cd_enter2[] =  { -128,0x01,0x08,0,0,0,0,0,0,0,0,0x14,0x22,0x0A,0x0A,0x08
 
 GMainLoop *mainloop;
 
-int audioStatus = AUDIO_AA;
 int displayStatus = 1;
-
-static void switch_audio(int sessionId)
-{
-	DBusConnection *service_bus;
-	DBusError error;
-	DBusMessageIter args;
-
-	audioStatus = sessionId;
-
-	service_bus = dbus_connection_open(SERVICE_BUS_ADDRESS, &error);
-
-	if (!service_bus) {
-		printf("DBUS: failed to connect to service bus: %s: %s\n", error.name, error.message);
-	}
-
-	if (!dbus_bus_register(service_bus, &error)) {
-		printf("DBUS: failed to register with service bus: %s: %s\n", error.name, error.message);
-	}
-
-	DBusMessage *msg = dbus_message_new_method_call("com.xsembedded.service.AudioManagement", "/com/xse/service/AudioManagement/AudioApplication", "com.xsembedded.ServiceProvider", "Request");
-	if (msg == NULL)
-	{
-		printf("DBUS: msg null\n");
-		return;
-	}
-
-	dbus_message_iter_init_append(msg, &args);
-	char* action = "requestAudioFocus";
-	if(!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &action))
-	{
-		printf("DBUS: iter append failed\n");
-		return;
-	}
-	char* session = malloc(30);
-	snprintf(session, 30, "{\"sessionId\":%d}", sessionId);
-	puts(session);
-	if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &session))
-	{
-		printf("DBUS: iter append failed 2\n");
-		return;
-	}
-
-	if (!dbus_connection_send(service_bus, msg, 0))
-	{
-		printf("DBUS: send failed\n");
-		return;
-	}
-
-	dbus_connection_flush(service_bus);
-	dbus_message_unref(msg);
-	dbus_connection_close(service_bus);
-}
 
 inline int dbus_message_decode_timeval(DBusMessageIter *iter, struct timeval *time)
 {
@@ -771,12 +715,6 @@ static DBusHandlerResult handle_dbus_message(DBusConnection *c, DBusMessage *mes
 					break;
 				case KEY_RIGHTBRACE:
 					queueSend(0,AA_CH_TOU, prevButton, sizeof(prevButton), FALSE);
-					break;
-				case KEY_T:
-					if (audioStatus == AUDIO_AA)
-						switch_audio(AUDIO_RADIO);
-					else
-						switch_audio(AUDIO_AA);
 					break;
 				case KEY_HOME:
 					g_main_loop_quit (mainloop);
@@ -1038,8 +976,6 @@ int main (int argc, char *argv[])
 	}
 
 	printf("Starting Android Auto...\n");
-
-	switch_audio(AUDIO_AA);
 
 	/* Init gstreamer pipeline */
 	ret = gst_pipeline_init(app);

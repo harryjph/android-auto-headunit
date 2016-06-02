@@ -5,8 +5,8 @@
     <!-- Match all devices -->
     <usb-device />
 
-    <usb-device vendor-id="0x18D1" product-id="0x2D00" />
-    <usb-device vendor-id="0x18D1" product-id="0x2D01" />
+    <usb-device vendor-id="6353" product-id="11520" />
+    <usb-device vendor-id="6353" product-id="11521" />
 
 
 </resources>

@@ -58,7 +58,9 @@ public class App extends Application implements UsbReceiver.Listener {
 
     @Override
     public void onUsbAttach(UsbDeviceCompat deviceCompat) {
-
+//        if (deviceCompat.isInAccessoryMode()) {
+//            HeadUnitActivity.start(deviceCompat.getWrappedDevice(), this);
+//        }
     }
 
     @Override

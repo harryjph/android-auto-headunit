@@ -40,16 +40,22 @@
             android:name=".HeadUnitActivity"
             android:hardwareAccelerated="true"
             android:screenOrientation="sensorLandscape"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme">
+        </activity>
+
         <activity
             android:name=".UsbAttachedActivity"
-            android:theme="@style/AppTheme.Translucent">
-            <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            android:theme="@style/AppTheme.Translucent"
+            android:launchMode="singleTop">
 
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
             <meta-data
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/usb_device_filter" />
         </activity>
+
         <activity
             android:name=".VideoTestActivity"
             android:label="Test video decoder"

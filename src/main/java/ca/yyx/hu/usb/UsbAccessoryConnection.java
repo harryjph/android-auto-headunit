@@ -14,35 +14,8 @@ import ca.yyx.hu.utils.Utils;
  * @date 29/05/2016.
  */
 
-public class UsbAccessoryConnection {
-
-    private static String MAN = "Android";//"Mike";                    // Manufacturer
-    private static String MOD = "Android Auto";//"Android Open Automotive Protocol"  // Model
-//    private static String str_DES = "Head Unit";                           // Description
-//    private static String str_VER = "1.0";                                 // Version
-//    private static String str_URI = "http://www.android.com/";             // URI
-//    private static String str_SER = "0";//000000012345678";                // Serial #
-
-    // "Android", "Android Open Automotive Protocol", "Description", "VersionName", "https://developer.android.com/auto/index.html", "62skidoo"
-    // "Android", "Android Auto", "Description", "VersionName", "https://developer.android.com/auto/index.html", "62skidoo"
-
-    // Indexes for strings sent by the host via ACC_REQ_SEND_STRING:
-    private static final int ACC_IDX_MAN = 0;
-    private static final int ACC_IDX_MOD = 1;
-    //private static final int ACC_IDX_DES = 2;
-    //private static final int ACC_IDX_VER = 3;
-    //private static final int ACC_IDX_URI = 4;
-    //private static final int ACC_IDX_SER = 5;
-    // OAP Control requests:
-    private static final int ACC_REQ_GET_PROTOCOL = 51;
-    private static final int ACC_REQ_SEND_STRING = 52;
-    private static final int ACC_REQ_START = 53;
-    //  private static final int ACC_REQ_REGISTER_HID       = 54;
-    //  private static final int ACC_REQ_UNREGISTER_HID     = 55;
-    //  private static final int ACC_REQ_SET_HID_REPORT_DESC= 56;
-    //  private static final int ACC_REQ_SEND_HID_EVENT     = 57;
-    //  private static final int ACC_REQ_AUDIO              = 58;
-
+public class UsbAccessoryConnection
+{
     private UsbManager mUsbMgr;
     private UsbDeviceCompat mUsbDeviceConnected;
     private UsbDeviceConnection mUsbDeviceConnection = null;                   // USB Device connection
@@ -79,18 +52,6 @@ public class UsbAccessoryConnection {
         mUsbDeviceConnected = device;
         return true;
     }
-
-    public boolean switchMode(UsbDeviceCompat device) throws UsbOpenException {
-        UsbDeviceConnection connection;
-        try {
-            connection = mUsbMgr.openDevice(device.getWrappedDevice());                 // Open device for connection
-        } catch (Throwable e) {
-            Utils.loge(e);                                  // java.lang.IllegalArgumentException: device /dev/bus/usb/001/019 does not exist or is restricted
-            throw new UsbOpenException(e);
-        }
-        return acc_mode_switch(connection);
-    }
-
     private void usb_open(UsbDevice device) throws UsbOpenException {                             // Open USB device connection & claim interface. Called only by usb_connect()
         try {
             mUsbDeviceConnection = mUsbMgr.openDevice(device);                 // Open device for connection
@@ -151,41 +112,6 @@ public class UsbAccessoryConnection {
         return (0);                                                         // Done success
     }
 
-    private boolean acc_mode_switch(UsbDeviceConnection conn) {
-        // Do accessory negotiation and attempt to switch to accessory mode. Called only by usb_connect()
-        byte buffer[] = new byte[2];
-        int len = conn.controlTransfer(UsbConstants.USB_DIR_IN | UsbConstants.USB_TYPE_VENDOR, ACC_REQ_GET_PROTOCOL, 0, 0, buffer, 2, 10000);
-        if (len != 2) {
-            Utils.loge("Error controlTransfer len: " + len);
-            return false;
-        }
-        int acc_ver = (buffer[1] << 8) | buffer[0];                      // Get OAP / ACC protocol version
-        Utils.logd("Success controlTransfer len: " + len + "  acc_ver: " + acc_ver);
-        if (acc_ver < 1) {                                                  // If error or version too low...
-            Utils.loge("No support acc");
-            return false;
-        }
-        Utils.logd("acc_ver: " + acc_ver);
-
-        // Send all accessory identification strings
-        usb_acc_string_send(conn, ACC_IDX_MAN, MAN);            // Manufacturer
-        usb_acc_string_send(conn, ACC_IDX_MOD, MOD);            // Model
-        //usb_acc_string_send (conn, ACC_IDX_DES, Utils.str_DES);
-        //usb_acc_string_send (conn, ACC_IDX_VER, Utils.str_VER);
-        //usb_acc_string_send (conn, ACC_IDX_URI, Utils.str_URI);
-        //usb_acc_string_send (conn, ACC_IDX_SER, Utils.str_SER);
-
-        Utils.logd("Sending acc start");
-        // Send accessory start request. Device should re-enumerate as an accessory.
-        len = conn.controlTransfer(UsbConstants.USB_DIR_OUT | UsbConstants.USB_TYPE_VENDOR, ACC_REQ_START, 0, 0, null, 0, 10000);
-        if (len != 0) {
-            Utils.loge("Error acc start");
-            return false;
-        }
-        Utils.logd("OK acc start. Wait to re-enumerate...");
-        return true;
-    }
-
     public void disconnect() {                                           // Release interface and close USB device connection. Called only by usb_disconnect()
         if (mUsbDeviceConnected != null) {
             Utils.logd(mUsbDeviceConnected.toString());
@@ -213,31 +139,6 @@ public class UsbAccessoryConnection {
         mUsbDeviceConnected = null;
     }
 
-    public void usb_force() {
-        if (mUsbDeviceConnected != null) {
-            disconnect();
-        }
-
-        if (Utils.su_installed_get()) {
-            String cmd = "setenforce 0 ; chmod -R 777 /dev/bus 1>/dev/null 2>/dev/null";
-            Utils.sys_run(cmd, true);
-        }
-
-        m_ep_in_addr = 255;
-        m_ep_out_addr = 0;  // USB Force
-    }
-
-    // Send one accessory identification string.    Called only by acc_mode_switch()
-    private void usb_acc_string_send(UsbDeviceConnection conn, int index, String string) {
-        byte[] buffer = (string + "\0").getBytes();
-        int len = conn.controlTransfer(UsbConstants.USB_TYPE_VENDOR, ACC_REQ_SEND_STRING, 0, index, buffer, buffer.length, 10000);
-        if (len != buffer.length) {
-            Utils.loge("Error controlTransfer len: " + len + "  index: " + index + "  string: \"" + string + "\"");
-        } else {
-            Utils.logd("Success controlTransfer len: " + len + "  index: " + index + "  string: \"" + string + "\"");
-        }
-    }
-
     public int getEndpointInAddr() {
         return m_ep_in_addr;
     }
@@ -250,13 +151,13 @@ public class UsbAccessoryConnection {
         return mUsbDeviceConnected != null;
     }
 
-    public class UsbOpenException extends Throwable {
-        public UsbOpenException(Throwable e) {
-            super(e);
+    public class UsbOpenException extends Exception {
+        UsbOpenException(String message) {
+            super(message);
         }
 
-        public UsbOpenException(String error) {
-            super(error);
+        UsbOpenException(Throwable tr) {
+            super(tr);
         }
     }
 }

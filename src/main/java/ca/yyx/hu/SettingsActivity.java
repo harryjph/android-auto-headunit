@@ -1,6 +1,7 @@
 package ca.yyx.hu;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.usb.UsbDevice;
@@ -23,12 +24,14 @@ import java.util.HashMap;
 import java.util.Set;
 
 import ca.yyx.hu.usb.UsbDeviceCompat;
+import ca.yyx.hu.usb.UsbReceiver;
 import ca.yyx.hu.utils.Settings;
 import ca.yyx.hu.utils.SystemUI;
 
-public class SettingsActivity extends Activity {
+public class SettingsActivity extends Activity implements UsbReceiver.Listener {
     private Settings mSettings;
     private DeviceAdapter mAdapter;
+    private BroadcastReceiver mUsbReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +51,8 @@ public class SettingsActivity extends Activity {
         RecyclerView recyclerView = (RecyclerView) findViewById(android.R.id.list);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(mAdapter);
+
+        mUsbReceiver = new UsbReceiver(this);
 
         UpdateManager.register(this);
     }
@@ -97,6 +102,31 @@ public class SettingsActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        Set<String> allowDevices = mSettings.getAllowedDevices();
+        mAdapter.setData(createDeviceList(allowDevices), allowDevices);
+        registerReceiver(mUsbReceiver, UsbReceiver.createFilter());
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mUsbReceiver);
+    }
+
+    @Override
+    public void onUsbDetach(UsbDeviceCompat deviceCompat) {
+        Set<String> allowDevices = mSettings.getAllowedDevices();
+        mAdapter.setData(createDeviceList(allowDevices), allowDevices);
+    }
+
+    @Override
+    public void onUsbAttach(UsbDeviceCompat deviceCompat) {
+        Set<String> allowDevices = mSettings.getAllowedDevices();
+        mAdapter.setData(createDeviceList(allowDevices), allowDevices);
+    }
+
+    @Override
+    public void onUsdPermission(boolean granted, boolean connect, UsbDeviceCompat deviceCompat) {
         Set<String> allowDevices = mSettings.getAllowedDevices();
         mAdapter.setData(createDeviceList(allowDevices), allowDevices);
     }

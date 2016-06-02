@@ -25,11 +25,11 @@ public class AudioDecoder {
         mContext = context;
     }
 
-
-    public void decode(ByteBuffer content) {                       // Decode audio or H264 video content. Called only by video_test() & AapTransport.aa_cmd_send()
+    public void decode(ByteBuffer content) {
         int pos = content.position();
         int siz = content.remaining();
-        byte[] ba = content.array();                                      // Create content byte array
+        byte[] ba = content.array();
+        // Create content byte array
         if (siz <= 2048 + 96) {
             out_audio_write(AA_CH_AU1, ba, pos + siz);                     // Position always 0 so just use siz as len ?
         } else {
@@ -48,8 +48,6 @@ public class AudioDecoder {
     private static final int OUT_AUDIO_STREAM = AudioManager.STREAM_MUSIC;
 
     private SparseArray<AudioTrack> mAudioTracks = new SparseArray<>(3);
-
-
 
     public void out_audio_stop(int chan) {
         AudioTrack out_audiotrack = mAudioTracks.get(chan);

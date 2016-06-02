@@ -60,7 +60,6 @@ if (intent.getAction().equals(USB_OAP_ATTACHED)) {
 */
 package ca.yyx.hu;
 
-import android.app.Activity;
 import android.app.UiModeManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -71,20 +70,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-
 import ca.yyx.hu.aap.AapTransport;
 import ca.yyx.hu.decoder.AudioDecoder;
-import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.usb.UsbAccessoryConnection;
 import ca.yyx.hu.usb.UsbDeviceCompat;
 import ca.yyx.hu.utils.IntentUtils;
@@ -97,6 +89,7 @@ public class HeadUnitActivity extends SurfaceActivity {
     public static void start(UsbDevice device, Context context) {
         Intent intent = new Intent(context, HeadUnitActivity.class);
         intent.putExtra(UsbManager.EXTRA_DEVICE, device);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 
@@ -169,6 +162,10 @@ public class HeadUnitActivity extends SurfaceActivity {
 
         //Utils.sys_run(DATA_DATA + "/lib/libusb_reset.so /dev/bus/usb/*/* 1>/dev/null 2>/dev/null", true);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+
+        mTransport.stop();
+        mAudioDecoder.stop();
+
     }
 
     @Override
@@ -181,7 +178,7 @@ public class HeadUnitActivity extends SurfaceActivity {
         try {
             if (App.get(this).connect(mUsbDevice))
             {
-                (new StartTask()).execute();
+                mTransport.start(App.get(HeadUnitActivity.this).connection());
             }
             else
             {
@@ -212,9 +209,6 @@ public class HeadUnitActivity extends SurfaceActivity {
     @Override
     protected void onStop() {
         super.onStop();
-
-        mTransport.stop();
-        mAudioDecoder.stop();
 
         try {
             mUiModeManager.disableCarMode(0);
@@ -257,21 +251,4 @@ public class HeadUnitActivity extends SurfaceActivity {
         mTransport.touch_send(aa_action, x, y);
     }
 
-    private class StartTask extends AsyncTask<Object, Void, Integer> {
-
-        @Override
-        protected Integer doInBackground(Object... params) {
-            Utils.logd("wifi_long_start start ");
-            return mTransport.start(App.get(HeadUnitActivity.this).connection());
-        }
-
-        // Start activity that can handle the JPEG image
-        @Override
-        protected void onPostExecute(Integer result) {//String result) {
-            if (result != null) {
-                Utils.loge("AAP Start result " + result);
-                finish();
-            }
-        }
-    }
 }

@@ -37,7 +37,7 @@ public class UsbDeviceCompat {
         mUsbDevice = device;
     }
 
-    private String prod_id_name_get(int prod_id) {
+    private static String prod_id_name_get(int prod_id) {
         if (prod_id == USB_PID_ACC)
             return ("ACC");
         else if (prod_id == USB_PID_ACC_ADB)
@@ -53,7 +53,7 @@ public class UsbDeviceCompat {
             return ("" + prod_id);
     }
 
-    private String vend_id_name_get(int vend_id) {
+    private static String vend_id_name_get(int vend_id) {
         if (vend_id == USB_VID_GOO)
             return ("GOO");//GLE");
         else if (vend_id == USB_VID_HTC)
@@ -73,7 +73,7 @@ public class UsbDeviceCompat {
             return ("" + vend_id);
     }
 
-    private String usb_man_get(android.hardware.usb.UsbDevice device) {                       // Use reflection to avoid ASUS tablet problem
+    private static String usb_man_get(UsbDevice device) {                       // Use reflection to avoid ASUS tablet problem
         String ret = "";
         //ret = device.getManufacturerName ();                              // mManufacturerName=HTC
         try {
@@ -87,7 +87,7 @@ public class UsbDeviceCompat {
         return (ret);
     }
 
-    private String usb_pro_get(android.hardware.usb.UsbDevice device) {
+    private static String usb_pro_get(UsbDevice device) {
         String ret = "";
         //ret = device.getProductName      ();                              // mProductName=Android Phone
         try {
@@ -101,7 +101,7 @@ public class UsbDeviceCompat {
         return (ret);
     }
 
-    private String usb_ser_get(android.hardware.usb.UsbDevice device) {
+    private static String usb_ser_get(UsbDevice device) {
         String ret = "";
         //ret = device.getSerialNumber     ();                              // mSerialNumber=FA46RWM22264
         try {
@@ -115,7 +115,7 @@ public class UsbDeviceCompat {
         return (ret);
     }
 
-    private String usb_dev_name_get(android.hardware.usb.UsbDevice device) {
+    public static String getUniqueName(UsbDevice device) {
         String usb_dev_name = "";
         String dev_name = device.getDeviceName();                          // mName=/dev/bus/usb/003/007
         int dev_vend_id = device.getVendorId();                            // mVendorId=2996               HTC
@@ -166,7 +166,7 @@ public class UsbDeviceCompat {
     }
 
     public String getUniqueName() {
-        return usb_dev_name_get(mUsbDevice);
+        return getUniqueName(mUsbDevice);
     }
 
     @Override

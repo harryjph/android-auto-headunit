@@ -5,6 +5,9 @@ import android.content.Context;
 import android.hardware.usb.UsbManager;
 import android.support.v4.content.LocalBroadcastManager;
 
+import ca.yyx.hu.aap.AapTransport;
+import ca.yyx.hu.decoder.AudioDecoder;
+import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.usb.UsbAccessoryConnection;
 import ca.yyx.hu.usb.UsbDeviceCompat;
 import ca.yyx.hu.usb.UsbReceiver;
@@ -16,10 +19,11 @@ import ca.yyx.hu.utils.Utils;
  * @date 30/05/2016.
  */
 
-public class App extends Application implements UsbReceiver.Listener {
+public class App extends Application {
 
-    private UsbAccessoryConnection mUsbAccessoryConnection;
-    private UsbReceiver mUsbReceiver;
+    private VideoDecoder mVideoDecoder;
+    private AudioDecoder mAudioDecoder;
+    private AapTransport mTransport;
 
     public static App get(Context context)
     {
@@ -30,45 +34,22 @@ public class App extends Application implements UsbReceiver.Listener {
     public void onCreate() {
         super.onCreate();
 
-        UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        mUsbAccessoryConnection = new UsbAccessoryConnection(usbManager);
-
-        mUsbReceiver = new UsbReceiver(this);
-        registerReceiver(mUsbReceiver, UsbReceiver.createFilter());
+        mAudioDecoder = new AudioDecoder(this);
+        mVideoDecoder = new VideoDecoder(this);
+        mTransport = new AapTransport(mAudioDecoder, mVideoDecoder);
     }
 
-    public boolean connect(UsbDeviceCompat device) throws UsbAccessoryConnection.UsbOpenException {
-        if (mUsbAccessoryConnection.isConnected())
-        {
-            if (mUsbAccessoryConnection.isDeviceRunning(device)) {
-                Utils.logd("Device already connected");
-                return true;
-            }
-        }
-        return mUsbAccessoryConnection.connect(device);
+    public AapTransport transport()
+    {
+        return mTransport;
     }
 
-    @Override
-    public void onUsbDetach(UsbDeviceCompat deviceCompat) {
-        if (mUsbAccessoryConnection.isDeviceRunning(deviceCompat)) {
-            mUsbAccessoryConnection.disconnect();
-            LocalBroadcastManager.getInstance(this).sendBroadcast(IntentUtils.ACTION_DISCONNECT);
-        }
+
+    public AudioDecoder audioDecoder() {
+        return mAudioDecoder;
     }
 
-    @Override
-    public void onUsbAttach(UsbDeviceCompat deviceCompat) {
-//        if (deviceCompat.isInAccessoryMode()) {
-//            HeadUnitActivity.start(deviceCompat.getWrappedDevice(), this);
-//        }
-    }
-
-    @Override
-    public void onUsdPermission(boolean granted, boolean connect, UsbDeviceCompat deviceCompat) {
-
-    }
-
-    public UsbAccessoryConnection connection() {
-        return mUsbAccessoryConnection;
+    public VideoDecoder videoDecoder() {
+        return mVideoDecoder;
     }
 }

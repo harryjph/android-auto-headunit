@@ -58,55 +58,37 @@ if (intent.getAction().equals(USB_OAP_ATTACHED)) {
 
 
 */
-package ca.yyx.hu;
+package ca.yyx.hu.aap;
 
-import android.app.UiModeManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.view.MotionEvent;
 import android.view.View;
 
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
 
-import ca.yyx.hu.aap.AapTransport;
-import ca.yyx.hu.decoder.AudioDecoder;
+import ca.yyx.hu.App;
+import ca.yyx.hu.R;
+import ca.yyx.hu.SettingsActivity;
+import ca.yyx.hu.SurfaceActivity;
 import ca.yyx.hu.usb.UsbAccessoryConnection;
-import ca.yyx.hu.usb.UsbDeviceCompat;
 import ca.yyx.hu.utils.IntentUtils;
-import ca.yyx.hu.utils.SystemUI;
 import ca.yyx.hu.utils.Utils;
 
 
-public class HeadUnitActivity extends SurfaceActivity {
+public class AapActivity extends SurfaceActivity {
 
-    public static void start(UsbDevice device, Context context) {
-        Intent intent = new Intent(context, HeadUnitActivity.class);
-        intent.putExtra(UsbManager.EXTRA_DEVICE, device);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
-    }
-
-    private AapTransport mTransport;        // Transport API
+    private AapTransport mTransport;
 
     private static final double m_virt_vid_wid = 800f;
     private static final double m_virt_vid_hei = 480f;
-
-    private static final String DATA_DATA = "/data/data/ca.yyx.hu";
-    private static final String SDCARD = "/sdcard/";
-
-    private AudioDecoder mAudioDecoder;
-
-    private UiModeManager mUiModeManager = null;
-    private boolean isShowing = true;
-    private static boolean starting_car_mode = false;
-    private UsbDeviceCompat mUsbDevice;
 
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -121,103 +103,37 @@ public class HeadUnitActivity extends SurfaceActivity {
 
         Utils.logd("Headunit for Android Auto (tm) - Copyright 2011-2015 Michael A. Reid. All Rights Reserved...");
 
-        UsbDevice device = IntentUtils.getDevice(getIntent());
-        if (device == null) {
-            Utils.loge("No device in intent");
-            finish();
-            return;
-        }
-        mUsbDevice = new UsbDeviceCompat(device);
+        mTransport = App.get(this).transport();
 
         (findViewById(R.id.settings_button)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(HeadUnitActivity.this, SettingsActivity.class));
+                startActivity(new Intent(AapActivity.this, SettingsActivity.class));
             }
         });
 
         mSurfaceView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_UP) {
-                    if (isShowing) {
-                        SystemUI.hide(getWindow().getDecorView());
-                        isShowing = false;
-                    }
-                }
                 touch_send(event);
                 return true;
             }
         });
 
-        mAudioDecoder = new AudioDecoder(this);
-        mUiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
-        mTransport = new AapTransport(mAudioDecoder, mVideoDecoder);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        UpdateManager.unregister();
-
-        //Utils.sys_run(DATA_DATA + "/lib/libusb_reset.so /dev/bus/usb/*/* 1>/dev/null 2>/dev/null", true);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
-
-        mTransport.stop();
-        mAudioDecoder.stop();
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        CrashManager.register(this);
-
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, IntentUtils.DISCONNECT_FILTER);
-
-        try {
-            if (App.get(this).connect(mUsbDevice))
-            {
-                mTransport.start(App.get(HeadUnitActivity.this).connection());
-            }
-            else
-            {
-                Utils.loge("Cannot connect to device " + mUsbDevice.getUniqueName());
-                finish();
-            }
-        } catch (UsbAccessoryConnection.UsbOpenException e) {
-            Utils.loge(e);
-            finish();
-        }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        if (!starting_car_mode) {  // Else if have at least 1 USB device and we are not starting yet car mode...
-            Utils.logd("Start Car Mode");
-            starting_car_mode = true;
-            try {
-                mUiModeManager.enableCarMode(0);
-            } catch (Throwable t) {
-                Utils.loge(t);
-            }
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        try {
-            mUiModeManager.disableCarMode(0);
-        } catch (Throwable t) {
-            Utils.loge(t);
-        }
-        Utils.logd("Stop Car Mode");
-
-    }
 
     private void touch_send(MotionEvent event) {
 

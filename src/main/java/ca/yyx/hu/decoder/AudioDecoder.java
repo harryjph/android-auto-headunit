@@ -1,13 +1,16 @@
 package ca.yyx.hu.decoder;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.util.SparseArray;
 
 import java.nio.ByteBuffer;
 
+import ca.yyx.hu.RemoteControlReceiver;
 import ca.yyx.hu.utils.Utils;
 
 /**
@@ -23,6 +26,7 @@ public class AudioDecoder {
 
     public AudioDecoder(Context context) {
         mContext = context;
+
     }
 
     public void decode(ByteBuffer content) {

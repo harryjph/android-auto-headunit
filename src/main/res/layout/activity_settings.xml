@@ -4,13 +4,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:background="@color/primary_dark"
         android:layout_gravity="bottom"
         android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/exit_button"
+            android:layout_width="128dp"
+            android:layout_height="64dp"
+            android:layout_gravity="left|bottom"
+            android:src="@drawable/ic_exit_to_app_white_24dp"
+            android:background="?android:attr/actionBarItemBackground"
+            android:contentDescription="@string/settings" />
 
         <ImageButton
             android:id="@+id/back_button"
@@ -33,5 +41,6 @@
         android:layout_marginLeft="96dp"
         android:layout_marginRight="96dp"
         android:layout_marginBottom="96dp"
+        android:padding="8dp"
         tools:listitem="@layout/list_item_device" />
 </FrameLayout>

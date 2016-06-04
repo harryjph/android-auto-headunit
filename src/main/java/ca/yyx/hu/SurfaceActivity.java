@@ -12,8 +12,8 @@ import ca.yyx.hu.utils.Utils;
 
 
 public class SurfaceActivity extends Activity implements SurfaceHolder.Callback {
-    SurfaceView mSurfaceView;
-    VideoDecoder mVideoDecoder;
+    protected SurfaceView mSurfaceView;
+    protected VideoDecoder mVideoDecoder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +21,7 @@ public class SurfaceActivity extends Activity implements SurfaceHolder.Callback 
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);   // !! Keep Screen on !!
         setContentView(R.layout.activity_headunit);
 
-        mVideoDecoder = new VideoDecoder(this);
+        mVideoDecoder = App.get(this).videoDecoder();
 
         mSurfaceView = (SurfaceView) findViewById(R.id.surface);
         mSurfaceView.getHolder().addCallback(this);
@@ -36,6 +36,19 @@ public class SurfaceActivity extends Activity implements SurfaceHolder.Callback 
     }
 
     @Override
+    protected void onResume() {
+        mSurfaceView.setVisibility(View.VISIBLE);
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mSurfaceView.setVisibility(View.GONE);
+        mVideoDecoder.stop();
+    }
+
+    @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         SystemUI.hide(getWindow().getDecorView());
@@ -43,6 +56,7 @@ public class SurfaceActivity extends Activity implements SurfaceHolder.Callback 
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        Utils.logd("holder " + holder);
     }
 
     @Override
@@ -53,6 +67,7 @@ public class SurfaceActivity extends Activity implements SurfaceHolder.Callback 
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        Utils.logd("holder " + holder);
         mVideoDecoder.stop();
     }
 }

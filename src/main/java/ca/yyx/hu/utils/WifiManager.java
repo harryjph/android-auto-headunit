@@ -50,7 +50,7 @@ public class WifiManager {
         mListener.onWifiStartListener();
     }
 
-    private class WifiStartTask extends AsyncTask<Object, Void, Integer> {
+    private class WifiStartTask extends AsyncTask<Object, Void, Boolean> {
         private AapTransport mTransport;
 
         public WifiStartTask(AapTransport transport) {//, View statusText) {
@@ -58,14 +58,14 @@ public class WifiManager {
         }
 
         @Override
-        protected Integer doInBackground(Object... params) {//(Void... params) {// (Params... p) {//Void... v) {//Void... params) {
+        protected Boolean doInBackground(Object... params) {//(Void... params) {// (Params... p) {//Void... v) {//Void... params) {
             Utils.logd("wifi_long_start start ");
             return mTransport.start(null);
         }
 
         // Start activity that can handle the JPEG image
         @Override
-        protected void onPostExecute(Integer result) {//String result) {
+        protected void onPostExecute(Boolean result) {//String result) {
             Utils.logd("wifi_long_start done: " + result);
             onWifiStarted();
         }

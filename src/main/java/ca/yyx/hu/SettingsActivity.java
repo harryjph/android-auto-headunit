@@ -9,11 +9,12 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import net.hockeyapp.android.UpdateManager;
 
@@ -21,9 +22,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Set;
 
+import ca.yyx.hu.aap.AapActivity;
+import ca.yyx.hu.aap.AapService;
 import ca.yyx.hu.usb.UsbDeviceCompat;
+import ca.yyx.hu.usb.UsbModeSwitch;
 import ca.yyx.hu.usb.UsbReceiver;
 import ca.yyx.hu.utils.Settings;
 import ca.yyx.hu.utils.SystemUI;
@@ -44,6 +49,17 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
                 finish();
             }
         });
+        findViewById(R.id.exit_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopService(new Intent(SettingsActivity.this, AapService.class));
+                finish();
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.addCategory(Intent.CATEGORY_HOME);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+        });
 
         mSettings = new Settings(this);
         mAdapter = new DeviceAdapter(this, mSettings);
@@ -55,6 +71,12 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
         mUsbReceiver = new UsbReceiver(this);
 
         UpdateManager.register(this);
+
+//        if (App.get(this).transport().isAapStarted())
+//        {
+//            startActivity(new Intent(this, AapActivity.class));
+//            finish();
+//        }
     }
 
     private ArrayList<UsbDeviceCompat> createDeviceList(final Set<String> allowDevices) {
@@ -72,16 +94,13 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
             @Override
             public int compare(UsbDeviceCompat lhs, UsbDeviceCompat rhs) {
                 if (lhs.isInAccessoryMode()) {
-                    return 1;
-                }
-                if (rhs.isInAccessoryMode()) {
                     return -1;
                 }
-                if (allowDevices.contains(lhs.getUniqueName())) {
-                    if (allowDevices.contains(rhs.getUniqueName())) {
-                        return lhs.getUniqueName().compareTo(rhs.getUniqueName());
-                    }
+                if (rhs.isInAccessoryMode()) {
                     return 1;
+                }
+                if (allowDevices.contains(lhs.getUniqueName())) {
+                    return -1;
                 }
                 if (allowDevices.contains(rhs.getUniqueName())) {
                     return 1;
@@ -114,33 +133,31 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
     }
 
     @Override
-    public void onUsbDetach(UsbDeviceCompat deviceCompat) {
+    public void onUsbDetach(UsbDevice device) {
         Set<String> allowDevices = mSettings.getAllowedDevices();
         mAdapter.setData(createDeviceList(allowDevices), allowDevices);
     }
 
     @Override
-    public void onUsbAttach(UsbDeviceCompat deviceCompat) {
+    public void onUsbAttach(UsbDevice device) {
         Set<String> allowDevices = mSettings.getAllowedDevices();
         mAdapter.setData(createDeviceList(allowDevices), allowDevices);
     }
 
     @Override
-    public void onUsdPermission(boolean granted, boolean connect, UsbDeviceCompat deviceCompat) {
+    public void onUsbPermission(boolean granted, boolean connect, UsbDevice device) {
         Set<String> allowDevices = mSettings.getAllowedDevices();
         mAdapter.setData(createDeviceList(allowDevices), allowDevices);
     }
 
     private static class DeviceViewHolder extends RecyclerView.ViewHolder {
-        final TextView title;
-        final TextView subtitle;
-        final Button button;
+        final Button allowButton;
+        final Button startButton;
 
         DeviceViewHolder(View itemView) {
             super(itemView);
-            this.title = (TextView) itemView.findViewById(android.R.id.text1);
-            this.subtitle = (TextView) itemView.findViewById(android.R.id.text2);
-            this.button = (Button) itemView.findViewById(android.R.id.button1);
+            this.startButton = (Button) itemView.findViewById(android.R.id.button2);
+            this.allowButton = (Button) itemView.findViewById(android.R.id.button1);
         }
     }
 
@@ -166,23 +183,29 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
         @Override
         public void onBindViewHolder(DeviceViewHolder holder, int position) {
             UsbDeviceCompat device = mDeviceList.get(position);
-            holder.title.setText(device.getUniqueName());
-            holder.subtitle.setText(device.getDeviceName());
+
+            holder.startButton.setText(Html.fromHtml(String.format(
+                    Locale.US, "<b>%1$s</b><br/>%2$s",
+                    device.getUniqueName(), device.getDeviceName()
+            )));
+            holder.startButton.setTag(position);
+            holder.startButton.setOnClickListener(this);
+
             if (device.isInAccessoryMode()) {
-                holder.button.setText(R.string.allowed);
-                holder.button.setTextColor(mContext.getResources().getColor(R.color.material_green_700));
-                holder.button.setEnabled(false);
+                holder.allowButton.setText(R.string.allowed);
+                holder.allowButton.setTextColor(mContext.getResources().getColor(R.color.material_green_700));
+                holder.allowButton.setEnabled(false);
             } else {
                 if (mAllowedDevices.contains(device.getUniqueName())) {
-                    holder.button.setText(R.string.allowed);
-                    holder.button.setTextColor(mContext.getResources().getColor(R.color.material_green_700));
+                    holder.allowButton.setText(R.string.allowed);
+                    holder.allowButton.setTextColor(mContext.getResources().getColor(R.color.material_green_700));
                 } else {
-                    holder.button.setText(R.string.ignored);
-                    holder.button.setTextColor(mContext.getResources().getColor(R.color.material_orange_700));
+                    holder.allowButton.setText(R.string.ignored);
+                    holder.allowButton.setTextColor(mContext.getResources().getColor(R.color.material_orange_700));
                 }
-                holder.button.setTag(position);
-                holder.button.setEnabled(true);
-                holder.button.setOnClickListener(this);
+                holder.allowButton.setTag(position);
+                holder.allowButton.setEnabled(true);
+                holder.allowButton.setOnClickListener(this);
             }
         }
 
@@ -195,17 +218,30 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
         public void onClick(View v) {
             int position = (int) v.getTag();
             UsbDeviceCompat device = mDeviceList.get(position);
-            if (mAllowedDevices.contains(device.getUniqueName())) {
-                mAllowedDevices.remove(device.getUniqueName());
+            if (v.getId() == android.R.id.button1) {
+                if (mAllowedDevices.contains(device.getUniqueName())) {
+                    mAllowedDevices.remove(device.getUniqueName());
+                } else {
+                    mAllowedDevices.add(device.getUniqueName());
+                }
+                mSettings.allowDevices(mAllowedDevices);
+                notifyDataSetChanged();
             } else {
-                mAllowedDevices.add(device.getUniqueName());
+                if (device.isInAccessoryMode()) {
+                    mContext.startService(AapService.createIntent(device.getWrappedDevice(), mContext));
+                } else {
+                    UsbModeSwitch usbMode = new UsbModeSwitch((UsbManager) mContext.getSystemService(Context.USB_SERVICE));
+                    if (usbMode.switchMode(device.getWrappedDevice())) {
+                        Toast.makeText(mContext, "Success", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(mContext, "Failed", Toast.LENGTH_SHORT).show();
+                    }
+                    notifyDataSetChanged();
+                }
             }
-            mSettings.allowDevices(mAllowedDevices);
-            notifyDataSetChanged();
         }
 
-        void setData(ArrayList<UsbDeviceCompat> deviceList, Set<String> allowedDevices)
-        {
+        void setData(ArrayList<UsbDeviceCompat> deviceList, Set<String> allowedDevices) {
             mAllowedDevices = allowedDevices;
             mDeviceList = deviceList;
             notifyDataSetChanged();

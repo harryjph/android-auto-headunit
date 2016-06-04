@@ -16,18 +16,17 @@ public class AapTransport {
     private final AudioDecoder mAudioDecoder;
     private final MicRecorder mMicRecorder;
     private final VideoDecoder mVideoDecoder;
-    private TransportThread m_tra_thread;                                 // Transport Thread
-
+    private TransportThread mTraThread;                                 // Transport Thread
 
     private static final int AA_CH_CTR = 0;                               // Sync with AapTransport.java, hu_aap.h and hu_aap.c:aa_type_array[]
     private static final int AA_CH_TOU = 3;
     private static final int AA_CH_SEN = 1;
     private static final int AA_CH_VID = 2;
 
-    private boolean aap_running = false;
+    private boolean aapRunning = false;
 
     public boolean isAapStarted() {
-        return aap_running;
+        return aapRunning;
     }
 
     public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder) {
@@ -35,8 +34,6 @@ public class AapTransport {
         mVideoDecoder = videoDecoder;
         mMicRecorder = new MicRecorder();
     }
-
-    // Native API:
 
     static {
         System.loadLibrary("hu_jni");
@@ -47,6 +44,14 @@ public class AapTransport {
 
     private boolean m_mic_active = false;
     private boolean touch_sync = true;//      // Touch sync times out within 200 ms on second touch with TCP for some reason.
+
+    public void mediaSkipToNext() {
+
+    }
+
+    public void mediaSkipToPrevious() {
+
+    }
 
     private final class TransportThread extends Thread {                       // Main Transport Thread
         private volatile boolean m_stopping = false;                        // Set true when stopping
@@ -111,19 +116,20 @@ public class AapTransport {
         }
     }
 
-    public void stop() {                                       // USB Transport Stop. Called only by HeadUnitActivity.all_stop()
-        if (aap_running) {
-            aap_running = false;
+    public void stop() {                                       // USB Transport Stop. Called only by AapActivity.all_stop()
+        if (aapRunning) {
+            aapRunning = false;
         }
 
         byebye_send();                                                     // Terminate AA Protocol with ByeBye
 
-        if (m_tra_thread != null) {                                           // If Transport Thread...
-            m_tra_thread.quit();                                             // Terminate Transport Thread using it's quit() API
+        if (mTraThread != null) {                                           // If Transport Thread...
+            mTraThread.quit();                                             // Terminate Transport Thread using it's quit() API
         }
     }
 
-    public int start(UsbAccessoryConnection connection) {
+    public boolean start(UsbAccessoryConnection connection) {
+        Utils.logd("Start Aap transport for "+connection);
         // Start JNI Android Auto Protocol and Main Thread.
         byte[] cmd_buf = {121, -127, 2};
         // Start Request w/ m_ep_in_addr, m_ep_out_addr
@@ -133,13 +139,13 @@ public class AapTransport {
         int ret = aa_cmd_send(cmd_buf.length, cmd_buf, 0, null);
 
         if (ret == 0) {                                                     // If started OK...
-            aap_running = true;
-            m_tra_thread = new TransportThread();
-            m_tra_thread.start();                                            // Create and start Transport Thread
-        } else {
-            Utils.loge("Cannot start AAP ret:" + ret);
+            aapRunning = true;
+            mTraThread = new TransportThread();
+            mTraThread.start();                                          // Create and start Transport Thread
+            return true;
         }
-        return (ret);
+        Utils.loge("Cannot start AAP ret:" + ret);
+        return false;
     }
 
     private int byebye_send() {                                          // Send Byebye request. Called only by stop (), TransportThread:run()
@@ -155,7 +161,6 @@ public class AapTransport {
 
     // Send AA packet/HU command/mic audio AND/OR receive video/output audio/audio notifications
     private int aa_cmd_send(int cmd_len, byte[] cmd_buf, int res_len, byte[] res_buf) {
-
         if (cmd_buf == null || cmd_len <= 0) {
             cmd_buf = fixed_cmd_buf;//new byte [256];// {0};                                  // Allocate fake buffer to avoid problems
             cmd_len = 0;//cmd_buf.length;
@@ -188,7 +193,7 @@ public class AapTransport {
             Utils.logd("Audio2 Stop");
             mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AU2);
             return (0);
-        } else if (ret > 0) {                                                 // Else if audio or video returned...
+        } else if (ret > 0) {
             handleMedia(res_buf, ret);
         }
         return (ret);
@@ -200,8 +205,10 @@ public class AapTransport {
         bb.position(0);
 
         if (VideoDecoder.isH246Video(buffer)) {
+            Utils.logd("Video");
             mVideoDecoder.decode(bb);
         } else {
+            Utils.logd("Audio");
             mAudioDecoder.decode(bb);
         }
     }
@@ -211,9 +218,9 @@ public class AapTransport {
     private boolean new_touch = false;
     private byte[] ba_touch = null;
 
-    public void touch_send(byte action, int x, int y) {                  // Touch event send. Called only by HeadUnitActivity:touch_send()
+    public void touch_send(byte action, int x, int y) {                  // Touch event send. Called only by AapActivity:touch_send()
 
-        if (!aap_running) {
+        if (!aapRunning) {
             return;
         }
 

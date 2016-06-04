@@ -20,10 +20,7 @@ public class VideoDecoder {
     private final static Object sLock = new Object();
     private ByteBuffer[] mInputBuffers;
 
-    private boolean video_recording = false;
-    private FileOutputStream video_record_fos = null;
     private final Context mContext;
-    private ByteBuffer[] mOutputBuffers;
     private int mHeight;
     private int mWidth;
     private SurfaceHolder mHolder;
@@ -36,71 +33,11 @@ public class VideoDecoder {
         mContext = context;
     }
 
-    public void stop_record() {
-        try {
-            if (video_record_fos != null)
-                video_record_fos.close();                                                     // Close output file
-        } catch (Throwable t) {
-            Utils.loge(t);
-        }
-        video_record_fos = null;
-        video_recording = false;
-    }
-
-    void video_record_write(ByteBuffer content) {
-        // ffmpeg -i 2015-04-29-00_38_16.mp4 -vcodec copy -an -bsf:v h264_mp4toannexb  aa.h264
-        if (!video_recording) {
-            try {
-                video_record_fos = mContext.openFileOutput("/sdcard/hurec.h264", Context.MODE_WORLD_READABLE);//, Context.MODE_PRIVATE); // | MODE_WORLD_WRITEABLE      // NullPointerException here unless permissions 755
-            } catch (Throwable t) {
-                //Utils.loge ("Throwable: " + t);
-                Utils.loge("Throwable: " + t);
-                //return;
-            }
-            try {
-                if (video_record_fos == null)
-                    video_record_fos = mContext.openFileOutput("hurec.h264", Context.MODE_WORLD_READABLE);//, Context.MODE_PRIVATE); // | MODE_WORLD_WRITEABLE      // NullPointerException here unless permissions 755
-            } catch (Throwable t) {
-                //Utils.loge ("Throwable: " + t);
-                Utils.loge("Throwable: " + t);
-                return;
-            }
-
-            video_recording = true;
-        }
-
-        int pos = content.position();
-        int siz = content.remaining();
-        int last = pos + siz - 1;
-        byte[] ba = content.array();
-
-        byte b1 = ba[pos + 3];
-        byte bl = ba[last];
-        if (Utils.ena_log_verbo)
-            Utils.logv("pos: " + pos + "  siz: " + siz + "  last: " + last + " (" + Utils.hex_get(b1) + ")  b1: " + b1 + "  bl: " + bl + " (" + Utils.hex_get(bl) + ")");
-
-        try {
-            video_record_fos.write(ba, pos, siz);                                               // Copy input to output file
-        } catch (Throwable t) {
-            Utils.loge(t);
-        }
-    }
-
-    public boolean isRecording() {
-        return video_recording;
-    }
-
     public void decode(ByteBuffer content) {
-
-        if (Utils.quiet_file_get("/sdcard/hurecv"))                       // If video record flag file exists...
-            video_record_write(content);
-        else if (isRecording())                                           // Else if was recording... (file must have been removed)
-            stop_record();
-
 
         synchronized (sLock) {
             if (mCodec == null) {
-                Utils.loge("Codec is not initialized");
+                Utils.logd("Codec is not initialized");
                 return;
             }
 
@@ -116,28 +53,33 @@ public class VideoDecoder {
         }
     }
 
-    public void codec_init() {
-        try {
-            mCodec = MediaCodec.createDecoderByType("video/avc");       // Create video codec: ITU-T H.264 / ISO/IEC MPEG-4 Part 10, Advanced Video Coding (MPEG-4 AVC)
-        } catch (Throwable t) {
-            Utils.loge("Throwable creating video/avc decoder: " + t);
-        }
-        try {
-            mCodecBufferInfo = new MediaCodec.BufferInfo();                         // Create Buffer Info
-            MediaFormat format = MediaFormat.createVideoFormat("video/avc", mWidth, mHeight);
-            mCodec.configure(format, mHolder.getSurface(), null, 0);               // Configure codec for H.264 with given width and height, no crypto and no flag (ie decode)
-            mCodec.start();                                             // Start codec
-        } catch (Throwable t) {
-            Utils.loge(t);
+    private void codec_init() {
+        synchronized (sLock) {
+            try {
+                mCodec = MediaCodec.createDecoderByType("video/avc");       // Create video codec: ITU-T H.264 / ISO/IEC MPEG-4 Part 10, Advanced Video Coding (MPEG-4 AVC)
+            } catch (Throwable t) {
+                Utils.loge("Throwable creating video/avc decoder: " + t);
+            }
+            try {
+                mCodecBufferInfo = new MediaCodec.BufferInfo();                         // Create Buffer Info
+                MediaFormat format = MediaFormat.createVideoFormat("video/avc", mWidth, mHeight);
+                mCodec.configure(format, mHolder.getSurface(), null, 0);               // Configure codec for H.264 with given width and height, no crypto and no flag (ie decode)
+                mCodec.start();                                             // Start codec
+            } catch (Throwable t) {
+                Utils.loge(t);
+            }
         }
     }
 
     private void codec_stop() {
-        if (mCodec != null)
-            mCodec.stop();                                                  // Stop codec
-        mCodec = null;
-        mInputBuffers = null;
-        mCodecBufferInfo = null;
+        synchronized (sLock) {
+            if (mCodec != null) {
+                mCodec.stop();
+            }
+            mCodec = null;
+            mInputBuffers = null;
+            mCodecBufferInfo = null;
+        }
     }
 
     private boolean codec_input_provide(ByteBuffer content) {            // Called only by media_decode() with new NAL unit in Byte Buffer
@@ -174,7 +116,7 @@ public class VideoDecoder {
         return false;                                                     // Error: exception
     }
 
-    private void codec_output_consume () {                                // Called only by media_decode() after codec_input_provide()
+    private void codec_output_consume() {                                // Called only by media_decode() after codec_input_provide()
         int index;
         for (;;) {                                                          // Until no more buffers...
             index = mCodec.dequeueOutputBuffer (mCodecBufferInfo, 0);        // Dequeue an output buffer but do not wait
@@ -201,10 +143,8 @@ public class VideoDecoder {
     }
 
     public void stop() {
-        stop_record();
         codec_stop();
     }
-
 
     public int h264_after_get (byte [] ba, int idx) {
         idx += 4; // Pass 0, 0, 0, 1

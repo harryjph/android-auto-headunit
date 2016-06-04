@@ -29,16 +29,20 @@ public class UsbAccessoryConnection
         mUsbMgr = usbMgr;
     }
 
-    public boolean isDeviceRunning(UsbDeviceCompat deviceCompat) {
-        return deviceCompat.equals(mUsbDeviceConnected);
+    public boolean isDeviceRunning(UsbDevice device) {
+        if (mUsbDeviceConnected == null)
+        {
+            return false;
+        }
+        return UsbDeviceCompat.getUniqueName(device).equals(mUsbDeviceConnected.getUniqueName());
     }
 
-    public boolean connect(UsbDeviceCompat device) throws UsbOpenException {                         // Attempt to connect. Called only by usb_attach_handler() & presets_select()
+    public boolean connect(UsbDevice device) throws UsbOpenException {                         // Attempt to connect. Called only by usb_attach_handler() & presets_select()
         if (mUsbDeviceConnection != null) {
             disconnect();
         }
         try {
-            usb_open(device.getWrappedDevice());                                        // Open USB device & claim interface
+            usb_open(device);                                        // Open USB device & claim interface
         } catch (UsbOpenException e) {
             disconnect();                                                // Ensure state is disconnected
             throw e;
@@ -49,7 +53,7 @@ public class UsbAccessoryConnection
             disconnect();                                              // Ensure state is disconnected
             return false;
         }
-        mUsbDeviceConnected = device;
+        mUsbDeviceConnected = new UsbDeviceCompat(device);
         return true;
     }
     private void usb_open(UsbDevice device) throws UsbOpenException {                             // Open USB device connection & claim interface. Called only by usb_connect()

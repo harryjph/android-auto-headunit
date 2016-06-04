@@ -8,9 +8,8 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.widget.Toast;
 
-import java.util.HashMap;
-
-import ca.yyx.hu.usb.UsbAccessoryConnection;
+import ca.yyx.hu.aap.AapActivity;
+import ca.yyx.hu.aap.AapService;
 import ca.yyx.hu.usb.UsbDeviceCompat;
 import ca.yyx.hu.usb.UsbModeSwitch;
 import ca.yyx.hu.utils.IntentUtils;
@@ -22,8 +21,6 @@ import ca.yyx.hu.utils.Utils;
  * @date 30/05/2016.
  */
 public class UsbAttachedActivity extends Activity {
-
-    private UsbManager mUsbManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +37,7 @@ public class UsbAttachedActivity extends Activity {
 
         if (UsbDeviceCompat.isInAccessoryMode(device)) {
             Utils.loge("Usb in accessory mode");
-            HeadUnitActivity.start(device, this);
+            startService(AapService.createIntent(device, this));
             finish();
             return;
         }
@@ -53,8 +50,8 @@ public class UsbAttachedActivity extends Activity {
             return;
         }
 
-        mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        UsbModeSwitch usbMode = new UsbModeSwitch(mUsbManager);
+        UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        UsbModeSwitch usbMode = new UsbModeSwitch(usbManager);
         Utils.logd("Switching USB device to accessory mode " + deviceCompat.getUniqueName());
         Toast.makeText(this, "Switching USB device to accessory mode " + deviceCompat.getUniqueName(), Toast.LENGTH_SHORT).show();
         if (usbMode.switchMode(device)) {
@@ -64,7 +61,6 @@ public class UsbAttachedActivity extends Activity {
         }
 
         finish();
-        // Wait for onNewIntent
     }
 
     @Override
@@ -82,7 +78,7 @@ public class UsbAttachedActivity extends Activity {
 
         if (UsbDeviceCompat.isInAccessoryMode(device)) {
             Utils.loge("Usb in accessory mode");
-            HeadUnitActivity.start(device, this);
+            startService(AapService.createIntent(device, this));
         }
 
         finish();

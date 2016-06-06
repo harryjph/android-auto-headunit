@@ -57,7 +57,7 @@ public class MicRecorder {
             aud_buf[ctr] = mic_audio_buf[ctr];
         }
         mic_audio_len = 0;                                                  // Reset for next read into single buffer
-        return (len);
+        return len + start;
     }
 
     private int phys_mic_audio_read(byte[] aud_buf, int max_len) {

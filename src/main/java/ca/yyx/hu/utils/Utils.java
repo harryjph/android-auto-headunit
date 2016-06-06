@@ -21,6 +21,8 @@ import java.nio.ByteBuffer;
 import java.util.IllegalFormatException;
 import java.util.Locale;
 
+import ca.yyx.hu.decoder.MicRecorder;
+
 
 public final class Utils {
 
@@ -389,5 +391,24 @@ public final class Utils {
         return buffer.toByteArray();
     }
 
+
+    public static byte[] createMicBuffer()
+    {
+        byte[] mic_buf = new byte[14 + MicRecorder.MIC_BUFFER_SIZE];
+        mic_buf[0] = MicRecorder.AA_CH_MIC;// Mic channel
+        mic_buf[1] = 0x0b;  // Flag filled here
+        mic_buf[2] = 0x00;  // 2 bytes Length filled here
+        mic_buf[3] = 0x00;
+        mic_buf[4] = 0x00;  // Message Type = 0 for data, OR 32774 for Stop w/mandatory 0x08 int and optional 0x10 int (senderprotocol/aq -> com.google.android.e.b.ca)
+        mic_buf[5] = 0x00;
+        return mic_buf;
+    }
+
+    public static void put_time(int offset, byte[] arr, long time) {
+        for (int ctr = 7; ctr >= 0; ctr--) {                           // Fill 8 bytes backwards
+            arr[offset + ctr] = (byte) (time & 0xFF);
+            time = time >> 8;
+        }
+    }
 }
 

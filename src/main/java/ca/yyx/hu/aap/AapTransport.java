@@ -14,20 +14,25 @@ import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.usb.UsbAccessoryConnection;
 import ca.yyx.hu.utils.Utils;
 
-public class AapTransport {
+public class AapTransport extends HandlerThread implements Handler.Callback {
+    private static final int POLL = 1;
+    private static final int TOUCH_SYNC = 2;
+    private static final int MIC_RECORD_START = 3;
+    private static final int MIC_RECORD_STOP = 4;
+
+    private byte[] fixed_cmd_buf = new byte[256];
+    private byte[] fixed_res_buf = new byte[65536 * 16];
+
+    private Handler mHandler;
+    private boolean mMicRecording;
 
     private final AudioDecoder mAudioDecoder;
     private final MicRecorder mMicRecorder;
     private final VideoDecoder mVideoDecoder;
 
 
-    private MessageThread mThread;
-
-    public boolean isAapStarted() {
-        return mThread != null;
-    }
-
     public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder) {
+        super("AapTransport");
         mAudioDecoder = audioDecoder;
         mVideoDecoder = videoDecoder;
         mMicRecorder = new MicRecorder();
@@ -40,108 +45,71 @@ public class AapTransport {
     // Java_ca_yyx_hu_aap_AapTransport_native_1aa_1cmd
     private static native int native_aa_cmd(int cmd_len, byte[] cmd_buf, int res_len, byte[] res_buf);
 
-    public void mediaSkipToNext() {
 
+    @Override
+    protected void onLooperPrepared() {
+        super.onLooperPrepared();
+        mHandler = new Handler(getLooper(), this);
+        mHandler.sendEmptyMessage(POLL);
     }
 
-    public void mediaSkipToPrevious() {
+    @Override
+    public boolean handleMessage(Message msg) {
+        int ret = 0;
 
-    }
-
-    private final class MessageThread extends HandlerThread implements Handler.Callback {
-        private static final int POLL = 1;
-        private static final int TOUCH_SYNC = 2;
-        private static final int MIC_RECORD_START = 3;
-        private static final int MIC_RECORD_STOP = 4;
-
-        private byte[] fixed_cmd_buf = new byte[256];
-        private byte[] fixed_res_buf = new byte[65536 * 16];
-
-
-        private Handler mHandler;
-        private boolean mMicRecording;
-
-        MessageThread() {
-            super("MessageThread");
+        if (msg.what == MIC_RECORD_STOP) {
+            mMicRecording = false;
+        } else if (msg.what == MIC_RECORD_START) {
+            mMicRecording = true;
         }
 
-        @Override
-        protected void onLooperPrepared() {
-            super.onLooperPrepared();
-            mHandler = new Handler(getLooper(), this);
+        if (mMicRecording) {
+            byte[] mic_buf = Protocol.createMicBuffer();
+            int mic_audio_len = mMicRecorder.mic_audio_read(mic_buf, 14, MicRecorder.MIC_BUFFER_SIZE);
+            if (mic_audio_len >= 78) {                                    // If we read at least 64 bytes of audio data
+                Utils.put_time(6, mic_buf, SystemClock.elapsedRealtime());
+                ret = aa_cmd_send(mic_audio_len, mic_buf, fixed_res_buf.length, fixed_res_buf);    // Send mic audio
+            } else if (mic_audio_len > 0) {
+                Utils.loge("No data from microphone");
+            }
+        }
+
+        if (msg.what == TOUCH_SYNC) {
+            int touchLength = msg.arg1;
+            byte[] touchData = (byte[]) msg.obj;
+            ret = aa_cmd_send(touchLength, touchData, fixed_res_buf.length, fixed_res_buf);
+        }
+
+        ret = aa_cmd_send(0, fixed_cmd_buf, fixed_res_buf.length, fixed_res_buf);
+        if (isAlive()) {
             mHandler.sendEmptyMessage(POLL);
         }
-
-        @Override
-        public boolean handleMessage(Message msg) {
-            int ret = 0;
-
-            Utils.logd(""+msg);
-
-            if (msg.what == MIC_RECORD_STOP) {
-                mMicRecording = false;
-            } else if (msg.what == MIC_RECORD_START) {
-                mMicRecording = true;
-            }
-
-            if (mMicRecording) {
-                byte[] mic_buf = Protocol.createMicBuffer();
-                int mic_audio_len = mMicRecorder.mic_audio_read(mic_buf, 14, MicRecorder.MIC_BUFFER_SIZE);
-                if (mic_audio_len >= 78) {                                    // If we read at least 64 bytes of audio data
-                    Utils.put_time(6, mic_buf, SystemClock.elapsedRealtime());
-                    ret = aa_cmd_send(mic_audio_len, mic_buf, fixed_res_buf.length, fixed_res_buf);    // Send mic audio
-                } else if (mic_audio_len > 0) {
-                    Utils.loge("No data from microphone");
-                }
-            }
-
-            if (msg.what == TOUCH_SYNC)
-            {
-                int touchLength = msg.arg1;
-                byte[] touchData = (byte[]) msg.obj;
-                ret = aa_cmd_send(touchLength, touchData, fixed_res_buf.length, fixed_res_buf);
-            }
-
-            ret = aa_cmd_send(0, fixed_cmd_buf, fixed_res_buf.length, fixed_res_buf);
-            if (isAlive()) {
-                mHandler.sendEmptyMessage(POLL);
-            }
-            return false;
-        }
-
-        @Override
-        public synchronized void start() {
-            super.start();
-        }
-
-        @Override
-        public boolean quit() {
-            aa_cmd_send(Protocol.BUYBUY_REQUEST);
-            Utils.ms_sleep(100);
-            return super.quit();
-        }
-
-        void sendTouch(int len_touch, byte[] touchData)
-        {
-            Message msg = mHandler.obtainMessage(TOUCH_SYNC, len_touch, 0, touchData);
-            mHandler.sendMessage(msg);
-        }
-
-         void setMicRecording(boolean start)
-        {
-            mHandler.sendEmptyMessage(start ? MIC_RECORD_START : MIC_RECORD_STOP);
-        }
+        return false;
     }
 
-    public void stop() {
-        if (mThread != null) {
-            mThread.quit();
-            mThread = null;
-        }
+    @Override
+    public synchronized void start() {
+        super.start();
     }
 
-    public boolean start(UsbAccessoryConnection connection) {
-        Utils.logd("Start Aap transport for "+connection);
+    @Override
+    public boolean quit() {
+        aa_cmd_send(Protocol.BUYBUY_REQUEST);
+        Utils.ms_sleep(100);
+        return super.quit();
+    }
+
+    void sendTouch(int len_touch, byte[] touchData) {
+        Message msg = mHandler.obtainMessage(TOUCH_SYNC, len_touch, 0, touchData);
+        mHandler.sendMessage(msg);
+    }
+
+    void setMicRecording(boolean start) {
+        mHandler.sendEmptyMessage(start ? MIC_RECORD_START : MIC_RECORD_STOP);
+    }
+
+    public boolean connectAndStart(UsbAccessoryConnection connection) {
+        Utils.logd("Start Aap transport for " + connection);
         // Start JNI Android Auto Protocol and Main Thread.
         byte[] cmd_buf = {121, -127, 2};
         // Start Request w/ m_ep_in_addr, m_ep_out_addr
@@ -152,8 +120,7 @@ public class AapTransport {
         int ret = aa_cmd_send(cmd_buf.length, cmd_buf);
 
         if (ret == 0) {                                                     // If started OK...
-            mThread = new MessageThread();
-            mThread.start();                                          // Create and start Transport Thread
+            this.start();                                          // Create and start Transport Thread
             return true;
         }
         Utils.loge("Cannot start AAP ret:" + ret);
@@ -164,24 +131,24 @@ public class AapTransport {
         return aa_cmd_send(cmd_buf.length, cmd_buf);
     }
 
-    private int aa_cmd_send(int cmd_len,@NonNull byte[] cmd_buf) {
+    private int aa_cmd_send(int cmd_len, @NonNull byte[] cmd_buf) {
         byte[] res_buf = new byte[65536 * 16];
         return aa_cmd_send(cmd_len, cmd_buf, res_buf.length, res_buf);
     }
 
     // Send AA packet/HU command/mic audio AND/OR receive video/output audio/audio notifications
-    private int aa_cmd_send(int cmd_len,@NonNull byte[] cmd_buf, int res_len,@NonNull byte[] res_buf) {
+    private int aa_cmd_send(int cmd_len, @NonNull byte[] cmd_buf, int res_len, @NonNull byte[] res_buf) {
 
         int ret = native_aa_cmd(cmd_len, cmd_buf, res_len, res_buf);       // Send a command (or null command)
 
         if (ret == Protocol.RESPONSE_MIC_STOP) {                                                     // If mic stop...
             Utils.logd("Microphone Stop");
-            mThread.setMicRecording(false);
+            setMicRecording(false);
             mMicRecorder.mic_audio_stop();
             return (0);
         } else if (ret == Protocol.RESPONSE_MIC_START) {                                                // Else if mic start...
             Utils.logd("Microphone Start");
-            mThread.setMicRecording(true);
+            setMicRecording(true);
             return (0);
         } else if (ret == Protocol.RESPONSE_AUDIO_STOP) {                                                // Else if audio stop...
             Utils.logd("Audio Stop");
@@ -207,16 +174,13 @@ public class AapTransport {
         bb.position(0);
 
         if (VideoDecoder.isH246Video(buffer)) {
-            Utils.logd("Video");
             mVideoDecoder.decode(bb);
         } else {
-            Utils.logd("Audio");
             mAudioDecoder.decode(bb);
         }
     }
 
-    public void sendTouch(byte action, int x, int y)
-    {
+    void sendTouch(byte action, int x, int y) {
         byte[] ba_touch = Protocol.TOUCH_REQUEST.clone();
 
         long ts = SystemClock.elapsedRealtime() * 1000000L;   // Timestamp in nanoseconds = microseconds x 1,000,000
@@ -253,7 +217,7 @@ public class AapTransport {
         ba_touch[idx++] = action;
 
         int len_touch = idx;
-        mThread.sendTouch(len_touch, ba_touch);
+        sendTouch(len_touch, ba_touch);
     }
 }
 

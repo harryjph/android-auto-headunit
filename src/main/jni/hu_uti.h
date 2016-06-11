@@ -3,7 +3,9 @@
 
 //  #define UTILS_INCLUDED
 
+#ifndef NDEBUG
   #define NDEBUG // Ensure debug stuff
+#endif
 
   #define hu_STATE_INITIAL   0
   #define hu_STATE_STARTIN   1

@@ -7,7 +7,7 @@ LFLAGS=`pkg-config --libs gstreamer-0.10 gstreamer-app-0.10 gstreamer-video-0.10
 TOP = ..
 SRCS =	$(TOP)/jni/hu_aad.c	\
 	$(TOP)/jni/hu_aap.c	\
-        $(TOP)/jni/hu_ssl.c	\
+    $(TOP)/jni/hu_ssl.c	\
 	$(TOP)/jni/hu_usb.c	\
 	$(TOP)/jni/hu_uti.c	\
 	main.c

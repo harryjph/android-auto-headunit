@@ -20,7 +20,7 @@ public class Protocol {
 
     // Base 32768 // 0x8000
 
-    static final int VIDEO_REQUEST = 32775; // 0x8007 //0x08 0x00 0x00 0x07
+    //static final int VIDEO_REQUEST = 32775; // 0x8007 //0x08 0x00 0x00 0x07
 
     static final byte RESPONSE_MIC_STOP = 1;
     static final byte RESPONSE_MIC_START = 2;
@@ -30,7 +30,7 @@ public class Protocol {
 
     // Byebye Request:  000b0004000f0800  00 0b 00 04 00 0f 08 00
     static byte[] BUYBUY_REQUEST = { AA_CH_CTR, 0x0b, 0x00, 0x00, 0x00, BYEBYE_REQUEST, 0x08, 0 };
-    static byte[] VIDEO_REQUEST  = { AA_CH_CTR, 0x0b, 0x00, 0x00, 0x00, 0x08, 0x04 };
+    //static byte[] VIDEO_REQUEST  = { AA_CH_CTR, 0x0b, 0x00, 0x00, 0x00, 0x08, 0x04 };
 
     // Message Type = 0 for data,
     // OR 32774 for Stop w/mandatory 0x08 int

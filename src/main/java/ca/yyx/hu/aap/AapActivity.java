@@ -104,14 +104,6 @@ public class AapActivity extends SurfaceActivity {
         Utils.logd("Headunit for Android Auto (tm) - Copyright 2011-2015 Michael A. Reid. All Rights Reserved...");
 
         mTransport = App.get(this).transport();
-
-        (findViewById(R.id.settings_button)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(AapActivity.this, SettingsActivity.class));
-            }
-        });
-
         mSurfaceView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {

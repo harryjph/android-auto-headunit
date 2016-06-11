@@ -60,7 +60,7 @@ public class WifiManager {
         @Override
         protected Boolean doInBackground(Object... params) {//(Void... params) {// (Params... p) {//Void... v) {//Void... params) {
             Utils.logd("wifi_long_start start ");
-            return mTransport.start(null);
+            return mTransport.connectAndStart(null);
         }
 
         // Start activity that can handle the JPEG image

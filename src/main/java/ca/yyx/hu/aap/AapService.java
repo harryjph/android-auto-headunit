@@ -71,6 +71,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        onDisconnect();
         unregisterReceiver(mUsbReceiver);
         mUiModeManager.disableCarMode(0);
     }
@@ -121,7 +122,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
     }
 
     private void onConnect() {
-        mTransport.start(mUsbAccessoryConnection);
+        mTransport.connectAndStart(mUsbAccessoryConnection);
         Intent aapIntent = new Intent(this, AapActivity.class);
         aapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(aapIntent);
@@ -130,7 +131,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
     private void onDisconnect() {
         LocalBroadcastManager.getInstance(this).sendBroadcast(IntentUtils.ACTION_DISCONNECT);
         mUsbAccessoryConnection.disconnect();
-        mTransport.stop();
+        mTransport.quit();
         mAudioDecoder.stop();
     }
 
@@ -144,12 +145,10 @@ public class AapService extends Service implements UsbReceiver.Listener {
 
         @Override
         public void onSkipToNext() {
-            mTransport.mediaSkipToNext();
         }
 
         @Override
         public void onSkipToPrevious() {
-            mTransport.mediaSkipToPrevious();
         }
 
         @Override

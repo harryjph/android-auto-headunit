@@ -11,7 +11,6 @@ import ca.yyx.hu.utils.Utils;
  * @date 12/05/2016.
  */
 public class MicRecorder {
-    public static final int AA_CH_MIC = 7;
 
     public static final int MIC_BUFFER_SIZE = 8192;
     private AudioRecord mMicAudioRecord = null;

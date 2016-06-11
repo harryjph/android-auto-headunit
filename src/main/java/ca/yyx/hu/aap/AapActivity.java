@@ -164,7 +164,7 @@ public class AapActivity extends SurfaceActivity {
                 Utils.loge("event: " + event + " (Unknown: " + me_action + ")  x: " + x + "  y: " + y);
                 return;
         }
-        mTransport.touch_send(aa_action, x, y);
+        mTransport.sendTouch(aa_action, x, y);
     }
 
 }

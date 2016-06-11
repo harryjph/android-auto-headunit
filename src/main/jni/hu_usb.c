@@ -14,7 +14,7 @@
   #include <libusb.h>
   #endif
 
-  #ifdef __ANDROID_API__
+//  #ifdef __ANDROID_API__
   #ifndef LIBUSB_LOG_LEVEL_NONE                 
   #define LIBUSB_LOG_LEVEL_NONE     0
   #endif
@@ -30,7 +30,7 @@
   #ifndef LIBUSB_LOG_LEVEL_DEBUG
   #define LIBUSB_LOG_LEVEL_DEBUG    4
   #endif
-  #endif
+//  #endif
 
 /* APIs used:
 
@@ -114,6 +114,11 @@ int     LIBUSB_CALL libusb_bulk_transfer          (libusb_device_handle *dev_han
   byte  iusb_best_man [256] = {0};
   byte  iusb_curr_pro [256] = {0};
   byte  iusb_best_pro [256] = {0};
+
+struct usbvpid {
+    uint16_t vendor;
+    uint16_t product;
+};
 
 
 #ifndef NDEBUG
@@ -253,8 +258,11 @@ if (ms_duration > 400)
     }
 
     if (total_bytes_xfrd <= 0 && usb_err < 0) {
-      if (errno == EAGAIN || errno == ETIMEDOUT || usb_err == LIBUSB_ERROR_TIMEOUT)
+      if (errno == EAGAIN || errno == ETIMEDOUT || usb_err == LIBUSB_ERROR_TIMEOUT) {
         return (0);
+	}
+	  
+	  loge ("Done dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)  errno: %d (%s)", dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get (usb_err), errno, strerror (errno));
 
       hu_usb_stop ();  // Other errors here are fatal, so stop USB
       return (-1);
@@ -385,6 +393,8 @@ if (ms_duration > 400)
     else
       logd ("Done libusb_release_interface usb_err: %d (%s)", usb_err, iusb_error_get (usb_err));
 
+	libusb_reset_device (iusb_dev_hndl);
+	
     libusb_close (iusb_dev_hndl);
     logd ("Done libusb_close");
     iusb_dev_hndl = NULL;
@@ -397,21 +407,25 @@ if (ms_duration > 400)
   }
 
 
-  int iusb_vendor_get (libusb_device * device) {
+struct usbvpid iusb_vendor_get (libusb_device * device) {
+
+    struct usbvpid dev = {0,0};
+
     if (device == NULL)
-      return (0);
+      return dev;
 
     struct libusb_device_descriptor desc = {0};
 
     int usb_err = libusb_get_device_descriptor (device, & desc);
     if (usb_err != 0) {
       loge ("Error usb_err: %d (%s)", usb_err, iusb_error_get (usb_err));
-      return (0);
+      return dev;
     }
-    uint16_t vendor  = desc.idVendor;
-    uint16_t product = desc.idProduct;
-    logd ("Done usb_err: %d  vendor:product = 0x%04x:0x%04x", usb_err, vendor, product);
-    return (vendor);
+        
+    dev.vendor  = desc.idVendor;
+    dev.product = desc.idProduct;
+    logd ("Done usb_err: %d  vendor:product = 0x%04x:0x%04x", usb_err, dev.vendor, dev.product);
+    return (dev);
   }
 
   int iusb_vendor_priority_get (int vendor) {
@@ -427,13 +441,32 @@ if (ms_duration > 400)
       return (6);
     if (vendor == USB_VID_LGE)
       return (5);
+    if (vendor == USB_VID_LGD)
+      return (5);
+    if (vendor == USB_VID_ACE)
+      return (5);
+    if (vendor == USB_VID_HUA)
+      return (5);
+    if (vendor == USB_VID_PAN)
+      return (5);
+    if (vendor == USB_VID_ZTE)
+      return (5);
+    if (vendor == USB_VID_GAR)      
+      return (5);
     if (vendor == USB_VID_O1A)
       return (4);
-
     if (vendor == USB_VID_QUA)
       return (3);
-    if (vendor == USB_VID_LIN)
-      return (2);
+    if (vendor == USB_VID_ONE)
+      return (5);
+    if (vendor == USB_VID_XIA)
+      return (5);
+    if (vendor == USB_VID_ASU)
+      return (5);
+    if (vendor == USB_VID_MEI)
+      return (5);      
+    if (vendor == USB_VID_LEN)
+      return (5);      
 
     return (0);
   }
@@ -454,7 +487,7 @@ if (ms_duration > 400)
     }
     logd ("OK libusb_init usb_err: %d", usb_err);
 
-    libusb_set_debug (NULL, LIBUSB_LOG_LEVEL_WARNING);    // DEBUG);//
+    libusb_set_debug (NULL, LIBUSB_LOG_LEVEL_INFO);    // DEBUG);//
     logd ("Done libusb_set_debug");
 
     libusb_device ** list;
@@ -471,27 +504,31 @@ if (ms_duration > 400)
     libusb_device * device;
     for (idx = 0; idx < cnt; idx ++) {                                  // For all USB devices...
       device = list [idx];
-      int vendor = iusb_vendor_get (device);
-      //int product = product_get (device);
-      logd ("iusb_vendor_get vendor: 0x%04x  device: %p", vendor, device);
+      struct usbvpid dev = iusb_vendor_get (device); 
+      int vendor = dev.vendor;
+      int product = dev.product;
+      printf ("iusb_vendor_get vendor: 0x%04x  device: %p \n", vendor, device);
       if (vendor) {
         int vendor_priority = iusb_vendor_priority_get (vendor);
         //if (iusb_best_vendor_priority <  vendor_priority) {  // For first
-        if (iusb_best_vendor_priority <= vendor_priority) {  // For last
+        if (iusb_best_vendor_priority < vendor_priority) {  // For last
           iusb_best_vendor_priority = vendor_priority;
           iusb_best_vendor = vendor;
+          iusb_best_product = product;
           iusb_best_device = device;
           strncpy (iusb_best_man, iusb_curr_man, sizeof (iusb_best_man));
           strncpy (iusb_best_pro, iusb_curr_pro, sizeof (iusb_best_pro));
         }
       }
     }
+
+    
     if (iusb_best_vendor == 0 || iusb_best_device == NULL) {                                             // If no vendor...
-      loge ("Error device not found iusb_best_vendor: 0x%04x  iusb_best_device: %p", iusb_best_vendor, iusb_best_device);
+      printf ("Error device not found iusb_best_vendor: 0x%04x  iusb_best_device: %p \n", iusb_best_vendor, iusb_best_device);
       libusb_free_device_list (list, 1);                                // Free device list now that we are finished with it
-      return (-1);
+      return (-2);
     }
-    logd ("Device found iusb_best_vendor: 0x%04x  iusb_best_device: 0x%04x  iusb_best_man: \"%s\"  iusb_best_pro: \"%s\"", iusb_best_vendor, iusb_best_device, iusb_best_man, iusb_best_pro);
+    printf ("Device found iusb_best_vendor: 0x%04x  iusb_best_device: 0x%04x  iusb_best_man: \"%s\"  iusb_best_pro: \"%s\" \n", iusb_best_vendor, iusb_best_device, iusb_best_man, iusb_best_pro);
 
     //usb_perms_set ();                                                 // Setup USB permissions, where needed
 
@@ -644,7 +681,7 @@ if (ms_duration > 400)
 
     iusb_best_vendor = 0;
     int tries = 0;
-    while (iusb_best_vendor != USB_VID_GOO && tries ++ < 4) { //2000) {
+    while (iusb_best_vendor != USB_VID_GOO  && (iusb_best_product < 0x2d00 || iusb_best_product > 0x2d05) && tries ++ < 4) { //2000) {
 
       ret = iusb_init (ep_in_addr, ep_out_addr);
       if (ret < 0) {
@@ -652,17 +689,20 @@ if (ms_duration > 400)
         iusb_deinit ();
         iusb_state = hu_STATE_STOPPED;
         logd ("  SET: iusb_state: %d (%s)", iusb_state, state_get (iusb_state));
-        return (-1);
+        return (ret);
       }
       logd ("OK iusb_init");
 
-      if (iusb_best_vendor == USB_VID_GOO) {
+	  printf("SHAI1 iusb_best_product id %d \n", iusb_best_product);
+
+      if (iusb_best_vendor == USB_VID_GOO && (iusb_best_product >= 0x2d00 && iusb_best_product <= 0x2d05) ) {
+//      if (iusb_best_vendor == USB_VID_GOO ) {
         logd ("Already OAP/AA mode, no need to call iusb_oap_start()");
 
         iusb_state = hu_STATE_STARTED;
         logd ("  SET: iusb_state: %d (%s)", iusb_state, state_get (iusb_state));
         return (0);
-      }
+      } 
 
       ret = iusb_oap_start ();
       if (ret < 0) {
@@ -674,7 +714,7 @@ if (ms_duration > 400)
       }
       logd ("OK iusb_oap_start");
 
-      if (iusb_best_vendor != USB_VID_GOO) {
+      if (iusb_best_vendor != USB_VID_GOO && (iusb_best_product < 0x2d00 || iusb_best_product > 0x2d05)) {
         iusb_deinit ();
         ms_sleep (4000);//!!!!!!!!!!!!!!      (1000);                                                // 600 ms not enough; 700 seems OK
         logd ("Done iusb_best_vendor != USB_VID_GOO ms_sleep()");
@@ -683,7 +723,7 @@ if (ms_duration > 400)
         logd ("Done iusb_best_vendor == USB_VID_GOO");
     }
 
-    if (iusb_best_vendor != USB_VID_GOO) {
+    if (iusb_best_vendor != USB_VID_GOO && (iusb_best_product < 0x2d00 || iusb_best_product > 0x2d05)) {
       loge ("No Google AA/Accessory mode iusb_best_vendor: 0x%x", iusb_best_vendor);
       iusb_deinit ();
       iusb_state = hu_STATE_STOPPED;

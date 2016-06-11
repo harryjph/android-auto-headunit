@@ -49,3 +49,4 @@ src/main/libs/armeabi/gdbserver
 src/main/libs/armeabi/libhu_jni.so
 
 src/main/libs/armeabi/usb_reset
+*.o

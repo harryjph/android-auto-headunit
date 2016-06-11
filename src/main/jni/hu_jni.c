@@ -75,7 +75,7 @@
 
       //hex_dump ("JNITX: ", 16, cmd_buf, cmd_len);
 
-      ret = hu_aap_enc_send (chan, & cmd_buf [4], cmd_len - 4);         // Send
+      ret = hu_aap_enc_send (0,chan, & cmd_buf [4], cmd_len - 4);         // Send
 
       if (cmd_buf != NULL && cmd_len  >= 8 && cmd_buf [5] == 15) {      // If byebye...
         logd ("Byebye");

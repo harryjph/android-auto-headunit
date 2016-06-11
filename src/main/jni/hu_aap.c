@@ -1,6 +1,5 @@
-
   // Android Auto Protocol Handler
-
+  #include <pthread.h>
   #define LOGTAG "hu_aap"
   #include "hu_uti.h"
   #include "hu_ssl.h"
@@ -26,6 +25,14 @@
   }
 #include "hu_usb.h"
 #include "hu_tcp.h"
+
+//dummy functions
+  int hu_tcp_recv  (byte * buf, int len, int tmo) {}                     // Used by hu_aap:hu_aap_tcp_recv ()
+  int hu_tcp_send  (byte * buf, int len, int tmo)  {}                    // Used by hu_aap:hu_aap_tcp_send ()
+  int hu_tcp_stop  () {}                                                 // Used by hu_aap:hu_aap_stop     ()
+  int hu_tcp_start (byte ep_in_addr, byte ep_out_addr) {}                // Used by hu_aap:hu_aap_start    ()
+
+
   int transport_type = 1; // 1=USB 2=WiFi
   int ihu_tra_recv  (byte * buf, int len, int tmo) {
     if (transport_type == 1)
@@ -54,7 +61,7 @@
 
 
   int iaap_tra_recv_tmo = 150;//100;//1;//10;//100;//250;//100;//250;//100;//25; // 10 doesn't work ? 100 does
-  int iaap_tra_send_tmo = 250;//2;//25;//250;//500;//100;//500;//250;
+  int iaap_tra_send_tmo = 500;//2;//25;//250;//500;//100;//500;//250;
 
   int ihu_tra_start (byte ep_in_addr, byte ep_out_addr) {
     if (ep_in_addr == 255 && ep_out_addr == 255) {
@@ -63,7 +70,7 @@
       iaap_tra_recv_tmo = 1;
       iaap_tra_send_tmo = 2;
     }
-    else {
+    else { 
       transport_type = 1;       // USB
       logd ("AA over USB");
       iaap_tra_recv_tmo = 150;//100;
@@ -92,6 +99,7 @@
   byte vid_ack [] = {0x80, 0x04, 0x08, 0, 0x10,  1};                    // Global Ack: 0, 1
 
   byte  rx_buf [DEFBUF] = {0};                                          // Global Transport Rx buf
+//	byte  *rx_buf;
   //byte dec_buf [DEFBUF] = {0};                                          // Global decrypted receive buffer
   #define dec_buf rx_buf                          // Use same buffer !!!
 
@@ -127,17 +135,20 @@
 
   int log_packet_info = 1;
 
-  int hu_aap_tra_send (byte * buf, int len, int tmo) {                  // Send Transport data: chan,flags,len,type,...
+  int hu_aap_tra_send (int retry, byte * buf, int len, int tmo) {                  // Send Transport data: chan,flags,len,type,...
                                                                         // Need to send when starting
     if (iaap_state != hu_STATE_STARTED && iaap_state != hu_STATE_STARTIN) {
       loge ("CHECK: iaap_state: %d (%s)", iaap_state, state_get (iaap_state));
       return (-1);
     }
 
+	
     int ret = ihu_tra_send (buf, len, tmo);
     if (ret < 0 || ret != len) {
-      loge ("Error ihu_tra_send() error so stop Transport & AAP  ret: %d  len: %d", ret, len);
-      hu_aap_stop (); 
+      if (retry == 0) {
+		hu_aap_stop ();
+		loge ("Error ihu_tra_send() error so stop Transport & AAP  ret: %d  len: %d", ret, len);
+	  } 
       return (-1);
     }  
 
@@ -146,9 +157,10 @@
     return (ret);
   }
 
+   pthread_mutex_t mutexsum;
 
 
-  int hu_aap_enc_send (int chan, byte * buf, int len) {                 // Encrypt data and send: type,...
+  int hu_aap_enc_send (int retry,int chan, byte * buf, int len) {                 // Encrypt data and send: type,...
     if (iaap_state != hu_STATE_STARTED) {
       logw ("CHECK: iaap_state: %d (%s)", iaap_state, state_get (iaap_state));
       //logw ("chan: %d  len: %d  buf: %p", chan, len, buf);
@@ -167,11 +179,13 @@
 #ifndef NDEBUG
 //    if (ena_log_verbo && ena_log_aap_send) {
     if (log_packet_info) { // && ena_log_aap_send)
-      char prefix [DEFBUF] = {0};
+      char prefix [DEF_BUF] = {0};
       snprintf (prefix, sizeof (prefix), "S %d %s %1.1x", chan, chan_get (chan), flags);  // "S 1 VID B"
       int rmv = hu_aad_dmp (prefix, "HU", chan, flags, buf, len);
     }
 #endif
+	
+
     int bytes_written = SSL_write (hu_ssl_ssl, buf, len);               // Write plaintext to SSL
     if (bytes_written <= 0) {
       loge ("SSL_write() bytes_written: %d", bytes_written);
@@ -186,6 +200,7 @@
       logd ("SSL_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, chan_get (chan));
 
     int bytes_read = BIO_read (hu_ssl_wm_bio, & enc_buf [4], sizeof (enc_buf) - 4); // Read encrypted from SSL BIO to enc_buf + 
+        
     if (bytes_read <= 0) {
       loge ("BIO_read() bytes_read: %d", bytes_read);
       hu_aap_stop ();
@@ -195,7 +210,10 @@
       logd ("BIO_read() bytes_read: %d", bytes_read);
 
     hu_aap_tra_set (chan, flags, -1, enc_buf, bytes_read + 4);          // -1 for type so encrypted type position is not overwritten !!
-    hu_aap_tra_send (enc_buf, bytes_read + 4, iaap_tra_send_tmo);           // Send encrypted data to AA Server
+    int ret = 0;
+    ret = hu_aap_tra_send (retry, enc_buf, bytes_read + 4, iaap_tra_send_tmo);           // Send encrypted data to AA Server
+    if (retry)
+		return (ret);
 
     return (0);
   }
@@ -238,11 +256,13 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
 
             // CH 1 Sensors:                      //cq/co[]
 //*
-                        0x0A, 4 + 4*1,//co: int, cm/cn[]
+                        0x0A, 4 + 4*2,//co: int, cm/cn[]
                                       0x08, AA_CH_SEN,
-                                      0x12, 4*1,
+                                      0x12, 4*2,
                                                           0x0A, 2,
                                                                     0x08, 11, // SENSOR_TYPE_DRIVING_STATUS 12
+                                                          0x0A, 2,
+                                                                    0x08, 10, // SENSOR_TYPE_NIGHT_DATA 10
 //*/
 /*  Requested Sensors: 10, 9, 2, 7, 6:
                         0x0A, 4 + 4*6,     //co: int, cm/cn[]
@@ -286,17 +306,15 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
 //*/
 //* Crashes on null Point reference without:
             // CH 3 TouchScreen/Input:
-                        0x0A, 4+2+6,//+2+16,
+//                        0x0A, 0x12,
+//                                        0x08, AA_CH_TOU,
+//										0x22,0x0E,
+//											0x0A,0x0C,0x01,0x02,0x04,0x13,0x14,0x15,0x16,0x17,0x54,-128,-128,0x04,
+                        0x0A, 4+2+6,
                                         0x08, AA_CH_TOU,
-//                                                              0x08, -128, -9, 2,    0x10, 16,   0x18, 2,
-                                                  //0x28, 0, //1,   boolean
-                                        0x22, 2+6,//+2+16, // ak  Input
-                                                  //0x0a, 16,   0x03, 0x54, 0x55, 0x56, 0x57, 0x58, 0x7e, 0x7f,   -47, 1,   -127, -128, 4,    -124, -128, 4,
-                                                  0x12,  6,        // no int[], am      // 800 = 0x0320 = 11 0    010 0000 : 32+128(-96), 6
-                                                                      // 480 = 0x01e0 = 1 1     110 0000 =  96+128 (-32), 3
-                                                              0x08, -96,   6,    0x10, -32, 3,        //  800x 480
-                                                            //0x08, -128, 10,    0x10, -48, 5,        // 1280x 720     0x80, 0x0a   0xd0, 5
-                                                            //0x08, -128, 15,    0x10, -72, 8,        // 1920x1080     0x80, 0x0f   0xb8, 8
+                                        0x22, 2+6,
+                                                  0x12,  6,
+                                                              0x08, -96,   6,    0x10, -32, 3,
 //*/
 //*
             // CH 7 Microphone Audio Source:
@@ -395,7 +413,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
     return (-1);
   }
 
-  extern int wifi_direct;// = 0;//1;//0;
+//  extern int wifi_direct;// = 0;//1;//0;
   int aa_pro_ctr_a05 (int chan, byte * buf, int len) {                  // Service Discovery Request
     if (len < 4 || buf [2] != 0x0a)
       loge ("Service Discovery Request: %x", buf [2]);
@@ -403,10 +421,11 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
       logd ("Service Discovery Request");                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
     int sd_buf_len = sizeof (sd_buf);
-    if (wifi_direct && (file_get ("/data/data/ca.yyx.hu/files/nfc_wifi") || file_get ("/sdcard/hu_disable_audio_out")))    // If self or disable file exists...
+//    if (wifi_direct && (file_get ("/data/data/ca.yyx.hu/files/nfc_wifi") || file_get ("/sdcard/hu_disable_audio_out")))    // If self or disable file exists...
+    if (file_get ("/tmp/mnt/sdnav/hu_disable_audio_out"))    			// If self or disable file exists...
       sd_buf_len -= sd_buf_aud_len;                                     // Remove audio outputs from service discovery response buf
 
-    return (hu_aap_enc_send (chan, sd_buf, sd_buf_len));                // Send Service Discovery Response from sd_buf
+    return (hu_aap_enc_send (0,chan, sd_buf, sd_buf_len));                // Send Service Discovery Response from sd_buf
   }
   int aa_pro_ctr_a06 (int chan, byte * buf, int len) {                  // Service Discovery Response
     loge ("!!!!!!!!");
@@ -435,7 +454,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
       logd ("Ping Request: %d", buf[3]);
     buf [0] = 0;                                                        // Use request buffer for response
     buf [1] = 12;                                                       // Channel Open Response
-    int ret = hu_aap_enc_send (chan, buf, len);                         // Send Channel Open Response
+    int ret = hu_aap_enc_send (0,chan, buf, len);                         // Send Channel Open Response
     return (ret);
   }
   int aa_pro_ctr_a0c (int chan, byte * buf, int len) {                  // Ping Response (never unless we send Ping Request)
@@ -451,7 +470,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
     buf [1] = 14;                                                       // Navigation Focus Notification
     buf [2] = 0x08;
     buf [3] = 2;                                                        // Gained / Gained Transient ?
-    int ret = hu_aap_enc_send (chan, buf, 4);//len);                         // Send Navigation Focus Notification
+    int ret = hu_aap_enc_send (0,chan, buf, 4);//len);                         // Send Navigation Focus Notification
     return (0);
   }
   int aa_pro_ctr_a0e (int chan, byte * buf, int len) {
@@ -468,12 +487,12 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
     else
       loge ("Byebye Request reason: %d", buf [3]);
     //byte bye_rsp [] = {0, 16, 8, 0};                                  // Byebye rsp: Status 0 = OK
-    //int ret = hu_aap_enc_send (chan, bye_rsp, sizeof (bye_rsp));      // Send Byebye Response
+    //int ret = hu_aap_enc_send (0,chan, bye_rsp, sizeof (bye_rsp));      // Send Byebye Response
     buf [0] = 0;                                                        // Use request buffer for response
     buf [1] = 16;                                                       // Byebye Response
     buf [2] = 0x08;
     buf [3] = 0;                                                        // Status 0 = OK
-    int ret = hu_aap_enc_send (chan, buf, 4);                           // Send Byebye Response
+    int ret = hu_aap_enc_send (0,chan, buf, 4);                           // Send Byebye Response
     ms_sleep (100);                                                     // Wait a bit for response
     //terminate = 1;
 
@@ -540,7 +559,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
       buf [3] = 1;                                                      // Send AUDIO_FOCUS_STATE_GAIN
     //buf [4] = 0x10;
     //buf [5] = 0;                                                      // unsolicited:   0 = false   1 = true
-    int ret = hu_aap_enc_send (chan, buf, 4);//6);                      // Send Audio Focus Response
+    int ret = hu_aap_enc_send (0,chan, buf, 4);//6);                      // Send Audio Focus Response
     return (0);
   }
   int aa_pro_ctr_a13 (int chan, byte * buf, int len) {
@@ -602,11 +621,11 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
     else
       logd ("Channel Open Request: %d  chan: %d", buf [3], buf [5]);    // R 1 SEN f 00000000 08 00 10 01   R 2 VID f 00000000 08 00 10 02   R 3 TOU f 00000000 08 00 10 03   R 4 AUD f 00000000 08 00 10 04   R 5 MIC f 00000000 08 00 10 05
     byte rsp [] = {0, 8, 8, 0};                                         // Status 0 = OK
-    int ret = hu_aap_enc_send (chan, rsp, sizeof (rsp));                // Send Channel Open Response
+    int ret = hu_aap_enc_send (0,chan, rsp, sizeof (rsp));                // Send Channel Open Response
 
     if (ret == 0 && chan == AA_CH_MIC) {
       //byte rspm [] = {0, 17, 0x08, 1, 0x10, 1};                         // 1, 1     Voice Session not focusState=1=AUDIO_FOCUS_STATE_GAIN unsolicited=true    050b0000001108011001
-      //ret = hu_aap_enc_send (chan, rspm, sizeof (rspm));                // Send AudioFocus Notification
+      //ret = hu_aap_enc_send (0,chan, rspm, sizeof (rspm));                // Send AudioFocus Notification
       //ms_sleep (200);
       //logd ("Channel Open Request AFTER ms_sleep (500)");
     }
@@ -617,7 +636,11 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
     if (chan == AA_CH_SEN) {                                            // If Sensor channel...
       ms_sleep (2);//20);
       byte rspds [] = {0x80, 0x03, 0x6a, 2, 8, 0};                      // Driving Status = 0 = Parked (1 = Moving)
-      return (hu_aap_enc_send (chan, rspds, sizeof (rspds)));           // Send Sensor Notification
+      return (hu_aap_enc_send (0,chan, rspds, sizeof (rspds)));           // Send Sensor Notification
+
+ //     ms_sleep (2);
+ //     byte rspds1 [] = {0x80, 0x03, 0x52, 0x02, 0x08, 0x00};    // Day = 0, Night = 1 
+ //     return (hu_aap_enc_send (0,chan, rspds1, sizeof (rspds1))); // Send Sensor Night mode
     }
     return (ret);
   }
@@ -632,7 +655,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
     #define MAX_UNACK 1 //8 //3 //8 //1
     byte rsp [] = {0x80, 0x03, 0x08, 2, 0x10, MAX_UNACK, 0x18, 0};//0x1a, 4, 0x08, 1, 0x10, 2};      // 1/2, MaxUnack, int[] 1        2, 0x08, 1};//
 
-    int ret = hu_aap_enc_send (chan, rsp, sizeof (rsp));               // Respond with Config Response
+    int ret = hu_aap_enc_send (0,chan, rsp, sizeof (rsp));               // Respond with Config Response
     if (ret)
       return (ret);
 
@@ -640,13 +663,13 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
       return (ret); // Rely on solicited focus request
       //ms_sleep (20);                                                      // Else if success and channel = audio...
       //byte rspa [] = {0, 19, 0x08, 1, 0x10, 1};                      // 1, 1     AudioFocus gained focusState=1=AUDIO_FOCUS_STATE_GAIN unsolicited=true
-      //return (hu_aap_enc_send (chan, rspa, sizeof (rspa)));              // Respond with AudioFocus gained
+      //return (hu_aap_enc_send (0,chan, rspa, sizeof (rspa)));              // Respond with AudioFocus gained
     }
 //*
     if (chan == AA_CH_VID) {
 //      ms_sleep (200);//(2);//200);//20);                                                      // Else if success and channel = video...
       byte rsp2 [] = {0x80, 0x08, 0x08, 1, 0x10, 1};                      // 1, 1     VideoFocus gained focusState=1 unsolicited=true     010b0000800808011001
-      return (hu_aap_enc_send (chan, rsp2, sizeof (rsp2)));              // Respond with VideoFocus gained
+      return (hu_aap_enc_send (0,chan, rsp2, sizeof (rsp2)));              // Respond with VideoFocus gained
     }
 //*/
     return (ret);
@@ -713,12 +736,12 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
     int ret = 0;
 
 //    byte rsp2 [] = {0x80, 0x08, 0x08, 1, 0x10, 1};                      // 1, 1     VideoFocus gained focusState=1 unsolicited=true
-//    ret = hu_aap_enc_send (chan, rsp2, sizeof (rsp2));                  // Send VideoFocus Notification
+//    ret = hu_aap_enc_send (0,chan, rsp2, sizeof (rsp2));                  // Send VideoFocus Notification
 //    ms_sleep (300);
 /*
     //#define MAX_UNACK 8     //1;
     byte rsp [] = {0x80, 0x03, 0x08, 2, 0x10, 1, 0x18, 0};//0x1a, 4, 0x08, 1, 0x10, 2};      // 1/2, MaxUnack, int[] 1        2, 0x08, 1};//
-    ret = hu_aap_enc_send (chan, rsp, sizeof (rsp));                    // Respond with Config Response
+    ret = hu_aap_enc_send (0,chan, rsp, sizeof (rsp));                    // Respond with Config Response
     //if (ret)
 */
       return (ret);
@@ -726,8 +749,20 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
   int aa_pro_vid_b07 (int chan, byte * buf, int len) {                  // Media Video ? Request...
     if (len != 4 || buf [2] != 0x10)
       loge ("Media Video ? Request");
-    else
-      logd ("Media Video ? Request: %d", buf [3]);
+    else {
+		logd ("Media Video ? Request: %d", buf [3]);
+		buf [0] = 0;                                                        // Use request buffer for response
+		buf [1] = 16;                                                       // Byebye Response
+		buf [2] = 0x08;
+		buf [3] = 0;                                                        // Status 0 = OK
+		int ret = hu_aap_enc_send (0,AA_CH_CTR, buf, 4);                      // Send Byebye Response
+		ms_sleep (100);                                                     // Wait a bit for response
+		//terminate = 1;
+
+		hu_aap_stop ();
+
+		return (-1);
+	}
     int ret = 0;
     return (ret);
   }
@@ -739,13 +774,13 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
       logd ("Sensor Start Request sensor: %d   period: %d", buf [3], buf [5]);  // R 1 SEN b 00000000 08 01 10 00     Sen: 1, 10, 3, 8, 7
                                                                                 // Yes: SENSOR_TYPE_COMPASS/LOCATION/RPM/DIAGNOSTICS/GEAR      No: SENSOR_TYPE_DRIVING_STATUS
     byte rsp [] = {0x80, 0x02, 0x08, 0};
-    int ret = hu_aap_enc_send (chan, rsp, sizeof (rsp));                  // Send Sensor Start Response
+    int ret = hu_aap_enc_send (0,chan, rsp, sizeof (rsp));                  // Send Sensor Start Response
 //    if (ret)                                                            // If error, done with error
       return (ret);
 
     //ms_sleep (20);                                                      // Else if success...
     //byte rspds [] = {0x80, 0x03, 0x6a, 2, 8, 0};                      // Driving Status = 0 = Parked (1 = Moving)
-    //return (hu_aap_enc_send (chan, rspds, sizeof (rspds)));           // Send Sensor Notification
+    //return (hu_aap_enc_send (0,chan, rspds, sizeof (rspds)));           // Send Sensor Notification
   }
 
 //aa_start 02
@@ -757,7 +792,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
                                                                         // R 3 TOU b src: AA  lft:    18  msg_type: 32770 Touch/Input/Audio Start/Stop Request
                                                                         // R 3 TOU b 00000000 0a 10 03 54 55 56 57 58 7e 7f d1 01 81 80 04 84     R 3 TOU b     0010 80 04 (Echo Key Array discovered)
     byte rsp [] = {0x80, 0x03, 0x08, 0};
-    int ret = hu_aap_enc_send (chan, rsp, sizeof (rsp));                // Respond with Key Binding/Audio Response = OK
+    int ret = hu_aap_enc_send (0,chan, rsp, sizeof (rsp));                // Respond with Key Binding/Audio Response = OK
     return (ret);
   }
 
@@ -994,7 +1029,7 @@ ms: 337, 314                                                                    
     else
       aud_ack [3] = ack_val_aud;
 
-    int ret = hu_aap_enc_send (chan, aud_ack, sizeof (aud_ack));      // Respond with ACK (for all fragments ?)
+    int ret = hu_aap_enc_send (0,chan, aud_ack, sizeof (aud_ack));      // Respond with ACK (for all fragments ?)
 
 
     //hex_dump ("AUDIO: ", 16, buf, len);
@@ -1028,14 +1063,18 @@ ms: 337, 314                                                                    
   int iaap_video_process (int msg_type, int flags, byte * buf, int len) {    // Process video packet
 // MaxUnack
 //loge ("????????????????????? !!!!!!!!!!!!!!!!!!!!!!!!!   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   vid_ack_ctr: %d  len: %d", vid_ack_ctr ++, len);
-int ret = hu_aap_enc_send (AA_CH_VID, vid_ack, sizeof (vid_ack));      // Respond with ACK (for all fragments ?)
+
+
+	int ret = hu_aap_enc_send (0,AA_CH_VID, vid_ack, sizeof (vid_ack));      // Respond with ACK (for all fragments ?)
+	
+	
 /*
     int ret = 0;
     //if (vid_ack_ctr ++ % 17 == 16)
     if (vid_ack_ctr ++ % 2 == 1)
       loge ("Drop ack to test !!!!!!!!!!!!!!!!!!!!!!!!!   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   vid_ack_ctr: %d  len: %d", vid_ack_ctr, len);
     else
-      ret = hu_aap_enc_send (AA_CH_VID, vid_ack, sizeof (vid_ack));      // Respond with ACK (for all fragments ?)
+      ret = hu_aap_enc_send (0,AA_CH_VID, vid_ack, sizeof (vid_ack));      // Respond with ACK (for all fragments ?)
 //*/
     if (0) {
     }
@@ -1130,12 +1169,16 @@ int ret = hu_aap_enc_send (AA_CH_VID, vid_ack, sizeof (vid_ack));      // Respon
     int ret = ihu_tra_stop ();                                           // Stop Transport/USBACC/OAP
     iaap_state = hu_STATE_STOPPED;
     logd ("  SET: iaap_state: %d (%s)", iaap_state, state_get (iaap_state));
-
+    
+//    g_free(rx_buf);
+//	thread_cleanup();
     return (ret);
   }
 
   int hu_aap_start (byte ep_in_addr, byte ep_out_addr) {                // Starts Transport/USBACC/OAP, then AA protocol w/ VersReq(1), SSL handshake, Auth Complete
 
+//	rx_buf = (byte *)g_malloc(DEFBUF);
+	
     if (iaap_state == hu_STATE_STARTED) {
       loge ("CHECK: iaap_state: %d (%s)", iaap_state, state_get (iaap_state));
       return (0);
@@ -1153,23 +1196,27 @@ int ret = hu_aap_enc_send (AA_CH_VID, vid_ack, sizeof (vid_ack));      // Respon
 
     byte vr_buf [] = {0, 3, 0, 6, 0, 1, 0, 1, 0, 1};                    // Version Request
     ret = hu_aap_tra_set (0, 3, 1, vr_buf, sizeof (vr_buf));
-    ret = hu_aap_tra_send (vr_buf, sizeof (vr_buf), 1000);              // Send Version Request
+    ret = hu_aap_tra_send (0, vr_buf, sizeof (vr_buf), 1000);              // Send Version Request
     if (ret < 0) {
       loge ("Version request send ret: %d", ret);
       hu_aap_stop ();
       return (-1);
     }  
 
-    byte buf [DEFBUF] = {0};
+//    byte buf [DEFBUF] = {0};
+	byte *buf = (byte *)g_malloc(DEFBUF);
     errno = 0;
-    ret = hu_aap_tra_recv (buf, sizeof (buf), 1000);                    // Get Rx packet from Transport:    Wait for Version Response
+    ret = hu_aap_tra_recv (buf, DEFBUF, 1000);                    // Get Rx packet from Transport:    Wait for Version Response
     if (ret <= 0) {
       loge ("Version response recv ret: %d", ret);
+      g_free(buf);
       hu_aap_stop ();
       return (-1);
     }  
     logd ("Version response recv ret: %d", ret);
 
+
+	g_free(buf);
 //*
     ret = hu_ssl_handshake ();                                          // Do SSL Client Handshake with AA SSL server
     if (ret) {
@@ -1179,7 +1226,7 @@ int ret = hu_aap_enc_send (AA_CH_VID, vid_ack, sizeof (vid_ack));      // Respon
 
     byte ac_buf [] = {0, 3, 0, 4, 0, 4, 8, 0};                          // Status = OK
     ret = hu_aap_tra_set (0, 3, 4, ac_buf, sizeof (ac_buf));
-    ret = hu_aap_tra_send (ac_buf, sizeof (ac_buf), 1000);              // Auth Complete, must be sent in plaintext
+    ret = hu_aap_tra_send (0, ac_buf, sizeof (ac_buf), 1000);              // Auth Complete, must be sent in plaintext
     if (ret < 0) {
       loge ("hu_aap_tra_send() ret: %d", ret);
       hu_aap_stop ();
@@ -1205,8 +1252,10 @@ http://www.cisco.com/c/en/us/support/docs/security-vpn/secure-socket-layer-ssl/1
 
 
   int iaap_recv_dec_process (int chan, int flags, byte * buf, int len) {// Decrypt & Process 1 received encrypted message
-
+	
     int bytes_written = BIO_write (hu_ssl_rm_bio, buf, len);           // Write encrypted to SSL input BIO
+    
+    
     if (bytes_written <= 0) {
       loge ("BIO_write() bytes_written: %d", bytes_written);
       return (-1);
@@ -1218,7 +1267,7 @@ http://www.cisco.com/c/en/us/support/docs/security-vpn/secure-socket-layer-ssl/1
 
     errno = 0;
     int ctr = 0;
-    int max_tries = 1;  // Higher never works
+    int max_tries = 2;  // Higher never works
     int bytes_read = -1;
     while (bytes_read <= 0 && ctr ++ < max_tries) {
       bytes_read = SSL_read (hu_ssl_ssl, dec_buf, sizeof (dec_buf));   // Read decrypted to decrypted rx buf
@@ -1241,7 +1290,7 @@ http://www.cisco.com/c/en/us/support/docs/security-vpn/secure-socket-layer-ssl/1
 #ifndef NDEBUG
 ////    if (chan != AA_CH_VID)                                          // If not video...
       if (log_packet_info) {
-        char prefix [DEFBUF] = {0};
+        char prefix [DEF_BUF] = {0};
         snprintf (prefix, sizeof (prefix), "R %d %s %1.1x", chan, chan_get (chan), flags);  // "R 1 VID B"
         int rmv = hu_aad_dmp (prefix, "AA", chan, flags, dec_buf, bytes_read);           // Dump decrypted AA
       }

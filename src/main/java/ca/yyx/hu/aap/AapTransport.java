@@ -81,7 +81,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         }
 
         ret = aa_cmd_send(0, fixed_cmd_buf, fixed_res_buf.length, fixed_res_buf);
-        if (isAlive()) {
+        if (isAlive() && !mHandler.hasMessages(POLL)) {
             mHandler.sendEmptyMessage(POLL);
         }
         return false;

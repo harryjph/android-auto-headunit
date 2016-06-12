@@ -130,13 +130,15 @@ public class AapActivity extends SurfaceActivity {
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         super.surfaceChanged(holder,format,width,height);
-//
-//        mSurfaceView.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                mTransport.sendVideoRequest();
-//            }
-//        }, 3000);
+
+        if (getIntent() != null && getIntent().getBooleanExtra("focus", false)) {
+            mSurfaceView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mTransport.sendVideoRequest();
+                }
+            }, 1000);
+        }
     }
 
 

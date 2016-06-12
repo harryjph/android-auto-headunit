@@ -4,11 +4,9 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.UiModeManager;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.IBinder;
@@ -108,9 +106,21 @@ public class AapService extends Service implements UsbReceiver.Listener {
         startForeground(1, noty);
 
         try {
-            if (connect(device))
+            if (mUsbAccessoryConnection.isDeviceRunning(device))
             {
-                onConnect();
+                if (!mTransport.isAlive())
+                {
+                    mTransport.connectAndStart(mUsbAccessoryConnection);
+                }
+                startActivity();
+            } else if (connect(device)) {
+                if (mTransport.isAlive())
+                {
+                    reset();
+                    mTransport = App.get(this).transport();
+                }
+                mTransport.connectAndStart(mUsbAccessoryConnection);
+                startActivity();
             }
             else
             {
@@ -123,14 +133,8 @@ public class AapService extends Service implements UsbReceiver.Listener {
         return START_STICKY;
     }
 
-    private void onConnect() {
-        if (mTransport.isRunning())
-        {
-            mTransport.quit();
-            mAudioDecoder.stop();
-            App.get(this).videoDecoder().stop();
-        }
-        mTransport.connectAndStart(mUsbAccessoryConnection);
+    private void startActivity()
+    {
         Intent aapIntent = new Intent(this, AapActivity.class);
         aapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(aapIntent);
@@ -139,9 +143,15 @@ public class AapService extends Service implements UsbReceiver.Listener {
     private void onDisconnect() {
         LocalBroadcastManager.getInstance(this).sendBroadcast(IntentUtils.ACTION_DISCONNECT);
         mUsbAccessoryConnection.disconnect();
+        reset();
+    }
+
+    private void reset()
+    {
         mTransport.quit();
         mAudioDecoder.stop();
         App.get(this).videoDecoder().stop();
+        App.get(this).reset();
     }
 
     private static class MediaSessionCallback extends MediaSessionCompat.Callback

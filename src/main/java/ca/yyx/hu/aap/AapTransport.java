@@ -6,6 +6,8 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 
+import net.hockeyapp.android.utils.Util;
+
 import java.nio.ByteBuffer;
 
 import ca.yyx.hu.decoder.AudioDecoder;
@@ -30,8 +32,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private final AudioDecoder mAudioDecoder;
     private final MicRecorder mMicRecorder;
     private final VideoDecoder mVideoDecoder;
-
-    private boolean mIsRunning;
+    private boolean mStopped;
 
     public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder) {
         super("AapTransport");
@@ -51,7 +52,6 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     @Override
     protected void onLooperPrepared() {
         super.onLooperPrepared();
-        mIsRunning = true;
         mHandler = new Handler(getLooper(), this);
         mHandler.sendEmptyMessage(POLL);
     }
@@ -96,20 +96,23 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             ret = aa_cmd_send(Protocol.VIDEO_FOCUS_REQUEST);
         }
 
-        return false;
-    }
+        if (ret < 0) {
+            Utils.loge("Error result: " + ret);
+            this.quit();
+        }
 
-    @Override
-    public synchronized void start() {
-        super.start();
+        return true;
     }
 
     @Override
     public boolean quit() {
         aa_cmd_send(Protocol.BUYBUY_REQUEST);
         Utils.ms_sleep(100);
-        mHandler.removeCallbacks(this);
-        mHandler = null;
+        if (mHandler != null) {
+            mHandler.removeCallbacks(this);
+            mHandler = null;
+        }
+        mStopped = true;
         return super.quit();
     }
 
@@ -238,8 +241,8 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         mHandler.sendEmptyMessage(VIDEO_REQUEST);
     }
 
-    public boolean isRunning() {
-        return mIsRunning;
+    public boolean isStopped() {
+        return mStopped;
     }
 }
 

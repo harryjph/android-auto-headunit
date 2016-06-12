@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
 
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
             @Override
             public void onClick(View v) {
                 Intent aapIntent = new Intent(SettingsActivity.this, AapActivity.class);
+                aapIntent.putExtra("focus", true);
                 startActivity(aapIntent);
             }
         });
@@ -81,12 +83,6 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
         mUsbReceiver = new UsbReceiver(this);
 
         UpdateManager.register(this);
-
-//        if (App.get(this).transport().isAapStarted())
-//        {
-//            startActivity(new Intent(this, AapActivity.class));
-//            finish();
-//        }
     }
 
     private ArrayList<UsbDeviceCompat> createDeviceList(final Set<String> allowDevices) {
@@ -134,11 +130,12 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
         Set<String> allowDevices = mSettings.getAllowedDevices();
         mAdapter.setData(createDeviceList(allowDevices), allowDevices);
         registerReceiver(mUsbReceiver, UsbReceiver.createFilter());
-        if (App.get(this).transport().isRunning()) {
+        if (App.get(this).transport().isAlive()) {
             mVideoButton.setVisibility(View.VISIBLE);
         } else {
             mVideoButton.setVisibility(View.GONE);
         }
+        CrashManager.register(this);
     }
 
     @Override

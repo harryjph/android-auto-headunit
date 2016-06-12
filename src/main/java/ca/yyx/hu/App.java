@@ -36,11 +36,14 @@ public class App extends Application {
 
         mAudioDecoder = new AudioDecoder(this);
         mVideoDecoder = new VideoDecoder(this);
-        mTransport = new AapTransport(mAudioDecoder, mVideoDecoder);
+
     }
 
     public AapTransport transport()
     {
+        if (mTransport == null || mTransport.isStopped()) {
+            mTransport = new AapTransport(mAudioDecoder, mVideoDecoder);
+        }
         return mTransport;
     }
 
@@ -51,5 +54,9 @@ public class App extends Application {
 
     public VideoDecoder videoDecoder() {
         return mVideoDecoder;
+    }
+
+    public void reset() {
+        mTransport = null;
     }
 }

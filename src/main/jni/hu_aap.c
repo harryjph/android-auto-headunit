@@ -167,8 +167,7 @@ int hu_aap_tra_send(byte *buf, int len,
 }
 
 
-int hu_aap_enc_send(int chan, byte *buf,
-                    int len) {                 // Encrypt data and send: type,...
+int hu_aap_enc_send(int chan, byte *buf, int len) {                 // Encrypt data and send: type,...
     if (iaap_state != hu_STATE_STARTED) {
         logw ("CHECK: iaap_state: %d (%s)", iaap_state, state_get(iaap_state));
         //logw ("chan: %d  len: %d  buf: %p", chan, len, buf);
@@ -176,8 +175,7 @@ int hu_aap_enc_send(int chan, byte *buf,
         return (-1);
     }
     int flags = 0x0b;                                                   // Flags = First + Last + Encrypted
-    if (chan != AA_CH_CTR && buf[0] ==
-                             0) {                            // If not control channel and msg_type = 0 - 255 = control type message
+    if (chan != AA_CH_CTR && buf[0] == 0) {                            // If not control channel and msg_type = 0 - 255 = control type message
         flags = 0x0f;                                                     // Set Control Flag (On non-control channels, indicates generic/"control type" messages
         //logd ("Setting control");
     }
@@ -1481,8 +1479,7 @@ int hu_aap_recv_process() {                                          //
         return (-1);
     }
 
-    while (have_len >
-           0) {                                              // While length remaining to process,... Process Rx packet:
+    while (have_len > 0) {                                              // While length remaining to process,... Process Rx packet:
         if (ena_log_verbo) {
             logd ("Recv while (have_len > 0): %d", have_len);
             hex_dump("LR: ", 16, buf, have_len);
@@ -1504,8 +1501,7 @@ int hu_aap_recv_process() {                                          //
             hu_aap_stop();
             return (-1);
         }
-        if (chan == AA_CH_VID && flags ==
-                                 9) {                            // If First fragment Video... (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
+        if (chan == AA_CH_VID && flags == 9) {                            // If First fragment Video... (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
             int total_size = (int) buf[3];
             total_size += ((int) buf[2] * 256);
             total_size += ((int) buf[1] * 256 * 256);
@@ -1526,8 +1522,7 @@ int hu_aap_recv_process() {                                          //
             have_len -= 4;                                                  // Remove 4 length bytes inserted into first video fragment
             buf += 4;
         }
-        if (have_len <
-            enc_len) {                                         // If we need more data for the full packet...
+        if (have_len < enc_len) {                                         // If we need more data for the full packet...
             int need_len = enc_len - have_len;
             if (transport_type != 2 || rx_len != min_size_hdr)              // If NOT wifi...
                 logd ("have_len: %d < enc_len: %d  need_len: %d", have_len, enc_len, need_len);
@@ -1579,5 +1574,3 @@ int hu_aap_recv_process() {                                          //
 
     return (ret);                                                       // Return value from the last iaap_recv_dec_process() call; should be 0
 }
-/*
-*/

@@ -27,10 +27,10 @@
 #include "hu_tcp.h"
 
 //dummy functions
-//  int hu_tcp_recv  (byte * buf, int len, int tmo) {}                     // Used by hu_aap:hu_aap_tcp_recv ()
-//  int hu_tcp_send  (byte * buf, int len, int tmo)  {}                    // Used by hu_aap:hu_aap_tcp_send ()
-//  int hu_tcp_stop  () {}                                                 // Used by hu_aap:hu_aap_stop     ()
-//  int hu_tcp_start (byte ep_in_addr, byte ep_out_addr) {}                // Used by hu_aap:hu_aap_start    ()
+  int hu_tcp_recv  (byte * buf, int len, int tmo) {}                     // Used by hu_aap:hu_aap_tcp_recv ()
+  int hu_tcp_send  (byte * buf, int len, int tmo)  {}                    // Used by hu_aap:hu_aap_tcp_send ()
+  int hu_tcp_stop  () {}                                                 // Used by hu_aap:hu_aap_stop     ()
+  int hu_tcp_start (byte ep_in_addr, byte ep_out_addr) {}                // Used by hu_aap:hu_aap_start    ()
 
 
   int transport_type = 1; // 1=USB 2=WiFi
@@ -1203,20 +1203,20 @@ ms: 337, 314                                                                    
       return (-1);
     }  
 
-    byte buf [DEFBUF] = {0};
-//	byte *buf = (byte *)g_malloc(DEFBUF);
+//    byte buf [DEFBUF] = {0};
+	byte *buf = (byte *)g_malloc(DEFBUF);
     errno = 0;
     ret = hu_aap_tra_recv (buf, DEFBUF, 1000);                    // Get Rx packet from Transport:    Wait for Version Response
     if (ret <= 0) {
       loge ("Version response recv ret: %d", ret);
-//      g_free(buf);
+      g_free(buf);
       hu_aap_stop ();
       return (-1);
     }  
     logd ("Version response recv ret: %d", ret);
 
 
-//	g_free(buf);
+	g_free(buf);
 //*
     ret = hu_ssl_handshake ();                                          // Do SSL Client Handshake with AA SSL server
     if (ret) {

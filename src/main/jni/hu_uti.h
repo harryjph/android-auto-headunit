@@ -3,7 +3,7 @@
 
 //  #define UTILS_INCLUDED
 
-  #define NDEBUG // Ensure debug stuff
+#undef NDEBUG // Ensure debug stuff
 
   #define hu_STATE_INITIAL   0
   #define hu_STATE_STARTIN   1
@@ -41,7 +41,7 @@
   extern int ena_log_verbo;
 
   #define byte unsigned char
-  #define DEFBUF  16384     //16384 65536                                                // Default buffer size is maximum for USB
+  #define DEFBUF  65536     //16384                                                 // Default buffer size is maximum for USB
 
   #define DEF_BUF 512                                                   // For Ascii strings and such
 
@@ -205,27 +205,15 @@ strlcpy(char       *dst,        /* O - Destination string */
 
 #define USB_VID_HTC 0x0bb4
 #define USB_VID_MOT 0x22b8
-#define USB_VID_ACE 0x0502
-#define USB_VID_HUA 0x12d1
-#define USB_VID_PAN 0x10a9
-#define USB_VID_ZTE 0x19d2
-#define USB_VID_GAR 0x091e
-#define USB_VID_XIA 0x2717
-#define USB_VID_ASU 0x0b05
-#define USB_VID_MEI 0x2a45
-#define USB_VID_LEN 0x17ef
-
 
 #define USB_VID_SAM 0x04e8
 #define USB_VID_O1A 0xfff6  // Samsung ?
 
 #define USB_VID_SON 0x0fce
 #define USB_VID_LGE 0xfff5
-#define USB_VID_LGD 0x1004
 
 #define USB_VID_LIN 0x1d6b
 #define USB_VID_QUA 0x05c6
-#define USB_VID_ONE 0x2a70
 #define USB_VID_COM 0x1519  // Comneon
 
 #define USB_VID_ASE 0x0835  // Action Star Enterprise

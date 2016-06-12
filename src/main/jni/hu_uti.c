@@ -109,7 +109,7 @@
     if (! ena_log_error && prio == hu_LOG_ERR)
       return -1;
 
-    char tag_str [DEF_BUF] = {0};
+    char tag_str [DEFBUF] = {0};
     snprintf (tag_str, sizeof (tag_str), "%32.32s", func);
 
     va_list ap;
@@ -123,7 +123,7 @@
     int len = vsnprintf (log_line, sizeof (log_line), fmt, aq);
     time_t timet = time (NULL);
     const time_t * timep = & timet;
-    char asc_time [DEF_BUF] = "";
+    char asc_time [DEFBUF] = "";
     ctime_r (timep, asc_time);
     int len_time = strlen (asc_time);
     asc_time [len_time - 1] = 0;        // Remove trailing \n

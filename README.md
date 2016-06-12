@@ -1,13 +1,5 @@
-# Unofficial Mazda Connect (tm) (*) Android Auto Headunit App
-
-Unofficial port of Android Auto Headunit App to Mazda Connect CMU. The app makes extensive use of jni functions that were originally developed by Mike Reid as part of his Android app (see below). The Mazda specific source code is under the /mazda folder.
-
-See the [Mazda3 Revolution] thread for details. 
-
-(*) - Mazda and Mazda Connect are trademarks of Mazda NA
-
-
-### Headunit for Android Auto (tm)
+# headunit
+Headunit for Android Auto (tm)
 
 A new car or a $600+ headunit is NOT required to enjoy the integration and distraction reduced environment of Android Auto.
 
@@ -22,9 +14,3 @@ MUCH more info and ask any question on my XDA thread: http://forum.xda-developer
 Latest June 16 Release #5 APK here: http://forum.xda-developers.com/showpost.php?p=61422602&postcount=163
 
 Android, Google Play, Google Maps, Google Play Music and Android Auto are trademarks of Google Inc.
-
-[//]:#
-
-   [Mazda3 Revolution]: <http://mazda3revolution.com/forums/2014-2016-mazda-3-skyactiv-audio-electronics/121561-android-auto-headunit-app-beta.html>
-   
-

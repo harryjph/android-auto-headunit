@@ -19,6 +19,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private static final int TOUCH_SYNC = 2;
     private static final int MIC_RECORD_START = 3;
     private static final int MIC_RECORD_STOP = 4;
+    private static final int VIDEO_REQUEST = 5;
 
     private byte[] fixed_cmd_buf = new byte[256];
     private byte[] fixed_res_buf = new byte[65536 * 16];
@@ -56,6 +57,11 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     @Override
     public boolean handleMessage(Message msg) {
         int ret = 0;
+
+        if (msg.what == VIDEO_REQUEST)
+        {
+            ret = aa_cmd_send(Protocol.VIDEO_SETUP_REQUEST);
+        }
 
         if (msg.what == MIC_RECORD_STOP) {
             mMicRecording = false;
@@ -218,6 +224,10 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
         int len_touch = idx;
         sendTouch(len_touch, ba_touch);
+    }
+
+    void sendVideoRequest() {
+        mHandler.sendMessageAtFrontOfQueue(mHandler.obtainMessage(VIDEO_REQUEST));
     }
 }
 

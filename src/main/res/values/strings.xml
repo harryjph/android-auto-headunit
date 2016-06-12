@@ -8,5 +8,7 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="allowed">Allowed</string>
     <string name="ignored">Ignored</string>
+    <string name="exit">Exit</string>
+    <string name="video">Video</string>
 </resources>
 

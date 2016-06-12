@@ -124,6 +124,12 @@ public class AapService extends Service implements UsbReceiver.Listener {
     }
 
     private void onConnect() {
+        if (mTransport.isRunning())
+        {
+            mTransport.quit();
+            mAudioDecoder.stop();
+            App.get(this).videoDecoder().stop();
+        }
         mTransport.connectAndStart(mUsbAccessoryConnection);
         Intent aapIntent = new Intent(this, AapActivity.class);
         aapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -135,6 +141,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
         mUsbAccessoryConnection.disconnect();
         mTransport.quit();
         mAudioDecoder.stop();
+        App.get(this).videoDecoder().stop();
     }
 
     private static class MediaSessionCallback extends MediaSessionCompat.Callback

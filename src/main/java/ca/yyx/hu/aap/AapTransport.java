@@ -31,6 +31,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private final MicRecorder mMicRecorder;
     private final VideoDecoder mVideoDecoder;
 
+    private boolean mIsRunning;
 
     public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder) {
         super("AapTransport");
@@ -50,6 +51,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     @Override
     protected void onLooperPrepared() {
         super.onLooperPrepared();
+        mIsRunning = true;
         mHandler = new Handler(getLooper(), this);
         mHandler.sendEmptyMessage(POLL);
     }
@@ -57,11 +59,6 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     @Override
     public boolean handleMessage(Message msg) {
         int ret = 0;
-
-        if (msg.what == VIDEO_REQUEST)
-        {
-            ret = aa_cmd_send(Protocol.VIDEO_SETUP_REQUEST);
-        }
 
         if (msg.what == MIC_RECORD_STOP) {
             mMicRecording = false;
@@ -87,9 +84,18 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         }
 
         ret = aa_cmd_send(0, fixed_cmd_buf, fixed_res_buf.length, fixed_res_buf);
+        if (mHandler == null) {
+            return false;
+        }
         if (isAlive() && !mHandler.hasMessages(POLL)) {
             mHandler.sendEmptyMessage(POLL);
         }
+
+        if (msg.what == VIDEO_REQUEST)
+        {
+            ret = aa_cmd_send(Protocol.VIDEO_FOCUS_REQUEST);
+        }
+
         return false;
     }
 
@@ -102,6 +108,8 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     public boolean quit() {
         aa_cmd_send(Protocol.BUYBUY_REQUEST);
         Utils.ms_sleep(100);
+        mHandler.removeCallbacks(this);
+        mHandler = null;
         return super.quit();
     }
 
@@ -227,7 +235,11 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     }
 
     void sendVideoRequest() {
-        mHandler.sendMessageAtFrontOfQueue(mHandler.obtainMessage(VIDEO_REQUEST));
+        mHandler.sendEmptyMessage(VIDEO_REQUEST);
+    }
+
+    public boolean isRunning() {
+        return mIsRunning;
     }
 }
 

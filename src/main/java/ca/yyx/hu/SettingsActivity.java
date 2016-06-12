@@ -37,11 +37,21 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
     private Settings mSettings;
     private DeviceAdapter mAdapter;
     private BroadcastReceiver mUsbReceiver;
+    private View mVideoButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+
+        mVideoButton = findViewById(R.id.video_button);
+        mVideoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent aapIntent = new Intent(SettingsActivity.this, AapActivity.class);
+                startActivity(aapIntent);
+            }
+        });
 
         findViewById(R.id.back_button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -124,6 +134,11 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
         Set<String> allowDevices = mSettings.getAllowedDevices();
         mAdapter.setData(createDeviceList(allowDevices), allowDevices);
         registerReceiver(mUsbReceiver, UsbReceiver.createFilter());
+        if (App.get(this).transport().isRunning()) {
+            mVideoButton.setVisibility(View.VISIBLE);
+        } else {
+            mVideoButton.setVisibility(View.GONE);
+        }
     }
 
     @Override

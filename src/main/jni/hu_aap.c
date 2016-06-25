@@ -349,13 +349,10 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
                                      0x4a, 0,
 //*/
 //*
-                 0x12, 4, 'R', 'e', 'i',
-                 'd',//1, 'A', // Car Manuf          Part of "remembered car"
+                 0x12, 4, 'R', 'e', 'i', 'd',//1, 'A', // Car Manuf          Part of "remembered car"
                  0x1A, 4, 'A', 'l', 'b', 'e',//1, 'B', // Car Model
-                 0x22, 4, '2', '0', '1',
-                 '6',//1, 'C', // Car Year           Part of "remembered car"
-                 0x2A, 4, '0', '0', '0',
-                 '1',//1, 'D', // Car Serial     Not Part of "remembered car" ??     (vehicleId=null)
+                 0x22, 4, '2', '0', '1', '6',//1, 'C', // Car Year           Part of "remembered car"
+                 0x2A, 4, '0', '0', '0', '1',//1, 'D', // Car Serial     Not Part of "remembered car" ??     (vehicleId=null)
                  0x30, 1,//0,      // driverPosition
                  0x3A, 4, 'M', 'i', 'k', 'e',//1, 'E', // HU  Make / Manuf
                  0x42, 4, 'H', 'U', '1', '5',//1, 'F', // HU  Model
@@ -445,8 +442,7 @@ int aa_pro_ctr_a05(int chan, byte *buf, int len) {                  // Service D
         sd_buf_len -=
                 sd_buf_aud_len;                                     // Remove audio outputs from service discovery response buf
 
-    return (hu_aap_enc_send(chan, sd_buf,
-                            sd_buf_len));                // Send Service Discovery Response from sd_buf
+    return (hu_aap_enc_send(chan, sd_buf, sd_buf_len));                // Send Service Discovery Response from sd_buf
 }
 
 int aa_pro_ctr_a06(int chan, byte *buf, int len) {                  // Service Discovery Response
@@ -587,13 +583,15 @@ int aa_pro_ctr_a12(int chan, byte *buf, int len) {                  // Audio Foc
     // 5: AUDIO_FOCUS_STATE_LOSS_TRANSIENT
     // 6: AUDIO_FOCUS_STATE_GAIN_MEDIA_ONLY
     // 7: AUDIO_FOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY
-    if (buf[3] == 4)                                                   // If AUDIO_FOCUS_RELEASE...
-        buf[3] = 3;                                                      // Send AUDIO_FOCUS_STATE_LOSS
-    else if (buf[3] ==
-             2)                                              // If AUDIO_FOCUS_GAIN_TRANSIENT...
+    if (buf[3] == 4) {                                                  // If AUDIO_FOCUS_RELEASE...
+        buf[3] = 3;
+    }   // Send AUDIO_FOCUS_STATE_LOSS
+    else if (buf[3] == 2) {                                             // If AUDIO_FOCUS_GAIN_TRANSIENT...
         buf[3] = 1;//2;                                                      // Send AUDIO_FOCUS_STATE_GAIN_TRANSIENT
-    else
+    }
+    else {
         buf[3] = 1;                                                      // Send AUDIO_FOCUS_STATE_GAIN
+    }
     //buf [4] = 0x10;
     //buf [5] = 0;                                                      // unsolicited:   0 = false   1 = true
     int ret = hu_aap_enc_send(chan, buf, 4);//6);                      // Send Audio Focus Response
@@ -702,8 +700,7 @@ int aa_pro_snk_b00(int chan, byte *buf, int len) {                  // Media Sin
               buf[3]);                   // R 2 VID b 00000000 08 03       R 4 AUD b 00000000 08 01
 
 #define MAX_UNACK 1 //8 //3 //8 //1
-    byte rsp[] = {0x80, 0x03, 0x08, 2, 0x10, MAX_UNACK, 0x18,
-                  0};//0x1a, 4, 0x08, 1, 0x10, 2};      // 1/2, MaxUnack, int[] 1        2, 0x08, 1};//
+    byte rsp[] = {0x80, 0x03, 0x08, 2, 0x10, MAX_UNACK, 0x18, 0};//0x1a, 4, 0x08, 1, 0x10, 2};      // 1/2, MaxUnack, int[] 1        2, 0x08, 1};//
 
     int ret = hu_aap_enc_send(chan, rsp, sizeof(rsp));               // Respond with Config Response
     if (ret)
@@ -718,10 +715,8 @@ int aa_pro_snk_b00(int chan, byte *buf, int len) {                  // Media Sin
 //*
     if (chan == AA_CH_VID) {
 //      ms_sleep (200);//(2);//200);//20);                                                      // Else if success and channel = video...
-        byte rsp2[] = {0x80, 0x08, 0x08, 1, 0x10,
-                       1};                      // 1, 1     VideoFocus gained focusState=1 unsolicited=true     010b0000800808011001
-        return (hu_aap_enc_send(chan, rsp2,
-                                sizeof(rsp2)));              // Respond with VideoFocus gained
+        byte rsp2[] = {0x80, 0x08, 0x08, 1, 0x10, 1};                      // 1, 1     VideoFocus gained focusState=1 unsolicited=true     010b0000800808011001
+        return (hu_aap_enc_send(chan, rsp2, sizeof(rsp2)));              // Respond with VideoFocus gained
     }
 //*/
     return (ret);
@@ -1348,8 +1343,7 @@ int hu_aap_start(byte ep_in_addr,
 
     byte ac_buf[] = {0, 3, 0, 4, 0, 4, 8, 0};                          // Status = OK
     ret = hu_aap_tra_set(0, 3, 4, ac_buf, sizeof(ac_buf));
-    ret = hu_aap_tra_send(ac_buf, sizeof(ac_buf),
-                          1000);              // Auth Complete, must be sent in plaintext
+    ret = hu_aap_tra_send(ac_buf, sizeof(ac_buf), 1000);              // Auth Complete, must be sent in plaintext
     if (ret < 0) {
         loge ("hu_aap_tra_send() ret: %d", ret);
         hu_aap_stop();

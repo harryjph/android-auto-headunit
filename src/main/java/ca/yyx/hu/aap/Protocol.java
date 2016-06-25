@@ -43,8 +43,13 @@ public class Protocol {
             0, 0x10, 0x2b, 0, 0x18, 0x00, 0x10, 0x00, 0x18, 0x00
     };
 
-    static byte[] VIDEO_FOCUS_REQUEST  = { AA_CH_VID, 0x0b, 0x00, 0x00, 0x00, 0x08, 0x08, 0x01, 0x10, 0x01 };
 
+//    06-18 12:42:20.994 16212-17361/ca.yyx.hu D/                      hu_aad_dmp: RCV 2 VID b src: AA  lft:     4  msg_type: 32769 Sensor/Media Start Request
+//    06-18 12:42:20.994 16212-17361/ca.yyx.hu D/                        hex_dump: RCV 2 VID b 00000000 08 00 10 00
+    static byte[] VIDEO_STOP = { AA_CH_VID, 0x0b, 0x00, 0x00, -128, 0x08, 0x08, 0x00, 0x10, 0x01 };
+//    06-18 12:55:55.145 28234-28399/ca.yyx.hu D/                      hu_aad_dmp: RCV 2 VID b src: AA  lft:     2  msg_type: 32768 Media Setup Request
+//    06-18 12:55:55.145 28234-28399/ca.yyx.hu D/                        hex_dump: RCV 2 VID b 00000000 08 03
+    static byte[] VIDEO_SETUP = { AA_CH_VID, 0x0b, 0x00, 0x00, -128, 0x08, 0x08, 0x03 };
 
     public static byte[] createMicBuffer()
     {

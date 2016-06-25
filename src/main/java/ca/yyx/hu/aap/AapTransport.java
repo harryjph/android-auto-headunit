@@ -6,8 +6,6 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 
-import net.hockeyapp.android.utils.Util;
-
 import java.nio.ByteBuffer;
 
 import ca.yyx.hu.decoder.AudioDecoder;
@@ -21,7 +19,8 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private static final int TOUCH_SYNC = 2;
     private static final int MIC_RECORD_START = 3;
     private static final int MIC_RECORD_STOP = 4;
-    private static final int VIDEO_REQUEST = 5;
+    private static final int VIDEO_STOP = 5;
+    private static final int VIDEO_START = 6;
 
     private byte[] fixed_cmd_buf = new byte[256];
     private byte[] fixed_res_buf = new byte[65536 * 16];
@@ -91,9 +90,13 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             mHandler.sendEmptyMessage(POLL);
         }
 
-        if (msg.what == VIDEO_REQUEST)
+        if (msg.what == VIDEO_STOP)
         {
-            ret = aa_cmd_send(Protocol.VIDEO_FOCUS_REQUEST);
+            ret = aa_cmd_send(Protocol.VIDEO_STOP);
+        }
+        if (msg.what == VIDEO_START)
+        {
+            ret = aa_cmd_send(Protocol.VIDEO_SETUP);
         }
 
         if (ret < 0) {
@@ -191,6 +194,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         bb.position(0);
 
         if (VideoDecoder.isH246Video(buffer)) {
+            Utils.loge(" 4th value: " + Utils.hex_get(buffer[4]));
             mVideoDecoder.decode(bb);
         } else {
             mAudioDecoder.decode(bb);
@@ -237,8 +241,16 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         sendTouch(len_touch, ba_touch);
     }
 
-    void sendVideoRequest() {
-        mHandler.sendEmptyMessage(VIDEO_REQUEST);
+    void sendVideoStop() {
+        if (mHandler != null) {
+            mHandler.sendEmptyMessage(VIDEO_STOP);
+        }
+    }
+
+    void sendVideoStart() {
+        if (mHandler != null) {
+            mHandler.sendEmptyMessage(VIDEO_START);
+        }
     }
 
     public boolean isStopped() {

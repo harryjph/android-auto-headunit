@@ -62,8 +62,7 @@ int jni_aa_cmd(int cmd_len, char *cmd_buf, int res_max, char *res_buf) {
     Video
     Audio
 */
-    else if (cmd_buf != NULL &&
-             cmd_len >= 4) {                         // If encrypted command to send...
+    else if (cmd_buf != NULL && cmd_len >= 4) {                         // If encrypted command to send...
         int chan = 0;//cmd_buf [0];
 
         if (cmd_len > 63)                                                 // If Microphone audio...

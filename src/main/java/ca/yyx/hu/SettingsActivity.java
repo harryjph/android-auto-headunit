@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Set;
 
-import ca.yyx.hu.aap.AapActivity;
+import ca.yyx.hu.aap.AapProjectionActivity;
 import ca.yyx.hu.aap.AapService;
 import ca.yyx.hu.usb.UsbDeviceCompat;
 import ca.yyx.hu.usb.UsbModeSwitch;
@@ -49,8 +49,8 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
         mVideoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent aapIntent = new Intent(SettingsActivity.this, AapActivity.class);
-                aapIntent.putExtra("focus", true);
+                Intent aapIntent = new Intent(SettingsActivity.this, AapProjectionActivity.class);
+                aapIntent.putExtra(AapProjectionActivity.EXTRA_FOCUS, true);
                 startActivity(aapIntent);
             }
         });

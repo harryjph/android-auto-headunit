@@ -8,7 +8,6 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.widget.Toast;
 
-import ca.yyx.hu.aap.AapActivity;
 import ca.yyx.hu.aap.AapService;
 import ca.yyx.hu.usb.UsbDeviceCompat;
 import ca.yyx.hu.usb.UsbModeSwitch;
@@ -31,6 +30,12 @@ public class UsbAttachedActivity extends Activity {
         UsbDevice device = IntentUtils.getDevice(getIntent());
         if (device == null) {
             Utils.loge("No USB device");
+            finish();
+            return;
+        }
+
+        if (App.get(this).transport().isAlive()) {
+            Utils.loge("Thread already running");
             finish();
             return;
         }
@@ -76,9 +81,13 @@ public class UsbAttachedActivity extends Activity {
 
         Utils.logd(UsbDeviceCompat.getUniqueName(device));
 
-        if (UsbDeviceCompat.isInAccessoryMode(device)) {
-            Utils.loge("Usb in accessory mode");
-            startService(AapService.createIntent(device, this));
+        if (!App.get(this).transport().isAlive()) {
+            if (UsbDeviceCompat.isInAccessoryMode(device)) {
+                Utils.loge("Usb in accessory mode");
+                startService(AapService.createIntent(device, this));
+            }
+        } else {
+            Utils.loge("Thread already running");
         }
 
         finish();

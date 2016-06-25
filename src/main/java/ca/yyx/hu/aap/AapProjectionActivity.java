@@ -63,29 +63,22 @@ package ca.yyx.hu.aap;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
 
-import net.hockeyapp.android.CrashManager;
-import net.hockeyapp.android.UpdateManager;
-
 import ca.yyx.hu.App;
-import ca.yyx.hu.R;
-import ca.yyx.hu.SettingsActivity;
 import ca.yyx.hu.SurfaceActivity;
-import ca.yyx.hu.usb.UsbAccessoryConnection;
+import ca.yyx.hu.utils.IntentExtra;
 import ca.yyx.hu.utils.IntentUtils;
 import ca.yyx.hu.utils.Utils;
 
 
-public class AapActivity extends SurfaceActivity {
+public class AapProjectionActivity extends SurfaceActivity {
 
+    public static final String EXTRA_FOCUS = "focus";
     private AapTransport mTransport;
 
     private static final double m_virt_vid_wid = 800f;
@@ -128,19 +121,21 @@ public class AapActivity extends SurfaceActivity {
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        super.surfaceChanged(holder,format,width,height);
-
-        if (getIntent() != null && getIntent().getBooleanExtra("focus", false)) {
-            mSurfaceView.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mTransport.sendVideoRequest();
-                }
-            }, 1000);
-        }
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
     }
 
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        super.surfaceChanged(holder,format,width,height);
+        mTransport.sendVideoStart();
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        mTransport.sendVideoStop();
+        super.surfaceDestroyed(holder);
+    }
 
     private void touch_send(MotionEvent event) {
 

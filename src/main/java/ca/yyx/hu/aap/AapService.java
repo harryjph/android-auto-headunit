@@ -88,7 +88,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
         mUiModeManager.enableCarMode(0);
         mUiModeManager.setNightMode(UiModeManager.MODE_NIGHT_AUTO);
 
-        Intent aapIntent = new Intent(this, AapActivity.class);
+        Intent aapIntent = new Intent(this, AapProjectionActivity.class);
         aapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         Notification noty = new NotificationCompat.Builder(this)
@@ -135,7 +135,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
 
     private void startActivity()
     {
-        Intent aapIntent = new Intent(this, AapActivity.class);
+        Intent aapIntent = new Intent(this, AapProjectionActivity.class);
         aapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(aapIntent);
     }
@@ -192,7 +192,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
     @Override
     public void onUsbDetach(UsbDevice device) {
         if (mUsbAccessoryConnection.isDeviceRunning(device)) {
-            onDisconnect();
+            stopSelf();
         }
     }
 

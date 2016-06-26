@@ -10,8 +10,6 @@
 
 #include "hu_uti.h"
 
-#ifndef NDEBUG
-
 char *state_get(int state) {
     switch (state) {
         case hu_STATE_INITIAL:                                           // 0
@@ -27,8 +25,6 @@ char *state_get(int state) {
     }
     return ("hu_STATE Unknown error");
 }
-
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>

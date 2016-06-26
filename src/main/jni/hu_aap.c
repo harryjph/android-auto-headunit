@@ -5,6 +5,8 @@
 #include "hu_uti.h"
 #include "hu_ssl.h"
 #include "hu_aap.h"
+#include "hu_usb.h"
+#include "hu_tcp.h"
 
 #ifndef NDEBUG
 
@@ -35,9 +37,6 @@ char *chan_get(int chan) {
     }
     return ("UNK");
 }
-
-#include "hu_usb.h"
-#include "hu_tcp.h"
 
 int transport_type = 1; // 1=USB 2=WiFi
 int ihu_tra_recv(byte *buf, int len, int tmo) {
@@ -117,11 +116,9 @@ int hu_aap_tra_set(int chan, int flags, int type, byte *buf,
 
     buf[0] = (byte) chan;                                              // Encode channel and flags
     buf[1] = (byte) flags;
-    buf[2] = (len - 4) /
-             256;                                            // Encode length of following data:
+    buf[2] = (len - 4) / 256;                                            // Encode length of following data:
     buf[3] = (len - 4) % 256;
-    if (type >=
-        0) {                                                    // If type not negative, which indicates encrypted type should not be touched...
+    if (type >= 0) {                                                    // If type not negative, which indicates encrypted type should not be touched...
         buf[4] = type / 256;
         buf[5] = type % 256;                                             // Encode msg_type
     }
@@ -481,8 +478,7 @@ int aa_pro_ctr_a0b(int chan, byte *buf, int len) {                  // Ping Requ
     return (ret);
 }
 
-int aa_pro_ctr_a0c(int chan, byte *buf,
-                   int len) {                  // Ping Response (never unless we send Ping Request)
+int aa_pro_ctr_a0c(int chan, byte *buf, int len) {                  // Ping Response (never unless we send Ping Request)
     loge ("!!!!!!!!");
     return (-1);
 }
@@ -546,8 +542,7 @@ int aa_pro_ctr_a10(int chan, byte *buf, int len) {                  // Byebye Re
     return (-1);
 }
 
-int aa_pro_ctr_a11(int chan, byte *buf,
-                   int len) {                  // sr:  00000000 00 11 08 01      Microphone voice search usage     sr:  00000000 00 11 08 02
+int aa_pro_ctr_a11(int chan, byte *buf, int len) {                  // sr:  00000000 00 11 08 01      Microphone voice search usage     sr:  00000000 00 11 08 02
     if (len != 4 || buf[2] != 0x08)
         loge ("Voice Session Notification");
     else if (buf[3] == 1)
@@ -729,8 +724,7 @@ int out_state_aud = -1;
 int out_state_au1 = -1;
 int out_state_au2 = -1;
 
-int aa_pro_aud_b01(int chan, byte *buf,
-                   int len) {                  // Audio Sink Start Request...     First/Second R 4 AUD b 00000000 08 00/01 10 00
+int aa_pro_aud_b01(int chan, byte *buf, int len) {                  // Audio Sink Start Request...     First/Second R 4 AUD b 00000000 08 00/01 10 00
     if (len != 6 || buf[2] != 0x08 || buf[4] != 0x10)
         loge ("Audio Sink Start Request");
     else
@@ -761,8 +755,7 @@ int hu_aap_out_get(int chan) {
     return (state);                                                     // Return what the new state was before reset
 }
 
-int aa_pro_aud_b02(int chan, byte *buf,
-                   int len) {                  // 08-22 20:03:09.075 D/ .... hex_dump(30767): S 4 AUD b 00000000 08 00 10 01   Only at stop ??
+int aa_pro_aud_b02(int chan, byte *buf, int len) {                  // 08-22 20:03:09.075 D/ .... hex_dump(30767): S 4 AUD b 00000000 08 00 10 01   Only at stop ??
     if (len != 2)//4 || buf [2] != 0x08)
         loge ("Audio Sink Stop Request");
     else
@@ -1004,8 +997,7 @@ aa_type_ptr_t aa_type_array[
 
 void iaap_video_decode(byte *buf, int len) {
 
-    byte *q_buf = vid_write_tail_buf_get(
-            len);                         // Get queue buffer tail to write to     !!! Need to lock until buffer written to !!!!
+    char *q_buf = vid_write_tail_buf_get(len);                         // Get queue buffer tail to write to     !!! Need to lock until buffer written to !!!!
     if (ena_log_verbo)
         logd ("video q_buf: %p  buf: %p  len: %d", q_buf, buf, len);
     if (q_buf == NULL) {
@@ -1013,11 +1005,9 @@ void iaap_video_decode(byte *buf, int len) {
         //return;                                                         // Continue in order to write to record file
     }
     else
-        memcpy(q_buf, buf,
-               len);                                         // Copy video to queue buffer
+        memcpy(q_buf, buf, len);                                         // Copy video to queue buffer
 
-    if (vid_rec_ena ==
-        0)                                               // Return if video recording not enabled
+    if (vid_rec_ena == 0)                                               // Return if video recording not enabled
         return;
 
 #ifndef NDEBUG
@@ -1051,15 +1041,14 @@ void iaap_audio_decode(int chan, byte *buf, int len) {
 //*
 
     //hu_uti.c:  #define aud_buf_BUFS_SIZE    65536 * 4      // Up to 256 Kbytes
-#define aud_buf_BUFS_SIZE    65536 * 4      // Up to 256 Kbytes
+#define aud_buf_BUFS_SIZE  65536 * 4      // Up to 256 Kbytes
     if (len > aud_buf_BUFS_SIZE) {
         loge ("Error audio len: %d  aud_buf_BUFS_SIZE: %d", len, aud_buf_BUFS_SIZE);
         len = aud_buf_BUFS_SIZE;
     }
 
 
-    byte *q_buf = aud_write_tail_buf_get(
-            len);                         // Get queue buffer tail to write to     !!! Need to lock until buffer written to !!!!
+    char *q_buf = aud_write_tail_buf_get(len);                         // Get queue buffer tail to write to     !!! Need to lock until buffer written to !!!!
     if (ena_log_verbo)
         logd ("audio q_buf: %p  buf: %p  len: %d", q_buf, buf, len);
     if (q_buf == NULL) {
@@ -1067,8 +1056,7 @@ void iaap_audio_decode(int chan, byte *buf, int len) {
         //return;                                                         // Continue in order to write to record file
     }
     else {
-        memcpy(q_buf, buf,
-               len);                                         // Copy audio to queue buffer
+        memcpy(q_buf, buf, len);                                         // Copy audio to queue buffer
 
         if (0) {//chan == AA_CH_AU1 || chan == AA_CH_AU2) {
             len *= 6;                                                       // 48k stereo takes 6 times the space
@@ -1098,8 +1086,7 @@ void iaap_audio_decode(int chan, byte *buf, int len) {
     }
 
 //*/
-    if (aud_rec_ena ==
-        0)                                               // Return if audio recording not enabled
+    if (aud_rec_ena == 0)                                               // Return if audio recording not enabled
         return;
 
 //#ifndef NDEBUG

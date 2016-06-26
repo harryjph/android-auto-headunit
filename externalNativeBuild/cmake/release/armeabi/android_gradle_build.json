@@ -1,0 +1,74 @@
+
+{
+	"buildFiles" : [ "/Users/algavris/dev/headunit/CMakeLists.txt" ],
+	"cFileExtensions" : [ "c" ],
+	"cleanCommands" : 
+	[
+		"/Users/algavris/Library/Android/sdk/cmake/bin/cmake --build /Users/algavris/dev/headunit/externalNativeBuild/cmake/release/armeabi --target clean"
+	],
+	"libraries" : 
+	{
+		"hu_jni-Release-armeabi" : 
+		{
+			"abi" : "armeabi",
+			"artifactName" : "hu_jni",
+			"buildCommand" : "/Users/algavris/Library/Android/sdk/cmake/bin/cmake --build /Users/algavris/dev/headunit/externalNativeBuild/cmake/release/armeabi --target hu_jni",
+			"buildType" : "release",
+			"files" : 
+			[
+				
+				{
+					"flags" : " -DANDROID -Dhu_jni_EXPORTS -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm/usr/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -I../../../../src/main/jni/libs/headers  -fexceptions -Wno-psabi --sysroot=/Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm -funwind-tables -finline-limit=64 -fsigned-char -no-canonical-prefixes -march=armv5te -mtune=xscale -msoft-float -fdata-sections -ffunction-sections -Wa,--noexecstack  -mthumb -fomit-frame-pointer -fno-strict-aliasing -O3 -DNDEBUG -fPIC        ",
+					"src" : "/Users/algavris/dev/headunit/src/main/jni/hu_aad.c",
+					"workingDirectory" : "/Users/algavris/dev/headunit/externalNativeBuild/cmake/release/armeabi"
+				},
+				
+				{
+					"flags" : " -DANDROID -Dhu_jni_EXPORTS -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm/usr/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -I../../../../src/main/jni/libs/headers  -fexceptions -Wno-psabi --sysroot=/Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm -funwind-tables -finline-limit=64 -fsigned-char -no-canonical-prefixes -march=armv5te -mtune=xscale -msoft-float -fdata-sections -ffunction-sections -Wa,--noexecstack  -mthumb -fomit-frame-pointer -fno-strict-aliasing -O3 -DNDEBUG -fPIC        ",
+					"src" : "/Users/algavris/dev/headunit/src/main/jni/hu_uti.c",
+					"workingDirectory" : "/Users/algavris/dev/headunit/externalNativeBuild/cmake/release/armeabi"
+				},
+				
+				{
+					"flags" : " -DANDROID -Dhu_jni_EXPORTS -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm/usr/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -I../../../../src/main/jni/libs/headers  -fexceptions -Wno-psabi --sysroot=/Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm -funwind-tables -finline-limit=64 -fsigned-char -no-canonical-prefixes -march=armv5te -mtune=xscale -msoft-float -fdata-sections -ffunction-sections -Wa,--noexecstack  -mthumb -fomit-frame-pointer -fno-strict-aliasing -O3 -DNDEBUG -fPIC        ",
+					"src" : "/Users/algavris/dev/headunit/src/main/jni/hu_ssl.c",
+					"workingDirectory" : "/Users/algavris/dev/headunit/externalNativeBuild/cmake/release/armeabi"
+				},
+				
+				{
+					"flags" : " -DANDROID -Dhu_jni_EXPORTS -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm/usr/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -I../../../../src/main/jni/libs/headers  -fexceptions -Wno-psabi --sysroot=/Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm -funwind-tables -finline-limit=64 -fsigned-char -no-canonical-prefixes -march=armv5te -mtune=xscale -msoft-float -fdata-sections -ffunction-sections -Wa,--noexecstack  -mthumb -fomit-frame-pointer -fno-strict-aliasing -O3 -DNDEBUG -fPIC        ",
+					"src" : "/Users/algavris/dev/headunit/src/main/jni/hu_usb.c",
+					"workingDirectory" : "/Users/algavris/dev/headunit/externalNativeBuild/cmake/release/armeabi"
+				},
+				
+				{
+					"flags" : " -DANDROID -Dhu_jni_EXPORTS -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm/usr/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -I../../../../src/main/jni/libs/headers  -fexceptions -Wno-psabi --sysroot=/Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm -funwind-tables -finline-limit=64 -fsigned-char -no-canonical-prefixes -march=armv5te -mtune=xscale -msoft-float -fdata-sections -ffunction-sections -Wa,--noexecstack  -mthumb -fomit-frame-pointer -fno-strict-aliasing -O3 -DNDEBUG -fPIC        ",
+					"src" : "/Users/algavris/dev/headunit/src/main/jni/hu_tcp.c",
+					"workingDirectory" : "/Users/algavris/dev/headunit/externalNativeBuild/cmake/release/armeabi"
+				},
+				
+				{
+					"flags" : " -DANDROID -Dhu_jni_EXPORTS -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm/usr/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -I../../../../src/main/jni/libs/headers  -fexceptions -Wno-psabi --sysroot=/Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm -funwind-tables -finline-limit=64 -fsigned-char -no-canonical-prefixes -march=armv5te -mtune=xscale -msoft-float -fdata-sections -ffunction-sections -Wa,--noexecstack  -mthumb -fomit-frame-pointer -fno-strict-aliasing -O3 -DNDEBUG -fPIC        ",
+					"src" : "/Users/algavris/dev/headunit/src/main/jni/hu_aap.c",
+					"workingDirectory" : "/Users/algavris/dev/headunit/externalNativeBuild/cmake/release/armeabi"
+				},
+				
+				{
+					"flags" : " -DANDROID -Dhu_jni_EXPORTS -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm/usr/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include -isystem /Users/algavris/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -I../../../../src/main/jni/libs/headers  -fexceptions -Wno-psabi --sysroot=/Users/algavris/Library/Android/sdk/ndk-bundle/platforms/android-23/arch-arm -funwind-tables -finline-limit=64 -fsigned-char -no-canonical-prefixes -march=armv5te -mtune=xscale -msoft-float -fdata-sections -ffunction-sections -Wa,--noexecstack  -mthumb -fomit-frame-pointer -fno-strict-aliasing -O3 -DNDEBUG -fPIC        ",
+					"src" : "/Users/algavris/dev/headunit/src/main/jni/hu_jni.c",
+					"workingDirectory" : "/Users/algavris/dev/headunit/externalNativeBuild/cmake/release/armeabi"
+				}
+			],
+			"output" : "/Users/algavris/dev/headunit/build/intermediates/cmake/release/obj/armeabi/libhu_jni.so",
+			"toolchain" : "11098994130365363922"
+		}
+	},
+	"toolchains" : 
+	{
+		"11098994130365363922" : 
+		{
+			"cCompilerExecutable" : "/Users/algavris/Library/Android/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-gcc",
+			"cppCompilerExecutable" : "/Users/algavris/Library/Android/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-g++"
+		}
+	}
+}

@@ -1,86 +1,87 @@
-
 //#ifndef UTILS_INCLUDED
 
 //  #define UTILS_INCLUDED
 
 #undef NDEBUG // Ensure debug stuff
 
-  #define hu_STATE_INITIAL   0
-  #define hu_STATE_STARTIN   1
-  #define hu_STATE_STARTED   2
-  #define hu_STATE_STOPPIN   3
-  #define hu_STATE_STOPPED   4
-  //#define hu_STATE_   5
+#define hu_STATE_INITIAL   0
+#define hu_STATE_STARTIN   1
+#define hu_STATE_STARTED   2
+#define hu_STATE_STOPPIN   3
+#define hu_STATE_STOPPED   4
+//#define hu_STATE_   5
 
-  #include <stdio.h>
-  #include <stdlib.h>
-  #include <stdarg.h>
-  #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <stdint.h>
 
-  #include <string.h>
-  #include <signal.h>
+#include <string.h>
+#include <signal.h>
 
-  #include <pthread.h>
+#include <pthread.h>
 
-  #include <errno.h>
+#include <errno.h>
 
-  #include <unistd.h>
-  #include <fcntl.h>
-  #include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
-  #include <dirent.h>                                                   // For opendir (), readdir (), closedir (), DIR, struct dirent.
+#include <dirent.h>                                                   // For opendir (), readdir (), closedir (), DIR, struct dirent.
 
-  // Enables for hex_dump:
-  extern int ena_hd_hu_aad_dmp;
-  extern int ena_hd_tra_send;
-  extern int ena_hd_tra_recv;
+// Enables for hex_dump:
+extern int ena_hd_hu_aad_dmp;
+extern int ena_hd_tra_send;
+extern int ena_hd_tra_recv;
 
-  extern int ena_log_aap_send;
+extern int ena_log_aap_send;
 
-  extern int ena_log_extra;
-  extern int ena_log_verbo;
+extern int ena_log_extra;
+extern int ena_log_verbo;
 
-  #define byte unsigned char
-  #define DEFBUF  65536     //16384                                                 // Default buffer size is maximum for USB
+#define byte unsigned char
+#define DEFBUF  65536     //16384                                                 // Default buffer size is maximum for USB
 
-  #define DEF_BUF 512                                                   // For Ascii strings and such
+#define DEF_BUF 512                                                   // For Ascii strings and such
 
 
-  #ifdef __ANDROID_API__
-    #include <android/log.h>
-  #else
-      // UNKNOWN    0
-    #define ANDROID_LOG_DEFAULT 1
-    #define ANDROID_LOG_VERBOSE 2
-    #define ANDROID_LOG_DEBUG   3
-      // INFO       4
-    #define ANDROID_LOG_WARN    5
-    #define ANDROID_LOG_ERROR   6
-      // FATAL      7
-      // SILENT     8
-  #endif
+#ifdef __ANDROID_API__
 
-  #define hu_LOG_EXT   ANDROID_LOG_DEFAULT
-  #define hu_LOG_VER   ANDROID_LOG_VERBOSE
-  #define hu_LOG_DEB   ANDROID_LOG_DEBUG
-  #define hu_LOG_WAR   ANDROID_LOG_WARN
-  #define hu_LOG_ERR   ANDROID_LOG_ERROR
+#include <android/log.h>
+
+#else
+// UNKNOWN    0
+#define ANDROID_LOG_DEFAULT 1
+#define ANDROID_LOG_VERBOSE 2
+#define ANDROID_LOG_DEBUG   3
+// INFO       4
+#define ANDROID_LOG_WARN    5
+#define ANDROID_LOG_ERROR   6
+// FATAL      7
+// SILENT     8
+#endif
+
+#define hu_LOG_EXT   ANDROID_LOG_DEFAULT
+#define hu_LOG_VER   ANDROID_LOG_VERBOSE
+#define hu_LOG_DEB   ANDROID_LOG_DEBUG
+#define hu_LOG_WAR   ANDROID_LOG_WARN
+#define hu_LOG_ERR   ANDROID_LOG_ERROR
 
 #ifdef NDEBUG
 
-  #define  logx(...)
-  #define  logv(...)
-  #define  logd(...)
-  #define  logw(...)
-  #define  loge(...)
+#define  logx(...)
+#define  logv(...)
+#define  logd(...)
+#define  logw(...)
+#define  loge(...)
 
 #else
 
-  #define  logx(...)  hu_log(hu_LOG_EXT,LOGTAG,__func__,__VA_ARGS__)
-  #define  logv(...)  hu_log(hu_LOG_VER,LOGTAG,__func__,__VA_ARGS__)
-  #define  logd(...)  hu_log(hu_LOG_DEB,LOGTAG,__func__,__VA_ARGS__)
-  #define  logw(...)  hu_log(hu_LOG_WAR,LOGTAG,__func__,__VA_ARGS__)
-  #define  loge(...)  hu_log(hu_LOG_ERR,LOGTAG,__func__,__VA_ARGS__)
+#define  logx(...)  hu_log(hu_LOG_EXT,LOGTAG,__func__,__VA_ARGS__)
+#define  logv(...)  hu_log(hu_LOG_VER,LOGTAG,__func__,__VA_ARGS__)
+#define  logd(...)  hu_log(hu_LOG_DEB,LOGTAG,__func__,__VA_ARGS__)
+#define  logw(...)  hu_log(hu_LOG_WAR,LOGTAG,__func__,__VA_ARGS__)
+#define  loge(...)  hu_log(hu_LOG_ERR,LOGTAG,__func__,__VA_ARGS__)
 
 //!!
 //  #define  logx(...)
@@ -90,29 +91,39 @@
 
 #endif
 
-  int hu_log (int prio, const char * tag, const char * func, const char * fmt, ...);
+int hu_log(int prio, const char *tag, const char *func, const char *fmt, ...);
 
+unsigned long ms_get();
 
-  unsigned long ms_get          ();
-  unsigned long ms_sleep        (unsigned long ms);
-  void hex_dump                 (char * prefix, int width, unsigned char * buf, int len);
-  char * vid_write_tail_buf_get  (int len);
-  char * vid_read_head_buf_get   (int * len);
-  char * aud_write_tail_buf_get  (int len);
-  char * aud_read_head_buf_get   (int * len);
+unsigned long ms_sleep(unsigned long ms);
 
-  extern int vid_buf_buf_tail;    // Tail is next index for writer to write to.   If head = tail, there is no info.
-  extern int vid_buf_buf_head;    // Head is next index for reader to read from.
-  extern int aud_buf_buf_tail;    // Tail is next index for writer to write to.   If head = tail, there is no info.
-  extern int aud_buf_buf_head;    // Head is next index for reader to read from.
+void hex_dump(char *prefix, int width, unsigned char *buf, int len);
 
-  #ifndef __ANDROID_API__
-    #define strlcpy   strncpy
-    #define strlcat   strncat
-  #endif
+char *vid_write_tail_buf_get(int len);
 
-  //#ifndef __ANDROID_API__
-  #ifdef  DONT_USE
+char *vid_read_head_buf_get(int *len);
+
+char *aud_write_tail_buf_get(int len);
+
+char *aud_read_head_buf_get(int *len);
+
+extern int vid_buf_buf_tail;    // Tail is next index for writer to write to.   If head = tail, there is no info.
+extern int vid_buf_buf_head;    // Head is next index for reader to read from.
+extern int aud_buf_buf_tail;    // Tail is next index for writer to write to.   If head = tail, there is no info.
+extern int aud_buf_buf_head;    // Head is next index for reader to read from.
+
+char *state_get(int state);
+int sock_tmo_set(int fd, int tmo);
+int file_get(const char *filename);
+int sock_reuse_set(int fd);
+
+#ifndef __ANDROID_API__
+#define strlcpy   strncpy
+#define strlcat   strncat
+#endif
+
+//#ifndef __ANDROID_API__
+#ifdef  DONT_USE
 #ifndef HAVE_STRLCAT
 /*
  * '_cups_strlcat()' - Safely concatenate two strings.
@@ -192,10 +203,10 @@ strlcpy(char       *dst,        /* O - Destination string */
 }
 #endif /* !HAVE_STRLCPY */
 
-  #endif
+#endif
 
 
-  // Android USB device priority:
+// Android USB device priority:
 
 
 //1d6b  Linux Foundation  PIDs:	0001  1.1 root hub  0002  2.0 root hub  -0003  3.0 root hub

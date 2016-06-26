@@ -4,7 +4,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.0-alpha3'
+        classpath 'com.android.tools.build:gradle:2.2.0-alpha4'
     }
 }
 
@@ -23,7 +23,7 @@ dependencies {
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '24.0.0 rc4'
+    buildToolsVersion '24.0.0'
 
     defaultConfig {
         applicationId "ca.yyx.hu"
@@ -38,8 +38,23 @@ android {
         ndk {
             moduleName "hu_jni"
         }
+
+        cmake {
+            cppFlags ""
+            abiFilters "armeabi"
+        }
     }
 
+//    APP_ABI := armeabi
+//    APP_PLATFORM := android-16
+//    APP_PIE := true
+
+    externalNativeBuild {
+        cmake{
+            path "CMakeLists.txt"
+        }
+    }
+/*
     sourceSets.main {
         jni.srcDirs = [] // This prevents the auto generation of Android.mk
         jniLibs.srcDir 'src/main/libs'
@@ -67,6 +82,7 @@ android {
     tasks.withType(JavaCompile) {
         compileTask -> compileTask.dependsOn buildNative
     }
+    */
 
     buildTypes {
         release {

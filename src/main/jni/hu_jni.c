@@ -3,18 +3,11 @@
 #include "hu_uti.h"
 #include "hu_aap.h"
 
-#include <stdio.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/resource.h>
-
 #include <jni.h>
 
 
 char *copyright = "Copyright (c) 2011-2015 Michael A. Reid. All rights reserved.";
 
-int aap_state_start_error = 0;
 int aap_state_starts = 0;
 
 int jni_aa_cmd(int cmd_len, char *cmd_buf, int res_max, char *res_buf) {
@@ -29,8 +22,7 @@ int jni_aa_cmd(int cmd_len, char *cmd_buf, int res_max, char *res_buf) {
     int aud_bufs = vid_buf_buf_tail - vid_buf_buf_head;
 
 
-    if (cmd_buf != NULL && cmd_len == 3 &&
-        cmd_buf[0] == 121) {        // If onCreate() hu_tra:transport_start()
+    if (cmd_buf != NULL && cmd_len == 3 && cmd_buf[0] == 121) {        // If onCreate() hu_tra:transport_start()
         byte ep_in_addr = cmd_buf[1];
         byte ep_out_addr = cmd_buf[2];                                   // Get endpoints passed
 
@@ -43,7 +35,6 @@ int jni_aa_cmd(int cmd_len, char *cmd_buf, int res_max, char *res_buf) {
         }
         else {
             loge ("hu_aap_start() error aap_state_starts: %d", aap_state_starts);
-            aap_state_start_error = 1;
             return (-1);
         }
     }
@@ -62,7 +53,8 @@ int jni_aa_cmd(int cmd_len, char *cmd_buf, int res_max, char *res_buf) {
     Video
     Audio
 */
-    else if (cmd_buf != NULL && cmd_len >= 4) {                         // If encrypted command to send...
+    else if (cmd_buf != NULL &&
+             cmd_len >= 4) {                         // If encrypted command to send...
         int chan = 0;//cmd_buf [0];
 
         if (cmd_len > 63)                                                 // If Microphone audio...
@@ -115,7 +107,7 @@ int jni_aa_cmd(int cmd_len, char *cmd_buf, int res_max, char *res_buf) {
             return (5);                                                     // Done w/ audio out notification 2
     }
 
-    byte *dq_buf = NULL;
+    char *dq_buf = NULL;
     dq_buf = aud_read_head_buf_get(&res_len);                         // Get audio if ready
 
     if (dq_buf ==

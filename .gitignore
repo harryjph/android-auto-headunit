@@ -40,12 +40,16 @@ captures/
 *.jks
 
 src/main/obj
-
-
 src/main/libs/armeabi/gdb.setup
-
 src/main/libs/armeabi/gdbserver
-
 src/main/libs/armeabi/libhu_jni.so
-
 src/main/libs/armeabi/usb_reset
+
+# Cmake
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake

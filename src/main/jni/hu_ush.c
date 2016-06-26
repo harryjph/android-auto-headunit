@@ -12,7 +12,7 @@
 
   #endif
 
-  #include "libusb.h" // Use for defines
+  #include <libusb.h>
 
   struct usb_device * current_device = NULL;
   uint8_t read_ep  = 255;

@@ -11,15 +11,15 @@ LOCAL_PATH:= $(call my-dir)
 ifeq        ($(TARGET_ARCH_ABI), armeabi)
   include $(CLEAR_VARS)
   LOCAL_MODULE    := libusbnok
-  LOCAL_SRC_FILES := libs/libusbnok.a
+  LOCAL_SRC_FILES := libs/arm/libusbnok.a
   include $(PREBUILT_STATIC_LIBRARY)
   include $(CLEAR_VARS)
   LOCAL_MODULE    := libssl
-  LOCAL_SRC_FILES := libs/libssl.a
+  LOCAL_SRC_FILES := libs/arm/libssl.a
   include $(PREBUILT_STATIC_LIBRARY)
   include $(CLEAR_VARS)
   LOCAL_MODULE    := libcrypto
-  LOCAL_SRC_FILES := libs/libcrypto.a
+  LOCAL_SRC_FILES := libs/arm/libcrypto.a
   include $(PREBUILT_STATIC_LIBRARY)
 #else ifeq  ($(TARGET_ARCH_ABI), armeabi-v7a)
 else ifeq   ($(TARGET_ARCH_ABI), arm64-v8a)

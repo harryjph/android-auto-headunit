@@ -12,20 +12,37 @@ import ca.yyx.hu.utils.Utils;
  * @date 12/05/2016.
  */
 public class UsbDeviceCompat {
-    public static final int USB_VID_GOO = 0x18D1;   // 6353   Nexus or ACC mode, see PID to distinguish
+    private static final int USB_VID_GOO = 0x18D1;   // 6353   Nexus or ACC mode, see PID to distinguish
     private static final int USB_VID_HTC = 0x0bb4;   // 2996
     private static final int USB_VID_SAM = 0x04e8;   // 1256
     private static final int USB_VID_O1A = 0xfff6;   // 65526    Samsung ?
     private static final int USB_VID_SON = 0x0fce;   // 4046
     private static final int USB_VID_LGE = 0xfff5;   // 65525
     private static final int USB_VID_MOT = 0x22b8;   // 8888
+    private static final int USB_VID_ACE = 0x0502;
+    private static final int USB_VID_HUA = 0x12d1;
+    private static final int USB_VID_PAN = 0x10a9;
+    private static final int USB_VID_ZTE = 0x19d2;
+    private static final int USB_VID_GAR = 0x091e;
+    private static final int USB_VID_XIA = 0x2717;
+    private static final int USB_VID_ASU = 0x0b05;
+    private static final int USB_VID_MEI = 0x2a45;
+    private static final int USB_VID_LEN = 0x17ef;
+    private static final int USB_VID_LGD = 0x1004;
+    private static final int USB_VID_LIN = 0x1d6b;
+    private static final int USB_VID_QUA = 0x05c6;
+    private static final int USB_VID_ONE = 0x2a70;
+    private static final int USB_VID_COM = 0x1519;  // Comneon
+
+    private static final int USB_VID_ASE = 0x0835;  // Action Star Enterprise
+    private static final int USB_VID_OPO = 0x22d9;  // Oppo
 
 
     private static final int USB_PID_ACC_MIN = 0x2D00;      // 11520   Product ID to use when in accessory mode without ADB
     private static final int USB_PID_ACC_MAX = 0x2D05;
 
-    public static final int USB_PID_ACC = 0x2D00;      // Accessory                  100
-    public static final int USB_PID_ACC_ADB = 0x2D01;      // Accessory + ADB            110
+    private static final int USB_PID_ACC = 0x2D00;      // Accessory                  100
+    private static final int USB_PID_ACC_ADB = 0x2D01;      // Accessory + ADB            110
     private static final int USB_PID_AUD = 0x2D02;      //                   Audio    001
     private static final int USB_PID_AUD_ADB = 0x2D03;      //             ADB + Audio    011
     private static final int USB_PID_ACC_AUD = 0x2D04;      // Accessory       + Audio    101
@@ -68,9 +85,10 @@ public class UsbDeviceCompat {
             return ("LGE");
         else if (vend_id == USB_VID_O1A)
             return ("O1A");
-        else
-            //return ("0x" + Utils.hex_get (vend_id));
-            return ("" + vend_id);
+        else if (vend_id == USB_VID_HUA)
+            return "HUA";
+
+        return ("" + vend_id);
     }
 
     private static String usb_man_get(UsbDevice device) {                       // Use reflection to avoid ASUS tablet problem
@@ -160,8 +178,7 @@ public class UsbDeviceCompat {
         return (usb_dev_name);
     }
 
-    public String getDeviceName()
-    {
+    public String getDeviceName() {
         return mUsbDevice.getDeviceName();
     }
 

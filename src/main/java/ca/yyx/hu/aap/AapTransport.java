@@ -120,8 +120,10 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     }
 
     void sendTouch(int len_touch, byte[] touchData) {
-        Message msg = mHandler.obtainMessage(TOUCH_SYNC, len_touch, 0, touchData);
-        mHandler.sendMessage(msg);
+        if (mHandler != null) {
+            Message msg = mHandler.obtainMessage(TOUCH_SYNC, len_touch, 0, touchData);
+            mHandler.sendMessage(msg);
+        }
     }
 
     void setMicRecording(boolean start) {

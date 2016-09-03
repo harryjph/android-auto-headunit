@@ -90,15 +90,6 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             mHandler.sendEmptyMessage(POLL);
         }
 
-        if (msg.what == VIDEO_STOP)
-        {
-            ret = aa_cmd_send(Protocol.VIDEO_STOP);
-        }
-        if (msg.what == VIDEO_START)
-        {
-            ret = aa_cmd_send(Protocol.VIDEO_SETUP);
-        }
-
         if (ret < 0) {
             Utils.loge("Error result: " + ret);
             this.quit();

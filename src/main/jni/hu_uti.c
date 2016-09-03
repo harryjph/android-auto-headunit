@@ -1,11 +1,3 @@
-// Utilities: Used by many
-
-//#ifndef UTILS_INCLUDED
-
-//  #define UTILS_INCLUDED
-
-//#define  GENERIC_CLIENT
-
 #define LOGTAG "hu_uti"
 
 #include "hu_uti.h"
@@ -26,40 +18,13 @@ char *state_get(int state) {
     return ("hu_STATE Unknown error");
 }
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <stdint.h>
-
-#include <string.h>
-#include <signal.h>
-
-#include <pthread.h>
-
-#include <errno.h>
-
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-
-#include <dirent.h>                                                   // For opendir (), readdir (), closedir (), DIR, struct dirent.
-
-//#define   S2D_POLL_MS     100
-//#define   NET_PORT_S2D    2102
-//#define   NET_PORT_HCI    2112
-
-//#include "man_ver.h"
-
-
 int gen_server_loop_func(unsigned char *cmd_buf, int cmd_len, unsigned char *res_buf, int res_max);
 
 int gen_server_poll_func(int poll_ms);
 
 // Log stuff:
 
-int ena_log_extra = 0;
-//1;//0;
-int ena_log_verbo = 0;
+int ena_log_verbo = 1;
 //1;
 int ena_log_debug = 1;
 int ena_log_warni = 1;
@@ -89,8 +54,6 @@ void logfile (char * log_line) {
 
 char *prio_get(int prio) {
     switch (prio) {
-        case hu_LOG_EXT:
-            return ("X");
         case hu_LOG_VER:
             return ("V");
         case hu_LOG_DEB:
@@ -105,8 +68,6 @@ char *prio_get(int prio) {
 
 int hu_log(int prio, const char *tag, const char *func, const char *fmt, ...) {
 
-    if (!ena_log_extra && prio == hu_LOG_EXT)
-        return -1;
     if (!ena_log_verbo && prio == hu_LOG_VER)
         return -1;
     if (!ena_log_debug && prio == hu_LOG_DEB)
@@ -148,19 +109,6 @@ int hu_log(int prio, const char *tag, const char *func, const char *fmt, ...) {
     return (0);
 }
 
-/*
-  int loge (const char * fmt, ...) {
-    printf ("E: ");
-    va_list ap;
-    va_start (ap, fmt); 
-    vprintf (fmt, ap);
-    printf ("\n");
-    return (0);
-  }
-*/
-
-
-//
 
 #define MAX_ITOA_SIZE 32      // Int 2^32 need max 10 characters, 2^64 need 21
 
@@ -172,66 +120,6 @@ char *itoa(int val, char *ret, int radix) {
     else
         loge ("radix != 10 && != 16: %d", radix);
     return (ret);
-}
-
-/*int noblock_set (int fd) {
-    //#define IOCTL_METH
-    #ifdef  IOCTL_METH
-    int nbio = 1;
-    errno = 0;
-    int ret = ioctl (fd, FIONBIO, & nbio);
-    if (ret == -1)
-      loge ("noblock_set ioctl errno: %d (%s)", errno, strerror (errno));
-    else
-      logd ("noblock_set ioctl ret: %d", ret);
-    #else
-    errno = 0;
-    int flags = fcntl (fd, F_GETFL);
-    if (flags == -1) {
-      loge ("noblock_set fcntl get errno: %d (%s)", errno, strerror (errno));
-      flags = 0;
-    }
-    else
-      logd ("noblock_set fcntl get flags: %d  nonblock flags: %d", flags, flags & O_NONBLOCK);
-    errno = 0;
-    int ret = fcntl (fd, F_SETFL, flags | O_NONBLOCK);
-    if (ret == -1)
-      loge ("noblock_set fcntl set errno: %d (%s)", errno, strerror (errno));
-    else
-      logd ("noblock_set fcntl set ret: %d", ret);
-    errno = 0;
-    flags = fcntl (fd, F_GETFL);
-    if (flags == -1)
-      loge ("noblock_set fcntl result get errno: %d (%s)", errno, strerror (errno));
-    else
-      logd ("noblock_set fcntl result get flags: %d  nonblock flags: %d", flags, flags & O_NONBLOCK);
-    #endif
-    return (0);
-  }*/
-
-/*
-  int alt_usleep (long us) {    // usleep can't be used in some cases because it uses SIGALRM
-    struct timespec delay;
-    int err;
-    delay.tv_sec = us / 1000000;
-    delay.tv_nsec = 1000 * 1000 * (us % 1000000);
-    errno = 0;
-    do {
-      err = nanosleep (& delay, & delay);
-    } while (err < 0 && errno == EINTR);
-  }
-
-*/
-
-unsigned long us_get() {                                                      // !!!! Affected by time jumps ?
-    struct timespec tspec = {0, 0};
-    int res = clock_gettime(CLOCK_MONOTONIC, &tspec);
-    //logd ("sec: %ld  nsec: %ld", tspec.tv_sec, tspec.tv_nsec);
-
-    unsigned long microsecs = (tspec.tv_nsec / 1000L);
-    microsecs += (tspec.tv_sec * 1000000L);
-
-    return (microsecs);
 }
 
 unsigned long ms_get() {                                                      // !!!! Affected by time jumps ?
@@ -259,255 +147,19 @@ unsigned long ms_sleep(unsigned long ms) {
     tm.tv_sec = 0;
     tm.tv_sec = ms / 1000L;
     tm.tv_nsec = (ms % 1000L) * 1000000L;
-    //printf ("tm.tv_sec: %ld  tm.tv_nsec: %ld\n", tm.tv_sec, tm.tv_nsec);
-    //logd ("tm.tv_sec: %ld  tm.tv_nsec: %ld", tm.tv_sec, tm.tv_nsec);
-
-//    nanosleep (& tm, NULL);
 
     unsigned long ms_end = ms_get() + ms;
     unsigned long ctr = 0;
     while (ms_get() < ms_end) {
         usleep(32000L);
-        //tm.tv_nsec = 1000000L;
-        //nanosleep (& tm, NULL);
 
         ctr++;
 
-        if (ctr > 25) {//100L) {
+        if (ctr > 25) {
             ctr = 0L;
-//        printf (".\b");
         }
     }
     return (ms);
-
-//*/
-
-    return (ms);
-}
-
-
-static void *busy_thread(void *arg) {
-    logd ("busy_thread start");
-
-    while (1) {
-        unsigned long ms = 1L;
-//      usleep (ms * 1000L);
-        struct timespec tm;
-        tm.tv_sec = 0;
-        tm.tv_sec = ms / 1000L;
-        tm.tv_nsec = (ms % 1000L) * 1000000L;
-        //printf ("tm.tv_sec: %ld  tm.tv_nsec: %ld\n", tm.tv_sec, tm.tv_nsec);
-        //logd ("tm.tv_sec: %ld  tm.tv_nsec: %ld", tm.tv_sec, tm.tv_nsec);
-//    nanosleep (& tm, NULL);
-
-        int ctr = 0;
-        int max_cnt = 32;//512;   1024 too much on N9, 512 OK
-        for (ctr = 0; ctr < max_cnt; ctr++) {
-            ms = ms_get();
-        }
-
-        printf(".");
-    }
-
-    pthread_exit(NULL);
-    loge ("busy_thread exit 2");
-
-    return (NULL);                                                      // Compiler friendly ; never reach
-}
-
-
-char user_dev[DEF_BUF] = "";
-
-char *user_char_dev_get(char *dir_or_dev, int user) {
-    DIR *dp;
-    struct dirent *dirp;
-    struct stat sb;
-    int ret = 0;
-    logd ("user_char_dev_get: %s  %d", dir_or_dev, user);
-
-    errno = 0;
-    ret = stat(dir_or_dev, &sb);                                        // Get file/dir status.
-    if (ret == -1) {
-        loge ("user_char_dev_get: dir_or_dev stat errno: %d (%s)", errno, strerror(errno));
-        return (NULL);
-    }
-
-    if (S_ISCHR (
-            sb.st_mode)) {                                           // If this is a character device...
-        if (sb.st_uid == user) {                                            // If user match...
-            //strlcpy (user_dev, dir_or_dev, sizeof (user_dev));
-            //return (user_dev);                                              // Device found
-            return (dir_or_dev);
-        }
-        return (NULL);
-    }
-
-    errno = 0;
-    if ((dp = opendir(dir_or_dev)) ==
-        NULL) {                            // Open the directory. If error...
-        loge ("user_char_dev_get: can't open dir_or_dev: %s  errno: %d (%s)", dir_or_dev, errno,
-              strerror(errno));
-        return (NULL);                                                      // Done w/ no result
-    }
-    //logd ("user_char_dev_get opened directory %s", dir_or_dev);
-
-    while ((dirp = readdir(dp)) !=
-           NULL) {                               // For all files/dirs in this directory... (Could terminate with errno set !!)
-        //logd ("user_char_dev_get: readdir returned file/dir %s", dirp->d_name);
-
-        char filename[DEF_BUF] = {0};
-        strlcpy(filename, dir_or_dev, sizeof(filename));
-        strlcat(filename, "/", sizeof(filename));
-        strlcat(filename, dirp->d_name,
-                sizeof(filename));                // Set fully qualified filename
-
-        errno = 0;
-        ret = stat(filename, &sb);                                        // Get file/dir status.
-        if (ret == -1) {
-            loge ("user_char_dev_get: file stat errno: %d (%s)", errno, strerror(errno));
-            continue;                                                         // Ignore/Next if can't get status
-        }
-
-        if (S_ISCHR (
-                sb.st_mode)) {                                         // If this is a character device...
-            //logd ("user_char_dev_get: dir %d", sb.st_mode);
-            if (sb.st_uid == user) {                                          // If user match...
-                closedir(
-                        dp);                                                  // Close the directory.
-                strlcpy(user_dev, filename, sizeof(user_dev));
-                return (user_dev);                                              // Device found
-            }
-        }
-    }
-    closedir(dp);                                                        // Close the directory.
-    return (NULL);
-}
-
-
-char *upper_set(char *data) {
-    int ctr = 0;
-    int len = strlen(data);
-    for (ctr = 0; ctr < len; ctr++)
-        data[ctr] = toupper(data[ctr]);
-    return (data);
-}
-
-char *lower_set(char *data) {
-    int ctr = 0;
-    int len = strlen(data);
-    for (ctr = 0; ctr < len; ctr++)
-        data[ctr] = tolower(data[ctr]);
-    return (data);
-}
-
-
-// Find first file under subdir dir, with pattern pat. Put results in path_buf of size path_len:
-
-int file_find(char *dir, char *pat, char *path_buf, int path_len) {
-    static int nest = 0;
-    path_buf[0] = 0;
-    if (nest == 0)
-        logd ("file_find: %d %s %s", nest, dir, pat);
-
-    nest++;
-    if (nest > 16) {                                                    // Routine is recursive; if more than 16 subdirectories nested... (/system/xbin/bb -> /system/xbin)
-        logd ("file_find maximum nests: %d  dir: %s  path: %s", nest, dir, pat);
-        nest--;
-        return (0);                                                       // Done w/ no result
-    }
-
-    DIR *dp;
-    struct dirent *dirp;
-    struct stat sb;
-    int ret = 0;
-
-    errno = 0;
-    if ((dp = opendir(dir)) == NULL) {                                 // Open the directory. If error...
-        if (errno == EACCES)                                              // EACCESS is a common annoyance, Even w/ SU presumably due to SELinux
-            logd ("file_find: can't open directory %s  errno: %d (%s) (EACCES Permission denied)",
-                  dir, errno, strerror(errno));
-        else
-            logd ("file_find: can't open directory %s  errno: %d (%s)", dir, errno,
-                  strerror(errno));
-        nest--;
-        return (0);                                                       // Done w/ no result for this directory
-    }
-    //logd ("file_find opened directory %s", dir);
-
-    while ((dirp = readdir(dp)) != NULL) {                             // For all files/dirs in this directory... (Could terminate with errno set !!)
-        //logd ("file_find: readdir returned file/dir %s", dirp->d_name);
-
-        if (strlen(dirp->d_name) == 1) if (dirp->d_name[0] == '.')
-            continue;                                                     // Ignore/Next if "." current dir
-
-        if (strlen(dirp->d_name) == 2) if (dirp->d_name[0] == '.' && dirp->d_name[1] == '.')
-            continue;                                                     // Ignore/Next if ".." parent dir
-
-        char filename[DEF_BUF] = {0};
-        strlcpy(filename, dir, sizeof(filename));
-        strlcat(filename, "/", sizeof(filename));
-        strlcat(filename, dirp->d_name, sizeof(filename));              // Set fully qualified filename
-
-        errno = 0;
-        ret = stat(filename, &sb);                                       // Get file/dir status.
-        if (ret == -1) {
-            logd ("file_find: stat errno: %d (%s)", errno, strerror(errno));
-            continue;                                                       // Ignore/Next if can't get status
-        }
-
-        if (S_ISDIR (sb.st_mode)) {                                       // If this is a directory...
-            //logd ("file_find: dir %d", sb.st_mode);
-            if (file_find(filename, pat, path_buf,
-                          path_len)) {            // Recursively call self: Go deeper to find the file, If found...
-                closedir(dp);                                                // Close the directory.
-                nest--;
-                return (1);                                                   // File found
-            }
-        }
-
-        else if (S_ISREG (sb.st_mode)) {                                  // If this is a regular file...
-            //logd ("file_find: reg %d", sb.st_mode);
-            int pat_len = strlen(pat);
-            int filename_len = strlen(filename);
-            if (filename_len >= pat_len) {
-                // !! Case insensitive
-                if (!strncasecmp(pat, &filename[filename_len - pat_len], pat_len)) {
-                    logd ("file_find pattern: %s  filename: %s", pat, filename);
-                    strlcpy(path_buf, filename, path_len);
-                    closedir(
-                            dp);                                              // Close the directory.
-                    nest--;
-                    return (1);                                                 // File found
-                }
-            }
-        }
-        else {
-            logd ("file_find: unk %d", sb.st_mode);
-        }
-    }
-    closedir(dp);                                                      // Close the directory.
-    nest--;
-    return (0);                                                         // Done w/ no result
-}
-
-
-int flags_file_get(const char *filename, int flags) {               // Return 1 if file, or directory, or device node etc. exists and we can open it
-
-    int ret = 0;                                                        // 0 = File does not exist or is not accessible
-    if (file_get(filename)) {                                         // If file exists...
-        errno = 0;
-        int fd = open(filename, flags);
-        if (fd < 0)
-            loge ("flags_file_get open fd: %d  errno: %d (%s)", fd, errno, strerror(errno));
-        else
-            logd ("flags_file_get open fd: %d", fd);
-        if (fd >= 0) {                                                    // If open success...
-            ret = 1;                                                        // 1 = File exists and is accessible
-            close(fd);
-        }
-    }
-    logd ("flags_file_get ret: %d  filename: %s", ret, filename);
-    return (ret);                                                       // 0 = File does not exist or is not accessible         // 1 = File exists and is accessible
 }
 
 int file_get(const char *filename) {                                // Return 1 if file, or directory, or device node etc. exists
@@ -526,56 +178,6 @@ int file_get(const char *filename) {                                // Return 1 
     }
     return (ret);
 }
-
-int file_delete(const char *filename) {
-    errno = 0;
-    int ret = unlink(filename);
-    if (ret)
-        loge ("file_delete ret: %d  filename: %s  errno: %d (%s)", ret, filename, errno,
-              strerror(errno));
-    else
-        logd ("file_delete ret: %d  filename: %s", ret, filename);
-    return (ret);
-}
-
-int file_create(const char *filename) {
-    int ret = flags_file_get(filename, O_CREAT);
-    logd ("file_create flags_file_get ret: %d  filename: %s");
-    return (ret);
-}
-
-
-/*
-  int chip_lock_val = 0;
-  char * curr_lock_cmd = "none";
-  int chip_lock_get (char * cmd) {
-    return (0);
-    int retries = 0;
-    int max_msecs = 3030;
-    int sleep_ms = 101; // 10
-    while (retries ++ < max_msecs / sleep_ms) {
-      chip_lock_val ++;
-      if (chip_lock_val == 1) {
-        curr_lock_cmd = cmd;
-        return (0);
-      }
-      chip_lock_val --;
-      if (chip_lock_val < 0)
-        chip_lock_val = 0;
-      loge ("sleep_ms: %d  retries: %d  cmd: %s  curr_lock_cmd: %s", sleep_ms, retries, cmd, curr_lock_cmd);
-      ms_sleep (sleep_ms);
-    }
-    loge ("chip_lock_get retries exhausted");
-    return (-1);
-  }
-  int chip_lock_ret () {
-    if (chip_lock_val > 0)
-      chip_lock_val --;
-    if (chip_lock_val < 0)
-      chip_lock_val = 0;
-    return (0);
-  }
-*/
 
 
 #define HD_MW 256
@@ -633,332 +235,8 @@ void hex_dump(char *prefix, int width, unsigned char *buf, int len) {
     }
 }
 
-/*
-  static char sys_cmd [32768] = {0};
-  static int sys_commit () {
-    int ret = sys_run (sys_cmd);                                        // Run
-    sys_cmd [0] = 0;                                                    // Done, so zero
-    return (ret);
-  }
-  static int cached_sys_run (char * new_cmd) {                          // Additive single string w/ commit version
-    char cmd [512] = {0};
-    if (strlen (sys_cmd) == 0)                                          // If first command since commit
-      snprintf (cmd, sizeof (cmd), "%s", new_cmd);
-    else
-      snprintf (cmd, sizeof (cmd), " ; %s", new_cmd);
-    strlcat (sys_cmd, cmd, sizeof (sys_cmd));
-    int ret = sys_commit ();                                            // Commit every command now, due to GS3/Note problems
-    return (ret);
-  }
-*/
-
-/*
-  int sys_run (char * cmd) {
-    int ret = system (cmd);                                             // !! Binaries like ssd that write to stdout cause C system() to crash !
-    logd ("sys_run ret: %d  cmd: \"%s\"", ret, cmd);
-    return (ret);
-  }
-  int insmod_shell = 1;
-*/
-int util_insmod(char *module) {    // ("/system/lib/modules/radio-iris-transport.ko");
-    int ret = 0;
-/*
-    if (insmod_shell) {
-      char cmd [DEF_BUF] = "insmod ";
-      strlcat (cmd, module, sizeof (cmd));
-      strlcat (cmd, " >/dev/null 2>/dev/null", sizeof (cmd));
-      ret = sys_run (cmd);
-      loge ("util_insmod module: \"%s\"  ret: %d  cmd: \"%s\"", module, ret, cmd);
-    }
-    else {
-*/
-    ret = insmod_internal(module);
-    if (ret)
-        loge ("util_insmod module: \"%s\"  ret: %d", module, ret);
-    else
-        logd ("util_insmod module: \"%s\"  success ret: %d", module, ret);
-/*
-    }
-*/
-    return (ret);
-}
-
-int file_write_many(const char *filename, int *pfd, char *data, int len, int flags) {
-    logd ("file_write_many filename: %d  * pfd: %d  len: %d  flags: %d", filename, *pfd, len,
-          flags);
-    if (len > 0 && len == strlen(data))
-        logd ("file_write_many data: \"%s\"",
-              data);                      // All we use this for is ascii strings, so OK to display, else hexdump
-    else if (len > 0)
-        loge ("file_write_many NEED HEXDUMP !!");
-    else
-        logd ("file_write_many no data");
-    int ret = 0;
-    errno = 0;
-    if (*pfd < 0) {
-        if (flags | O_CREAT)
-            *pfd = open(filename, flags, S_IRWXU | S_IRWXG |
-                                         S_IRWXO);        //O_WRONLY);                                   // or O_RDWR    (But at least one codec_reg is write only, so leave!)
-        else
-            *pfd = open(filename, flags);
-    }
-
-    if (*pfd < 0) {
-        loge ("file_write_many open * pfd: %d  flags: %d  errno: %d (%s)  len: %d  filename: %s",
-              *pfd, flags, errno, strerror(errno), len, filename);
-        return (0);
-    }
-
-    logd ("file_write_many open * pfd: %d", *pfd);
-    int written = 0;
-    errno = 0;
-    if (len > 0)
-        written = write(*pfd, data, len);
-    if (written != len)
-        loge ("file_write_many written: %d  flags: %d  errno: %d (%s)  len: %d  filename: %s",
-              written, flags, errno, strerror(errno), len, filename);
-    else
-        logd ("file_write_many written: %d  flags: %d  len: %d  filename: %s", written, flags, len,
-              filename);
-    return (written);
-}
-
-int file_write(const char *filename, char *data, int len, int flags) {
-    int ret = 0;
-    int fd = -1;
-
-    ret = file_write_many(filename, &fd, data, len, flags);
-    logd ("file_write -> file_write_many ret: %d  flags: %d  len: %d  filename: %s", ret, flags,
-          len, filename);
-
-    errno = 0;
-    ret = -1;
-    if (fd >= 0)
-        ret = close(fd);
-    if (ret < 0)
-        loge ("file_write close ret: %d  errno: %d (%s)", ret, errno, strerror(errno));
-    else
-        logd ("file_write close ret: %d", ret);
-    return (ret);
-}
-
-void *file_read(const char *filename, ssize_t *size_ret) {
-    int ret, fd;
-    struct stat sb;
-    ssize_t size;
-    void *buffer = NULL;
-
-    /* open the file */
-    fd = open(filename, O_RDONLY);
-    if (fd < 0)
-        return (NULL);
-
-    /* find out how big it is */
-    if (fstat(fd, &sb) < 0)
-        goto bail;
-    size = sb.st_size;
-
-    /* allocate memory for it to be read into */
-    buffer = malloc(size);
-    if (!buffer)
-        goto bail;
-
-    /* slurp it into our buffer */
-    ret = read(fd, buffer, size);
-    if (ret != size)
-        goto bail;
-
-    /* let the caller know how big it is */
-    *size_ret = size;
-
-    bail:
-    close(fd);
-    return (buffer);
-}
-
-extern int init_module(void *, unsigned long, const char *);
-
-int insmod_internal(const char *filename) {
-    void *file;
-    ssize_t size = 0;
-    char opts[1024];
-    int ret;
-
-    file = file_read(filename, &size); // read the file into memory
-    if (!file) {
-        loge ("insmod_internal can't open \"%s\"", filename);
-        return (-1);
-    }
-
-    opts[0] = '\0';
-/*
-    if (argc > 2) {
-      int i, len;
-      char *end = opts + sizeof(opts) - 1;
-      char *ptr = opts;
-
-      for (i = 2; (i < argc) && (ptr < end); i++) {
-          len = MIN(strlen(argv[i]), end - ptr);
-          memcpy(ptr, argv[i], len);
-          ptr += len;
-          *ptr++ = ' ';
-      }
-      *(ptr - 1) = '\0';
-    }
-*/
-
-    errno = 0;
-    ret = init_module(file, size, opts);   // pass it to the kernel
-    if (ret != 0) {
-        if (errno == EEXIST) { // 17
-            ret = 0;
-            logd ("insmod_internal: init_module '%s' failed EEXIST because already loaded",
-                  filename);
-        }
-        else
-            loge ("insmod_internal: init_module '%s' failed errno: %d (%s)", filename, errno,
-                  strerror(errno));
-    }
-
-    free(file);    // free the file buffer
-    return ret;
-}
-
-
-/*char * holder_id = "None";
-  int lock_open (const char * id, volatile int * lock, int tmo) {
-    int attempts = 0;
-    volatile int lock_val = * lock;
-  
-    //logd ("lock_open %s  lock_val: %d  lock: %d  tmo: %d", id, lock_val, * lock, tmo);
-    int start_time   = ms_get ();                                         // Set start time
-    int timeout_time = start_time + tmo;                                  // Set end/timeout time
-    int elapsed_time = ms_get () - start_time;
-    long alt_sleep_ctr = 0;
-  
-    while (ms_get () < timeout_time) {                                    // Until timeout
-      if (* lock < 0) {                                                   // If negative...
-        * lock = 0;                                                       // Fix
-        loge ("!!!!!!!!! lock_open clear negative lock id: %s  holder_id: %s", id, holder_id, attempts);
-      }
-  
-      while ((* lock) && ms_get () < timeout_time) {                      // While the lock is NOT acquired and we have not timed out...
-        if (elapsed_time > 100)
-          loge ("lock_open sleep 10 ms id: %s  holder_id: %s  attempts: %d  lock_val: %d  lock: %d  elapsed_time: %d", id, holder_id, attempts, lock_val, * lock, elapsed_time);// Else we lost attempt
-        if (attempts) {                                                   // If not 1st try...
-          alt_sleep_ctr = 0;
-          while (alt_sleep_ctr ++ < 10000);       // !!!! Because ms_sleep was crashing ?
-        }
-        else
-          ms_sleep (10);                                                  // Sleep a while then try again
-      }
-      elapsed_time = ms_get () - start_time;
-  
-      (* lock) ++;                                                        // Attempt to acquire lock (1st or again)
-      lock_val = (* lock);
-      if (lock_val == 1) {                                                // If success...
-        if (attempts)                                                     // If not 1st try...
-          loge ("lock_open %s success id: %s  holder_id: %s  attempts: %d  lock_val: %d  lock: %d  elapsed_time: %d", id, holder_id, attempts, lock_val, * lock, elapsed_time);
-        holder_id = (char *) id;                                          // We are last holder (though done now)
-        return (0);                                                       // Lock acquired
-      }
-      else {
-        (* lock) --;                                                      // Release lock attempt
-        loge ("lock_open lost id: %s  holder_id: %s  attempts: %d  lock_val: %d  lock: %d  elapsed_time: %d", id, holder_id, attempts, lock_val, * lock, elapsed_time);// Else we lost attempt
-        attempts ++;
-      }
-    }
-    lock_val = (* lock);
-    loge ("lock_open timeout id: %s  holder_id: %s  attempts: %d  lock_val: %d  lock: %d  elapsed_time: %d", id, holder_id, attempts, lock_val, * lock, elapsed_time);
-    return (-1);                                                          // Error, no lock
-  }
-  
-  int lock_close (const char * id, volatile int * lock) {
-    //logd ("lock_close %s  lock: %d", id, (* lock));
-    (* lock) --;
-    //logd ("lock_close %s 2  lock: %d", id, (* lock));
-    return (0);
-  }*/
-
-
-#define ERROR_CODE_NUM 56
-static const char *error_code_str[ERROR_CODE_NUM + 1] = {
-        "Success",
-        "Unknown HCI Command",
-        "Unknown Connection Identifier",
-        "Hardware Failure",
-        "Page Timeout",
-        "Authentication Failure",
-        "PIN or Key Missing",
-        "Memory Capacity Exceeded",
-        "Connection Timeout",
-        "Connection Limit Exceeded",
-        "Synchronous Connection to a Device Exceeded",
-        "ACL Connection Already Exists",
-        "Command Disallowed",
-        "Connection Rejected due to Limited Resources",
-        "Connection Rejected due to Security Reasons",
-        "Connection Rejected due to Unacceptable BD_ADDR",
-        "Connection Accept Timeout Exceeded",
-        "Unsupported Feature or Parameter Value",
-        "Invalid HCI Command Parameters",
-        "Remote User Terminated Connection",
-        "Remote Device Terminated Connection due to Low Resources",
-        "Remote Device Terminated Connection due to Power Off",
-        "Connection Terminated by Local Host",
-        "Repeated Attempts",
-        "Pairing Not Allowed",
-        "Unknown LMP PDU",
-        "Unsupported Remote Feature / Unsupported LMP Feature",
-        "SCO Offset Rejected",
-        "SCO Interval Rejected",
-        "SCO Air Mode Rejected",
-        "Invalid LMP Parameters",
-        "Unspecified Error",
-        "Unsupported LMP Parameter Value",
-        "Role Change Not Allowed",
-        "LMP Response Timeout",
-        "LMP Error Transaction Collision",
-        "LMP PDU Not Allowed",
-        "Encryption Mode Not Acceptable",
-        "Link Key Can Not be Changed",
-        "Requested QoS Not Supported",
-        "Instant Passed",
-        "Pairing with Unit Key Not Supported",
-        "Different Transaction Collision",
-        "Reserved",
-        "QoS Unacceptable Parameter",
-        "QoS Rejected",
-        "Channel Classification Not Supported",
-        "Insufficient Security",
-        "Parameter out of Mandatory Range",
-        "Reserved",
-        "Role Switch Pending",
-        "Reserved",
-        "Reserved Slot Violation",
-        "Role Switch Failed",
-        "Extended Inquiry Response Too Large",
-        "Simple Pairing Not Supported by Host",
-        "Host Busy - Pairing",
-};
-
-const char *hci_err_get(uint8_t status) {
-    const char *str;
-    if (status <= ERROR_CODE_NUM)
-        str = error_code_str[status];
-    else
-        str = "Unknown HCI Error";
-    return (str);
-}
-
-
 #include <netinet/in.h>
 #include <netdb.h>
-
-//For REUSEADDR only
-//#define SK_NO_REUSE     0
-//#define SK_CAN_REUSE    1
-
 
 #ifndef SK_FORCE_REUSE
 #define SK_FORCE_REUSE  2
@@ -967,8 +245,6 @@ const char *hci_err_get(uint8_t status) {
 #ifndef SO_REUSEPORT
 #define SO_REUSEPORT 15
 #endif
-
-// ?? Blocked in Android ?          sock_tmo_set setsockopt SO_REUSEPORT errno: 92 (Protocol not available)
 
 int sock_reuse_set(int fd) {
     errno = 0;
@@ -1016,19 +292,15 @@ int pid_get(char *cmd, int start_pid) {
         loge ("pid_get: opendir errno: %d (%s)", errno, strerror(errno));
         return (0);                                                       // Done w/ no process found
     }
-    while ((dirp = readdir(dp)) !=
-           NULL) {                             // For all files/dirs in this directory... (Could terminate with errno set !!)
+    while ((dirp = readdir(dp)) != NULL) {                             // For all files/dirs in this directory... (Could terminate with errno set !!)
         //logd ("pid_get: readdir: %s", dirp->d_name);
         errno = 0;
-        pid = atoi(
-                dirp->d_name);                                        // pid = directory name string to integer
-        if (pid <=
-            0) {                                                   // Ignore non-numeric directories
+        pid = atoi(dirp->d_name);                                        // pid = directory name string to integer
+        if (pid <= 0) {                                                   // Ignore non-numeric directories
             //loge ("pid_get: not numeric ret: %d  errno: %d (%s)", pid, errno, strerror (errno));
             continue;
         }
-        if (pid <
-            start_pid) {                                            // Ignore PIDs we have already checked. Depends on directories in PID order which seems to always be true
+        if (pid < start_pid) {                                            // Ignore PIDs we have already checked. Depends on directories in PID order which seems to always be true
             //loge ("pid_get: pid < start_pid");
             continue;
         }
@@ -1050,8 +322,7 @@ int pid_get(char *cmd, int start_pid) {
             char cmdline[DEF_BUF] = {0};
             strlcat(fcmdline, "/cmdline", sizeof(fcmdline));
             errno = 0;
-            if ((fdc = fopen(fcmdline, "r")) ==
-                NULL) {                    // Open /proc/???/cmdline file read-only, If error...
+            if ((fdc = fopen(fcmdline, "r")) == NULL) {                    // Open /proc/???/cmdline file read-only, If error...
                 loge ("pid_get: fopen errno: %d (%s)", errno, strerror(errno));
                 continue;
             }
@@ -1081,12 +352,9 @@ int pid_get(char *cmd, int start_pid) {
                     return (pid);                                               // SUCCESS: Done w/ pid
                 }
             }
-        }
-        else if (S_ISREG (
-                sb.st_mode)) {                                  // If this is a regular file...
+        } else if (S_ISREG (sb.st_mode)) {                                  // If this is a regular file...
             loge ("pid_get: reg %d", sb.st_mode);
-        }
-        else {
+        } else {
             loge ("pid_get: unk %d", sb.st_mode);
         }
     }
@@ -1142,47 +410,10 @@ int pid_kill(int pid, int brutal, char *cmd_to_verify) {
     return (ret);
 }
 
-int killall(char *cmd,
-            int brutal) {                                // Kill all OTHER instances of named process, except our own, if the same
-    int ret = 0;
-    int pid = 0;
-    int our_pid = getpid();
-    logd ("killall cmd: %s  brutal: %d  our_pid: %d", cmd, brutal, our_pid);
-    int idx = 0;
-    int num_kill_attempts = 0;
-    int max_kill_attempts = 16;                                         // Max of 16 kills (was to prevent blocking if can't kill, now just to limit kills)
-
-    for (idx = 0; idx < max_kill_attempts; idx++) {                    // For maximum kills...
-
-        pid = pid_get(cmd, pid +
-                           1);                                     // Get PID starting at last found PID + 1
-
-        if (pid == our_pid) {
-            logd ("pid == our_pid");                                        // If us, just log
-        }
-        else if (pid > 0) {
-            ret = pid_kill(pid, brutal,
-                           cmd);                              // Else if valid external PID, kill it
-            num_kill_attempts++;
-        }
-        else {
-            break;                                                          // Else if end of PID search, terminate loop
-        }
-    }
-    logd ("killall num_kill_attempts: %d", num_kill_attempts);
-    return (num_kill_attempts);
-}
-
-
-
-
-
 // Buffers: Audio, Video, identical code, should generalize
 
 #define aud_buf_BUFS_SIZE    65536 * 4      // Up to 256 Kbytes
-int aud_buf_bufs_size = aud_buf_BUFS_SIZE;
-
-#define   NUM_aud_buf_BUFS   16            // Maximum of NUM_aud_buf_BUFS - 1 in progress; 1 is never used
+#define NUM_aud_buf_BUFS   16            // Maximum of NUM_aud_buf_BUFS - 1 in progress; 1 is never used
 int num_aud_buf_bufs = NUM_aud_buf_BUFS;
 
 char aud_buf_bufs[NUM_aud_buf_BUFS][aud_buf_BUFS_SIZE];
@@ -1267,10 +498,8 @@ char *aud_read_head_buf_get(int *len) {                              // Get head
         bufs += num_aud_buf_bufs;                                          // Wrap
     //logd ("aud_read_head_buf_get start bufs: %d  head: %d  tail: %d", bufs, aud_buf_buf_head, aud_buf_buf_tail);
 
-    if (bufs <=
-        0) {                                                    // If no buffers are ready...
-        if (ena_log_extra)
-            logd ("aud_read_head_buf_get no aud_buf_bufs");
+    if (bufs <= 0) {                                                    // If no buffers are ready...
+        logd ("aud_read_head_buf_get no aud_buf_bufs");
         //aud_buf_errs ++;  // Not an error; just no data
         //aud_buf_buf_tail = aud_buf_buf_head = 0;                          // Drop all buffers
         return (NULL);
@@ -1311,9 +540,8 @@ char *aud_read_head_buf_get(int *len) {                              // Get head
 
 
 #define vid_buf_BUFS_SIZE    65536 * 4      // Up to 256 Kbytes
-int vid_buf_bufs_size = vid_buf_BUFS_SIZE;
-
 #define   NUM_vid_buf_BUFS   16            // Maximum of NUM_vid_buf_BUFS - 1 in progress; 1 is never used
+
 int num_vid_buf_bufs = NUM_vid_buf_BUFS;
 
 char vid_buf_bufs[NUM_vid_buf_BUFS][vid_buf_BUFS_SIZE];
@@ -1398,10 +626,8 @@ char *vid_read_head_buf_get(int *len) {                              // Get head
         bufs += num_vid_buf_bufs;                                          // Wrap
     //logd ("vid_read_head_buf_get start bufs: %d  head: %d  tail: %d", bufs, vid_buf_buf_head, vid_buf_buf_tail);
 
-    if (bufs <=
-        0) {                                                    // If no buffers are ready...
-        if (ena_log_extra)
-            logd ("vid_read_head_buf_get no vid_buf_bufs");
+    if (bufs <= 0) {                                                    // If no buffers are ready...
+        logd ("vid_read_head_buf_get no vid_buf_bufs");
         //vid_buf_errs ++;  // Not an error; just no data
         //vid_buf_buf_tail = vid_buf_buf_head = 0;                          // Drop all buffers
         return (NULL);
@@ -1834,35 +1060,4 @@ logd ("srv_len: %d  fam: %d  addr: 0x%x  port: %d", srv_len, srv_addr.sin_family
 #endif      //#ifndef GENERIC_SERVER_INCLUDED
 #endif      //#ifdef  GENERIC_SERVER
 
-#ifndef NDEBUG
-
-char *usb_vid_get(int vid) {
-    switch (vid) {
-        case USB_VID_GOO:
-            return ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Google");
-        case USB_VID_HTC:
-            return ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! HTC");
-        case USB_VID_MOT:
-            return ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Motorola");
-        case USB_VID_SAM:
-            return ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Samsung");
-        case USB_VID_O1A:
-            return ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Other/Samsung?");    // 0xfff6 / Samsung ?
-        case USB_VID_SON:
-            return ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Sony");
-        case USB_VID_LGE:
-            return ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! LGE");
-        case USB_VID_LIN:
-            return ("Linux");
-        case USB_VID_QUA:
-            return ("Qualcomm");
-        case USB_VID_COM:
-            return ("Comneon");
-        case USB_VID_ASE:
-            return ("Action Star");
-    }
-    return ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Unknown VID");//: %d", vid);
-}
-
-#endif
 

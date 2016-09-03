@@ -1282,8 +1282,7 @@ int hu_aap_stop() {                                                  // Sends By
     return (ret);
 }
 
-int hu_aap_start(byte ep_in_addr,
-                 byte ep_out_addr) {                // Starts Transport/USBACC/OAP, then AA protocol w/ VersReq(1), SSL handshake, Auth Complete
+int hu_aap_start(byte ep_in_addr, byte ep_out_addr) {                // Starts Transport/USBACC/OAP, then AA protocol w/ VersReq(1), SSL handshake, Auth Complete
 
     if (iaap_state == hu_STATE_STARTED) {
         loge ("CHECK: iaap_state: %d (%s)", iaap_state, state_get(iaap_state));
@@ -1293,8 +1292,7 @@ int hu_aap_start(byte ep_in_addr,
     iaap_state = hu_STATE_STARTIN;
     logd ("  SET: iaap_state: %d (%s)", iaap_state, state_get(iaap_state));
 
-    int ret = ihu_tra_start(ep_in_addr,
-                            ep_out_addr);                   // Start Transport/USBACC/OAP
+    int ret = ihu_tra_start(ep_in_addr, ep_out_addr);                   // Start Transport/USBACC/OAP
     if (ret) {
         iaap_state = hu_STATE_STOPPED;
         logd ("  SET: iaap_state: %d (%s)", iaap_state, state_get(iaap_state));
@@ -1312,8 +1310,7 @@ int hu_aap_start(byte ep_in_addr,
 
     byte buf[DEFBUF] = {0};
     errno = 0;
-    ret = hu_aap_tra_recv(buf, sizeof(buf),
-                          1000);                    // Get Rx packet from Transport:    Wait for Version Response
+    ret = hu_aap_tra_recv(buf, sizeof(buf), 1000);                    // Get Rx packet from Transport:    Wait for Version Response
     if (ret <= 0) {
         loge ("Version response recv ret: %d", ret);
         hu_aap_stop();
@@ -1321,7 +1318,6 @@ int hu_aap_start(byte ep_in_addr,
     }
     logd ("Version response recv ret: %d", ret);
 
-//*
     ret = hu_ssl_handshake();                                          // Do SSL Client Handshake with AA SSL server
     if (ret) {
         hu_aap_stop();
@@ -1340,7 +1336,6 @@ int hu_aap_start(byte ep_in_addr,
 
     iaap_state = hu_STATE_STARTED;
     logd ("  SET: iaap_state: %d (%s)", iaap_state, state_get(iaap_state));
-//*/
     return (0);
 }
 

@@ -128,12 +128,10 @@ public class AapProjectionActivity extends SurfaceActivity {
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         super.surfaceChanged(holder,format,width,height);
-//        mTransport.sendVideoStart();
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-//        mTransport.sendVideoStop();
         super.surfaceDestroyed(holder);
     }
 

@@ -36,7 +36,6 @@ extern int ena_hd_tra_recv;
 
 extern int ena_log_aap_send;
 
-extern int ena_log_extra;
 extern int ena_log_verbo;
 
 #define byte unsigned char
@@ -61,7 +60,6 @@ extern int ena_log_verbo;
 // SILENT     8
 #endif
 
-#define hu_LOG_EXT   ANDROID_LOG_DEFAULT
 #define hu_LOG_VER   ANDROID_LOG_VERBOSE
 #define hu_LOG_DEB   ANDROID_LOG_DEBUG
 #define hu_LOG_WAR   ANDROID_LOG_WARN
@@ -69,7 +67,6 @@ extern int ena_log_verbo;
 
 #ifdef NDEBUG
 
-#define  logx(...)
 #define  logv(...)
 #define  logd(...)
 #define  logw(...)
@@ -77,17 +74,10 @@ extern int ena_log_verbo;
 
 #else
 
-#define  logx(...)  hu_log(hu_LOG_EXT,LOGTAG,__func__,__VA_ARGS__)
 #define  logv(...)  hu_log(hu_LOG_VER,LOGTAG,__func__,__VA_ARGS__)
 #define  logd(...)  hu_log(hu_LOG_DEB,LOGTAG,__func__,__VA_ARGS__)
 #define  logw(...)  hu_log(hu_LOG_WAR,LOGTAG,__func__,__VA_ARGS__)
 #define  loge(...)  hu_log(hu_LOG_ERR,LOGTAG,__func__,__VA_ARGS__)
-
-//!!
-//  #define  logx(...)
-//  #define  logv(...)
-//  #define  logd(...)
-//  #define  logw(...)
 
 #endif
 
@@ -122,92 +112,7 @@ int sock_reuse_set(int fd);
 #define strlcat   strncat
 #endif
 
-//#ifndef __ANDROID_API__
-#ifdef  DONT_USE
-#ifndef HAVE_STRLCAT
-/*
- * '_cups_strlcat()' - Safely concatenate two strings.
- */
-
-size_t                  /* O - Length of string */
-strlcat(char       *dst,        /* O - Destination string */
-              const char *src,      /* I - Source string */
-          size_t     size)      /* I - Size of destination string buffer */
-{
-  size_t    srclen;         /* Length of source string */
-  size_t    dstlen;         /* Length of destination string */
-
-
- /*
-  * Figure out how much room is left...
-  */
-
-  dstlen = strlen(dst);
-  size   -= dstlen + 1;
-
-  if (!size)
-    return (dstlen);        /* No room, return immediately... */
-
- /*
-  * Figure out how much room is needed...
-  */
-
-  srclen = strlen(src);
-
- /*
-  * Copy the appropriate amount...
-  */
-
-  if (srclen > size)
-    srclen = size;
-
-  memcpy(dst + dstlen, src, srclen);
-  dst[dstlen + srclen] = '\0';
-
-  return (dstlen + srclen);
-}
-#endif /* !HAVE_STRLCAT */
-
-#ifndef HAVE_STRLCPY
-/*
- * '_cups_strlcpy()' - Safely copy two strings.
- */
-
-size_t                  /* O - Length of string */
-strlcpy(char       *dst,        /* O - Destination string */
-              const char *src,      /* I - Source string */
-          size_t      size)     /* I - Size of destination string buffer */
-{
-  size_t    srclen;         /* Length of source string */
-
-
- /*
-  * Figure out how much room is needed...
-  */
-
-  size --;
-
-  srclen = strlen(src);
-
- /*
-  * Copy the appropriate amount...
-  */
-
-  if (srclen > size)
-    srclen = size;
-
-  memcpy(dst, src, srclen);
-  dst[srclen] = '\0';
-
-  return (srclen);
-}
-#endif /* !HAVE_STRLCPY */
-
-#endif
-
-
 // Android USB device priority:
-
 
 //1d6b  Linux Foundation  PIDs:	0001  1.1 root hub  0002  2.0 root hub  -0003  3.0 root hub
 //05c6  Qualcomm, Inc.

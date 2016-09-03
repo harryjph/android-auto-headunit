@@ -77,9 +77,8 @@
       return (-1);
     }
 
-    if (ena_log_extra) {
-      logd ("Start dir: %s  ep: 0x%02x  buf: %p  len: %d  tmo: %d", dir, ep, buf, len, tmo);
-    }
+    logd ("Start dir: %s  ep: 0x%02x  buf: %p  len: %d  tmo: %d", dir, ep, buf, len, tmo);
+
 //#ifndef NDEBUG
     if (ena_hd_tra_send && ep == itcp_ep_out)
       hex_dump ("US: ", 16, buf, len);
@@ -113,9 +112,10 @@
         loge ("Done dir: %s  len: %d  bytes_xfrd: %d  tcp_err: %d (%s)  errno: %d (%s)", dir, len, bytes_xfrd, tcp_err, itcp_error_get (tcp_err), errno, strerror (errno));
       else if (ena_log_verbo && tcp_err != LIBtcp_ERROR_TIMEOUT)// && (ena_hd_tra_send || ep == itcp_ep_in))
         logd ("Done dir: %s  len: %d  bytes_xfrd: %d  tcp_err: %d (%s)  errno: %d (%s)", dir, len, bytes_xfrd, tcp_err, itcp_error_get (tcp_err), errno, strerror (errno));
-      else if (ena_log_extra)
-        logd ("Done dir: %s  len: %d  bytes_xfrd: %d  tcp_err: %d (%s)  errno: %d (%s)", dir, len, bytes_xfrd, tcp_err, itcp_error_get (tcp_err), errno, strerror (errno));
-
+      else {
+        logd ("Done dir: %s  len: %d  bytes_xfrd: %d  tcp_err: %d (%s)  errno: %d (%s)", dir, len,
+              bytes_xfrd, tcp_err, itcp_error_get(tcp_err), errno, strerror(errno));
+      }
       bytes_xfrd = 0;
     }
 

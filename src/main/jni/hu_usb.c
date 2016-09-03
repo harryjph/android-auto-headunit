@@ -201,9 +201,7 @@ int iusb_bulk_transfer(int ep, byte *buf, int len, int tmo) { // 0 = unlimited t
 #define MAX_LEN 65536 //16384 //8192  // 65536
     if (ep == iusb_ep_in && len > MAX_LEN)
         len = MAX_LEN;
-    if (ena_log_extra) {
-        logw ("Start dir: %s  ep: 0x%02x  buf: %p  len: %d  tmo: %d", dir, ep, buf, len, tmo);
-    }
+    logw ("Start dir: %s  ep: 0x%02x  buf: %p  len: %d  tmo: %d", dir, ep, buf, len, tmo);
 //#ifndef NDEBUG
     if (ena_hd_tra_send && ep == iusb_ep_out)
         hex_dump("US: ", 16, buf, len);
@@ -256,10 +254,11 @@ int iusb_bulk_transfer(int ep, byte *buf, int len, int tmo) { // 0 = unlimited t
             logd ("Done dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)  errno: %d (%s)",
                   dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get(usb_err), errno,
                   strerror(errno));
-        else if (ena_log_extra)
+        else {
             logw ("Done dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)  errno: %d (%s)",
                   dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get(usb_err), errno,
                   strerror(errno));
+        }
     }
 
     if (total_bytes_xfrd >

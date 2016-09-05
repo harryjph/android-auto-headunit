@@ -181,20 +181,7 @@ int hu_ssl_handshake() {
         loge ("SSL_CTX_use_PrivateKey() ret: %d", ret);
     else
         logd ("SSL_CTX_use_PrivateKey() ret: %d", ret);
-/*
-    int cmd1 = 0;
-    long larg1 = 0;
-    void * parg1 = NULL;
-    ret = SSL_CTX_ctrl (hu_ssl_ctx, cmd1, larg1, parg1);
-    if (ret != 1) {
-      loge ("SSL_CTX_ctrl() ret: %d", ret);
-      //return (-1);
-    }
-    else
-      logd ("SSL_CTX_ctrl() ret: %d", ret);
-*/
 
-    //SSL_CTX_set_options (hu_ssl_ctx, SSL_OP_SINGLE_DH_USE);
 
     // Must do all CTX setup before SSL_new() !!
     hu_ssl_ssl = SSL_new(hu_ssl_ctx);
@@ -233,36 +220,9 @@ int hu_ssl_handshake() {
                             DEFBUF);                             // BIO_ctrl() API to increase the buffer size.
     BIO_set_write_buf_size (hu_ssl_wm_bio, DEFBUF);
 
-    SSL_set_connect_state(
-            hu_ssl_ssl);                                        // Set ssl to work in client mode
+    SSL_set_connect_state(hu_ssl_ssl);                                        // Set ssl to work in client mode
 
     SSL_set_verify(hu_ssl_ssl, SSL_VERIFY_NONE, NULL);
-
-/*
-    X509_STORE * x509_store = X509_STORE_new ();
-    if (x509_store == NULL) {
-      loge ("X509_STORE_new() x509_store: %p", x509_store);
-      return (-1);
-    }
-    logd ("X509_STORE_new() x509_store: %p", x509_store);
-
-    ret = X509_STORE_add_cert (x509_store, x509_cert);
-    if (ret != 1) {
-      loge ("X509_STORE_add_cert() ret: %d", ret);
-      return (-1);
-    }
-    logd ("X509_STORE_add_cert() ret: %d", ret);
-
-    int store_flags = 0;
-    ret = X509_STORE_set_flags (x509_store, store_flags);
-    if (ret != 1) {
-      loge ("X509_STORE_set_flags() ret: %d", ret);
-//      return (-1);
-    }
-    logd ("X509_STORE_set_flags() ret: %d", ret);
-
-    //int have_error_or_done = 1;//0;
-//*/
 
     byte hs_buf[DEFBUF] = {0};
     int hs_ctr = 0;
@@ -271,9 +231,8 @@ int hu_ssl_handshake() {
 
     while (!hs_finished && hs_ctr++ < 2) {
 
-        ret = SSL_do_handshake(
-                hu_ssl_ssl);                             // Do current handshake step processing
-        logd ("SSL_do_handshake() ret: %d  hs_ctr: %d", ret, hs_ctr);
+        ret = SSL_do_handshake(hu_ssl_ssl);                             // Do current handshake step processing
+        logd ("SSL_do_handshake() ret: %d  hs_ctr: %d, error: %d", ret, hs_ctr, SSL_get_error(hu_ssl_ssl, ret));
 
         if (ena_log_verbo || (SSL_get_error(hu_ssl_ssl, ret) != SSL_ERROR_WANT_READ)) {
             hu_ssl_ret_log(ret);
@@ -298,8 +257,7 @@ int hu_ssl_handshake() {
 
         ret = hu_aap_tra_recv(hs_buf, sizeof(hs_buf),
                               2000);           // Get Rx packet from Transport: Receive Server response: Hello/Change Cipher
-        if (ret <=
-            0) {                                                   // If error, then done w/ error
+        if (ret <= 0) {                                                   // If error, then done w/ error
             loge ("HS server rsp ret: %d", ret);
             return (-1);
         }

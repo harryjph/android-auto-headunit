@@ -720,8 +720,7 @@ int hu_usb_start(byte ep_in_addr, byte ep_out_addr) {
 
         if (iusb_best_vendor != USB_VID_GOO) {
             iusb_deinit();
-            ms_sleep(
-                    4000);//!!!!!!!!!!!!!!      (1000);                                                // 600 ms not enough; 700 seems OK
+            ms_sleep(4000);//!!!!!!!!!!!!!!      (1000);                                                // 600 ms not enough; 700 seems OK
             logd ("Done iusb_best_vendor != USB_VID_GOO ms_sleep()");
         }
         else

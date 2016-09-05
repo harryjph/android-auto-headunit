@@ -20,8 +20,8 @@ public class UsbAccessoryConnection
     private UsbDeviceCompat mUsbDeviceConnected;
     private UsbDeviceConnection mUsbDeviceConnection = null;                   // USB Device connection
     private UsbInterface mUsbInterface = null;                   // USB Interface
-    private UsbEndpoint m_usb_ep_in = null;                   // USB Input  endpoint
-    private UsbEndpoint m_usb_ep_out = null;                   // USB Output endpoint
+    private UsbEndpoint mEndpointIn = null;                   // USB Input  endpoint
+    private UsbEndpoint mEndpointOut = null;                   // USB Output endpoint
     private int m_ep_in_addr = -1;                                      // Input  endpoint Value  129
     private int m_ep_out_addr = -1;                                      // Output endpoint Value    2
 
@@ -53,9 +53,11 @@ public class UsbAccessoryConnection
             disconnect();                                              // Ensure state is disconnected
             return false;
         }
+
         mUsbDeviceConnected = new UsbDeviceCompat(device);
         return true;
     }
+
     private void usb_open(UsbDevice device) throws UsbOpenException {                             // Open USB device connection & claim interface. Called only by usb_connect()
         try {
             mUsbDeviceConnection = mUsbMgr.openDevice(device);                 // Open device for connection
@@ -86,28 +88,29 @@ public class UsbAccessoryConnection
 
     private int acc_mode_endpoints_set() {                               // Set Accessory mode Endpoints. Called only by usb_connect()
         Utils.logd("Check accessory endpoints");
-        m_usb_ep_in = null;                                               // Setup bulk endpoints.
-        m_usb_ep_out = null;
+        mEndpointIn = null;                                               // Setup bulk endpoints.
+        mEndpointOut = null;
         m_ep_in_addr = -1;     // 129
         m_ep_out_addr = -1;     // 2
+
 
         for (int i = 0; i < mUsbInterface.getEndpointCount(); i++) {        // For all USB endpoints...
             UsbEndpoint ep = mUsbInterface.getEndpoint(i);
             if (ep.getDirection() == UsbConstants.USB_DIR_IN) {              // If IN
-                if (m_usb_ep_in == null) {                                      // If Bulk In not set yet...
+                if (mEndpointIn == null) {                                      // If Bulk In not set yet...
                     m_ep_in_addr = ep.getAddress();
                     Utils.logd("Bulk IN m_ep_in_addr: %d  %d", m_ep_in_addr, i);
-                    m_usb_ep_in = ep;                                             // Set Bulk In
+                    mEndpointIn = ep;                                             // Set Bulk In
                 }
             } else {                                                            // Else if OUT...
-                if (m_usb_ep_out == null) {                                     // If Bulk Out not set yet...
+                if (mEndpointOut == null) {                                     // If Bulk Out not set yet...
                     m_ep_out_addr = ep.getAddress();
                     Utils.logd("Bulk OUT m_ep_out_addr: %d  %d", m_ep_out_addr, i);
-                    m_usb_ep_out = ep;                                            // Set Bulk Out
+                    mEndpointOut = ep;                                            // Set Bulk Out
                 }
             }
         }
-        if (m_usb_ep_in == null || m_usb_ep_out == null) {
+        if (mEndpointIn == null || mEndpointOut == null) {
             Utils.loge("Unable to find bulk endpoints");
             return (-1);                                                      // Done error
         }
@@ -120,8 +123,8 @@ public class UsbAccessoryConnection
         if (mUsbDeviceConnected != null) {
             Utils.logd(mUsbDeviceConnected.toString());
         }
-        m_usb_ep_in = null;                                               // Input  EP
-        m_usb_ep_out = null;                                               // Output EP
+        mEndpointIn = null;                                               // Input  EP
+        mEndpointOut = null;                                               // Output EP
         m_ep_in_addr = -1;                                                 // Input  endpoint Value
         m_ep_out_addr = -1;                                                 // Output endpoint Value
 
@@ -153,6 +156,18 @@ public class UsbAccessoryConnection
 
     public boolean isConnected() {
         return mUsbDeviceConnected != null;
+    }
+
+    /**
+     * @return length of data transferred (or zero) for success,
+     * or negative value for failure
+     */
+    public int send(byte[] buf) {
+        return mUsbDeviceConnection.bulkTransfer(mEndpointOut, buf, buf.length, 1000);
+    }
+
+    public int recv(byte[] buf) {
+        return mUsbDeviceConnection.bulkTransfer(mEndpointIn, buf, buf.length, 1000);
     }
 
     public class UsbOpenException extends Exception {

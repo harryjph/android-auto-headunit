@@ -15,6 +15,8 @@ public class Protocol {
     private static final int AA_CH_SEN = 1;
     private static final int AA_CH_VID = 2;
     private static final int AA_CH_MIC = 7;
+    static final int DEF_BUFFER_LENGTH = 65536;
+
 
     private static byte BYEBYE_REQUEST = 15; // 0x0f
 
@@ -27,6 +29,9 @@ public class Protocol {
     static final byte RESPONSE_AUDIO_STOP = 3;
     static final byte RESPONSE_AUDIO1_STOP = 4;
     static final byte RESPONSE_AUDIO2_STOP = 5;
+
+    static byte[] VERSION_REQUEST = { 0, 1, 0, 1 };
+
 
     // Byebye Request:  000b0004000f0800  00 0b 00 04 00 0f 08 00
     static byte[] BUYBUY_REQUEST = { AA_CH_CTR, 0x0b, 0x00, 0x00, 0x00, BYEBYE_REQUEST, 0x08, 0 };
@@ -51,7 +56,7 @@ public class Protocol {
 //    06-18 12:55:55.145 28234-28399/ca.yyx.hu D/                        hex_dump: RCV 2 VID b 00000000 08 03
     static byte[] VIDEO_SETUP = { AA_CH_VID, 0x0b, 0x00, 0x00, -128, 0x08, 0x08, 0x03 };
 
-    public static byte[] createMicBuffer()
+    static byte[] createMicBuffer()
     {
         byte[] mic_buf = new byte[14 + MicRecorder.MIC_BUFFER_SIZE];
         mic_buf[0] = AA_CH_MIC;// Mic channel

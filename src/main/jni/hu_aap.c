@@ -1320,6 +1320,7 @@ int hu_aap_start(byte ep_in_addr, byte ep_out_addr) {                // Starts T
 
     ret = hu_ssl_handshake();                                          // Do SSL Client Handshake with AA SSL server
     if (ret) {
+        loge ("SSL handshake failed ret: %d", ret);
         hu_aap_stop();
         return (ret);
     }

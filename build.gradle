@@ -17,9 +17,9 @@ allprojects {
 apply plugin: 'com.android.application'
 
 dependencies {
-    compile 'com.android.support:support-core-utils:24.2.0'
-    compile 'com.android.support:support-media-compat:24.2.0'
-    compile 'com.android.support:recyclerview-v7:24.2.0'
+    compile 'com.android.support:support-core-utils:24.2.1'
+    compile 'com.android.support:support-media-compat:24.2.1'
+    compile 'com.android.support:recyclerview-v7:24.2.1'
     compile 'net.hockeyapp.android:HockeySDK:4.1.1'
 }
 
@@ -56,19 +56,45 @@ android {
         }
     }
 
+    signingConfigs {
+        debug {
+            storeFile file(HEADUNIT_KEYSTORE_FILE)
+            storePassword HEADUNIT_KEYSTORE_PASSWORD
+            keyAlias HEADUNIT_KEY_ALIAS
+            keyPassword HEADUNIT_KEY_PASSWORD
+        }
+
+        release {
+            storeFile file(HEADUNIT_KEYSTORE_FILE)
+            storePassword HEADUNIT_KEYSTORE_PASSWORD
+            keyAlias HEADUNIT_KEY_ALIAS
+            keyPassword HEADUNIT_KEY_PASSWORD
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.release
         }
         debug {
             debuggable true
             jniDebuggable true
+            signingConfig signingConfigs.debug
         }
     }
 
     lintOptions {
         abortOnError false
     }
+
+    task genSource(type: Exec) {
+        println "Executing " + HEADUNIT_SCRIPT_FILE
+        commandLine HEADUNIT_SCRIPT_FILE
+    }
+
+    preBuild.dependsOn genSource
+
 }
 

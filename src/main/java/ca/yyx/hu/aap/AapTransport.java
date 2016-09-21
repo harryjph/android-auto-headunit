@@ -22,8 +22,11 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private static final int VIDEO_STOP = 5;
     private static final int VIDEO_START = 6;
 
+
+    private static final int DEFBUF = 131080;
+
     private byte[] fixed_cmd_buf = new byte[256];
-    private byte[] fixed_res_buf = new byte[65536 * 16];
+    private byte[] fixed_res_buf = new byte[DEFBUF * 16];
 
     private Handler mHandler;
     private boolean mMicRecording;
@@ -199,7 +202,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     }
 
     private int aa_cmd_send(int cmd_len, @NonNull byte[] cmd_buf) {
-        byte[] res_buf = new byte[65536 * 16];
+        byte[] res_buf = new byte[DEFBUF * 16];
         return aa_cmd_send(cmd_len, cmd_buf, res_buf.length, res_buf);
     }
 
@@ -236,15 +239,10 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     }
 
     private void handleMedia(byte[] buffer, int size) {
-        ByteBuffer bb = ByteBuffer.wrap(buffer);
-        bb.limit(size);
-        bb.position(0);
-
         if (VideoDecoder.isH246Video(buffer)) {
-            Utils.loge(" 4th value: " + Utils.hex_get(buffer[4]));
-            mVideoDecoder.decode(bb);
+            mVideoDecoder.decode(buffer, size);
         } else {
-            mAudioDecoder.decode(bb);
+            mAudioDecoder.decode(buffer, size);
         }
     }
 

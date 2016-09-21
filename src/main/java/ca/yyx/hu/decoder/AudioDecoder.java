@@ -23,18 +23,14 @@ public class AudioDecoder {
 
     public AudioDecoder(Context context) {
         mContext = context;
-
     }
 
-    public void decode(ByteBuffer content) {
-        int pos = content.position();
-        int siz = content.remaining();
-        byte[] ba = content.array();
+    public void decode(byte[] buffer, int size) {
         // Create content byte array
-        if (siz <= 2048 + 96) {
-            out_audio_write(AA_CH_AU1, ba, pos + siz);                     // Position always 0 so just use siz as len ?
+        if (size <= 2048 + 96) {
+            out_audio_write(AA_CH_AU1, buffer, size);                     // Position always 0 so just use siz as len ?
         } else {
-            out_audio_write(AA_CH_AUD, ba, pos + siz);                     // Position always 0 so just use siz as len ?
+            out_audio_write(AA_CH_AUD, buffer, size);                     // Position always 0 so just use siz as len ?
         }
     }
 

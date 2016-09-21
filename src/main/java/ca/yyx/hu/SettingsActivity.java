@@ -1,8 +1,10 @@
 package ca.yyx.hu;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
@@ -73,6 +75,13 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
             }
         });
 
+        findViewById(R.id.menu).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showMenuDialog();
+            }
+        });
+
         mSettings = new Settings(this);
         mAdapter = new DeviceAdapter(this, mSettings);
 
@@ -83,6 +92,21 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
         mUsbReceiver = new UsbReceiver(this);
 
         UpdateManager.register(this);
+    }
+
+    private void showMenuDialog() {
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.menu)
+                .setItems(R.array.menu_items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == 0)
+                        {
+                            startActivity(new Intent(SettingsActivity.this, VideoTestActivity.class));
+                        }
+                    }
+                }).create();
+        dialog.show();
     }
 
     private ArrayList<UsbDeviceCompat> createDeviceList(final Set<String> allowDevices) {

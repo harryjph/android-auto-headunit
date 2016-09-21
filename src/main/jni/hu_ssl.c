@@ -234,7 +234,7 @@ int hu_ssl_handshake() {
         ret = SSL_do_handshake(hu_ssl_ssl);                             // Do current handshake step processing
         logd ("SSL_do_handshake() ret: %d  hs_ctr: %d, error: %d", ret, hs_ctr, SSL_get_error(hu_ssl_ssl, ret));
 
-        if (ena_log_verbo || (SSL_get_error(hu_ssl_ssl, ret) != SSL_ERROR_WANT_READ)) {
+        if ((SSL_get_error(hu_ssl_ssl, ret) != SSL_ERROR_WANT_READ)) {
             hu_ssl_ret_log(ret);
             hu_ssl_inf_log();
         }

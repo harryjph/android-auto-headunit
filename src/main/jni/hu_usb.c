@@ -194,14 +194,14 @@ int iusb_bulk_transfer(int ep, byte *buf, int len, int tmo) { // 0 = unlimited t
         dir = "send";
 
     if (iusb_state != hu_STATE_STARTED) {
-        logd ("CHECK: iusb_bulk_transfer start iusb_state: %d (%s) dir: %s  ep: 0x%02x  buf: %p  len: %d  tmo: %d",
-              iusb_state, state_get(iusb_state), dir, ep, buf, len, tmo);
+       // logd ("CHECK: iusb_bulk_transfer start iusb_state: %d (%s) dir: %s  ep: 0x%02x  buf: %p  len: %d  tmo: %d",
+       //       iusb_state, state_get(iusb_state), dir, ep, buf, len, tmo);
         return (-1);
     }
 #define MAX_LEN 65536 //16384 //8192  // 65536
     if (ep == iusb_ep_in && len > MAX_LEN)
         len = MAX_LEN;
-    logw ("Start dir: %s  ep: 0x%02x  buf: %p  len: %d  tmo: %d", dir, ep, buf, len, tmo);
+  //  logw ("Start dir: %s  ep: 0x%02x  buf: %p  len: %d  tmo: %d", dir, ep, buf, len, tmo);
 //#ifndef NDEBUG
     if (ena_hd_tra_send && ep == iusb_ep_out)
         hex_dump("US: ", 16, buf, len);
@@ -239,8 +239,8 @@ int iusb_bulk_transfer(int ep, byte *buf, int len, int tmo) { // 0 = unlimited t
         if ((total_bytes_xfrd > 0 || bytes_xfrd > 0) && usb_err ==
                                                         LIBUSB_ERROR_TIMEOUT) {          // If bytes were transferred but we had a timeout...
 //        continue_transfer = 1;                                          // Continue the transfer
-            logd ("CONTINUE dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)",
-                  dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get(usb_err));
+            //   logd ("CONTINUE dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)",
+            //        dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get(usb_err));
             buf += bytes_xfrd;                                              // For next transfer, point deeper info buf
             len -= bytes_xfrd;                                              // For next transfer, reduce buf len capacity
 //        ms_sleep (50);
@@ -249,12 +249,12 @@ int iusb_bulk_transfer(int ep, byte *buf, int len, int tmo) { // 0 = unlimited t
             loge ("Done dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)  errno: %d (%s)",
                   dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get(usb_err), errno,
                   strerror(errno));
-        else if (ena_log_verbo &&
-                 usb_err != LIBUSB_ERROR_TIMEOUT)// && (ena_hd_tra_send || ep == iusb_ep_in))
-            logd ("Done dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)  errno: %d (%s)",
-                  dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get(usb_err), errno,
-                  strerror(errno));
-        else {
+        else if (usb_err != LIBUSB_ERROR_TIMEOUT) {
+            // && (ena_hd_tra_send || ep == iusb_ep_in))
+        // logd ("Done dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)  errno: %d (%s)",
+        //      dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get(usb_err), errno,
+        //      strerror(errno));
+        } else {
             logw ("Done dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)  errno: %d (%s)",
                   dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get(usb_err), errno,
                   strerror(errno));

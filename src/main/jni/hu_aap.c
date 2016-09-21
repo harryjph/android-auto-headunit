@@ -158,7 +158,7 @@ int hu_aap_tra_send(byte *buf, int len,
         return (-1);
     }
 
-    if (ena_log_verbo && ena_log_aap_send)
+    if (ena_log_aap_send)
         logd ("OK ihu_tra_send() ret: %d  len: %d", ret, len);
     return (ret);
 }
@@ -199,7 +199,7 @@ int hu_aap_enc_send(int chan, byte *buf, int len) {                 // Encrypt d
     if (bytes_written != len)
         loge ("SSL_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan,
               chan_get(chan));
-    else if (ena_log_verbo && ena_log_aap_send)
+    else if (ena_log_aap_send)
         logd ("SSL_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan,
               chan_get(chan));
 
@@ -210,7 +210,7 @@ int hu_aap_enc_send(int chan, byte *buf, int len) {                 // Encrypt d
         hu_aap_stop();
         return (-1);
     }
-    if (ena_log_verbo && ena_log_aap_send)
+    if (ena_log_aap_send)
         logd ("BIO_read() bytes_read: %d", bytes_read);
 
     hu_aap_tra_set(chan, flags, -1, enc_buf, bytes_read +
@@ -998,8 +998,8 @@ aa_type_ptr_t aa_type_array[
 void iaap_video_decode(byte *buf, int len) {
 
     char *q_buf = vid_write_tail_buf_get(len);                         // Get queue buffer tail to write to     !!! Need to lock until buffer written to !!!!
-    if (ena_log_verbo)
-        logd ("video q_buf: %p  buf: %p  len: %d", q_buf, buf, len);
+
+    // logd ("video q_buf: %p  buf: %p  len: %d", q_buf, buf, len);
     if (q_buf == NULL) {
         loge ("Error video no q_buf: %p  buf: %p  len: %d", q_buf, buf, len);
         //return;                                                         // Continue in order to write to record file
@@ -1049,8 +1049,7 @@ void iaap_audio_decode(int chan, byte *buf, int len) {
 
 
     char *q_buf = aud_write_tail_buf_get(len);                         // Get queue buffer tail to write to     !!! Need to lock until buffer written to !!!!
-    if (ena_log_verbo)
-        logd ("audio q_buf: %p  buf: %p  len: %d", q_buf, buf, len);
+//        logd ("audio q_buf: %p  buf: %p  len: %d", q_buf, buf, len);
     if (q_buf == NULL) {
         loge ("Error audio no q_buf: %p  buf: %p  len: %d", q_buf, buf, len);
         //return;                                                         // Continue in order to write to record file
@@ -1212,8 +1211,7 @@ int iaap_msg_process(int chan, int flags, byte *buf, int len) {
     int msg_type = (int) buf[1];
     msg_type += ((int) buf[0] * 256);
 
-    if (ena_log_verbo)
-        logd ("iaap_msg_process msg_type: %d  len: %d  buf: %p", msg_type, len, buf);
+    //    logd ("iaap_msg_process msg_type: %d  len: %d  buf: %p", msg_type, len, buf);
 
     int run = 0;
     if ((chan == AA_CH_AUD || chan == AA_CH_AU1 || chan == AA_CH_AU2) && (msg_type == 0 ||
@@ -1359,12 +1357,11 @@ int iaap_recv_dec_process(int chan, int flags, byte *buf,
         loge ("BIO_write() bytes_written: %d", bytes_written);
         return (-1);
     }
-    if (bytes_written != len)
+    if (bytes_written != len) {
         loge ("BIO_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan,
               chan_get(chan));
-    else if (ena_log_verbo)
-        logd ("BIO_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan,
-              chan_get(chan));
+    }
+        // logd ("BIO_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, chan_get(chan));
 
     errno = 0;
     int ctr = 0;
@@ -1386,8 +1383,8 @@ int iaap_recv_dec_process(int chan, int flags, byte *buf,
         hu_ssl_ret_log(bytes_read);
         return (-1);                                                      // Fatal so return error and de-initialize; Should we be able to recover, if Transport data got corrupted ??
     }
-    if (ena_log_verbo)
-        logd ("ctr: %d  SSL_read() bytes_read: %d", ctr, bytes_read);
+
+    // logd ("ctr: %d  SSL_read() bytes_read: %d", ctr, bytes_read);
 
 #ifndef NDEBUG
 ////    if (chan != AA_CH_VID)                                          // If not video...
@@ -1457,10 +1454,8 @@ int hu_aap_recv_process() {                                          //
     }
 
     while (have_len > 0) {                                              // While length remaining to process,... Process Rx packet:
-        if (ena_log_verbo) {
-            logd ("Recv while (have_len > 0): %d", have_len);
-            hex_dump("LR: ", 16, buf, have_len);
-        }
+//            logd ("Recv while (have_len > 0): %d", have_len);
+//            hex_dump("LR: ", 16, buf, have_len);
         int chan = (int) buf[0];                                         // Channel
         int flags = buf[1];                                              // Flags
 

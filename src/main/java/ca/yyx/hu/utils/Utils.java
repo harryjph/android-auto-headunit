@@ -27,21 +27,15 @@ import ca.yyx.hu.decoder.MicRecorder;
 
 public final class Utils {
 
-    public static final String TAG = "Headunit";
+    private static final String TAG = "Headunit";
     public static final boolean IS_LOLLIPOP = Build.VERSION.SDK_INT >= 21;
 
-    // Android Logging Levels:
-    public static final boolean ena_log_verbo = false;
-    private static final boolean ena_log_debug = true;//false;//true;
-    private static final boolean ena_log_warni = true;//false;//true;
-    private static final boolean ena_log_error = true;
-
     public static void logd(String msg) {
-        if (ena_log_debug) Log.d(TAG, format(msg));
+        Log.d(TAG, format(msg));
     }
 
     public static void logd(final String msg, final Object... params) {
-        if (ena_log_debug) Log.d(TAG, format(msg, params));
+        Log.d(TAG, format(msg, params));
     }
 
     public static void logv(String msg) {
@@ -53,7 +47,7 @@ public final class Utils {
     }
 
     public static void logw(String msg) {
-        if (ena_log_warni) Log.w(TAG, format(msg));
+        Log.w(TAG, format(msg));
     }
 
     public static void loge(String msg, Throwable tr) {
@@ -144,7 +138,7 @@ public final class Utils {
         for (int ctr = 0; ctr < ba.length; ctr++) {
             hex += hex_get(ba[ctr]);    //hex += "" + hex_get ((byte) (ba [ctr] >> 4));
         }
-        return (hex.toString());
+        return hex;
     }
 
     public static String hex_get(byte b) {

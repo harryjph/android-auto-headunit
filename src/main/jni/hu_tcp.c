@@ -110,8 +110,10 @@
       }
       else if (tcp_err < 0 && tcp_err != LIBtcp_ERROR_TIMEOUT)
         loge ("Done dir: %s  len: %d  bytes_xfrd: %d  tcp_err: %d (%s)  errno: %d (%s)", dir, len, bytes_xfrd, tcp_err, itcp_error_get (tcp_err), errno, strerror (errno));
-      else if (ena_log_verbo && tcp_err != LIBtcp_ERROR_TIMEOUT)// && (ena_hd_tra_send || ep == itcp_ep_in))
-        logd ("Done dir: %s  len: %d  bytes_xfrd: %d  tcp_err: %d (%s)  errno: %d (%s)", dir, len, bytes_xfrd, tcp_err, itcp_error_get (tcp_err), errno, strerror (errno));
+      else if (tcp_err != LIBtcp_ERROR_TIMEOUT) {
+        // && (ena_hd_tra_send || ep == itcp_ep_in))
+        // logd ("Done dir: %s  len: %d  bytes_xfrd: %d  tcp_err: %d (%s)  errno: %d (%s)", dir, len, bytes_xfrd, tcp_err, itcp_error_get (tcp_err), errno, strerror (errno));
+      }
       else {
         logd ("Done dir: %s  len: %d  bytes_xfrd: %d  tcp_err: %d (%s)  errno: %d (%s)", dir, len,
               bytes_xfrd, tcp_err, itcp_error_get(tcp_err), errno, strerror(errno));

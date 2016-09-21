@@ -24,9 +24,9 @@ int gen_server_poll_func(int poll_ms);
 
 // Log stuff:
 
-int ena_log_verbo = 1;
+int ena_log_verbo = 0;
 //1;
-int ena_log_debug = 1;
+int ena_log_debug = 0;
 int ena_log_warni = 1;
 int ena_log_error = 1;
 
@@ -499,7 +499,7 @@ char *aud_read_head_buf_get(int *len) {                              // Get head
     //logd ("aud_read_head_buf_get start bufs: %d  head: %d  tail: %d", bufs, aud_buf_buf_head, aud_buf_buf_tail);
 
     if (bufs <= 0) {                                                    // If no buffers are ready...
-        logd ("aud_read_head_buf_get no aud_buf_bufs");
+        //logd ("aud_read_head_buf_get no aud_buf_bufs");
         //aud_buf_errs ++;  // Not an error; just no data
         //aud_buf_buf_tail = aud_buf_buf_head = 0;                          // Drop all buffers
         return (NULL);
@@ -627,7 +627,7 @@ char *vid_read_head_buf_get(int *len) {                              // Get head
     //logd ("vid_read_head_buf_get start bufs: %d  head: %d  tail: %d", bufs, vid_buf_buf_head, vid_buf_buf_tail);
 
     if (bufs <= 0) {                                                    // If no buffers are ready...
-        logd ("vid_read_head_buf_get no vid_buf_bufs");
+        //logd ("vid_read_head_buf_get no vid_buf_bufs");
         //vid_buf_errs ++;  // Not an error; just no data
         //vid_buf_buf_tail = vid_buf_buf_head = 0;                          // Drop all buffers
         return (NULL);

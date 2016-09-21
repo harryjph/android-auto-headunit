@@ -33,10 +33,7 @@
 extern int ena_hd_hu_aad_dmp;
 extern int ena_hd_tra_send;
 extern int ena_hd_tra_recv;
-
 extern int ena_log_aap_send;
-
-extern int ena_log_verbo;
 
 #define byte unsigned char
 //This is the value used in DHU // Default buffer size is maximum for USB

@@ -122,16 +122,14 @@ int jni_aa_cmd(int cmd_len, char *cmd_buf, int res_max, char *res_buf) {
         //hu_uti.c:  #define aud_buf_BUFS_SIZE    65536 * 4      // Up to 256 Kbytes
     }
 
-    if (ena_log_verbo && dq_buf != NULL)
-        logd ("dq_buf: %p", dq_buf);
+       // logd ("dq_buf: %p", dq_buf);
     if (dq_buf == NULL || res_len <= 0) {
-        logd ("No data dq_buf: %p  res_len: %d", dq_buf, res_len);
+        // logd ("No data dq_buf: %p  res_len: %d", dq_buf, res_len);
         return (0);
     }
     memcpy(res_buf, dq_buf, res_len);
 
-    if (ena_log_verbo)
-        logd ("res_len: %d", res_len);
+      //  logd ("res_len: %d", res_len);
     return (res_len);
 }
 

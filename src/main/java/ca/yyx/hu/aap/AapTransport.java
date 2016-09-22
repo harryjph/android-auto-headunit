@@ -126,37 +126,6 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
     public boolean connectAndStart(UsbAccessoryConnection connection) {
         Utils.logd("Start Aap transport for " + connection);
-
-        // Version request
-
-        byte vr_buf[] = hu_aap_tra_set(0, 3, 1, Protocol.VERSION_REQUEST); // Version Request
-        int ret = connection.send(vr_buf);
-        if (ret < 0) {
-            Utils.loge ("Version request send ret: " + ret);
-            return false;
-        }
-
-        byte[] buffer = new byte[Protocol.DEF_BUFFER_LENGTH];
-        ret = connection.recv(buffer);
-        if (ret <= 0) {
-            Utils.loge ("Version request recv ret: " + ret);
-            return false;
-        }
-        Utils.logd("Version response recv ret: %d", ret);
-
-        // SSL
-
-        // Status = OK
-        byte st_buf[] = hu_aap_tra_set(0, 3, 4, new byte[]{ 4, 8, 0 } );
-        // {0, 3, 0, 4, 0, 4, 8, 0};
-        ret = connection.send(st_buf);
-        if (ret < 0) {
-            Utils.loge ("Status request send ret: " + ret);
-            return false;
-        }
-
-/*
-
         // Start JNI Android Auto Protocol and Main Thread.
         byte[] cmd_buf = {121, -127, 2};
         // Start Request w/ m_ep_in_addr, m_ep_out_addr
@@ -171,30 +140,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             return true;
         }
         Utils.loge("Cannot start AAP ret:" + ret);
-
-        */
         return false;
-    }
-
-
-    byte[] hu_aap_tra_set(int chan, int flags, int type, byte[] data) {
-        byte[] buf = new byte[6 + data.length];
-
-        buf[0] = (byte) chan;                                              // Encode channel and flags
-        buf[1] = (byte) flags;
-        buf[2] = (byte) ((data.length + 2) / 256);                                            // Encode length of following data:
-        buf[3] = (byte) ((data.length + 2) % 256);
-        if (type >= 0) {                                                    // If type not negative, which indicates encrypted type should not be touched...
-            buf[4] = (byte) (type / 256);
-            buf[5] = (byte) (type % 256);                                             // Encode msg_type
-        } else {
-            buf[4] = 0;
-            buf[5] = 1;                                           // Encode msg_type
-        }
-
-        System.arraycopy(data, 0, buf, 6, data.length);
-
-        return buf;
     }
 
     private int aa_cmd_send(@NonNull byte[] cmd_buf) {

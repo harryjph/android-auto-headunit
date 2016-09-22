@@ -51,13 +51,14 @@ public class VideoDecoder {
 
             if (isSps(buffer))
             {
-                mConfigSps = new byte[size];
-                System.arraycopy(buffer, 0, mConfigSps, 0, size);
+                int configSize = size - 4;
+                mConfigSps = new byte[configSize];
+                System.arraycopy(buffer, 4, mConfigSps, 0, configSize);
                 Utils.logd("SPS: %d", mConfigSps.length);
-            } else if (isPps(buffer))
-            {
-                mConfigPps = new byte[size];
-                System.arraycopy(buffer, 0, mConfigPps, 0, size);
+            } else if (isPps(buffer)) {
+                int configSize = size - 4;
+                mConfigPps = new byte[configSize];
+                System.arraycopy(buffer, 4, mConfigPps, 0, configSize);
                 Utils.logd("PPS: %d", mConfigPps.length);
             }
 

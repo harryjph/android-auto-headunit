@@ -1,5 +1,3 @@
-#define LOGTAG "hu_uti"
-
 #include "hu_uti.h"
 
 char *state_get(int state) {
@@ -66,7 +64,7 @@ char *prio_get(int prio) {
     return ("?");
 }
 
-int hu_log(int prio, const char *tag, const char *func, const char *fmt, ...) {
+int hu_log(int prio, const char *fmt, ...) {
 
     if (!ena_log_verbo && prio == hu_LOG_VER)
         return -1;
@@ -77,13 +75,10 @@ int hu_log(int prio, const char *tag, const char *func, const char *fmt, ...) {
     if (!ena_log_error && prio == hu_LOG_ERR)
         return -1;
 
-    char tag_str[DEFBUF] = {0};
-    snprintf(tag_str, sizeof(tag_str), "%32.32s", func);
-
     va_list ap;
     va_start (ap, fmt);
 #ifdef __ANDROID_API__
-    __android_log_vprint(prio, tag_str, fmt, ap);
+    __android_log_vprint(prio, "Headunit", fmt, ap);
 #else
     char log_line [4096] = {0};
     va_list aq;

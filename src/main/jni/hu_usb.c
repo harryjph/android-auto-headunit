@@ -541,8 +541,7 @@ int iusb_init(byte ep_in_addr, byte ep_out_addr) {
     logd ("libusb_open usb_err: %d (%s)  iusb_dev_hndl: %p  list: %p", usb_err,
           iusb_error_get(usb_err), iusb_dev_hndl, list);
 
-    libusb_free_device_list(list,
-                            1);                                  // Free device list now that we are finished with it
+    libusb_free_device_list(list,  1);                                  // Free device list now that we are finished with it
 
     if (usb_err != 0) {
         loge ("Error libusb_open usb_err: %d (%s)", usb_err, iusb_error_get(usb_err));

@@ -72,14 +72,14 @@ extern int ena_log_aap_send;
 
 #else
 
-#define  logv(...)  hu_log(hu_LOG_VER,LOGTAG,__func__,__VA_ARGS__)
-#define  logd(...)  hu_log(hu_LOG_DEB,LOGTAG,__func__,__VA_ARGS__)
-#define  logw(...)  hu_log(hu_LOG_WAR,LOGTAG,__func__,__VA_ARGS__)
-#define  loge(...)  hu_log(hu_LOG_ERR,LOGTAG,__func__,__VA_ARGS__)
+#define  logv(...)  hu_log(hu_LOG_VER,__VA_ARGS__)
+#define  logd(...)  hu_log(hu_LOG_DEB,__VA_ARGS__)
+#define  logw(...)  hu_log(hu_LOG_WAR,__VA_ARGS__)
+#define  loge(...)  hu_log(hu_LOG_ERR,__VA_ARGS__)
 
 #endif
 
-int hu_log(int prio, const char *tag, const char *func, const char *fmt, ...);
+int hu_log(int prio, const char *fmt, ...);
 
 unsigned long ms_get();
 

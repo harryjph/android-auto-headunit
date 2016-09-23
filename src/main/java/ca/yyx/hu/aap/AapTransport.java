@@ -14,10 +14,9 @@ import ca.yyx.hu.utils.Utils;
 
 public class AapTransport extends HandlerThread implements Handler.Callback {
     private static final int POLL = 1;
-    private static final int TOUCH_SYNC = 2;
+    private static final int DATA_MESSAGE = 2;
     private static final int MIC_RECORD_START = 3;
     private static final int MIC_RECORD_STOP = 4;
-    private static final int BUTTON = 5;
 
     private static final int DEFBUF = 131080;
 
@@ -75,15 +74,10 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             }
         }
 
-        if (msg.what == TOUCH_SYNC) {
-            int touchLength = msg.arg1;
-            byte[] touchData = (byte[]) msg.obj;
-            ret = aa_cmd_send(touchLength, touchData, fixed_res_buf.length, fixed_res_buf);
-        }
-
-        if (msg.what == BUTTON) {
-            byte[] buttonData = (byte[]) msg.obj;
-            ret = aa_cmd_send(buttonData.length, buttonData, fixed_res_buf.length, fixed_res_buf);
+        if (msg.what == DATA_MESSAGE) {
+            int dataLength = msg.arg1;
+            byte[] data = (byte[]) msg.obj;
+            ret = aa_cmd_send(dataLength, data, fixed_res_buf.length, fixed_res_buf);
         }
 
         ret = aa_cmd_send(0, fixed_cmd_buf, fixed_res_buf.length, fixed_res_buf);
@@ -191,7 +185,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             long ts = SystemClock.elapsedRealtime() * 1000000L;
             byte[] ba_touch = Protocol.TOUCH_REQUEST.clone();
             int ba_length = Protocol.createTouchMessage(ba_touch, ts, action, x, y);
-            Message msg = mHandler.obtainMessage(TOUCH_SYNC, ba_length, 0, ba_touch);
+            Message msg = mHandler.obtainMessage(DATA_MESSAGE, ba_length, 0, ba_touch);
             mHandler.sendMessage(msg);
         }
     }
@@ -204,9 +198,16 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         if (mHandler != null)
         {
             long ts = SystemClock.elapsedRealtime() * 1000000L;   // Timestamp in nanoseconds = microseconds x 1,000,000
-
             byte[] buttonData = Protocol.createButtonMessage(ts, btnCode, isPress);
-            Message msg = mHandler.obtainMessage(BUTTON, 0, 0, buttonData);
+            Message msg = mHandler.obtainMessage(DATA_MESSAGE, buttonData.length, 0, buttonData);
+            mHandler.sendMessage(msg);
+        }
+    }
+
+    void sendNightMode(boolean enabled) {
+        if (mHandler != null) {
+            byte[] modeData = Protocol.createNightModeMessage(enabled);
+            Message msg = mHandler.obtainMessage(DATA_MESSAGE, modeData.length, 0, modeData);
             mHandler.sendMessage(msg);
         }
     }

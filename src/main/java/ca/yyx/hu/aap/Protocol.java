@@ -124,4 +124,25 @@ public class Protocol {
         int len_touch = idx;
         return len_touch;
     }
+
+    static byte[] createNightModeMessage(boolean enabled) {
+        byte[] buffer = new byte[10];
+
+        buffer[0] = AA_CH_SEN;
+        buffer[1] = 0x0b;
+        buffer[2] = 0x00;
+        buffer[3] = 0x00;
+
+        buffer[4] = -128;
+        buffer[5] = 0x03;
+        buffer[6] = 0x52;
+        buffer[7] = 0x02;
+        buffer[8] = 0x08;
+        if (enabled)
+            buffer[9] = 0x01;
+        else
+            buffer[9]= 0x00;
+
+        return buffer;
+    }
 }

@@ -4,9 +4,11 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.UiModeManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.media.AudioManager;
@@ -20,6 +22,8 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
+import java.util.Calendar;
+
 import ca.yyx.hu.App;
 import ca.yyx.hu.R;
 import ca.yyx.hu.RemoteControlReceiver;
@@ -29,6 +33,8 @@ import ca.yyx.hu.usb.UsbDeviceCompat;
 import ca.yyx.hu.usb.UsbReceiver;
 import ca.yyx.hu.utils.IntentUtils;
 import ca.yyx.hu.utils.Utils;
+
+import static android.R.attr.enabled;
 
 /**
  * @author algavris
@@ -42,6 +48,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
     private UiModeManager mUiModeManager = null;
     private UsbAccessoryConnection mUsbAccessoryConnection;
     private UsbReceiver mUsbReceiver;
+    private BroadcastReceiver mTimeTickReceiver;
 
     @Nullable
     @Override
@@ -63,6 +70,8 @@ public class AapService extends Service implements UsbReceiver.Listener {
         mUsbAccessoryConnection = new UsbAccessoryConnection(usbManager);
 
         mUiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
+        mUiModeManager.setNightMode(UiModeManager.MODE_NIGHT_AUTO);
+
         mAudioDecoder = App.get(this).audioDecoder();
         mTransport = App.get(this).transport();
 
@@ -71,7 +80,9 @@ public class AapService extends Service implements UsbReceiver.Listener {
         mMediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         mUsbReceiver = new UsbReceiver(this);
+        mTimeTickReceiver = new TimeTickReceiver(mTransport, mUiModeManager);
 
+        registerReceiver(mTimeTickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
         registerReceiver(mUsbReceiver, UsbReceiver.createFilter());
     }
 
@@ -79,6 +90,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
     public void onDestroy() {
         super.onDestroy();
         onDisconnect();
+        unregisterReceiver(mTimeTickReceiver);
         unregisterReceiver(mUsbReceiver);
         mUiModeManager.disableCarMode(0);
     }
@@ -93,7 +105,6 @@ public class AapService extends Service implements UsbReceiver.Listener {
         }
 
         mUiModeManager.enableCarMode(0);
-        mUiModeManager.setNightMode(UiModeManager.MODE_NIGHT_AUTO);
 
         Intent aapIntent = new Intent(this, AapProjectionActivity.class);
         aapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -257,4 +268,33 @@ public class AapService extends Service implements UsbReceiver.Listener {
 
     }
 
+    private static class TimeTickReceiver extends BroadcastReceiver {
+        private final AapTransport mTransport;
+        private final UiModeManager mUiModeManager;
+        private int mNightMode = -1;
+
+        public TimeTickReceiver(AapTransport transport, UiModeManager uiModeManager) {
+            mTransport = transport;
+            mUiModeManager = uiModeManager;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+
+            int nightmodenow = 1;
+            if (hour >= 6 && hour <= 18)
+            {
+                nightmodenow = 0;
+            }
+            Utils.logd("NightMode: %d != %d", mNightMode, nightmodenow);
+            if (mNightMode != nightmodenow) {
+                mNightMode = nightmodenow;
+
+                boolean enabled = nightmodenow == 1;
+                mUiModeManager.setNightMode(enabled ? UiModeManager.MODE_NIGHT_YES : UiModeManager.MODE_NIGHT_NO);
+                mTransport.sendNightMode(enabled);
+            }
+        }
+    }
 }

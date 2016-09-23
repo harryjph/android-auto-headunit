@@ -6,8 +6,6 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 
-import java.nio.ByteBuffer;
-
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.decoder.VideoDecoder;
@@ -19,9 +17,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private static final int TOUCH_SYNC = 2;
     private static final int MIC_RECORD_START = 3;
     private static final int MIC_RECORD_STOP = 4;
-    private static final int VIDEO_STOP = 5;
-    private static final int VIDEO_START = 6;
-
+    private static final int BUTTON = 5;
 
     private static final int DEFBUF = 131080;
 
@@ -85,6 +81,11 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             ret = aa_cmd_send(touchLength, touchData, fixed_res_buf.length, fixed_res_buf);
         }
 
+        if (msg.what == BUTTON) {
+            byte[] buttonData = (byte[]) msg.obj;
+            ret = aa_cmd_send(buttonData.length, buttonData, fixed_res_buf.length, fixed_res_buf);
+        }
+
         ret = aa_cmd_send(0, fixed_cmd_buf, fixed_res_buf.length, fixed_res_buf);
         if (mHandler == null) {
             return false;
@@ -103,7 +104,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
     @Override
     public boolean quit() {
-        aa_cmd_send(Protocol.BUYBUY_REQUEST);
+        aa_cmd_send(Protocol.BYEBYE_REQUEST);
         Utils.ms_sleep(100);
         if (mHandler != null) {
             mHandler.removeCallbacks(this);
@@ -111,13 +112,6 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         }
         mStopped = true;
         return super.quit();
-    }
-
-    void sendTouch(int len_touch, byte[] touchData) {
-        if (mHandler != null) {
-            Message msg = mHandler.obtainMessage(TOUCH_SYNC, len_touch, 0, touchData);
-            mHandler.sendMessage(msg);
-        }
     }
 
     void setMicRecording(boolean start) {
@@ -193,59 +187,28 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     }
 
     void sendTouch(byte action, int x, int y) {
-        byte[] ba_touch = Protocol.TOUCH_REQUEST.clone();
-
-        long ts = SystemClock.elapsedRealtime() * 1000000L;   // Timestamp in nanoseconds = microseconds x 1,000,000
-
-        int idx = 1 + 6 + Utils.varint_encode(ts, ba_touch, 1 + 6);          // Encode timestamp
-
-        ba_touch[idx++] = 0x1a;                                           // Value 3 array
-        int size1_idx = idx;                                                // Save size1_idx
-        ba_touch[idx++] = 0x0a;                                           // Default size 10
-//
-        ba_touch[idx++] = 0x0a;                                           // Contents = 1 array
-        int size2_idx = idx;                                                // Save size2_idx
-        ba_touch[idx++] = 0x04;                                           // Default size 4
-        //
-        ba_touch[idx++] = 0x08;                                             // Value 1
-        int siz_arr = Utils.varint_encode(x, ba_touch, idx);                 // Encode X
-        idx += siz_arr;
-        ba_touch[size1_idx] += siz_arr;                                    // Adjust array sizes for X
-        ba_touch[size2_idx] += siz_arr;
-
-        ba_touch[idx++] = 0x10;                                             // Value 2
-        siz_arr = Utils.varint_encode(y, ba_touch, idx);                 // Encode Y
-        idx += siz_arr;
-        ba_touch[size1_idx] += siz_arr;                                    // Adjust array sizes for Y
-        ba_touch[size2_idx] += siz_arr;
-
-        ba_touch[idx++] = 0x18;                                             // Value 3
-        ba_touch[idx++] = 0x00;                                           // Encode Z ?
-        //
-        ba_touch[idx++] = 0x10;
-        ba_touch[idx++] = 0x00;
-
-        ba_touch[idx++] = 0x18;
-        ba_touch[idx++] = action;
-
-        int len_touch = idx;
-        sendTouch(len_touch, ba_touch);
-    }
-
-    void sendVideoStop() {
         if (mHandler != null) {
-            mHandler.sendEmptyMessage(VIDEO_STOP);
-        }
-    }
-
-    void sendVideoStart() {
-        if (mHandler != null) {
-            mHandler.sendEmptyMessage(VIDEO_START);
+            long ts = SystemClock.elapsedRealtime() * 1000000L;
+            byte[] ba_touch = Protocol.TOUCH_REQUEST.clone();
+            int ba_length = Protocol.createTouchMessage(ba_touch, ts, action, x, y);
+            Message msg = mHandler.obtainMessage(TOUCH_SYNC, ba_length, 0, ba_touch);
+            mHandler.sendMessage(msg);
         }
     }
 
     public boolean isStopped() {
         return mStopped;
+    }
+
+    public void sendButton(int btnCode, boolean isPress) {
+        if (mHandler != null)
+        {
+            long ts = SystemClock.elapsedRealtime() * 1000000L;   // Timestamp in nanoseconds = microseconds x 1,000,000
+
+            byte[] buttonData = Protocol.createButtonMessage(ts, btnCode, isPress);
+            Message msg = mHandler.obtainMessage(BUTTON, 0, 0, buttonData);
+            mHandler.sendMessage(msg);
+        }
     }
 }
 

@@ -255,14 +255,13 @@ int iusb_bulk_transfer(int ep, byte *buf, int len, int tmo) { // 0 = unlimited t
         //      dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get(usb_err), errno,
         //      strerror(errno));
         } else {
-            logw ("Done dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)  errno: %d (%s)",
-                  dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get(usb_err), errno,
-                  strerror(errno));
+            // logw ("Done dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)  errno: %d (%s)",
+            //      dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get(usb_err), errno,
+            //      strerror(errno));
         }
     }
 
-    if (total_bytes_xfrd >
-        16384) {                                     // Previously caused problems that seem fixed by raising USB Rx buffer from 16K to 64K
+    if (total_bytes_xfrd > 16384) {                                     // Previously caused problems that seem fixed by raising USB Rx buffer from 16K to 64K
         // Using a streaming mode (first reading packet length) may be better but may also create sync or other issues
         //loge ("total_bytes_xfrd: %d     ???????????????? !!!!!!!!!!!!!!!!!!!!!!!!!!!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ?????????????????????????", total_bytes_xfrd);
     }

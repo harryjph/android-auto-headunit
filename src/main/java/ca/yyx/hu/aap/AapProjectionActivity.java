@@ -65,6 +65,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -167,4 +168,49 @@ public class AapProjectionActivity extends SurfaceActivity {
         mTransport.sendTouch(aa_action, x, y);
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        Utils.logd("KeyCode: %d", keyCode);
+        onKeyEvent(keyCode, true);
+
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        Utils.logd("KeyCode: %d", keyCode);
+        onKeyEvent(keyCode, false);
+        return super.onKeyUp(keyCode, event);
+    }
+
+    private void onKeyEvent(int keyCode,boolean isPress)
+    {
+        switch (keyCode)
+        {
+            case KeyEvent.KEYCODE_DPAD_UP:
+                mTransport.sendButton(Protocol.BTN_UP, isPress);
+                break;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                mTransport.sendButton(Protocol.BTN_DOWN, isPress);
+                break;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                mTransport.sendButton(Protocol.BTN_LEFT, isPress);
+                break;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                mTransport.sendButton(Protocol.BTN_RIGHT, isPress);
+                break;
+            case KeyEvent.KEYCODE_DPAD_CENTER:
+            case KeyEvent.KEYCODE_ENTER:
+                mTransport.sendButton(Protocol.BTN_ENTER, isPress);
+                break;
+            case KeyEvent.KEYCODE_BACK:
+                mTransport.sendButton(Protocol.BTN_BACK, isPress);
+                break;
+//            case KeyEvent.KEYCODE_HEADSETHOOK:
+//                mTransport.sendButton(Protocol.BTN_PLAYPAUSE, isPress);
+//                break;
+            default:
+                Utils.logd("Ignored");
+        }
+    }
 }

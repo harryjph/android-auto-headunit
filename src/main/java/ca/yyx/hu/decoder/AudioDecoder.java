@@ -15,15 +15,10 @@ import ca.yyx.hu.utils.Utils;
  * @date 28/04/2016.
  */
 public class AudioDecoder {
-    private final Context mContext;
     public static final int AA_CH_AUD = 4;
     public static final int AA_CH_AU1 = 5;
     public static final int AA_CH_AU2 = 6;
     private static final int AA_CH_MAX = 7;
-
-    public AudioDecoder(Context context) {
-        mContext = context;
-    }
 
     public void decode(byte[] buffer, int size) {
         // Create content byte array
@@ -89,7 +84,7 @@ public class AudioDecoder {
         return out_audiotrack;
     }
 
-    void out_audio_write(int chan, byte[] aud_buf, int len) {
+    private void out_audio_write(int chan, byte[] aud_buf, int len) {
         AudioTrack out_audiotrack = mAudioTracks.get(chan);
 
         if (out_audiotrack == null) {

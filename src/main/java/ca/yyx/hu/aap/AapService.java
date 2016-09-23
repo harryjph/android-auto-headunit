@@ -9,11 +9,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+import android.media.AudioManager;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.os.ResultReceiver;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 
 import ca.yyx.hu.App;
 import ca.yyx.hu.R;
@@ -63,8 +68,10 @@ public class AapService extends Service implements UsbReceiver.Listener {
 
         mMediaSession = new MediaSessionCompat(this, "MediaSession", new ComponentName(this, RemoteControlReceiver.class), null);
         mMediaSession.setCallback(new MediaSessionCallback(mTransport));
+        mMediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         mUsbReceiver = new UsbReceiver(this);
+
         registerReceiver(mUsbReceiver, UsbReceiver.createFilter());
     }
 
@@ -102,6 +109,21 @@ public class AapService extends Service implements UsbReceiver.Listener {
                 .setContentIntent(PendingIntent.getActivity(this, 0, aapIntent, PendingIntent.FLAG_UPDATE_CURRENT))
                 .setPriority(Notification.PRIORITY_HIGH)
                 .build();
+
+
+        mMediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                .setState(PlaybackStateCompat.STATE_PAUSED, 0, 0)
+                .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
+                .build());
+
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        audioManager.requestAudioFocus(new AudioManager.OnAudioFocusChangeListener() {
+            @Override
+            public void onAudioFocusChange(int focusChange) {
+                // Ignore
+            }
+        }, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        mMediaSession.setActive(true);
 
         startForeground(1, noty);
 
@@ -158,21 +180,50 @@ public class AapService extends Service implements UsbReceiver.Listener {
     {
         private AapTransport mTransport;
 
-        public MediaSessionCallback(AapTransport transport) {
+        MediaSessionCallback(AapTransport transport) {
             mTransport = transport;
         }
 
         @Override
+        public void onCommand(String command, Bundle extras, ResultReceiver cb) {
+            Utils.logd(command);
+        }
+
+        @Override
+        public void onCustomAction(String action, Bundle extras) {
+            Utils.logd(action);
+        }
+
+        @Override
         public void onSkipToNext() {
+            Utils.logd("onSkipToNext");
+
+            mTransport.sendButton(Protocol.BTN_NEXT, true);
+            Utils.ms_sleep(10);
+            mTransport.sendButton(Protocol.BTN_NEXT, false);
         }
 
         @Override
         public void onSkipToPrevious() {
+            Utils.logd("onSkipToPrevious");
+
+            mTransport.sendButton(Protocol.BTN_PREV, true);
+            Utils.ms_sleep(10);
+            mTransport.sendButton(Protocol.BTN_PREV, false);
+        }
+
+        @Override
+        public void onPlay() {
+            Utils.logd("PLAY");
+
+            mTransport.sendButton(Protocol.BTN_PLAYPAUSE, true);
+            Utils.ms_sleep(10);
+            mTransport.sendButton(Protocol.BTN_PLAYPAUSE, false);
         }
 
         @Override
         public boolean onMediaButtonEvent(Intent mediaButtonEvent) {
-            Utils.logd(""+mediaButtonEvent);
+            Utils.logd(mediaButtonEvent.toString());
             return super.onMediaButtonEvent(mediaButtonEvent);
         }
     }

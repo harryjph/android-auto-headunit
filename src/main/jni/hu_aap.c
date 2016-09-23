@@ -9,37 +9,27 @@
 #include "hu_tcp.h"
 
 #ifndef NDEBUG
-
-#include "hu_aad.h"
-
+  #include "hu_aad.h"
 #endif
 
-int iaap_state = 0; // 0: Initial    1: Startin    2: Started    3: Stoppin    4: Stopped
+  int iaap_state = 0; // 0: Initial    1: Startin    2: Started    3: Stoppin    4: Stopped
 
-char *chan_get(int chan) {
+  char * chan_get (int chan) {
     switch (chan) {
-        case AA_CH_CTR:
-            return ("CTR");
-        case AA_CH_VID:
-            return ("VID");
-        case AA_CH_TOU:
-            return ("TOU");
-        case AA_CH_SEN:
-            return ("SEN");
-        case AA_CH_MIC:
-            return ("MIC");
-        case AA_CH_AUD:
-            return ("AUD");
-        case AA_CH_AU1:
-            return ("AU1");
-        case AA_CH_AU2:
-            return ("AU2");
+      case AA_CH_CTR: return ("CTR");
+      case AA_CH_VID: return ("VID");
+      case AA_CH_TOU: return ("TOU");
+      case AA_CH_SEN: return ("SEN");
+      case AA_CH_MIC: return ("MIC");
+      case AA_CH_AUD: return ("AUD");
+      case AA_CH_AU1: return ("AU1");
+      case AA_CH_AU2: return ("AU2");
     }
     return ("UNK");
 }
 
 int transport_type = 1; // 1=USB 2=WiFi
-int ihu_tra_recv(byte *buf, int len, int tmo) {
+int ihu_tra_recv(byte * buf, int len, int tmo) {
     if (transport_type == 1)
         return (hu_usb_recv(buf, len, tmo));
     else if (transport_type == 2)
@@ -66,10 +56,8 @@ int ihu_tra_stop() {
         return (-1);
 }
 
-
-int iaap_tra_recv_tmo = 150;
-//100;//1;//10;//100;//250;//100;//250;//100;//25; // 10 doesn't work ? 100 does
-int iaap_tra_send_tmo = 250;//2;//25;//250;//500;//100;//500;//250;
+int iaap_tra_recv_tmo = 150;//100;//1;//10;//100;//250;//100;//250;//100;//25; // 10 doesn't work ? 100 does
+int iaap_tra_send_tmo = 500;//2;//25;//250;//500;//100;//500;//250;
 
 int ihu_tra_start(byte ep_in_addr, byte ep_out_addr) {
     if (ep_in_addr == 255 && ep_out_addr == 255) {
@@ -92,14 +80,10 @@ int ihu_tra_start(byte ep_in_addr, byte ep_out_addr) {
         return (-1);
 }
 
-
-byte enc_buf[DEFBUF] = {
-        0};                                          // Global encrypted transmit data buffer
-
-byte assy[65536 * 16] = {
-        0};                                         // Global assembly buffer for video fragments: Up to 1 megabyte   ; 128K is fine for now at 800*640
-int assy_size = 0;                                                    // Current size
-int max_assy_size = 0;                                                // Max observed size needed:  151,000
+  byte enc_buf [DEFBUF] = {0};                                          // Global encrypted transmit data buffer
+  byte assy [65536 * 16] = {0};                                         // Global assembly buffer for video fragments: Up to 1 megabyte   ; 128K is fine for now at 800*640
+  int assy_size = 0;                                                    // Current size
+  int max_assy_size = 0;                                                // Max observed size needed:  151,000
 
 int vid_rec_ena = 0;                                                // Video recording to file
 int vid_rec_fd = -1;
@@ -183,32 +167,30 @@ int hu_aap_enc_send(int chan, byte *buf, int len) {                 // Encrypt d
 #ifndef NDEBUG
 //    if (ena_log_verbo && ena_log_aap_send) {
     if (log_packet_info) { // && ena_log_aap_send)
-        char prefix[DEFBUF] = {0};
-        snprintf(prefix, sizeof(prefix), "SEND %d %s %1.1x", chan, chan_get(chan), flags);  // "S 1 VID B"
-        int rmv = hu_aad_dmp(prefix, "HU", chan, flags, buf, len);
+      char prefix [DEF_BUF] = {0};
+      snprintf (prefix, sizeof (prefix), "SEND %d %s %1.1x", chan, chan_get (chan), flags);  // "S 1 VID B"
+      int rmv = hu_aad_dmp (prefix, "HU", chan, flags, buf, len);
     }
 #endif
     int bytes_written = SSL_write(hu_ssl_ssl, buf, len);               // Write plaintext to SSL
     if (bytes_written <= 0) {
-        loge ("SSL_write() bytes_written: %d", bytes_written);
-        hu_ssl_ret_log(bytes_written);
-        hu_ssl_inf_log();
-        hu_aap_stop();
-        return (-1);
+      loge ("SSL_write() bytes_written: %d", bytes_written);
+      hu_ssl_ret_log (bytes_written);
+      hu_ssl_inf_log ();
+      hu_aap_stop ();
+      return (-1);
     }
     if (bytes_written != len)
-        loge ("SSL_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan,
-              chan_get(chan));
+      loge ("SSL_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, chan_get (chan));
     else if (ena_log_aap_send)
-        logd ("SSL_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan,
-              chan_get(chan));
+      logd ("SSL_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, chan_get (chan));
 
-    int bytes_read = BIO_read(hu_ssl_wm_bio, &enc_buf[4],
-                              sizeof(enc_buf) - 4); // Read encrypted from SSL BIO to enc_buf +
+    int bytes_read = BIO_read (hu_ssl_wm_bio, & enc_buf [4], sizeof (enc_buf) - 4); // Read encrypted from SSL BIO to enc_buf +
+
     if (bytes_read <= 0) {
-        loge ("BIO_read() bytes_read: %d", bytes_read);
-        hu_aap_stop();
-        return (-1);
+      loge ("BIO_read() bytes_read: %d", bytes_read);
+      hu_aap_stop ();
+      return (-1);
     }
     if (ena_log_aap_send)
         logd ("BIO_read() bytes_read: %d", bytes_read);
@@ -222,8 +204,7 @@ int hu_aap_enc_send(int chan, byte *buf, int len) {                 // Encrypt d
 }
 
 
-byte sd_buf[] = {0,
-                 6,        //8, 0};                                            // Svc Disc Rsp = 6
+    byte sd_buf [] = {0, 6,        //8, 0};                                            // Svc Disc Rsp = 6
 /*
 cq  (co[  (str  (str  (str  (str  (int  (str  (str  (str  (str  (boo  (boo    MsgServiceDiscoveryResponse
 
@@ -260,11 +241,14 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
 
         // CH 1 Sensors:                      //cq/co[]
 //*
-                 0x0A, 4 + 4 * 1,//co: int, cm/cn[]
+                 0x0A, 4 + 4 * 2,//co: int, cm/cn[]
                  0x08, AA_CH_SEN,
-                 0x12, 4 * 1,
+                 0x12, 4 * 2,
                  0x0A, 2,
                  0x08, 11, // SENSOR_TYPE_DRIVING_STATUS 12
+                 0x0A, 2,
+                 0x08, 10, // SENSOR_TYPE_NIGHT_DATA 10
+
 //*/
 /*  Requested Sensors: 10, 9, 2, 7, 6:
                         0x0A, 4 + 4*6,     //co: int, cm/cn[]
@@ -293,11 +277,9 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
         // 48000 = 0xBB80 = 10    111 0111   000 0000     :  -128, -9, 2
         // 16000 = 0x3E80 = 11 1110 1   000 0000          :  -128, -3
 
-                 0x22,
-                 11,   // cz                                                               // Res        FPS, WidMar, HeiMar, DPI
+                 0x22, 11,   // cz                                                               // Res        FPS, WidMar, HeiMar, DPI
         // DPIs:    (FPS doesn't matter ?)
-                 0x08, 1, 0x10, 1, 0x18, 0, 0x20, 0, 0x28, -96,
-                 1,   //0x30, 0,     //  800x 480, 30 fps, 0, 0, 160 dpi    0xa0 // Default 160 like 4100NEX
+                 0x08, 1, 0x10, 1, 0x18, 0, 0x20, 0, 0x28, -96, 1,   //0x30, 0,     //  800x 480, 30 fps, 0, 0, 160 dpi    0xa0 // Default 160 like 4100NEX
         //0x08, 1, 0x10, 1, 0x18, 0, 0x20, 0, 0x28, -128, 1,   //0x30, 0,     //  800x 480, 30 fps, 0, 0, 128 dpi    0x80 // 160-> 128 Small, phone/music close to outside
         //0x08, 1, 0x10, 1, 0x18, 0, 0x20, 0, 0x28,  -16, 1,   //0x30, 0,     //  800x 480, 30 fps, 0, 0, 240 dpi    0xf0 // 160-> 240 Big, phone/music close to center
 
@@ -316,8 +298,7 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
         //0x28, 0, //1,   boolean
                  0x22, 2 + 6,//+2+16, // ak  Input
         //0x0a, 16,   0x03, 0x54, 0x55, 0x56, 0x57, 0x58, 0x7e, 0x7f,   -47, 1,   -127, -128, 4,    -124, -128, 4,
-                 0x12,
-                 6,        // no int[], am      // 800 = 0x0320 = 11 0    010 0000 : 32+128(-96), 6
+                 0x12, 6,        // no int[], am      // 800 = 0x0320 = 11 0    010 0000 : 32+128(-96), 6
         // 480 = 0x01e0 = 1 1     110 0000 =  96+128 (-32), 3
                  0x08, -96, 6, 0x10, -32, 3,        //  800x 480
         //0x08, -128, 10,    0x10, -48, 5,        // 1280x 720     0x80, 0x0a   0xd0, 5
@@ -434,10 +415,8 @@ int aa_pro_ctr_a05(int chan, byte *buf, int len) {                  // Service D
         logd ("Service Discovery Request");                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
     int sd_buf_len = sizeof(sd_buf);
-    if (wifi_direct && (file_get("/data/data/ca.yyx.hu/files/nfc_wifi") || file_get(
-            "/sdcard/hu_disable_audio_out")))    // If self or disable file exists...
-        sd_buf_len -=
-                sd_buf_aud_len;                                     // Remove audio outputs from service discovery response buf
+//    if (wifi_direct && (file_get("/data/data/ca.yyx.hu/files/nfc_wifi") || file_get("/sdcard/hu_disable_audio_out")))    // If self or disable file exists...
+//    sd_buf_len -=   sd_buf_aud_len;                                     // Remove audio outputs from service discovery response buf
 
     return (hu_aap_enc_send(chan, sd_buf, sd_buf_len));                // Send Service Discovery Response from sd_buf
 }
@@ -492,8 +471,7 @@ int aa_pro_ctr_a0d(int chan, byte *buf, int len) {                  // Navigatio
     buf[1] = 14;                                                       // Navigation Focus Notification
     buf[2] = 0x08;
     buf[3] = 2;                                                        // Gained / Gained Transient ?
-    int ret = hu_aap_enc_send(chan, buf,
-                              4);//len);                         // Send Navigation Focus Notification
+    int ret = hu_aap_enc_send(chan, buf, 4);//len);                         // Send Navigation Focus Notification
     return (0);
 }
 
@@ -583,8 +561,7 @@ int aa_pro_ctr_a12(int chan, byte *buf, int len) {                  // Audio Foc
     }   // Send AUDIO_FOCUS_STATE_LOSS
     else if (buf[3] == 2) {                                             // If AUDIO_FOCUS_GAIN_TRANSIENT...
         buf[3] = 1;//2;                                                      // Send AUDIO_FOCUS_STATE_GAIN_TRANSIENT
-    }
-    else {
+    } else {
         buf[3] = 1;                                                      // Send AUDIO_FOCUS_STATE_GAIN
     }
     //buf [4] = 0x10;
@@ -1121,8 +1098,7 @@ int iaap_audio_process(int chan, int msg_type, int flags, byte *buf,
     else
         aud_ack[3] = ack_val_aud;
 
-    int ret = hu_aap_enc_send(chan, aud_ack,
-                              sizeof(aud_ack));      // Respond with ACK (for all fragments ?)
+    int ret = hu_aap_enc_send(chan, aud_ack, sizeof(aud_ack));      // Respond with ACK (for all fragments ?)
 
 
     //hex_dump ("AUDIO: ", 16, buf, len);
@@ -1157,8 +1133,7 @@ int iaap_audio_process(int chan, int msg_type, int flags, byte *buf,
 int iaap_video_process(int msg_type, int flags, byte *buf, int len) {    // Process video packet
 // MaxUnack
 //loge ("????????????????????? !!!!!!!!!!!!!!!!!!!!!!!!!   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   vid_ack_ctr: %d  len: %d", vid_ack_ctr ++, len);
-    int ret = hu_aap_enc_send(AA_CH_VID, vid_ack,
-                              sizeof(vid_ack));      // Respond with ACK (for all fragments ?)
+    int ret = hu_aap_enc_send(AA_CH_VID, vid_ack, sizeof(vid_ack));      // Respond with ACK (for all fragments ?)
 /*
     int ret = 0;
     //if (vid_ack_ctr ++ % 17 == 16)
@@ -1178,8 +1153,7 @@ int iaap_video_process(int msg_type, int flags, byte *buf, int len) {    // Proc
     else if (flags == 9 && (msg_type == 0 || msg_type == 1) &&
              (buf[10] == 0 && buf[11] == 0 && buf[12] == 0 &&
               buf[13] == 1)) {   // If First fragment Video
-        memcpy(assy, &buf[10], len -
-                               10);                                                                                    // Len in bytes 2,3 doesn't include total len 4 bytes at 4,5,6,7
+        memcpy(assy, &buf[10], len - 10);                                                                                    // Len in bytes 2,3 doesn't include total len 4 bytes at 4,5,6,7
         assy_size = len -
                     10;                                                                                                   // Add to re-assembly in progress
     }
@@ -1389,16 +1363,13 @@ int iaap_recv_dec_process(int chan, int flags, byte *buf,
 #ifndef NDEBUG
 ////    if (chan != AA_CH_VID)                                          // If not video...
     if (log_packet_info) {
-        char prefix[DEFBUF] = {0};
-        snprintf(prefix, sizeof(prefix), "RCV %d %s %1.1x", chan, chan_get(chan),
-                 flags);  // "R 1 VID B"
-        int rmv = hu_aad_dmp(prefix, "AA", chan, flags, dec_buf,
-                             bytes_read);           // Dump decrypted AA
+        char prefix [DEF_BUF] = {0};
+        snprintf (prefix, sizeof (prefix), "RECV %d %s %1.1x", chan, chan_get (chan), flags);  // "R 1 VID B"
+        int rmv = hu_aad_dmp(prefix, "AA", chan, flags, dec_buf, bytes_read);           // Dump decrypted AA
     }
 #endif
 
-    int prot_func_ret = iaap_msg_process(chan, flags, dec_buf,
-                                         bytes_read);      // Process decrypted AA protocol message
+    int prot_func_ret = iaap_msg_process(chan, flags, dec_buf, bytes_read);      // Process decrypted AA protocol message
     return (0);//prot_func_ret);
 }
 
@@ -1498,6 +1469,19 @@ int hu_aap_recv_process() {                                          //
             int need_len = enc_len - have_len;
             if (transport_type != 2 || rx_len != min_size_hdr)              // If NOT wifi...
                 logd ("have_len: %d < enc_len: %d  need_len: %d", have_len, enc_len, need_len);
+
+            /*
+             * Fix for buffer overflow
+             * This is a somewhat naive fix for a possible buffer overflow when handling
+             * packets that span more than one packet.  The existing codebase doesn't
+             * do any sanity checking that the packet is within the required bounds
+             * of the buffer (see DEFBUF), so this really should be a part of a more
+             * robust handling mechanism.  However, this is sufficient for now.
+             */
+
+            // Move the buffer back to the start
+            memmove(rx_buf, buf, have_len);
+            buf = rx_buf;
 
             int need_ret = hu_aap_tra_recv(&buf[have_len], need_len,
                                            -1);// Get Rx packet from Transport. Use -1 instead of iaap_tra_recv_tmo to indicate need to get need_len bytes

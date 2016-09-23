@@ -35,7 +35,7 @@ public class App extends Application {
         super.onCreate();
 
         mAudioDecoder = new AudioDecoder(this);
-        mVideoDecoder = new VideoDecoder(this);
+        mVideoDecoder = new VideoDecoder();
 
     }
 

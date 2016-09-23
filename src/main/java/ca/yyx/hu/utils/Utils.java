@@ -6,23 +6,14 @@
 
 package ca.yyx.hu.utils;
 
-import android.content.Context;
 import android.os.Build;
-import android.os.Looper;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.IllegalFormatException;
 import java.util.Locale;
-
-import ca.yyx.hu.aap.Protocol;
-import ca.yyx.hu.decoder.MicRecorder;
 
 
 public final class Utils {
@@ -91,17 +82,7 @@ public final class Utils {
         return String.format(Locale.US, "[%d] %s: %s", Thread.currentThread().getId(), string, formatted);
     }
 
-    public static boolean main_thread_get(String source) {
-        boolean ret = (Looper.myLooper() == Looper.getMainLooper());
-        if (ret)
-            Utils.logd("YES MAIN THREAD source: " + source);
-        //else
-        //  Utils.logd ("Not main thread source: " + source);
-        return (ret);
-    }
-
-      public static long ms_sleep(long ms) {
-        //Utils.logw ("ms: " + ms);                                          // Warning
+    public static long ms_sleep(long ms) {
 
         try {
             Thread.sleep(ms);                                                // Wait ms milliseconds
@@ -118,27 +99,6 @@ public final class Utils {
         // Values returned by this method do not have a defined correspondence to wall clock times; the zero value is typically whenever the device last booted
         //Utils.logd ("ms: " + ms);           // Changing system time will not affect results.
         return (System.nanoTime() / 1000000);
-    }
-
-    public static byte[] hexstr_to_ba(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2)
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
-        return (data);
-    }
-
-    public static String str_to_hexstr(String s) {
-        byte[] ba = str_to_ba(s);
-        return (ba_to_hexstr(ba));
-    }
-
-    public static String ba_to_hexstr(byte[] ba) {
-        String hex = "";
-        for (int ctr = 0; ctr < ba.length; ctr++) {
-            hex += hex_get(ba[ctr]);    //hex += "" + hex_get ((byte) (ba [ctr] >> 4));
-        }
-        return hex;
     }
 
     public static String hex_get(byte b) {
@@ -163,47 +123,6 @@ public final class Utils {
         byte byte_lo = (byte) (s >> 0 & 0xFF);
         byte byte_hi = (byte) (s >> 8 & 0xFF);
         return (hex_get(byte_hi) + hex_get(byte_lo));
-    }
-
-    public static String hex_get(int i) {
-        byte byte_0 = (byte) (i >> 0 & 0xFF);
-        byte byte_1 = (byte) (i >> 8 & 0xFF);
-        byte byte_2 = (byte) (i >> 16 & 0xFF);
-        byte byte_3 = (byte) (i >> 24 & 0xFF);
-        return (hex_get(byte_3) + hex_get(byte_2) + hex_get(byte_1) + hex_get(byte_0));
-    }
-
-    public static void hex_dump(String prefix, byte[] ba, int size) {
-        int len = ba.length;
-        String str = "";
-        int idx = 0;
-        for (idx = 0; idx < len && idx < size; idx++) {
-            str += hex_get(ba[idx]) + " ";
-            if (idx % 16 == 15) {
-                Utils.logd(prefix + " " + hex_get((idx / 16) * 16) + ": " + str);
-                str = "";
-            }
-        }
-        if (!str.equals("")) {
-            Utils.logd(prefix + " " + hex_get((idx / 16) * 16) + ": " + str);
-        }
-    }
-
-    public static void hex_dump(String prefix, ByteBuffer content, int size) {
-        Utils.hex_dump(prefix, content.array(), size);
-    }
-
-    private static int int_get(byte lo) {
-        int ret = lo;
-        if (ret < 0)
-            ret += 256;
-        return (ret);
-    }
-
-    public static int int_get(byte hi, byte lo) {
-        int ret = int_get(lo);
-        ret += 256 * int_get(hi);
-        return (ret);
     }
 
     public static int varint_encode(int val, byte[] ba, int idx) {
@@ -236,141 +155,6 @@ public final class Utils {
             }
         }
         return (9);
-    }
-
-    public static int file_write(Context context, String filename, byte[] buf) {
-        try {                                                               // File /data/data/ca.yyx.hu/hu.log contains a path separator
-            FileOutputStream fos = context.openFileOutput(filename, Context.MODE_PRIVATE); // | MODE_WORLD_WRITEABLE      // NullPointerException here unless permissions 755
-            // Create/open file for writing
-            fos.write(buf);                                                  // Copy to file
-            fos.close();                                                     // Close file
-        } catch (Throwable t) {
-            Log.e(TAG, "[hucomuti] " + t.getMessage(), t);
-            t.printStackTrace();
-            return (-1);
-        }
-        return (0);
-    }
-
-    public static byte[] str_to_ba(String s) {                          // String to byte array
-        //s += "�";     // RDS test ?
-        char[] buffer = s.toCharArray();
-        byte[] content = new byte[buffer.length];
-        for (int i = 0; i < content.length; i++) {
-            content[i] = (byte) buffer[i];
-            //if (content [i] == -3) {            // ??
-            //  loge ("s: " + s);//content [i]);
-            //  content [i] = '~';
-            //}
-        }
-        return (content);
-    }
-
-    public static boolean su_installed_get() {
-        boolean ret = false;
-        if (Utils.file_get("/system/bin/su"))
-            ret = true;
-        else if (Utils.file_get("/system/xbin/su"))
-            ret = true;
-        Utils.logd("ret: " + ret);
-        return (ret);
-    }
-
-    public static int sys_run(String cmd, boolean su) {
-        //main_thread_get ("sys_run cmd: " + cmd);
-
-        String[] cmds = {("")};
-        cmds[0] = cmd;
-        return (arr_sys_run(cmds, su));
-    }
-
-    private static int arr_sys_run(String[] cmds, boolean su) {         // !! Crash if any output to stderr !!
-        //Utils.logd ("sys_run: " + cmds);
-
-        try {
-            Process p;
-            if (su)
-                p = Runtime.getRuntime().exec("su");
-            else
-                p = Runtime.getRuntime().exec("sh");
-            DataOutputStream os = new DataOutputStream(p.getOutputStream());
-            for (String line : cmds) {
-                Utils.logd("su: " + su + "  line: " + line);
-                os.writeBytes(line + "\n");
-            }
-            os.writeBytes("exit\n");
-            os.flush();
-
-            int exit_val = p.waitFor();                                      // This could hang forever ?
-            if (exit_val != 0)
-                Utils.logw("cmds [0]: " + cmds[0] + "  exit_val: " + exit_val);
-            else
-                Utils.logd("cmds [0]: " + cmds[0] + "  exit_val: " + exit_val);
-
-            //os.flush ();
-            return (exit_val);
-        } catch (Exception e) {
-            //e.printStackTrace ();
-            Utils.loge("Exception e: " + e);
-        }
-        ;
-        return (-1);
-    }
-
-    public static boolean file_get(String filename, boolean log) {
-        //main_thread_get ("file_get filename: " + filename);
-        File ppFile = null;
-        boolean exists = false;
-        try {
-            ppFile = new File(filename);
-            if (ppFile.exists())
-                exists = true;
-        } catch (Exception e) {
-            //e.printStackTrace ();
-            Utils.loge("Exception: " + e);
-            exists = false;                                                   // Exception means no file or no permission for file
-        }
-        if (log)
-            Utils.logd("exists: " + exists + "  \'" + filename + "\'");
-        return (exists);
-    }
-
-    public static boolean quiet_file_get(String filename) {
-        return (file_get(filename, false));
-    }
-
-    public static boolean file_get(String filename) {
-        return (file_get(filename, true));
-    }
-
-
-   public static boolean file_delete(final String filename) {
-        main_thread_get("file_delete filename: " + filename);
-        java.io.File f = null;
-        boolean ret = false;
-        try {
-            f = new File(filename);
-            ret = f.delete();
-        } catch (Throwable e) {
-            Utils.loge(e);
-        }
-        Utils.logd("ret: " + ret);
-        return (ret);
-    }
-
-    public static boolean file_create(final String filename) {
-        main_thread_get("file_create filename: " + filename);
-        java.io.File f = null;
-        boolean ret = false;
-        try {
-            f = new File(filename);
-            ret = f.createNewFile();
-            Utils.logd("ret: " + ret);
-        } catch (Throwable e) {
-            Utils.logd("Throwable e: " + e);
-            e.printStackTrace();
-        }
-        return (ret);
     }
 
     public static byte[] toByteArray(InputStream is) throws IOException {

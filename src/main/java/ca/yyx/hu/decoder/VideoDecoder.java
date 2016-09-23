@@ -1,11 +1,9 @@
 package ca.yyx.hu.decoder;
 
-import android.content.Context;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.view.SurfaceHolder;
 
-import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 
 import ca.yyx.hu.utils.Utils;
@@ -20,50 +18,50 @@ public class VideoDecoder {
     private final static Object sLock = new Object();
     private ByteBuffer[] mInputBuffers;
 
-    private final Context mContext;
     private int mHeight;
     private int mWidth;
     private SurfaceHolder mHolder;
-    private byte[] mConfigSps;
-    private byte[] mConfigPps;
+    private NalUnitsStore mNalUnitsStore = new NalUnitsStore();
+    private boolean mCodecConfigured;
 
     public static boolean isH246Video(byte[] ba) {
         return ba[0] == 0 && ba[1] == 0 && ba[2] == 0 && ba[3] == 1;
-    }
-
-    private static boolean isSps(byte[] ba)
-    {
-        return (ba[4] & 0x1f) == 7;
-    }
-
-    private static boolean isPps(byte[] ba)
-    {
-        return (ba[4] & 0x1f) == 8;
-    }
-
-    public VideoDecoder(Context context) {
-        mContext = context;
     }
 
     public void decode(byte[] buffer, int size) {
 
         synchronized (sLock) {
 
-            if (isSps(buffer))
-            {
-                int configSize = size - 4;
-                mConfigSps = new byte[configSize];
-                System.arraycopy(buffer, 4, mConfigSps, 0, configSize);
-                Utils.logd("SPS: %d", mConfigSps.length);
-            } else if (isPps(buffer)) {
-                int configSize = size - 4;
-                mConfigPps = new byte[configSize];
-                System.arraycopy(buffer, 4, mConfigPps, 0, configSize);
-                Utils.logd("PPS: %d", mConfigPps.length);
-            }
+            // Utils.logd("Video buffer: %02X %02X %02X %02X %02X (%d)", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], size);
+
+            mNalUnitsStore.capture(buffer, size);
 
             if (mCodec == null) {
                 Utils.loge("Codec is not initialized");
+                return;
+            }
+
+            if (!mCodecConfigured && mNalUnitsStore.isReady())
+            {
+                ByteBuffer content = mNalUnitsStore.getByteBuffer();
+
+                Utils.logd("Sending SPS & IDR...");
+
+                while (content.hasRemaining()) {
+
+                    if (!codec_input_provide(content)) {
+                        Utils.loge("Dropping content because there are no available buffers.");
+                        return;
+                    }
+
+                    codec_output_consume();
+                }
+                mCodecConfigured = true;
+            }
+
+            if (!mCodecConfigured)
+            {
+                Utils.loge("Codec is not configured");
                 return;
             }
 
@@ -93,16 +91,6 @@ public class VideoDecoder {
             try {
                 mCodecBufferInfo = new MediaCodec.BufferInfo();                         // Create Buffer Info
                 MediaFormat format = MediaFormat.createVideoFormat("video/avc", mWidth, mHeight);
-                if (mConfigSps != null)
-                {
-                    int size = mConfigPps != null ? mConfigSps.length + mConfigPps.length : mConfigSps.length;
-                    ByteBuffer csd = ByteBuffer.allocate(size).put(mConfigSps);
-                    if (mConfigPps != null) {
-                        csd.put(mConfigPps);
-                    }
-                    format.setByteBuffer("csd-0", csd);
-                    Utils.logd("CSD-0: %d", csd.limit());
-                }
                 mCodec.configure(format, mHolder.getSurface(), null, 0);               // Configure codec for H.264 with given width and height, no crypto and no flag (ie decode)
                 mCodec.start();                                             // Start codec
             } catch (Throwable t) {
@@ -119,6 +107,7 @@ public class VideoDecoder {
             mCodec = null;
             mInputBuffers = null;
             mCodecBufferInfo = null;
+            mCodecConfigured = false;
         }
     }
 
@@ -166,8 +155,9 @@ public class VideoDecoder {
                 Utils.logd ("INFO_OUTPUT_BUFFERS_CHANGED");
             else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)          // See this 2nd shortly after start. Output format changed for subsequent data. See getOutputFormat()
                 Utils.logd ("INFO_OUTPUT_FORMAT_CHANGED");
-            else if (index == MediaCodec.INFO_TRY_AGAIN_LATER)
+            else if (index == MediaCodec.INFO_TRY_AGAIN_LATER) {
                 break;
+            }
             else
                 break;
         }
@@ -184,16 +174,6 @@ public class VideoDecoder {
 
     public void stop() {
         codec_stop();
-    }
-
-    public int h264_after_get (byte [] ba, int idx) {
-        idx += 4; // Pass 0, 0, 0, 1
-        for (; idx < ba.length - 4; idx ++) {
-            if (idx > 24)   // !!!! HACK !!!! else 0,0,0,1 indicates first size 21, instead of 25
-                if (ba [idx] == 0 && ba [idx+1] == 0 && ba [idx+2] == 0 && ba [idx+3] == 1)
-                    return (idx);
-        }
-        return (-1);
     }
 
 }

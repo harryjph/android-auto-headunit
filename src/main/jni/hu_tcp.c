@@ -115,8 +115,7 @@
         // logd ("Done dir: %s  len: %d  bytes_xfrd: %d  tcp_err: %d (%s)  errno: %d (%s)", dir, len, bytes_xfrd, tcp_err, itcp_error_get (tcp_err), errno, strerror (errno));
       }
       else {
-        logd ("Done dir: %s  len: %d  bytes_xfrd: %d  tcp_err: %d (%s)  errno: %d (%s)", dir, len,
-              bytes_xfrd, tcp_err, itcp_error_get(tcp_err), errno, strerror(errno));
+        // logd ("Done dir: %s  len: %d  bytes_xfrd: %d  tcp_err: %d (%s)  errno: %d (%s)", dir, len, bytes_xfrd, tcp_err, itcp_error_get(tcp_err), errno, strerror(errno));
       }
       bytes_xfrd = 0;
     }

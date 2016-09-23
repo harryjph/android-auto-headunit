@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.utils.Utils;
 
 /**
@@ -14,7 +15,7 @@ import ca.yyx.hu.utils.Utils;
  */
 
 public class VideoTestActivity extends SurfaceActivity {
-
+    private boolean mStarted = false;
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -49,7 +50,7 @@ public class VideoTestActivity extends SurfaceActivity {
         int after;
         for (idx = 0; idx < size && left > 0; idx = after) {
 
-            after = mVideoDecoder.h264_after_get(ba, idx);                               // Get index of next packet that starts with 0, 0, 0, 1
+            after = h264_after_get(ba, idx);                               // Get index of next packet that starts with 0, 0, 0, 1
             if (after == -1 && left <= max_chunk_size) {
                 after = size;
                 //hu_uti.logd ("Last chunk  chunk_size: " + chunk_size + "  idx: " + idx + "  after: " + after + "  size: " + size + "  left: " + left);
@@ -69,8 +70,28 @@ public class VideoTestActivity extends SurfaceActivity {
             idx += chunk_size;
             left -= chunk_size;
 
+//            if (mStarted)
+//            {
+//                if (VideoDecoder.isSps(bc))
+//                {
+//                    continue;
+//                }
+//            }
+
             mVideoDecoder.decode(bc, chunk_size);                                                // Decode audio or H264 video content
             Utils.ms_sleep(20);                                             // Wait a frame
         }
+        mStarted = true;
+    }
+
+
+    private int h264_after_get (byte [] ba, int idx) {
+        idx += 4; // Pass 0, 0, 0, 1
+        for (; idx < ba.length - 4; idx ++) {
+            if (idx > 24)   // !!!! HACK !!!! else 0,0,0,1 indicates first size 21, instead of 25
+                if (ba [idx] == 0 && ba [idx+1] == 0 && ba [idx+2] == 0 && ba [idx+3] == 1)
+                    return (idx);
+        }
+        return (-1);
     }
 }

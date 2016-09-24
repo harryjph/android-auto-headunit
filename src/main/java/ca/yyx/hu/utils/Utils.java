@@ -125,40 +125,6 @@ public final class Utils {
         return (hex_get(byte_hi) + hex_get(byte_lo));
     }
 
-    public static int varint_encode(int val, byte[] ba, int idx) {
-        if (val >= 1 << 14) {
-            Utils.loge("Too big");
-            return (1);
-        }
-        ba[idx + 0] = (byte) (0x7f & (val >> 0));
-        ba[idx + 1] = (byte) (0x7f & (val >> 7));
-        if (ba[idx + 1] != 0) {
-            ba[idx + 0] |= 0x80;
-            return (2);
-        }
-        return (1);
-    }
-
-    public static int varint_encode(long val, byte[] ba, int start) {
-        if (val >= 0x7fffffffffffffffL) {
-            return 1;
-        }
-
-        long left = val;
-        for (int idx = 0; idx < 9; idx ++) {
-            ba [start+idx] = (byte) (0x7f & left);
-            left = left >> 7;
-            if (left == 0) {
-                return (idx + 1);
-            }
-            else if (idx < 9 - 1) {
-                ba [start+idx] |= 0x80;
-            }
-        }
-
-        return 9;
-    }
-
     public static byte[] toByteArray(InputStream is) throws IOException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int nRead;

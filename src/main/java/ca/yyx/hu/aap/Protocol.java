@@ -1,9 +1,6 @@
 package ca.yyx.hu.aap;
 
-import android.os.SystemClock;
-
 import ca.yyx.hu.decoder.MicRecorder;
-import ca.yyx.hu.utils.Utils;
 
 /**
  * @author algavris
@@ -31,28 +28,16 @@ public class Protocol {
     static final int BTN_START = 126;
     static final int BTN_STOP = 127;
 
-    static byte[] createButtonMessage(long timeStamp, int button, boolean isPress)
+    static ByteArray createButtonMessage(long timeStamp, int button, boolean isPress)
     {
-        byte[] buffer = new byte[22];
+        ByteArray buffer = new ByteArray(22);
 
-        int buffCount = 0;
+        buffer.put(0x80, 0x01, 0x08);
+        int size = Encode.longToByteArray(timeStamp, buffer.data, buffer.length);
+        buffer.move(size);
 
-        buffer[buffCount++] = (byte) 0x80;
-        buffer[buffCount++] = 0x01;
-        buffer[buffCount++] = 0x08;
-        buffCount += Utils.varint_encode(timeStamp, buffer, buffCount);
-        buffer[buffCount++] = 0x22;
-        buffer[buffCount++] = 0x0A;
-        buffer[buffCount++] = 0x0A;
-        buffer[buffCount++] = 0x08;
-        buffer[buffCount++] = 0x08;
-        buffer[buffCount++] = (byte) button;
-        buffer[buffCount++] = 0x10;
-        buffer[buffCount++] = (byte) (isPress ? 0x01 : 0x00);
-        buffer[buffCount++] = 0x18;
-        buffer[buffCount++] = 0x00;
-        buffer[buffCount++] = 0x20;
-        buffer[buffCount] = 0x00;
+        int press = isPress ? 0x01 : 0x00;
+        buffer.put(0x22, 0x0A, 0x0A, 0x08, 0x08, button, 0x10, press, 0x18, 0x00, 0x20, 0x00);
         return buffer;
      }
 
@@ -64,51 +49,38 @@ public class Protocol {
 
     static byte[] BYEBYE_REQUEST = { 0x00, 0x0f, 0x08, 0x00 };
 
-    static byte[] TOUCH_REQUEST  = new byte[32];
-
     static byte[] createMicBuffer()
     {
-        byte[] mic_buf = new byte[10 + MicRecorder.MIC_BUFFER_SIZE];
-        mic_buf[4] = 0x00;  // Message Type = 0 for data, OR 32774 for Stop w/mandatory 0x08 int and optional 0x10 int (senderprotocol/aq -> com.google.android.e.b.ca)
-        mic_buf[5] = 0x00;
-        return mic_buf;
+        return new byte[10 + MicRecorder.MIC_BUFFER_SIZE];
     }
 
-    static int createTouchMessage(byte[] ba_touch, long timeStamp, byte action, int x, int y) {
+    static ByteArray createTouchMessage(long timeStamp, byte action, int x, int y) {
+        ByteArray buffer = new ByteArray(32);
 
-        int idx = 0;
+        buffer.put(0x80, 0x01, 0x08);
 
-        ba_touch[idx++] = (byte) 0x80;
-        ba_touch[idx++] = 0x01;
-        ba_touch[idx++] = 0x08;
+        int size = Encode.longToByteArray(timeStamp, buffer.data, buffer.length);          // Encode timestamp
+        buffer.move(size);
 
-        idx += Utils.varint_encode(timeStamp, ba_touch, idx);          // Encode timestamp
+        int size1_idx = buffer.length + 1;
+        int size2_idx = buffer.length + 3;
 
-        int size1_idx = idx + 1;
-        int size2_idx = idx + 3;
-
-        ba_touch[idx++] = 0x1a;                                           // Value 3 array
-        ba_touch[idx++] = 0x0a;                                           // Default size 10
-        ba_touch[idx++] = 0x0a;                                           // Contents = 1 array
-        ba_touch[idx++] = 0x03;                                           // Contents = 1 array
+        buffer.put(0x1a, 0x09, 0x0a, 0x03);
 
         /* Set magnitude of each axis */
         byte axis = 0;
         int[] coordinates = {x, y, 0};
         for (int i=0; i<3; i++) {
-            axis += 0x08;
-            ba_touch[idx++] = axis;
-            int siz_arr = Utils.varint_encode(coordinates[i], ba_touch, idx);
-            idx += siz_arr;
-            ba_touch[size1_idx] += siz_arr;
-            ba_touch[size2_idx] += siz_arr;
+            axis += 0x08; //0x08, 0x10, 0x18
+            buffer.put(axis);
+            size = Encode.intToByteArray(coordinates[i], buffer.data, buffer.length);
+            buffer.move(size);
+            buffer.inc(size1_idx, size);
+            buffer.inc(size2_idx, size);
         }
 
-        ba_touch[idx++] = 0x10;
-        ba_touch[idx++] = 0x00;
-        ba_touch[idx++] = 0x18;
-        ba_touch[idx++] = action;
-        return idx;
+        buffer.put(0x10, 0x00, 0x18, action);
+        return buffer;
     }
 
     static byte[] createNightModeMessage(boolean enabled) {

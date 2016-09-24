@@ -175,9 +175,8 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     void sendTouch(byte action, int x, int y) {
         if (mHandler != null) {
             long ts = SystemClock.elapsedRealtime() * 1000000L;
-            byte[] ba_touch = Protocol.TOUCH_REQUEST.clone();
-            int ba_length = Protocol.createTouchMessage(ba_touch, ts, action, x, y);
-            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Protocol.AA_CH_TOU, ba_length, ba_touch);
+            ByteArray ba = Protocol.createTouchMessage(ts, action, x, y);
+            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Protocol.AA_CH_TOU, ba.length, ba.data);
             mHandler.sendMessage(msg);
         }
     }
@@ -191,8 +190,8 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         {
             long ts = SystemClock.elapsedRealtime() * 1000000L;
             // Timestamp in nanoseconds = microseconds x 1,000,000
-            byte[] buttonData = Protocol.createButtonMessage(ts, btnCode, isPress);
-            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Protocol.AA_CH_TOU, buttonData.length, buttonData);
+            ByteArray ba = Protocol.createButtonMessage(ts, btnCode, isPress);
+            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Protocol.AA_CH_TOU, ba.length, ba.data);
             mHandler.sendMessage(msg);
         }
     }

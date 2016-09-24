@@ -46,6 +46,10 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private static native int native_aap_poll(int res_len, byte[] res_buf);
     private static native int native_aap_send(int channel, int cmd_len, byte[] cmd_buf);
 
+    private static native int native_ssl_prepare();
+    private static native int native_ssl_do_handshake();
+    private static native int native_ssl_bio_read(int res_len, byte[] res_buf);
+    private static native int native_ssl_bio_write(int start, int msg_len, byte[] msg_buf);
 
     @Override
     protected void onLooperPrepared() {
@@ -69,7 +73,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             int mic_audio_len = mMicRecorder.mic_audio_read(mic_buf, 10, MicRecorder.MIC_BUFFER_SIZE);
             if (mic_audio_len >= 78) {                                    // If we read at least 64 bytes of audio data
                 Utils.put_time(2, mic_buf, SystemClock.elapsedRealtime());
-                ret = native_aap_send(Protocol.AA_CH_MIC, mic_audio_len, mic_buf);    // Send mic audio
+                ret = native_aap_send(Channel.AA_CH_MIC, mic_audio_len, mic_buf);    // Send mic audio
             } else if (mic_audio_len > 0) {
                 Utils.loge("No data from microphone");
             }
@@ -104,7 +108,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     @Override
     public boolean quit() {
 
-        native_aap_send(Protocol.AA_CH_CTR, Protocol.BYEBYE_REQUEST.length, Protocol.BYEBYE_REQUEST);
+        native_aap_send(Channel.AA_CH_CTR, Protocol.BYEBYE_REQUEST.length, Protocol.BYEBYE_REQUEST);
         Utils.ms_sleep(100);
         if (mHandler != null) {
             mHandler.removeCallbacks(this);
@@ -121,6 +125,12 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     public boolean connectAndStart(UsbAccessoryConnection connection) {
         Utils.logd("Start Aap transport for " + connection);
 
+        if (!handshake(connection))
+        {
+            Utils.loge("Handshake failed");
+            return false;
+        }
+
         int ret = native_aap_start(connection.getEndpointInAddr(), connection.getEndpointOutAddr());
 
         if (ret == 0) {                                                     // If started OK...
@@ -130,6 +140,74 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         Utils.loge("Cannot start AAP ret:" + ret);
         return false;
     }
+
+    private boolean handshake(UsbAccessoryConnection connection) {
+        byte[] buffer = new byte[Protocol.DEF_BUFFER_LENGTH];
+
+        // Version request
+        ByteArray version = Protocol.createMessage(0, 3, 1, Protocol.VERSION_REQUEST, Protocol.VERSION_REQUEST.length); // Version Request
+        int ret = connection.send(version.data, version.length, 1000);
+        if (ret < 0) {
+            Utils.loge("Version request send ret: " + ret);
+            return false;
+        }
+
+        ret = connection.recv(buffer, 1000);
+        if (ret <= 0) {
+            Utils.loge("Version request recv ret: " + ret);
+            return false;
+        }
+        Utils.logd("Version response recv ret: %d", ret);
+
+        // SSL
+        ret = native_ssl_prepare();
+        if (ret < 0) {
+            Utils.loge("SSL prepare failed: " + ret);
+            return false;
+        }
+
+        int hs_ctr = 0;
+        // SSL_is_init_finished (hu_ssl_ssl)
+        while (hs_ctr++ < 2)
+        {
+            native_ssl_do_handshake();
+            int size = native_ssl_bio_read(Protocol.DEF_BUFFER_LENGTH, buffer);
+            Utils.logd("SSL BIO read: %d", size);
+            if (size <= 0) {
+                Utils.logd("SSL BIO read error");
+                return false;
+            }
+
+            ByteArray bio = Protocol.createMessage(Channel.AA_CH_CTR, 3, 3, buffer, size);
+            size = connection.send(bio.data, bio.length, 1000);
+            Utils.logd("SSL BIO sent: %d", size);
+
+            size = connection.recv(buffer, 1000);
+            Utils.logd("SSL received: %d", size);
+            if (size <= 0) {
+                Utils.logd("SSL receive error");
+                return false;
+            }
+
+            ret = native_ssl_bio_write(6, size - 6, buffer);
+            Utils.logd("SSL BIO write: %d", ret);
+        }
+
+        // Status = OK
+        // {0, 3, 0, 4, 0, 4, 8, 0};
+        // byte ac_buf [] = {0, 3, 0, 4, 0, 4, 8, 0};                          // Status = OK
+        ByteArray status = Protocol.createMessage(0, 3, 4, new byte[]{8, 0}, 2);
+        ret = connection.send(status.data, status.length, 1000);
+        if (ret < 0) {
+            Utils.loge("Status request send ret: " + ret);
+            return false;
+        }
+
+        Utils.logd("Status OK sent: %d", ret);
+
+        return true;
+    }
+
 
     // Send AA packet/HU command/mic audio AND/OR receive video/output audio/audio notifications
     private int aa_poll(int res_len, @NonNull byte[] res_buf) {
@@ -176,7 +254,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         if (mHandler != null) {
             long ts = SystemClock.elapsedRealtime() * 1000000L;
             ByteArray ba = Protocol.createTouchMessage(ts, action, x, y);
-            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Protocol.AA_CH_TOU, ba.length, ba.data);
+            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Channel.AA_CH_TOU, ba.length, ba.data);
             mHandler.sendMessage(msg);
         }
     }
@@ -191,7 +269,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             long ts = SystemClock.elapsedRealtime() * 1000000L;
             // Timestamp in nanoseconds = microseconds x 1,000,000
             ByteArray ba = Protocol.createButtonMessage(ts, btnCode, isPress);
-            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Protocol.AA_CH_TOU, ba.length, ba.data);
+            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Channel.AA_CH_TOU, ba.length, ba.data);
             mHandler.sendMessage(msg);
         }
     }
@@ -199,7 +277,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     void sendNightMode(boolean enabled) {
         if (mHandler != null) {
             byte[] modeData = Protocol.createNightModeMessage(enabled);
-            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Protocol.AA_CH_SEN, modeData.length, modeData);
+            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Channel.AA_CH_SEN, modeData.length, modeData);
             mHandler.sendMessage(msg);
         }
     }

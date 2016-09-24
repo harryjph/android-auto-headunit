@@ -162,12 +162,12 @@ public class UsbAccessoryConnection
      * @return length of data transferred (or zero) for success,
      * or negative value for failure
      */
-    public int send(byte[] buf) {
-        return mUsbDeviceConnection.bulkTransfer(mEndpointOut, buf, buf.length, 1000);
+    public int send(byte[] buf, int length, int timeout) {
+        return mUsbDeviceConnection.bulkTransfer(mEndpointOut, buf, length, timeout);
     }
 
-    public int recv(byte[] buf) {
-        return mUsbDeviceConnection.bulkTransfer(mEndpointIn, buf, buf.length, 1000);
+    public int recv(byte[] buf, int timeout) {
+        return mUsbDeviceConnection.bulkTransfer(mEndpointIn, buf, buf.length, timeout);
     }
 
     public class UsbOpenException extends Exception {

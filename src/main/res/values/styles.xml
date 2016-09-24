@@ -11,8 +11,4 @@
     </style>
 
     <style name="AppTheme.Translucent" parent="android:Theme.Translucent.NoTitleBar.Fullscreen" />
-
-    <style name="AppDialogTheme" parent="android:Theme.Holo.Dialog.Alert">
-        <item name="android:background">@color/material_blue_grey_900</item>
-    </style>
 </resources>

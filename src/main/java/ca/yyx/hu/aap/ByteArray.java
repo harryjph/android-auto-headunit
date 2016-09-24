@@ -32,4 +32,14 @@ class ByteArray {
     void inc(int index, int value) {
         this.data[index] += value;
     }
+
+    void encodeInt(int value) {
+        this.put((byte) (value / 256));                                            // Encode length of following data:
+        this.put((byte) (value % 256));
+    }
+
+    public void put(byte[] data, int size) {
+        System.arraycopy(data, 0, this.data, this.length, size);
+        this.length += size;
+    }
 }

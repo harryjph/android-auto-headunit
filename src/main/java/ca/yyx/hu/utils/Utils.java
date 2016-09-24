@@ -79,7 +79,7 @@ public final class Utils {
                 break;
             }
         }
-        return String.format(Locale.US, "[%d] %s: %s", Thread.currentThread().getId(), string, formatted);
+        return String.format(Locale.US, "[%d] %s | %s", Thread.currentThread().getId(), string, formatted);
     }
 
     public static long ms_sleep(long ms) {

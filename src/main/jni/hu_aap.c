@@ -1265,40 +1265,6 @@ int hu_aap_start(byte ep_in_addr, byte ep_out_addr) {                // Starts T
         return (ret);                                                     // Done if error
     }
 
-    byte vr_buf[] = {0, 3, 0, 6, 0, 1, 0, 1, 0, 1};                    // Version Request
-    ret = hu_aap_tra_set(0, 3, 1, vr_buf, sizeof(vr_buf));
-    ret = hu_aap_tra_send(vr_buf, sizeof(vr_buf), 1000);              // Send Version Request
-    if (ret < 0) {
-        loge ("Version request send ret: %d", ret);
-        hu_aap_stop();
-        return (-1);
-    }
-
-    byte buf[DEFBUF] = {0};
-    errno = 0;
-    ret = hu_aap_tra_recv(buf, sizeof(buf), 1000);                    // Get Rx packet from Transport:    Wait for Version Response
-    if (ret <= 0) {
-        loge ("Version response recv ret: %d", ret);
-        hu_aap_stop();
-        return (-1);
-    }
-    logd ("Version response recv ret: %d", ret);
-
-    ret = hu_ssl_handshake();                                          // Do SSL Client Handshake with AA SSL server
-    if (ret) {
-        loge ("SSL handshake failed ret: %d", ret);
-        hu_aap_stop();
-        return (ret);
-    }
-
-    byte ac_buf[] = {0, 3, 0, 4, 0, 4, 8, 0};                          // Status = OK
-    ret = hu_aap_tra_set(0, 3, 4, ac_buf, sizeof(ac_buf));
-    ret = hu_aap_tra_send(ac_buf, sizeof(ac_buf), 1000);              // Auth Complete, must be sent in plaintext
-    if (ret < 0) {
-        loge ("hu_aap_tra_send() ret: %d", ret);
-        hu_aap_stop();
-        return (-1);
-    }
     hu_ssl_inf_log();
 
     iaap_state = hu_STATE_STARTED;

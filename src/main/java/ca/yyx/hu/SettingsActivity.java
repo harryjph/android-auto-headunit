@@ -95,7 +95,7 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
     }
 
     private void showMenuDialog() {
-        AlertDialog dialog = new AlertDialog.Builder(this, R.style.AppDialogTheme)
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.menu)
                 .setItems(R.array.menu_items, new DialogInterface.OnClickListener() {
                     @Override

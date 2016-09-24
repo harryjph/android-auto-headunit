@@ -8,11 +8,7 @@ import ca.yyx.hu.decoder.MicRecorder;
  */
 
 public class Protocol {
-    static final int AA_CH_CTR = 0;                               // Sync with AapTransport.java, hu_aap.h and hu_aap.c:aa_type_array[]
-    static final int AA_CH_TOU = 3;
-    static final int AA_CH_SEN = 1;
-    private static final int AA_CH_VID = 2;
-    static final int AA_CH_MIC = 7;
+    static final int DEF_BUFFER_LENGTH = 131080;
 
     static final int BTN_UP = 0x13;
     static final int BTN_DOWN = 0x14;
@@ -21,12 +17,29 @@ public class Protocol {
     static final int BTN_BACK = 0x04;
     static final int BTN_ENTER = 0x17;
     static final int BTN_MIC = 0x54;
+    static final int BTN_PHONE = 0x5;
+    static final int BTN_START = 126;
+
     public static final int BTN_PLAYPAUSE = 0x55;
     public static final int BTN_NEXT = 0x57;
     public static final int BTN_PREV = 0x58;
-    static final int BTN_PHONE = 0x5;
-    static final int BTN_START = 126;
     public static final int BTN_STOP = 127;
+
+    static ByteArray createMessage(int chan, int flags, int type, byte[] data, int size) {
+
+        ByteArray buffer = new ByteArray(6 + size);
+
+        buffer.put(chan, flags);
+        buffer.encodeInt(size + 2);
+
+        if (type >= 0) {
+            // If type not negative, which indicates encrypted type should not be touched...
+            buffer.encodeInt(type);
+        }
+
+        buffer.put(data, size);
+        return buffer;
+    }
 
     static ByteArray createButtonMessage(long timeStamp, int button, boolean isPress)
     {
@@ -47,6 +60,7 @@ public class Protocol {
     static final byte RESPONSE_AUDIO1_STOP = 4;
     static final byte RESPONSE_AUDIO2_STOP = 5;
 
+    static byte[] VERSION_REQUEST = { 0, 1, 0, 1 };
     static byte[] BYEBYE_REQUEST = { 0x00, 0x0f, 0x08, 0x00 };
 
     static byte[] createMicBuffer()

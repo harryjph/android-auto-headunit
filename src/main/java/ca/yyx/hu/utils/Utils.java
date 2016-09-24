@@ -139,22 +139,24 @@ public final class Utils {
         return (1);
     }
 
-    public static int varint_encode(long val, byte[] ba, int idx) {
+    public static int varint_encode(long val, byte[] ba, int start) {
         if (val >= 0x7fffffffffffffffL) {
-            Utils.loge("Too big");
-            return (1);
+            return 1;
         }
+
         long left = val;
-        for (int idx2 = 0; idx2 < 9; idx2++) {
-            ba[idx + idx2] = (byte) (0x7f & left);
+        for (int idx = 0; idx < 9; idx ++) {
+            ba [start+idx] = (byte) (0x7f & left);
             left = left >> 7;
             if (left == 0) {
-                return (idx2 + 1);
-            } else if (idx2 < 9 - 1) {
-                ba[idx + idx2] |= 0x80;
+                return (idx + 1);
+            }
+            else if (idx < 9 - 1) {
+                ba [start+idx] |= 0x80;
             }
         }
-        return (9);
+
+        return 9;
     }
 
     public static byte[] toByteArray(InputStream is) throws IOException {

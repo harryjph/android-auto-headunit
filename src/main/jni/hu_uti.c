@@ -24,11 +24,11 @@ int gen_server_poll_func(int poll_ms);
 
 int ena_log_verbo = 0;
 //1;
-int ena_log_debug = 0;
+int ena_log_debug = 1;
 int ena_log_warni = 1;
 int ena_log_error = 1;
 
-int ena_log_aap_send = 0;
+int ena_log_aap_send = 1;
 
 // Enables for hex_dump:
 int ena_hd_hu_aad_dmp = 1;        // Higher level
@@ -178,9 +178,7 @@ int file_get(const char *filename) {                                // Return 1 
 #define HD_MW 256
 
 void hex_dump(char *prefix, int width, unsigned char *buf, int len) {
-    if (0)//! strncmp (prefix, "AUDIO: ", strlen ("AUDIO: ")))
-        len = len;
-    else if (!ena_log_hexdu) {
+    if (!ena_log_hexdu) {
         return;
     }
     //loge ("hex_dump prefix: \"%s\"  width: %d   buf: %p  len: %d", prefix, width, buf, len);
@@ -426,8 +424,7 @@ int aud_sem_head = 0;
 char *aud_write_tail_buf_get(int len) {                          // Get tail buffer to write to
 
     if (len > aud_buf_BUFS_SIZE) {
-        loge ("!!!!!!!!!! aud_write_tail_buf_get too big len: %d",
-              len);   // E/aud_write_tail_buf_get(10699): !!!!!!!!!! aud_write_tail_buf_get too big len: 66338
+        loge ("!!!!!!!!!! aud_write_tail_buf_get too big len: %d", len);   // E/aud_write_tail_buf_get(10699): !!!!!!!!!! aud_write_tail_buf_get too big len: 66338
         return (NULL);
     }
 
@@ -554,8 +551,7 @@ int vid_sem_head = 0;
 char *vid_write_tail_buf_get(int len) {                          // Get tail buffer to write to
 
     if (len > vid_buf_BUFS_SIZE) {
-        loge ("!!!!!!!!!! vid_write_tail_buf_get too big len: %d",
-              len);   // E/vid_write_tail_buf_get(10699): !!!!!!!!!! vid_write_tail_buf_get too big len: 66338
+        loge ("!!!!!!!!!! vid_write_tail_buf_get too big len: %d", len);   // E/vid_write_tail_buf_get(10699): !!!!!!!!!! vid_write_tail_buf_get too big len: 66338
         return (NULL);
     }
 

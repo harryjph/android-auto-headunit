@@ -93,6 +93,7 @@ public class VideoDecoder {
                 MediaFormat format = MediaFormat.createVideoFormat("video/avc", mWidth, mHeight);
                 mCodec.configure(format, mHolder.getSurface(), null, 0);               // Configure codec for H.264 with given width and height, no crypto and no flag (ie decode)
                 mCodec.start();                                             // Start codec
+                mInputBuffers = mCodec.getInputBuffers();
             } catch (Throwable t) {
                 Utils.loge(t);
             }
@@ -115,10 +116,8 @@ public class VideoDecoder {
         try {
             final int inputBufIndex = mCodec.dequeueInputBuffer(1000000);           // Get input buffer with 1 second timeout
             if (inputBufIndex < 0) {
+                Utils.loge("dequeueInputBuffer: "+inputBufIndex);
                 return false;                                                 // Done with "No buffer" error
-            }
-            if (mInputBuffers == null) {
-                mInputBuffers = mCodec.getInputBuffers();                // Set mInputBuffers if needed
             }
 
             final ByteBuffer buffer = mInputBuffers[inputBufIndex];

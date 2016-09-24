@@ -95,16 +95,16 @@ byte rx_buf[DEFBUF] = {0};                                          // Global Tr
 #define dec_buf rx_buf                          // Use same buffer !!!
 
 
-int hu_aap_tra_set(int chan, int flags, int type, byte *buf,
-                   int len) {  // Convenience function sets up 6 byte Transport header: chan, flags, len, type
+int hu_aap_tra_set(int chan, int flags, int type, byte *buf, int len) {
+// Convenience function sets up 6 byte Transport header: chan, flags, len, type
 
-    buf[0] = (byte) chan;                                              // Encode channel and flags
+    buf[0] = (byte) chan;       // Encode channel and flags
     buf[1] = (byte) flags;
-    buf[2] = (len - 4) / 256;                                            // Encode length of following data:
+    buf[2] = (len - 4) / 256;   // Encode length of following data:
     buf[3] = (len - 4) % 256;
-    if (type >= 0) {                                                    // If type not negative, which indicates encrypted type should not be touched...
+    if (type >= 0) {            // If type not negative, which indicates encrypted type should not be touched...
         buf[4] = type / 256;
-        buf[5] = type % 256;                                             // Encode msg_type
+        buf[5] = type % 256;    // Encode msg_type
     }
 
     return (len);
@@ -164,14 +164,12 @@ int hu_aap_enc_send(int chan, byte *buf, int len) {                 // Encrypt d
         flags = 0x0b;                                                     // Flags = First + Last + Encrypted
     }
 
-#ifndef NDEBUG
-//    if (ena_log_verbo && ena_log_aap_send) {
     if (log_packet_info) { // && ena_log_aap_send)
-      char prefix [DEF_BUF] = {0};
-      snprintf (prefix, sizeof (prefix), "SEND %d %s %1.1x", chan, chan_get (chan), flags);  // "S 1 VID B"
-      int rmv = hu_aad_dmp (prefix, "HU", chan, flags, buf, len);
+        char prefix [DEF_BUF] = {0};
+        snprintf (prefix, sizeof (prefix), "SEND %d %s %1.1x", chan, chan_get (chan), flags);  // "S 1 VID B"
+        hu_aad_dmp (prefix, "HU", chan, flags, buf, len);
     }
-#endif
+
     int bytes_written = SSL_write(hu_ssl_ssl, buf, len);               // Write plaintext to SSL
     if (bytes_written <= 0) {
       loge ("SSL_write() bytes_written: %d", bytes_written);
@@ -1360,14 +1358,11 @@ int iaap_recv_dec_process(int chan, int flags, byte *buf,
 
     // logd ("ctr: %d  SSL_read() bytes_read: %d", ctr, bytes_read);
 
-#ifndef NDEBUG
-////    if (chan != AA_CH_VID)                                          // If not video...
     if (log_packet_info) {
         char prefix [DEF_BUF] = {0};
         snprintf (prefix, sizeof (prefix), "RECV %d %s %1.1x", chan, chan_get (chan), flags);  // "R 1 VID B"
         int rmv = hu_aad_dmp(prefix, "AA", chan, flags, dec_buf, bytes_read);           // Dump decrypted AA
     }
-#endif
 
     int prot_func_ret = iaap_msg_process(chan, flags, dec_buf, bytes_read);      // Process decrypted AA protocol message
     return (0);//prot_func_ret);
@@ -1410,18 +1405,15 @@ int hu_aap_recv_process() {                                          //
 
     int have_len = 0;                                                   // Length remaining to process for all sub-packets plus 4/8 byte headers
 
-    have_len = hu_aap_tra_recv(rx_buf, rx_len,
-                               iaap_tra_recv_tmo);     // Get Rx packet from Transport
+    have_len = hu_aap_tra_recv(rx_buf, rx_len, iaap_tra_recv_tmo);     // Get Rx packet from Transport
 
-    if (have_len ==
-        0) {                                                // If no data, then done w/ no data
-        return (0);
+    if (have_len == 0) {                                                // If no data, then done w/ no data
+        return 0;
     }
-    if (have_len <
-        min_size_hdr) {                                      // If we don't have a full 6 byte header at least...
+    if (have_len < min_size_hdr) {                                      // If we don't have a full 6 byte header at least...
         loge ("Recv have_len: %d", have_len);
         hu_aap_stop();
-        return (-1);
+        return -1;
     }
 
     while (have_len > 0) {                                              // While length remaining to process,... Process Rx packet:

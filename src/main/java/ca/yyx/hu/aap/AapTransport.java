@@ -20,7 +20,6 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
     private static final int DEFBUF = 131080;
 
-    private byte[] fixed_cmd_buf = new byte[256];
     private byte[] fixed_res_buf = new byte[DEFBUF * 16];
 
     private Handler mHandler;
@@ -42,8 +41,10 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         System.loadLibrary("hu_jni");
     }
 
+    private static native int native_aap_start(int ep_in_addr, int ep_out_addr);
     // Java_ca_yyx_hu_aap_AapTransport_native_1aa_1cmd
-    private static native int native_aa_cmd(int cmd_len, byte[] cmd_buf, int res_len, byte[] res_buf);
+    private static native int native_aap_poll(int res_len, byte[] res_buf);
+    private static native int native_aap_send(int channel, int cmd_len, byte[] cmd_buf);
 
 
     @Override
@@ -55,7 +56,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
     @Override
     public boolean handleMessage(Message msg) {
-        int ret = 0;
+        int ret;
 
         if (msg.what == MIC_RECORD_STOP) {
             mMicRecording = false;
@@ -65,22 +66,26 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
         if (mMicRecording) {
             byte[] mic_buf = Protocol.createMicBuffer();
-            int mic_audio_len = mMicRecorder.mic_audio_read(mic_buf, 14, MicRecorder.MIC_BUFFER_SIZE);
+            int mic_audio_len = mMicRecorder.mic_audio_read(mic_buf, 10, MicRecorder.MIC_BUFFER_SIZE);
             if (mic_audio_len >= 78) {                                    // If we read at least 64 bytes of audio data
                 Utils.put_time(6, mic_buf, SystemClock.elapsedRealtime());
-                ret = aa_cmd_send(mic_audio_len, mic_buf, fixed_res_buf.length, fixed_res_buf);    // Send mic audio
+                ret = native_aap_send(Protocol.AA_CH_MIC, mic_audio_len, mic_buf);    // Send mic audio
             } else if (mic_audio_len > 0) {
                 Utils.loge("No data from microphone");
             }
         }
 
         if (msg.what == DATA_MESSAGE) {
-            int dataLength = msg.arg1;
+            int channel = msg.arg1;
+            int dataLength = msg.arg2;
             byte[] data = (byte[]) msg.obj;
-            ret = aa_cmd_send(dataLength, data, fixed_res_buf.length, fixed_res_buf);
+            ret = native_aap_send(channel, dataLength, data);
+            if (ret < 0) {
+                Utils.loge("Send result: " + ret);
+            }
         }
 
-        ret = aa_cmd_send(0, fixed_cmd_buf, fixed_res_buf.length, fixed_res_buf);
+        ret = aa_poll(fixed_res_buf.length, fixed_res_buf);
         if (mHandler == null) {
             return false;
         }
@@ -98,7 +103,8 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
     @Override
     public boolean quit() {
-        aa_cmd_send(Protocol.BYEBYE_REQUEST);
+
+        native_aap_send(Protocol.AA_CH_CTR, Protocol.BYEBYE_REQUEST.length, Protocol.BYEBYE_REQUEST);
         Utils.ms_sleep(100);
         if (mHandler != null) {
             mHandler.removeCallbacks(this);
@@ -108,20 +114,14 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         return super.quit();
     }
 
-    void setMicRecording(boolean start) {
+    private void setMicRecording(boolean start) {
         mHandler.sendEmptyMessage(start ? MIC_RECORD_START : MIC_RECORD_STOP);
     }
 
     public boolean connectAndStart(UsbAccessoryConnection connection) {
         Utils.logd("Start Aap transport for " + connection);
-        // Start JNI Android Auto Protocol and Main Thread.
-        byte[] cmd_buf = {121, -127, 2};
-        // Start Request w/ m_ep_in_addr, m_ep_out_addr
-        cmd_buf[1] = (byte) connection.getEndpointInAddr();
-        cmd_buf[2] = (byte) connection.getEndpointOutAddr();
-        // Send: Start USB & AA
 
-        int ret = aa_cmd_send(cmd_buf.length, cmd_buf);
+        int ret = native_aap_start(connection.getEndpointInAddr(), connection.getEndpointOutAddr());
 
         if (ret == 0) {                                                     // If started OK...
             this.start();                                          // Create and start Transport Thread
@@ -131,19 +131,11 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         return false;
     }
 
-    private int aa_cmd_send(@NonNull byte[] cmd_buf) {
-        return aa_cmd_send(cmd_buf.length, cmd_buf);
-    }
-
-    private int aa_cmd_send(int cmd_len, @NonNull byte[] cmd_buf) {
-        byte[] res_buf = new byte[DEFBUF * 16];
-        return aa_cmd_send(cmd_len, cmd_buf, res_buf.length, res_buf);
-    }
-
     // Send AA packet/HU command/mic audio AND/OR receive video/output audio/audio notifications
-    private int aa_cmd_send(int cmd_len, @NonNull byte[] cmd_buf, int res_len, @NonNull byte[] res_buf) {
+    private int aa_poll(int res_len, @NonNull byte[] res_buf) {
 
-        int ret = native_aa_cmd(cmd_len, cmd_buf, res_len, res_buf);       // Send a command (or null command)
+        // Send a command (or null command)
+        int ret = native_aap_poll(res_len, res_buf);
 
         if (ret == Protocol.RESPONSE_MIC_STOP) {                                                     // If mic stop...
             Utils.logd("Microphone Stop");
@@ -185,7 +177,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             long ts = SystemClock.elapsedRealtime() * 1000000L;
             byte[] ba_touch = Protocol.TOUCH_REQUEST.clone();
             int ba_length = Protocol.createTouchMessage(ba_touch, ts, action, x, y);
-            Message msg = mHandler.obtainMessage(DATA_MESSAGE, ba_length, 0, ba_touch);
+            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Protocol.AA_CH_TOU, ba_length, ba_touch);
             mHandler.sendMessage(msg);
         }
     }
@@ -197,9 +189,10 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     public void sendButton(int btnCode, boolean isPress) {
         if (mHandler != null)
         {
-            long ts = SystemClock.elapsedRealtime() * 1000000L;   // Timestamp in nanoseconds = microseconds x 1,000,000
+            long ts = SystemClock.elapsedRealtime() * 1000000L;
+            // Timestamp in nanoseconds = microseconds x 1,000,000
             byte[] buttonData = Protocol.createButtonMessage(ts, btnCode, isPress);
-            Message msg = mHandler.obtainMessage(DATA_MESSAGE, buttonData.length, 0, buttonData);
+            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Protocol.AA_CH_TOU, buttonData.length, buttonData);
             mHandler.sendMessage(msg);
         }
     }
@@ -207,7 +200,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     void sendNightMode(boolean enabled) {
         if (mHandler != null) {
             byte[] modeData = Protocol.createNightModeMessage(enabled);
-            Message msg = mHandler.obtainMessage(DATA_MESSAGE, modeData.length, 0, modeData);
+            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Protocol.AA_CH_SEN, modeData.length, modeData);
             mHandler.sendMessage(msg);
         }
     }

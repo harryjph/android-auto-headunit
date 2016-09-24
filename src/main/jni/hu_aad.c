@@ -377,8 +377,7 @@ unsigned int hu_aad_dmp(unsigned char *prefix, unsigned char *src, int chan, int
     if (is_media && (flags == 8 || flags == 0x0a || msg_type == 0)) // || msg_type ==1)    // Ignore Video/Audio Data
         return (rmv);
 
-    if (is_media && msg_type == 32768 +
-                                4)                                                 // Ignore Video/Audio Ack
+    if (is_media && msg_type == 32768 + 4)                                                 // Ignore Video/Audio Ack
         return (rmv);
 
     adj = 2;                                                            // msg_type = 2 bytes

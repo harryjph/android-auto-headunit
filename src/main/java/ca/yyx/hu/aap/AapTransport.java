@@ -68,7 +68,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             byte[] mic_buf = Protocol.createMicBuffer();
             int mic_audio_len = mMicRecorder.mic_audio_read(mic_buf, 10, MicRecorder.MIC_BUFFER_SIZE);
             if (mic_audio_len >= 78) {                                    // If we read at least 64 bytes of audio data
-                Utils.put_time(6, mic_buf, SystemClock.elapsedRealtime());
+                Utils.put_time(2, mic_buf, SystemClock.elapsedRealtime());
                 ret = native_aap_send(Protocol.AA_CH_MIC, mic_audio_len, mic_buf);    // Send mic audio
             } else if (mic_audio_len > 0) {
                 Utils.loge("No data from microphone");

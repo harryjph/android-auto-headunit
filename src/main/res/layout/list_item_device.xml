@@ -13,6 +13,7 @@
         android:layout_weight="1"
         tools:text="Device name Device unique id"
         android:gravity="center_vertical"
+        style="?android:attr/buttonBarButtonStyle"
         />
 
     <Button
@@ -20,6 +21,7 @@
         android:layout_width="100dp"
         android:layout_height="match_parent"
         android:layout_gravity="right"
+        style="?android:attr/buttonBarButtonStyle"
         android:text="@string/allowed" />
 
 </LinearLayout>

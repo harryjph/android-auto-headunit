@@ -345,7 +345,7 @@ char *msg_type_enc_get(int msg_type) {
 
 // Android Auto protocol dump:
 
-unsigned int hu_aad_dmp(unsigned char *prefix, unsigned char *src, int chan, int flags,
+int hu_aad_dmp(char *prefix, unsigned char *src, int chan, int flags,
                         unsigned char *buf, int len) {   // Source:  HU = HU > AA   AA = AA > HU
 
     unsigned int rmv = 0;
@@ -381,8 +381,7 @@ unsigned int hu_aad_dmp(unsigned char *prefix, unsigned char *src, int chan, int
         return (rmv);
 
     adj = 2;                                                            // msg_type = 2 bytes
-    iaad_adj(&rmv, &buf, &lft,
-             adj);                                // Adjust past the msg_type to content
+    iaad_adj(&rmv, &buf, &lft, adj);                                // Adjust past the msg_type to content
 
     char *msg_type_str = iaad_msg_type_str_get(msg_type, src, lft);   // Get msg_type string
     if (flags == 0x08)
@@ -392,8 +391,7 @@ unsigned int hu_aad_dmp(unsigned char *prefix, unsigned char *src, int chan, int
     else
         logd ("%s src: %s  lft: %5d  msg_type: %5d %s", prefix, src, lft, msg_type, msg_type_str);
 
-    if (ena_hd_hu_aad_dmp)                                              // If hex dump enabled...
-        hex_dump(prefix, 16, buf, lft);                                  // Hexdump
+    hex_dump(prefix, 16, buf, lft);                                  // Hexdump
 
     if (flags == 0x08)                                                  // If Media Data Mid...
         return (len);                                                     // Done

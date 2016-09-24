@@ -1,6 +1,3 @@
-//#ifndef UTILS_INCLUDED
-
-//  #define UTILS_INCLUDED
 
 #undef NDEBUG // Ensure debug stuff
 
@@ -9,7 +6,6 @@
 #define hu_STATE_STARTED   2
 #define hu_STATE_STOPPIN   3
 #define hu_STATE_STOPPED   4
-//#define hu_STATE_   5
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,23 +25,14 @@
 
 #include <dirent.h>                                                   // For opendir (), readdir (), closedir (), DIR, struct dirent.
 
-// Enables for hex_dump:
-extern int ena_hd_hu_aad_dmp;
-extern int ena_hd_tra_send;
-extern int ena_hd_tra_recv;
-extern int ena_log_aap_send;
-
 #define byte unsigned char
 //This is the value used in DHU // Default buffer size is maximum for USB
 #define DEFBUF  131080
 
-#define DEF_BUF 512                                                   // For Ascii strings and such
-
+#define CHAR_BUF 512                                                   // For Ascii strings and such
 
 #ifdef __ANDROID_API__
-
 #include <android/log.h>
-
 #else
 // UNKNOWN    0
 #define ANDROID_LOG_DEFAULT 1
@@ -58,11 +45,6 @@ extern int ena_log_aap_send;
 // SILENT     8
 #endif
 
-#define hu_LOG_VER   ANDROID_LOG_VERBOSE
-#define hu_LOG_DEB   ANDROID_LOG_DEBUG
-#define hu_LOG_WAR   ANDROID_LOG_WARN
-#define hu_LOG_ERR   ANDROID_LOG_ERROR
-
 #ifdef NDEBUG
 
 #define  logv(...)
@@ -72,14 +54,14 @@ extern int ena_log_aap_send;
 
 #else
 
-#define  logv(...)  hu_log(hu_LOG_VER,__VA_ARGS__)
-#define  logd(...)  hu_log(hu_LOG_DEB,__VA_ARGS__)
-#define  logw(...)  hu_log(hu_LOG_WAR,__VA_ARGS__)
-#define  loge(...)  hu_log(hu_LOG_ERR,__VA_ARGS__)
+#define  logv(...)  hu_log(ANDROID_LOG_VERBOSE,__VA_ARGS__)
+#define  logd(...)  hu_log(ANDROID_LOG_DEBUG,__VA_ARGS__)
+#define  logw(...)  hu_log(ANDROID_LOG_WARN,__VA_ARGS__)
+#define  loge(...)  hu_log(ANDROID_LOG_ERROR,__VA_ARGS__)
 
 #endif
 
-int hu_log(int prio, const char *fmt, ...);
+int hu_log(int priority, const char *fmt, ...);
 
 unsigned long ms_get();
 
@@ -112,9 +94,6 @@ int sock_reuse_set(int fd);
 
 // Android USB device priority:
 
-//1d6b  Linux Foundation  PIDs:	0001  1.1 root hub  0002  2.0 root hub  -0003  3.0 root hub
-//05c6  Qualcomm, Inc.
-
 #define USB_VID_GOO 0x18D1    // The vendor ID should match Google's ID ( 0x18D1 ) and the product ID should be 0x2D00 or 0x2D01 if the device is already in accessory mode (case A).
 
 #define USB_VID_HTC 0x0bb4
@@ -128,25 +107,6 @@ int sock_reuse_set(int fd);
 
 #define USB_VID_LIN 0x1d6b
 #define USB_VID_QUA 0x05c6
-#define USB_VID_COM 0x1519  // Comneon
-
-#define USB_VID_ASE 0x0835  // Action Star Enterprise
-
-//#define USB_PID_OM8 0x0f87
-//#define USB_PID_MOG 0x2e76
 
 
-#define USB_PID_ACC_MIN       0x2D00
-#define USB_PID_ACC_MAX       0x2D05
-
-//#define USB_PID_ACC         0x2D00      // Accessory                  100
-//#define USB_PID_ACC_ADB     0x2D01      // Accessory + ADB            110
-//#define USB_PID_AUD         0x2D02      //                   Audio    001
-//#define USB_PID_AUD_ADB     0x2D03      //             ADB + Audio    011
-//#define USB_PID_ACC_AUD     0x2D04      // Accessory       + Audio    101
-//#define USB_PID_ACC_AUD_ADB 0x2D05      // Accessory + ADB + Audio    111
-// No 000 (Nothing) or 010 (adb only, which is default)
-
-
-//#endif  //#ifndef UTILS_INCLUDED
 

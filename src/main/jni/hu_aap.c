@@ -142,8 +142,7 @@ int hu_aap_tra_send(byte *buf, int len,
         return (-1);
     }
 
-    if (ena_log_aap_send)
-        logd ("OK ihu_tra_send() ret: %d  len: %d", ret, len);
+    logv ("OK ihu_tra_send() ret: %d  len: %d", ret, len);
     return (ret);
 }
 
@@ -165,7 +164,7 @@ int hu_aap_enc_send(int chan, byte *buf, int len) {                 // Encrypt d
     }
 
     if (log_packet_info) { // && ena_log_aap_send)
-        char prefix [DEF_BUF] = {0};
+        char prefix [CHAR_BUF] = {0};
         snprintf (prefix, sizeof (prefix), "SEND %d %s %1.1x", chan, chan_get (chan), flags);  // "S 1 VID B"
         hu_aad_dmp (prefix, "HU", chan, flags, buf, len);
     }
@@ -180,8 +179,8 @@ int hu_aap_enc_send(int chan, byte *buf, int len) {                 // Encrypt d
     }
     if (bytes_written != len)
       loge ("SSL_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, chan_get (chan));
-    else if (ena_log_aap_send)
-      logd ("SSL_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, chan_get (chan));
+
+    logv ("SSL_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, chan_get (chan));
 
     int bytes_read = BIO_read (hu_ssl_wm_bio, & enc_buf [4], sizeof (enc_buf) - 4); // Read encrypted from SSL BIO to enc_buf +
 
@@ -190,13 +189,11 @@ int hu_aap_enc_send(int chan, byte *buf, int len) {                 // Encrypt d
       hu_aap_stop ();
       return (-1);
     }
-    if (ena_log_aap_send)
-        logd ("BIO_read() bytes_read: %d", bytes_read);
 
-    hu_aap_tra_set(chan, flags, -1, enc_buf, bytes_read +
-                                             4);          // -1 for type so encrypted type position is not overwritten !!
-    hu_aap_tra_send(enc_buf, bytes_read + 4,
-                    iaap_tra_send_tmo);           // Send encrypted data to AA Server
+    logv("BIO_read() bytes_read: %d", bytes_read);
+
+    hu_aap_tra_set(chan, flags, -1, enc_buf, bytes_read + 4);          // -1 for type so encrypted type position is not overwritten !!
+    hu_aap_tra_send(enc_buf, bytes_read + 4, iaap_tra_send_tmo);           // Send encrypted data to AA Server
 
     return (0);
 }
@@ -1192,8 +1189,7 @@ int iaap_msg_process(int chan, int flags, byte *buf, int len) {
         return (iaap_audio_process(chan, msg_type, flags, buf,
                                    len)); // 300 ms @ 48000/sec   samples = 14400     stereo 16 bit results in bytes = 57600
     }
-    else if (chan == AA_CH_VID && msg_type == 0 || msg_type == 1 || flags == 8 || flags == 9 ||
-             flags == 10) {    // If Video...
+    else if (chan == AA_CH_VID && msg_type == 0 || msg_type == 1 || flags == 8 || flags == 9 || flags == 10) {    // If Video...
         return (iaap_video_process(msg_type, flags, buf, len));
     }
     else if (msg_type >= 0 && msg_type <= 31)
@@ -1359,7 +1355,7 @@ int iaap_recv_dec_process(int chan, int flags, byte *buf,
     // logd ("ctr: %d  SSL_read() bytes_read: %d", ctr, bytes_read);
 
     if (log_packet_info) {
-        char prefix [DEF_BUF] = {0};
+        char prefix [CHAR_BUF] = {0};
         snprintf (prefix, sizeof (prefix), "RECV %d %s %1.1x", chan, chan_get (chan), flags);  // "R 1 VID B"
         int rmv = hu_aad_dmp(prefix, "AA", chan, flags, dec_buf, bytes_read);           // Dump decrypted AA
     }
@@ -1430,7 +1426,7 @@ int hu_aap_recv_process() {                                          //
 
         have_len -= 4;                                                    // Length starting at byte 4: Unencrypted Message Type or Encrypted data start
         buf += 4;                                                         // buf points to data to be decrypted
-        if (flags & 0x08 != 0x08) {
+        if ((flags & 0x08) != 0x08) {
             loge ("NOT ENCRYPTED !!!!!!!!! have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%x  msg_type: %d",
                   have_len, enc_len, buf, chan, chan_get(chan), flags, msg_type);
             hu_aap_stop();

@@ -79,10 +79,8 @@
 
     logd ("Start dir: %s  ep: 0x%02x  buf: %p  len: %d  tmo: %d", dir, ep, buf, len, tmo);
 
-//#ifndef NDEBUG
-    if (ena_hd_tra_send && ep == itcp_ep_out)
-      hex_dump ("US: ", 16, buf, len);
-//#endif
+    if (ep == itcp_ep_out)
+        hex_dump("US: ", 16, buf, len);
 
     #define LIBtcp_ERROR_TIMEOUT -2
     int tcp_err = LIBtcp_ERROR_TIMEOUT;
@@ -137,8 +135,8 @@
     //  logd ("Done dir: %s  len: %d  total_bytes_xfrd: %d", dir, len, total_bytes_xfrd);
 
 //#ifndef NDEBUG
-    if (ena_hd_tra_recv && ep == itcp_ep_in)
-      hex_dump ("UR: ", 16, buf, total_bytes_xfrd);
+    if (ep == itcp_ep_in)
+        hex_dump("UR: ", 16, buf, total_bytes_xfrd);
 //#endif
 
 
@@ -311,7 +309,7 @@
 
     int cmd_len = 0, ctr = 0;
     //struct hostent *hp;
-    unsigned char cmd_buf [DEF_BUF] ={0};
+    unsigned char cmd_buf [CHAR_BUF] ={0};
 
     errno = 0;
     if ((tcp_so_fd = socket (CS_FAM, CS_SOCK_TYPE, 0)) < 0) {              // Create socket

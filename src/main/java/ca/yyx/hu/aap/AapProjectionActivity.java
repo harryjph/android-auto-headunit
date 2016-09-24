@@ -179,7 +179,7 @@ public class AapProjectionActivity extends SurfaceActivity {
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         Utils.logd("KeyCode: %d", keyCode);
-        onKeyEvent(keyCode, false);
+        //onKeyEvent(keyCode, false);
         return super.onKeyUp(keyCode, event);
     }
 

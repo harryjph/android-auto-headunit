@@ -77,9 +77,9 @@
       return (-1);
     }
 
-    logd ("Start dir: %s  ep: 0x%02x  buf: %p  len: %d  tmo: %d", dir, ep, buf, len, tmo);
+    logv ("Start dir: %s  ep: 0x%02x  buf: %p  len: %d  tmo: %d", dir, ep, buf, len, tmo);
 
-    if (ep == itcp_ep_out)
+    if (ena_log_verbo == 1 && ep == itcp_ep_out)
         hex_dump("US: ", 16, buf, len);
 
     #define LIBtcp_ERROR_TIMEOUT -2
@@ -131,11 +131,10 @@
       return (-1);
     }
 
-    //if (ena_log_verbo)
-    //  logd ("Done dir: %s  len: %d  total_bytes_xfrd: %d", dir, len, total_bytes_xfrd);
+    logv ("Done dir: %s  len: %d  total_bytes_xfrd: %d", dir, len, total_bytes_xfrd);
 
 //#ifndef NDEBUG
-    if (ep == itcp_ep_in)
+    if (ena_log_verbo ==1 && ep == itcp_ep_in)
         hex_dump("UR: ", 16, buf, total_bytes_xfrd);
 //#endif
 

@@ -203,7 +203,7 @@ int iusb_bulk_transfer(int ep, byte *buf, int len, int tmo) { // 0 = unlimited t
         len = MAX_LEN;
   //  logw ("Start dir: %s  ep: 0x%02x  buf: %p  len: %d  tmo: %d", dir, ep, buf, len, tmo);
 //#ifndef NDEBUG
-    if (ep == iusb_ep_out)
+    if (ena_log_verbo ==1 && ep == iusb_ep_out)
         hex_dump("US: ", 16, buf, len);
 //#endif
 
@@ -232,12 +232,11 @@ int iusb_bulk_transfer(int ep, byte *buf, int len, int tmo) { // 0 = unlimited t
 
         continue_transfer = 0;                                            // Default = transfer done
 
-        if (bytes_xfrd >
-            0)                                               // If bytes were transferred
+        if (bytes_xfrd > 0)                                               // If bytes were transferred
             total_bytes_xfrd += bytes_xfrd;                                 // Add to total
 
-        if ((total_bytes_xfrd > 0 || bytes_xfrd > 0) && usb_err ==
-                                                        LIBUSB_ERROR_TIMEOUT) {          // If bytes were transferred but we had a timeout...
+        if ((total_bytes_xfrd > 0 || bytes_xfrd > 0) && usb_err == LIBUSB_ERROR_TIMEOUT) {
+            // If bytes were transferred but we had a timeout...
 //        continue_transfer = 1;                                          // Continue the transfer
             //   logd ("CONTINUE dir: %s  len: %d  bytes_xfrd: %d  total_bytes_xfrd: %d  usb_err: %d (%s)",
             //        dir, len, bytes_xfrd, total_bytes_xfrd, usb_err, iusb_error_get(usb_err));
@@ -274,11 +273,10 @@ int iusb_bulk_transfer(int ep, byte *buf, int len, int tmo) { // 0 = unlimited t
         return (-1);
     }
 
-    //if (ena_log_verbo)
-    //  logd ("Done dir: %s  len: %d  total_bytes_xfrd: %d", dir, len, total_bytes_xfrd);
+    logv ("Done dir: %s  len: %d  total_bytes_xfrd: %d", dir, len, total_bytes_xfrd);
 
 //#ifndef NDEBUG
-    if (ep == iusb_ep_in)
+    if (ena_log_verbo == 1 && ep == iusb_ep_in)
         hex_dump("UR: ", 16, buf, total_bytes_xfrd);
 //#endif
 

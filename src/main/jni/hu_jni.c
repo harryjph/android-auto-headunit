@@ -79,7 +79,7 @@ JNIEXPORT jint JNICALL
 Java_ca_yyx_hu_aap_AapTransport_native_1aap_1send(JNIEnv *env, jclass type, jint channel, jint cmd_len, jbyteArray cmd_buf_) {
     jbyte *cmd_buf = (*env)->GetByteArrayElements(env, cmd_buf_, NULL);
 
-    int ret = hu_aap_enc_send(channel, &cmd_buf, cmd_len);
+    int ret = hu_aap_enc_send(channel, cmd_buf, cmd_len);
 
     if (cmd_len >= 4 && cmd_buf[1] == 15) {      // If byebye...
         logd ("Byebye");

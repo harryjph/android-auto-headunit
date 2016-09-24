@@ -61,6 +61,8 @@
 
 #endif
 
+extern int ena_log_verbo;
+
 int hu_log(int priority, const char *fmt, ...);
 
 unsigned long ms_get();

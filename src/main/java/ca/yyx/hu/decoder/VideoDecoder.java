@@ -165,6 +165,8 @@ public class VideoDecoder {
     }
 
     public void onSurfaceHolderAvailable(SurfaceHolder holder, int width, int height) {
+        codec_stop();
+
         mHolder = holder;
         mWidth = width;
         mHeight = (height > 1080) ? 1080 : height;

@@ -54,19 +54,26 @@ public class DeviceListener extends BroadcastReceiver {
         {
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
             case KeyEvent.KEYCODE_HEADSETHOOK:
-                mTransport.sendButton(Protocol.BTN_PLAYPAUSE, true);
+                sendButton(Protocol.BTN_PLAYPAUSE);
                 break;
             case KeyEvent.KEYCODE_MEDIA_STOP:
-                mTransport.sendButton(Protocol.BTN_STOP, true);
+                sendButton(Protocol.BTN_STOP);
                 break;
             case KeyEvent.KEYCODE_MEDIA_NEXT:
-                mTransport.sendButton(Protocol.BTN_NEXT, true);
+                sendButton(Protocol.BTN_NEXT);
                 break;
             case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-                mTransport.sendButton(Protocol.BTN_PREV, true);
+                sendButton(Protocol.BTN_PREV);
                 break;
             default:
                 Utils.logd("Unknown keyCode: "+keyCode);
         }
+    }
+
+    private void sendButton(int btnCode)
+    {
+        mTransport.sendButton(btnCode, true);
+        Utils.ms_sleep(100);
+        mTransport.sendButton(btnCode, false);
     }
 }

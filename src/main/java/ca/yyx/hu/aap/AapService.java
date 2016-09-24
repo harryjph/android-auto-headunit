@@ -28,6 +28,7 @@ import ca.yyx.hu.App;
 import ca.yyx.hu.R;
 import ca.yyx.hu.RemoteControlReceiver;
 import ca.yyx.hu.decoder.AudioDecoder;
+import ca.yyx.hu.roadrover.DeviceListener;
 import ca.yyx.hu.usb.UsbAccessoryConnection;
 import ca.yyx.hu.usb.UsbDeviceCompat;
 import ca.yyx.hu.usb.UsbReceiver;
@@ -43,12 +44,13 @@ import static android.R.attr.enabled;
 
 public class AapService extends Service implements UsbReceiver.Listener {
     private MediaSessionCompat mMediaSession;
-    private AapTransport mTransport;        // Transport API
+    private AapTransport mTransport;
     private AudioDecoder mAudioDecoder;
     private UiModeManager mUiModeManager = null;
     private UsbAccessoryConnection mUsbAccessoryConnection;
     private UsbReceiver mUsbReceiver;
     private BroadcastReceiver mTimeTickReceiver;
+    private DeviceListener mDeviceListener;
 
     @Nullable
     @Override
@@ -82,6 +84,8 @@ public class AapService extends Service implements UsbReceiver.Listener {
         mUsbReceiver = new UsbReceiver(this);
         mTimeTickReceiver = new TimeTickReceiver(mTransport, mUiModeManager);
 
+        mDeviceListener = new DeviceListener(this);
+        registerReceiver(mDeviceListener, DeviceListener.createIntentFilter());
         registerReceiver(mTimeTickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
         registerReceiver(mUsbReceiver, UsbReceiver.createFilter());
     }
@@ -90,6 +94,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
     public void onDestroy() {
         super.onDestroy();
         onDisconnect();
+        unregisterReceiver(mDeviceListener);
         unregisterReceiver(mTimeTickReceiver);
         unregisterReceiver(mUsbReceiver);
         mUiModeManager.disableCarMode(0);

@@ -34,7 +34,6 @@ public class RemoteControlReceiver extends BroadcastReceiver {
                 case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
                     transport.sendButton(Protocol.BTN_PREV, event.getAction() == KeyEvent.ACTION_DOWN);
                     break;
-
             }
         }
     }

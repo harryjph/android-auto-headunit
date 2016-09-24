@@ -26,7 +26,7 @@ public class Protocol {
     public static final int BTN_PREV = 0x58;
     static final int BTN_PHONE = 0x5;
     static final int BTN_START = 126;
-    static final int BTN_STOP = 127;
+    public static final int BTN_STOP = 127;
 
     static ByteArray createButtonMessage(long timeStamp, int button, boolean isPress)
     {

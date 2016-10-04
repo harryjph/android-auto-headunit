@@ -18,7 +18,7 @@ import java.util.Locale;
 
 public final class Utils {
 
-    private static final String TAG = "Headunit";
+    public static final String TAG = "Headunit";
     public static final boolean IS_LOLLIPOP = Build.VERSION.SDK_INT >= 21;
 
     public static void logd(String msg) {

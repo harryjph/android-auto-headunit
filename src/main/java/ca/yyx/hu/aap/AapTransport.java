@@ -6,6 +6,8 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 
+import java.util.Locale;
+
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.decoder.VideoDecoder;
@@ -29,6 +31,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private final MicRecorder mMicRecorder;
     private final VideoDecoder mVideoDecoder;
     private boolean mStopped;
+    private UsbAccessoryConnection mConnection;
 
     public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder) {
         super("AapTransport");
@@ -50,6 +53,8 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private static native int native_ssl_do_handshake();
     private static native int native_ssl_bio_read(int res_len, byte[] res_buf);
     private static native int native_ssl_bio_write(int start, int msg_len, byte[] msg_buf);
+    private static native int native_ssl_read(int res_len, byte[] res_buf);
+    private static native int native_ssl_write(int msg_len, byte[] msg_buf);
 
     @Override
     protected void onLooperPrepared() {
@@ -134,6 +139,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         int ret = native_aap_start(connection.getEndpointInAddr(), connection.getEndpointOutAddr());
 
         if (ret == 0) {                                                     // If started OK...
+            mConnection = connection;
             this.start();                                          // Create and start Transport Thread
             return true;
         }
@@ -280,6 +286,49 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             Message msg = mHandler.obtainMessage(DATA_MESSAGE, Channel.AA_CH_SEN, modeData.length, modeData);
             mHandler.sendMessage(msg);
         }
+    }
+
+    int send(int chan, byte[] buf, int len) {
+        int flags = 0x0b;                                                   // Flags = First + Last + Encrypted
+        if (chan != Channel.AA_CH_CTR && buf[0] == 0) {                            // If not control channel and msg_type = 0 - 255 = control type message
+            flags = 0x0f;                                                     // Set Control Flag (On non-control channels, indicates generic/"control type" messages
+        }
+        if (chan == Channel.AA_CH_MIC && buf[0] == 0 && buf[1] == 0) {            // If Mic PCM Data
+            flags = 0x0b;                                                     // Flags = First + Last + Encrypted
+        }
+
+        String prefix = String.format(Locale.US, "SEND %d %s %01x", chan, Channel.name(chan), flags);
+        AapDump.log(prefix, "HU", chan, flags, buf, len);
+
+        int bytes_written = native_ssl_write(len, buf);               // Write plaintext to SSL
+        if (bytes_written <= 0) {
+            Utils.loge ("SSL_write() bytes_written: %d", bytes_written);
+            //hu_ssl_ret_log (bytes_written);
+            //hu_ssl_inf_log ();
+            return -1;
+        }
+        if (bytes_written != len) {
+            Utils.loge("SSL Write len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, Channel.name(chan));
+        }
+
+        Utils.logv ("SSL Write len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, Channel.name(chan));
+
+        byte[] enc_buf = new byte[Protocol.DEF_BUFFER_LENGTH];
+        int bytes_read = native_ssl_bio_read(Protocol.DEF_BUFFER_LENGTH,enc_buf);
+        if (bytes_read <= 0) {
+            Utils.loge ("BIO read  bytes_read: %d", bytes_read);
+            return -1;
+        }
+
+        Utils.logv("BIO read bytes_read: %d", bytes_read);
+
+        ByteArray msg = Protocol.createMessage(chan, flags, -1, enc_buf, bytes_read);
+        int size = mConnection.send(msg.data, msg.length, 250);
+        Utils.logv("Sent size: %d", size);
+
+        AapDump.logHex("US", 0, msg.data, msg.length);
+
+        return 0;
     }
 }
 

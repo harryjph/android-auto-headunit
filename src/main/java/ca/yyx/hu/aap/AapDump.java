@@ -21,7 +21,7 @@ class AapDump {
 
         int rmv = 0;
         int lft = len;
-        int msg_type = (((int) buf[0]) << 8) + ((int) buf[1]);
+        int msg_type = ((((int) buf[0]) << 8) + ((int) buf[1])) & 0xFFFF;
 
         boolean is_media = false;
         if (chan == Channel.AA_CH_VID || chan == Channel.AA_CH_MIC || Channel.isAudio(chan))

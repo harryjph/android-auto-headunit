@@ -276,7 +276,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
     private static class TimeTickReceiver extends BroadcastReceiver {
         private final AapTransport mTransport;
         private final UiModeManager mUiModeManager;
-        private int mNightMode = -1;
+        private int mNightMode = 0;
 
         public TimeTickReceiver(AapTransport transport, UiModeManager uiModeManager) {
             mTransport = transport;
@@ -288,7 +288,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
             int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 
             int nightmodenow = 1;
-            if (hour >= 6 && hour <= 18)
+            if (hour >= 5 && hour <= 19)
             {
                 nightmodenow = 0;
             }

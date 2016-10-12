@@ -47,7 +47,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private static native int native_aap_start(int ep_in_addr, int ep_out_addr);
     // Java_ca_yyx_hu_aap_AapTransport_native_1aa_1cmd
     private static native int native_aap_poll(int res_len, byte[] res_buf);
-    private static native int native_aap_send(int channel, int cmd_len, byte[] cmd_buf);
+    private static native int native_aap_stop();
 
     private static native int native_ssl_prepare();
     private static native int native_ssl_do_handshake();
@@ -78,7 +78,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             int mic_audio_len = mMicRecorder.mic_audio_read(mic_buf, 10, MicRecorder.MIC_BUFFER_SIZE);
             if (mic_audio_len >= 78) {                                    // If we read at least 64 bytes of audio data
                 Utils.put_time(2, mic_buf, SystemClock.elapsedRealtime());
-                ret = native_aap_send(Channel.AA_CH_MIC, mic_audio_len, mic_buf);    // Send mic audio
+                ret = sendEncrypted(Channel.AA_CH_MIC, mic_buf, mic_audio_len);    // Send mic audio
             } else if (mic_audio_len > 0) {
                 Utils.loge("No data from microphone");
             }
@@ -88,9 +88,9 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             int channel = msg.arg1;
             int dataLength = msg.arg2;
             byte[] data = (byte[]) msg.obj;
-            ret = native_aap_send(channel, dataLength, data);
+            ret = sendEncrypted(channel, data, dataLength);
             if (ret < 0) {
-                Utils.loge("Send result: " + ret);
+                Utils.loge("Send data result: " + ret);
             }
         }
 
@@ -113,7 +113,8 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     @Override
     public boolean quit() {
 
-        native_aap_send(Channel.AA_CH_CTR, Protocol.BYEBYE_REQUEST.length, Protocol.BYEBYE_REQUEST);
+        native_aap_stop();
+        sendEncrypted(Channel.AA_CH_CTR, Protocol.BYEBYE_REQUEST, Protocol.BYEBYE_REQUEST.length);
         Utils.ms_sleep(100);
         if (mHandler != null) {
             mHandler.removeCallbacks(this);
@@ -154,7 +155,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         ByteArray version = Protocol.createMessage(0, 3, 1, Protocol.VERSION_REQUEST, Protocol.VERSION_REQUEST.length); // Version Request
         int ret = connection.send(version.data, version.length, 1000);
         if (ret < 0) {
-            Utils.loge("Version request send ret: " + ret);
+            Utils.loge("Version request sendEncrypted ret: " + ret);
             return false;
         }
 
@@ -205,7 +206,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         ByteArray status = Protocol.createMessage(0, 3, 4, new byte[]{8, 0}, 2);
         ret = connection.send(status.data, status.length, 1000);
         if (ret < 0) {
-            Utils.loge("Status request send ret: " + ret);
+            Utils.loge("Status request sendEncrypted ret: " + ret);
             return false;
         }
 
@@ -288,7 +289,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         }
     }
 
-    int send(int chan, byte[] buf, int len) {
+    private int sendEncrypted(int chan, byte[] buf, int len) {
         int flags = 0x0b;                                                   // Flags = First + Last + Encrypted
         if (chan != Channel.AA_CH_CTR && buf[0] == 0) {                            // If not control channel and msg_type = 0 - 255 = control type message
             flags = 0x0f;                                                     // Set Control Flag (On non-control channels, indicates generic/"control type" messages
@@ -314,7 +315,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         Utils.logv ("SSL Write len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, Channel.name(chan));
 
         byte[] enc_buf = new byte[Protocol.DEF_BUFFER_LENGTH];
-        int bytes_read = native_ssl_bio_read(Protocol.DEF_BUFFER_LENGTH,enc_buf);
+        int bytes_read = native_ssl_bio_read(Protocol.DEF_BUFFER_LENGTH - 4,enc_buf);
         if (bytes_read <= 0) {
             Utils.loge ("BIO read  bytes_read: %d", bytes_read);
             return -1;

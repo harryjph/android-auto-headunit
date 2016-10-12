@@ -30,11 +30,13 @@ public class Protocol {
         ByteArray buffer = new ByteArray(6 + size);
 
         buffer.put(chan, flags);
-        buffer.encodeInt(size + 2);
 
         if (type >= 0) {
+            buffer.encodeInt(size + 2);
             // If type not negative, which indicates encrypted type should not be touched...
             buffer.encodeInt(type);
+        } else {
+            buffer.encodeInt(size);
         }
 
         buffer.put(data, size);

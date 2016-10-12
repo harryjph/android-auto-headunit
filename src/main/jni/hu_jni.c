@@ -77,23 +77,6 @@ Java_ca_yyx_hu_aap_AapTransport_native_1aap_1poll(JNIEnv *env, jclass type, jint
 }
 
 JNIEXPORT jint JNICALL
-Java_ca_yyx_hu_aap_AapTransport_native_1aap_1send(JNIEnv *env, jclass type, jint channel, jint cmd_len, jbyteArray cmd_buf_) {
-    jbyte *cmd_buf = (*env)->GetByteArrayElements(env, cmd_buf_, NULL);
-
-    int ret = hu_aap_enc_send(channel, cmd_buf, cmd_len);
-
-    if (cmd_len >= 4 && cmd_buf[1] == 15) {      // If byebye...
-        logd ("Byebye");
-        ms_sleep(100);
-        ret = hu_aap_stop();
-    }
-
-    (*env)->ReleaseByteArrayElements(env, cmd_buf_, cmd_buf, 0);
-
-    return ret;
-}
-
-JNIEXPORT jint JNICALL
 Java_ca_yyx_hu_aap_AapTransport_native_1ssl_1prepare(JNIEnv *env, jclass type) {
 
     return hu_ssl_prepare();
@@ -149,4 +132,9 @@ Java_ca_yyx_hu_aap_AapTransport_native_1ssl_1write(JNIEnv *env, jclass type, jin
     (*env)->ReleaseByteArrayElements(env, msg_buf_, msg_buf, 0);
 
     return ret;
+}
+
+JNIEXPORT jint JNICALL
+Java_ca_yyx_hu_aap_AapTransport_native_1aap_1stop(JNIEnv *env, jclass type) {
+    hu_aap_stop();
 }

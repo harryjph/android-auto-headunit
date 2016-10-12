@@ -16,10 +16,6 @@ char *state_get(int state) {
     return ("hu_STATE Unknown error");
 }
 
-int gen_server_loop_func(unsigned char *cmd_buf, int cmd_len, unsigned char *res_buf, int res_max);
-
-int gen_server_poll_func(int poll_ms);
-
 // Log stuff:
 int ena_log_verbo = 0;
 int ena_log_debug = 1;

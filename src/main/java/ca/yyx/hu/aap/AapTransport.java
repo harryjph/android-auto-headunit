@@ -30,14 +30,23 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private final AudioDecoder mAudioDecoder;
     private final MicRecorder mMicRecorder;
     private final VideoDecoder mVideoDecoder;
+    private final AapAudio mAapAudio;
+    private final AapMicrophone mAapMicrophone;
+    private final AapControl mAapControl;
+
     private boolean mStopped;
     private UsbAccessoryConnection mConnection;
+    private AapPoll mAapPoll;
+
 
     public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder) {
         super("AapTransport");
         mAudioDecoder = audioDecoder;
         mVideoDecoder = videoDecoder;
         mMicRecorder = new MicRecorder();
+        mAapAudio = new AapAudio(this);
+        mAapMicrophone = new AapMicrophone();
+        mAapControl = new AapControl(this, mAapAudio, mAapMicrophone);
     }
 
     static {
@@ -94,7 +103,11 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             }
         }
 
-        ret = aa_poll(fixed_res_buf.length, fixed_res_buf);
+
+        // Send a command (or null command)
+        ret = native_aap_poll(fixed_res_buf.length, fixed_res_buf);
+        onPollResult(ret, fixed_res_buf);
+
         if (mHandler == null) {
             return false;
         }
@@ -141,6 +154,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
         if (ret == 0) {                                                     // If started OK...
             mConnection = connection;
+            mAapPoll = new AapPoll(connection, this);
             this.start();                                          // Create and start Transport Thread
             return true;
         }
@@ -217,36 +231,27 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
 
     // Send AA packet/HU command/mic audio AND/OR receive video/output audio/audio notifications
-    private int aa_poll(int res_len, @NonNull byte[] res_buf) {
-
-        // Send a command (or null command)
-        int ret = native_aap_poll(res_len, res_buf);
+    void onPollResult(int ret, byte[] res_buf) {
 
         if (ret == Protocol.RESPONSE_MIC_STOP) {                                                     // If mic stop...
             Utils.logd("Microphone Stop");
             setMicRecording(false);
             mMicRecorder.mic_audio_stop();
-            return (0);
         } else if (ret == Protocol.RESPONSE_MIC_START) {                                                // Else if mic start...
             Utils.logd("Microphone Start");
             setMicRecording(true);
-            return (0);
         } else if (ret == Protocol.RESPONSE_AUDIO_STOP) {                                                // Else if audio stop...
             Utils.logd("Audio Stop");
             mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AUD);
-            return (0);
         } else if (ret == Protocol.RESPONSE_AUDIO1_STOP) {                                                // Else if audio1 stop...
             Utils.logd("Audio1 Stop");
             mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AU1);
-            return (0);
         } else if (ret == Protocol.RESPONSE_AUDIO2_STOP) {                                                // Else if audio2 stop...
             Utils.logd("Audio2 Stop");
             mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AU2);
-            return (0);
         } else if (ret > 0) {
             handleMedia(res_buf, ret);
         }
-        return ret;
     }
 
     private void handleMedia(byte[] buffer, int size) {
@@ -289,7 +294,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         }
     }
 
-    private int sendEncrypted(int chan, byte[] buf, int len) {
+    int sendEncrypted(int chan, byte[] buf, int len) {
         int flags = 0x0b;                                                   // Flags = First + Last + Encrypted
         if (chan != Channel.AA_CH_CTR && buf[0] == 0) {                            // If not control channel and msg_type = 0 - 255 = control type message
             flags = 0x0f;                                                     // Set Control Flag (On non-control channels, indicates generic/"control type" messages
@@ -330,6 +335,14 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         AapDump.logHex("US", 0, msg.data, msg.length);
 
         return 0;
+    }
+
+    int sslBioWrite(int start, int len, byte[] buf) {
+        return native_ssl_bio_write(start, len, buf);
+    }
+
+    int sslRead(byte[] res_buf, int res_max) {
+        return native_ssl_read(res_max, res_buf);
     }
 }
 

@@ -9,7 +9,7 @@ class AapMessage extends ByteArray {
 
     final int channel;
     final byte flags;
-    int message_type;
+    final int type;
 
     AapMessage(int channel, byte flags, int msg_type, byte[] data, int size) {
         super(size);
@@ -17,7 +17,14 @@ class AapMessage extends ByteArray {
         this.length = size;
         this.channel = channel;
         this.flags = flags;
-        this.message_type = msg_type;
+        this.type = msg_type;
     }
 
+    public boolean isAudio() {
+        return Channel.isAudio(this.channel);
+    }
+
+    public boolean isVideo() {
+        return this.channel == Channel.AA_CH_VID;
+    }
 }

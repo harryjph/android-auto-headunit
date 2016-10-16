@@ -33,6 +33,10 @@ class AapVideo {
         return mQueue.poll();
     }
 
+    public int process(AapMessage message) {
+        return process(message.type, message.flags, message.data, message.length);
+    }
+
     //iaap_video_process
     int process(int msg_type, int flags, byte[] buf, int len) {
         // Process video packet

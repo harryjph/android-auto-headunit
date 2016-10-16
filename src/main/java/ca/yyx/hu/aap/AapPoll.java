@@ -149,11 +149,13 @@ class AapPoll {
                 return -1;
             }
 
-            int ret = iaap_recv_dec_process(chan, flags, msg_start, enc_len, msg_buf);          // Decrypt & Process 1 received encrypted message
-            if (ret < 0) {                                                    // If error...
-                AppLog.loge ("Error iaap_recv_dec_process: %d have_len: %d enc_len: %d chan: %d %s flags: %01x msg_type: %d", ret, have_len, enc_len, chan, Channel.name(chan), flags, msg_type);
-                return ret;
+            AapMessage msg = iaap_recv_dec_process(chan, flags, msg_start, enc_len, msg_buf);          // Decrypt & Process 1 received encrypted message
+            if (msg == null) {                                                    // If error...
+                AppLog.loge ("Error iaap_recv_dec_process: have_len: %d enc_len: %d chan: %d %s flags: %01x msg_type: %d", have_len, enc_len, chan, Channel.name(chan), flags, msg_type);
+                return -1;
             }
+
+            iaap_msg_process(msg);      // Process decrypted AA protocol message
 
             have_len -= enc_len;
             msg_start += enc_len;
@@ -166,13 +168,13 @@ class AapPoll {
         return 0;                                                       // Return value from the last iaap_recv_dec_process() call; should be 0
     }
 
-    private int iaap_recv_dec_process(int chan, int flags, int start, int enc_len, byte[] buf) {// Decrypt & Process 1 received encrypted message
+    private AapMessage iaap_recv_dec_process(int chan, int flags, int start, int enc_len, byte[] buf) {// Decrypt & Process 1 received encrypted message
 
         int bytes_written = mTransport.sslBioWrite(start, enc_len, buf);
         // Write encrypted to SSL input BIO
         if (bytes_written <= 0) {
             AppLog.loge ("BIO_write() bytes_written: %d", bytes_written);
-            return (-1);
+            return null;
         }
 
         byte[] enc_buf = new byte[DEFBUF];
@@ -180,30 +182,27 @@ class AapPoll {
         // Read decrypted to decrypted rx buf
         if (bytes_read <= 0) {
             AppLog.loge ("SSL_read bytes_read: %d", bytes_read);
-            return -1;
+            return null;
         }
 
         String prefix = String.format(Locale.US, "RECV %d %s %01x", chan, Channel.name(chan), flags);
         AapDump.log(prefix, "AA", chan, flags, enc_buf, enc_len);
 
         int msg_type = Utils.bytesToInt(enc_buf, 0, true);
-        AapMessage msg = new AapMessage(chan, (byte)flags, msg_type, enc_buf, bytes_read);
-
-        iaap_msg_process(chan, flags, enc_buf, bytes_read);      // Process decrypted AA protocol message
-        return 0;
+        return new AapMessage(chan, (byte)flags, msg_type, enc_buf, bytes_read);
     }
 
-    private int iaap_msg_process(int chan, int flags, byte[] buf, int len) {
+    private int iaap_msg_process(AapMessage message) {
 
-        int msg_type = Utils.bytesToInt(buf, 0, true);
+        int msg_type = message.type;
+        byte flags = message.flags;
 
-
-        if ((Channel.isAudio(chan)) && (msg_type == 0 || msg_type == 1)) {
-            return (mAapAudio.process(chan, msg_type, flags, buf, len)); // 300 ms @ 48000/sec   samples = 14400     stereo 16 bit results in bytes = 57600
-        } else if (chan == Channel.AA_CH_VID && msg_type == 0 || msg_type == 1 || flags == 8 || flags == 9 || flags == 10) {    // If Video...
-            return (mAapVideo.process(msg_type, flags, buf, len));
+        if (message.isAudio() && (msg_type == 0 || msg_type == 1)) {
+            return mAapAudio.process(message); // 300 ms @ 48000/sec   samples = 14400     stereo 16 bit results in bytes = 57600
+        } else if (message.isVideo() && msg_type == 0 || msg_type == 1 || flags == 8 || flags == 9 || flags == 10) {    // If Video...
+            return mAapVideo.process(message);
         } else if ((msg_type >= 0 && msg_type <= 31) || (msg_type >= 32768 && msg_type <= 32799) || (msg_type >= 65504 && msg_type <= 65535)) {
-            mAapControl.execute(chan, msg_type, buf, len);
+            mAapControl.execute(message);
         } else {
             AppLog.loge ("Unknown msg_type: %d", msg_type);
         }

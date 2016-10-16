@@ -21,10 +21,10 @@ class AapControl {
     }
 
     int execute(AapMessage message) {
-        return execute(message.channel, message.message_type, message.data, message.length);
+        return execute(message.channel, message.type, message.data, message.length);
     }
 
-    int execute(int chan, int msg_type, byte[] buf, int len) {
+    private int execute(int chan, int msg_type, byte[] buf, int len) {
 
         if (chan < 0 || chan > Channel.MAX) {
             AppLog.loge("chan >= 0 && chan <= AA_CH_MAX chan: %d", chan);

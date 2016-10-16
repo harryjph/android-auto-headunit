@@ -1282,8 +1282,7 @@ http://www.cisco.com/c/en/us/support/docs/security-vpn/secure-socket-layer-ssl/1
 */
 
 
-int iaap_recv_dec_process(int chan, int flags, byte *buf,
-                          int len) {// Decrypt & Process 1 received encrypted message
+int iaap_recv_dec_process(int chan, int flags, byte *buf, int len) {// Decrypt & Process 1 received encrypted message
 
     int bytes_written = BIO_write(hu_ssl_rm_bio, buf,
                                   len);           // Write encrypted to SSL input BIO
@@ -1295,7 +1294,7 @@ int iaap_recv_dec_process(int chan, int flags, byte *buf,
         loge ("BIO_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan,
               chan_get(chan));
     }
-        // logd ("BIO_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, chan_get(chan));
+    logd ("iaap_recv_dec_process: BIO_write() len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, chan_get(chan));
 
     errno = 0;
     int ctr = 0;
@@ -1309,7 +1308,7 @@ int iaap_recv_dec_process(int chan, int flags, byte *buf,
             hu_ssl_ret_log(bytes_read);
             ms_sleep(1);
         }
-        //logd ("ctr: %d  SSL_read() bytes_read: %d  errno: %d", ctr, bytes_read, errno);
+        logd ("iaap_recv_dec_process: ctr: %d  SSL_read() bytes_read: %d  errno: %d", ctr, bytes_read, errno);
     }
 
     if (bytes_read <= 0) {
@@ -1318,7 +1317,7 @@ int iaap_recv_dec_process(int chan, int flags, byte *buf,
         return (-1);                                                      // Fatal so return error and de-initialize; Should we be able to recover, if Transport data got corrupted ??
     }
 
-    // logd ("ctr: %d  SSL_read() bytes_read: %d", ctr, bytes_read);
+    logd ("iaap_recv_dec_process: ctr: %d  SSL_read() bytes_read: %d", ctr, bytes_read);
 
     if (log_packet_info) {
         char prefix [CHAR_BUF] = {0};
@@ -1387,14 +1386,14 @@ int hu_aap_recv_process() {                                          //
         int enc_len = (int) buf[3];                                      // Encoded length of bytes to be decrypted (minus 4/8 byte headers)
         enc_len += ((int) buf[2] * 256);
 
+        have_len -= 4;                                                    // Length starting at byte 4: Unencrypted Message Type or Encrypted data start
+        buf += 4;                                                         // buf points to data to be decrypted
+
         int msg_type = (int) buf[5];                                     // Message Type (or post handshake, mostly indicator of SSL encrypted data)
         msg_type += ((int) buf[4] * 256);
 
-        have_len -= 4;                                                    // Length starting at byte 4: Unencrypted Message Type or Encrypted data start
-        buf += 4;                                                         // buf points to data to be decrypted
         if ((flags & 0x08) != 0x08) {
-            loge ("NOT ENCRYPTED !!!!!!!!! have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%x  msg_type: %d",
-                  have_len, enc_len, buf, chan, chan_get(chan), flags, msg_type);
+            loge ("NOT ENCRYPTED !!!!!!!!! have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%x  msg_type: %d", have_len, enc_len, buf, chan, chan_get(chan), flags, msg_type);
             hu_aap_stop();
             return (-1);
         }
@@ -1437,11 +1436,9 @@ int hu_aap_recv_process() {                                          //
             memmove(rx_buf, buf, have_len);
             buf = rx_buf;
 
-            int need_ret = hu_aap_tra_recv(&buf[have_len], need_len,
-                                           -1);// Get Rx packet from Transport. Use -1 instead of iaap_tra_recv_tmo to indicate need to get need_len bytes
+            int need_ret = hu_aap_tra_recv(&buf[have_len], need_len, -1);// Get Rx packet from Transport. Use -1 instead of iaap_tra_recv_tmo to indicate need to get need_len bytes
             // Length remaining for all sub-packets plus 4/8 byte headers
-            if (need_ret !=
-                need_len) {                                     // If we didn't get precisely the number of bytes we need...
+            if (need_ret != need_len) {                                     // If we didn't get precisely the number of bytes we need...
                 loge ("Recv need_ret: %d", need_ret);
                 hu_aap_stop();
                 return (-1);
@@ -1449,17 +1446,11 @@ int hu_aap_recv_process() {                                          //
             have_len = enc_len;                                             // Length to process now = encoded length for 1 packet
         }
 
-        /*logd ("Calling iaap_recv_dec_process() with have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%x  msg_type: %d", have_len, enc_len, buf, chan, chan_get (chan), flags, msg_type);
-        byte sum = 0;
-        int ctr = 0;
-        for (ctr = 0; ctr < enc_len; ctr ++)
-          sum += buf [ctr];
-        logd ("iaap_recv_dec_process() sum: %d", sum);*/
-        ret = iaap_recv_dec_process(chan, flags, buf,
-                                    enc_len);          // Decrypt & Process 1 received encrypted message
+        logd ("hu_aap_recv_process: have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%x  msg_type: %d", have_len, enc_len, buf, chan, chan_get (chan), flags, msg_type);
+
+        ret = iaap_recv_dec_process(chan, flags, buf, enc_len);          // Decrypt & Process 1 received encrypted message
         if (ret < 0) {                                                    // If error...
-            loge ("Error iaap_recv_dec_process() ret: %d  have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%x  msg_type: %d",
-                  ret, have_len, enc_len, buf, chan, chan_get(chan), flags, msg_type);
+            loge ("Error iaap_recv_dec_process() ret: %d  have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%x  msg_type: %d", ret, have_len, enc_len, buf, chan, chan_get(chan), flags, msg_type);
             hu_aap_stop();
             return (ret);
         }
@@ -1478,8 +1469,7 @@ int hu_aap_recv_process() {                                          //
         have_len -= enc_len;                                              // Consume processed sub-packet and advance to next, if any
         buf += enc_len;
         if (have_len != 0)
-            logd ("iaap_recv_dec_process() more than one message   have_len: %d  enc_len: %d",
-                  have_len, enc_len);
+            logd ("iaap_recv_dec_process() more than one message   have_len: %d  enc_len: %d", have_len, enc_len);
     }
 
     return (ret);                                                       // Return value from the last iaap_recv_dec_process() call; should be 0

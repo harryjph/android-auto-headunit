@@ -105,7 +105,8 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
 
         // Send a command (or null command)
-        ret = native_aap_poll(fixed_res_buf.length, fixed_res_buf);
+//        ret = native_aap_poll(fixed_res_buf.length, fixed_res_buf);
+        ret = mAapPoll.poll();
         onPollResult(ret, fixed_res_buf);
 
         if (mHandler == null) {
@@ -127,7 +128,9 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     public boolean quit() {
 
         native_aap_stop();
-        sendEncrypted(Channel.AA_CH_CTR, Protocol.BYEBYE_REQUEST, Protocol.BYEBYE_REQUEST.length);
+        if (mConnection != null) {
+            sendEncrypted(Channel.AA_CH_CTR, Protocol.BYEBYE_REQUEST, Protocol.BYEBYE_REQUEST.length);
+        }
         Utils.ms_sleep(100);
         if (mHandler != null) {
             mHandler.removeCallbacks(this);

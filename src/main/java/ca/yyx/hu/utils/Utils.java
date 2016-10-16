@@ -18,7 +18,7 @@ import java.util.Locale;
 
 public final class Utils {
 
-    public static final String TAG = "Headunit";
+    public static final String TAG = "CAR.HU.J";
     public static final boolean IS_LOLLIPOP = Build.VERSION.SDK_INT >= 21;
 
     public static void logd(String msg) {
@@ -143,6 +143,15 @@ public final class Utils {
             arr[offset + ctr] = (byte) (time & 0xFF);
             time = time >> 8;
         }
+    }
+
+    public static int bytesToInt(byte[] buf,int idx, boolean isShort)
+    {
+        if (isShort)
+        {
+            return ((buf[idx] & 0xFF) << 8) + (buf[idx + 1] & 0xFF);
+        }
+        return ((buf[idx] & 0xFF) << 24) + ((buf[idx + 1] & 0xFF) << 16) + ((buf[idx + 2] & 0xFF) << 8) + (buf[idx + 3] & 0xFF);
     }
 }
 

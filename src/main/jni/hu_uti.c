@@ -66,7 +66,7 @@ int hu_log(int priority, const char *fmt, ...) {
     va_list ap;
     va_start (ap, fmt);
 #ifdef __ANDROID_API__
-    __android_log_vprint(priority, "Headunit", fmt, ap);
+    __android_log_vprint(priority, "CAR.HU.N", fmt, ap);
 #else
     char log_line [4096] = {0};
     va_list aq;

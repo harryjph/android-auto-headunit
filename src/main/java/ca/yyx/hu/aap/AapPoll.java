@@ -21,8 +21,6 @@ class AapPoll {
     private final AapVideo mAapVideo;
     private final AapControl mAapControl;
 
-    private byte[] fixed_res_buf = new byte[DEFBUF];
-
     AapPoll(UsbAccessoryConnection connection, AapTransport transport) {
         mConnection = connection;
         mTransport = transport;
@@ -38,6 +36,8 @@ class AapPoll {
         {
             return -1;
         }
+
+        byte[] fixed_res_buf = new byte[DEFBUF];
         int size = mConnection.recv(fixed_res_buf, 150);
         if (size <= 0) {
             Utils.loge ("RECV %d", size);
@@ -51,7 +51,7 @@ class AapPoll {
 
     private int process(int msg_len, byte[] msg_buf) {
         int res_len = 0;
-        int ret = 0;
+        int ret;
 
         int vid_bufs = mAapVideo.buffersCount();
         int aud_bufs = mAapAudio.buffersCount();
@@ -104,51 +104,59 @@ class AapPoll {
 
     private int hu_aap_recv_process(int msg_len, byte[] msg_buf) {
 
-        int idx = 0;
+        int msg_start = 0;
         int have_len = msg_len;                                                   // Length remaining to process for all sub-packets plus 4/8 byte headers
 
-        int chan = (int) msg_buf[0];                                         // Channel
-        int flags = msg_buf[1];                                              // Flags
+        while (have_len > 0) {
 
-        int enc_len = (int) msg_buf[3];                                      // Encoded length of bytes to be decrypted (minus 4/8 byte headers)
-        enc_len += ((int) msg_buf[2] * 256);
+            int chan = (int) msg_buf[msg_start];                                         // Channel
+            int flags = msg_buf[msg_start + 1];                                              // Flags
 
-        int msg_type = (int) msg_buf[5];                                     // Message Type (or post handshake, mostly indicator of SSL encrypted data)
-        msg_type += ((int) msg_buf[4] * 256);
+            // Encoded length of bytes to be decrypted (minus 4/8 byte headers)
+            int enc_len = Utils.bytesToInt(msg_buf, msg_start + 2, true);
 
-        have_len -= 4;                                                    // Length starting at byte 4: Unencrypted Message Type or Encrypted data start
-        idx += 4;                                                         // buf points to data to be decrypted
-        if ((flags & 0x08) != 0x08) {
-            Utils.loge ("NOT ENCRYPTED !!!!!!!!! have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%02X  msg_type: %d", have_len, enc_len, msg_buf, chan, Channel.name(chan), flags, msg_type);
-            return (-1);
+            // Message Type (or post handshake, mostly indicator of SSL encrypted data)
+            int msg_type = Utils.bytesToInt(msg_buf, msg_start + 4, true);
+
+            // Length starting at byte 4: Unencrypted Message Type or Encrypted data start
+            have_len -= 4;
+            // buf points to data to be decrypted
+            msg_start += 4;
+            if ((flags & 0x08) != 0x08) {
+                Utils.loge("NOT ENCRYPTED !!!!!!!!! have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%02x  msg_type: %d", have_len, enc_len, msg_buf, chan, Channel.name(chan), flags, msg_type);
+                return -1;
+            }
+            if (chan == Channel.AA_CH_VID && flags == 9) {
+                // If First fragment Video... (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
+                int total_size = Utils.bytesToInt(msg_buf, msg_start, false);
+
+                Utils.logv("First fragment total_size: %d", total_size);
+
+                have_len -= 4;
+                // Remove 4 length bytes inserted into first video fragment
+                msg_start += 4;
+            }
+            int need_len = enc_len - have_len;
+            if (need_len > 0) {                                         // If we need more data for the full packet...
+                Utils.loge("have_len: %d < enc_len: %d  need_len: %d", have_len, enc_len, need_len);
+                return -1;
+            }
+
+            int ret = iaap_recv_dec_process(chan, flags, msg_start, enc_len, msg_buf);          // Decrypt & Process 1 received encrypted message
+            if (ret < 0) {                                                    // If error...
+                Utils.loge ("Error iaap_recv_dec_process: %d have_len: %d enc_len: %d chan: %d %s flags: %01x msg_type: %d", ret, have_len, enc_len, chan, Channel.name(chan), flags, msg_type);
+                return ret;
+            }
+
+            have_len -= enc_len;
+            msg_start += enc_len;
+            if (have_len != 0) {
+                Utils.logd ("iaap_recv_dec_process() more than one message have_len: %d  enc_len: %d", have_len, enc_len);
+            }
         }
-        if (chan == Channel.AA_CH_VID && flags == 9) {                            // If First fragment Video... (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
-            int total_size = (int) msg_buf[3];
-            total_size += ((int) msg_buf[2] * 256);
-            total_size += ((int) msg_buf[1] * 256 * 256);
-            total_size += ((int) msg_buf[0] * 256 * 256 * 256);
 
-            Utils.logv ("First fragment total_size: %d", total_size);
 
-            have_len -= 4;                                                  // Remove 4 length bytes inserted into first video fragment
-            idx += 4;
-        }
-        int need_len = enc_len - have_len;
-        if (need_len > 0) {                                         // If we need more data for the full packet...
-            Utils.loge ("have_len: %d < enc_len: %d  need_len: %d", have_len, enc_len, need_len);
-        }
-
-        int ret = iaap_recv_dec_process(chan, flags, idx, enc_len, msg_buf);          // Decrypt & Process 1 received encrypted message
-        if (ret < 0) {                                                    // If error...
-            Utils.loge ("Error iaap_recv_dec_process() ret: %d  have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: %02X  msg_type: %d", ret, have_len, enc_len, msg_buf, chan, Channel.name(chan), flags, msg_type);
-            return ret;
-        }
-
-        have_len -= enc_len;                                              // Consume processed sub-packet and advance to next, if any
-        if (have_len != 0) {
-            Utils.logd ("iaap_recv_dec_process() more than one message have_len: %d  enc_len: %d", have_len, enc_len);
-        }
-        return ret;                                                       // Return value from the last iaap_recv_dec_process() call; should be 0
+        return 0;                                                       // Return value from the last iaap_recv_dec_process() call; should be 0
     }
 
     private int iaap_recv_dec_process(int chan, int flags, int start, int enc_len, byte[] buf) {// Decrypt & Process 1 received encrypted message
@@ -160,7 +168,8 @@ class AapPoll {
             return (-1);
         }
 
-        int bytes_read = mTransport.sslRead(fixed_res_buf, fixed_res_buf.length);
+        byte[] enc_buf = new byte[DEFBUF];
+        int bytes_read = mTransport.sslRead(enc_buf, enc_buf.length);
         // Read decrypted to decrypted rx buf
         if (bytes_read <= 0) {
             Utils.loge ("SSL_read bytes_read: %d", bytes_read);
@@ -168,16 +177,19 @@ class AapPoll {
         }
 
         String prefix = String.format(Locale.US, "RECV %d %s %01x", chan, Channel.name(chan), flags);
-        AapDump.log(prefix, "AA", chan, flags, buf, enc_len);
+        AapDump.log(prefix, "AA", chan, flags, enc_buf, enc_len);
 
-        iaap_msg_process(chan, flags, fixed_res_buf, bytes_read);      // Process decrypted AA protocol message
+        int msg_type = Utils.bytesToInt(enc_buf, 0, true);
+        AapMessage msg = new AapMessage(chan, (byte)flags, msg_type, enc_buf, bytes_read);
+
+        iaap_msg_process(chan, flags, enc_buf, bytes_read);      // Process decrypted AA protocol message
         return 0;
     }
 
     private int iaap_msg_process(int chan, int flags, byte[] buf, int len) {
 
-        int msg_type = (int) buf[1];
-        msg_type += ((int) buf[0] * 256);
+        int msg_type = Utils.bytesToInt(buf, 0, true);
+
 
         if ((Channel.isAudio(chan)) && (msg_type == 0 || msg_type == 1)) {
             return (mAapAudio.process(chan, msg_type, flags, buf, len)); // 300 ms @ 48000/sec   samples = 14400     stereo 16 bit results in bytes = 57600

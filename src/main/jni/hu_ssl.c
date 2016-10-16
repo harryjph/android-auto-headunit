@@ -31,34 +31,34 @@ void hu_ssl_ret_log(int ret) {
 
     switch (ssl_err) {
         case SSL_ERROR_NONE:
-            err_str = ("");
+            err_str = "";
             break;
         case SSL_ERROR_ZERO_RETURN:
-            err_str = ("Error Zero Return");
+            err_str = "SSL_ERROR_ZERO_RETURN";
             break;
         case SSL_ERROR_WANT_READ:
-            err_str = ("Error Want Read");
+            err_str = "SSL_ERROR_WANT_READ";
             break;
         case SSL_ERROR_WANT_WRITE:
-            err_str = ("Error Want Write");
+            err_str = "SSL_ERROR_WANT_WRITE";
             break;
         case SSL_ERROR_WANT_CONNECT:
-            err_str = ("Error Want Connect");
+            err_str = "SSL_ERROR_WANT_CONNECT";
             break;
         case SSL_ERROR_WANT_ACCEPT:
-            err_str = ("Error Want Accept");
+            err_str = "SSL_ERROR_WANT_ACCEPT";
             break;
         case SSL_ERROR_WANT_X509_LOOKUP:
-            err_str = ("Error Want X509 Lookup");
+            err_str = "SSL_ERROR_WANT_X509_LOOKUP";
             break;
         case SSL_ERROR_SYSCALL:
-            err_str = ("Error Syscall");
+            err_str = "SSL_ERROR_SYSCALL";
             break;
         case SSL_ERROR_SSL:
-            err_str = ("Error SSL");
+            err_str = "SSL_ERROR_SSL";
             break;
         default:
-            err_str = ("Error Unknown");
+            err_str = "SSL_ERROR_UNKNOWN";
             break;
     }
 
@@ -223,7 +223,13 @@ int hu_ssl_bio_write(int start, int msg_len, byte *msg_buf)
 
 int hu_ssl_read(int res_max, byte *res_buf)
 {
-    return SSL_read(hu_ssl_ssl, res_buf, res_max);
+    int ret = SSL_read(hu_ssl_ssl, res_buf, res_max);
+    if (ret < 0)
+    {
+       loge ("SSL_read() result: %d", ret);
+       hu_ssl_ret_log(ret);
+    }
+    return ret;
 }
 
 int hu_ssl_write(int msg_len, byte *msg_buf)

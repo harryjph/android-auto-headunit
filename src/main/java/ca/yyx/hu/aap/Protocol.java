@@ -56,12 +56,6 @@ public class Protocol {
         return buffer;
      }
 
-    static final byte RESPONSE_MIC_STOP = 1;
-    static final byte RESPONSE_MIC_START = 2;
-    static final byte RESPONSE_AUDIO_STOP = 3;
-    static final byte RESPONSE_AUDIO1_STOP = 4;
-    static final byte RESPONSE_AUDIO2_STOP = 5;
-
     static byte[] VERSION_REQUEST = { 0, 1, 0, 1 };
     static byte[] BYEBYE_REQUEST = { 0x00, 0x0f, 0x08, 0x00 };
 

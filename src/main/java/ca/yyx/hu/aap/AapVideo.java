@@ -1,6 +1,8 @@
 package ca.yyx.hu.aap;
 
-import ca.yyx.hu.utils.Utils;
+import java.util.ArrayDeque;
+
+import ca.yyx.hu.utils.AppLog;
 
 /**
  * @author algavris
@@ -12,81 +14,23 @@ class AapVideo {
 
     private byte vid_ack[] = {(byte) 0x80, 0x04, 0x08, 0, 0x10, 1};                    // Global Ack: 0, 1
 
-    private static final int VIDEO_BUFS_SIZE = 65536 * 4;      // Up to 256 Kbytes
     private static final int VIDEO_BUFS_NUM = 16;            // Maximum of NUM_vid_buf_BUFS - 1 in progress; 1 is never used
-
-    private int num_vid_buf_bufs = VIDEO_BUFS_NUM;
-
-    private byte[][] vid_buf_bufs = new byte[VIDEO_BUFS_NUM][VIDEO_BUFS_SIZE];
-
-    private int[] vid_buf_lens = new int[VIDEO_BUFS_NUM];
-
-    private int vid_buf_buf_tail = 0;    // Tail is next index for writer to write to.   If head = tail, there is no info.
-    private int vid_buf_buf_head = 0;    // Head is next index for reader to read from.
-
-    private int vid_buf_errs = 0;
-    private int vid_max_bufs = 0;
-    private int vid_sem_tail = 0;
-    private int vid_sem_head = 0;
 
     private byte[] assy = new byte[65536 * 16];  // Global assembly buffer for video fragments: Up to 1 megabyte   ; 128K is fine for now at 800*640
     private int assy_size = 0;                   // Current size
+
+    private ArrayDeque<ByteArray> mQueue = new ArrayDeque<>(VIDEO_BUFS_NUM);
 
     AapVideo(AapTransport transport) {
         mTransport = transport;
     }
 
     int buffersCount() {
-        return vid_buf_buf_tail - vid_buf_buf_head;
+        return  mQueue.size();// vid_buf_buf_tail - vid_buf_buf_head;
     }
 
-    ByteArray vid_read_head_buf_get() {
-        int len = 0;
-
-        int bufs = vid_buf_buf_tail - vid_buf_buf_head;
-        if (bufs < 0)                                                       // If underflowed...
-            bufs += num_vid_buf_bufs;                                          // Wrap
-        //logd ("vid_read_head_buf_get start bufs: %d  head: %d  tail: %d", bufs, vid_buf_buf_head, vid_buf_buf_tail);
-
-        if (bufs <= 0) {                                                    // If no buffers are ready...
-            //logd ("vid_read_head_buf_get no vid_buf_bufs");
-            //vid_buf_errs ++;  // Not an error; just no data
-            //vid_buf_buf_tail = vid_buf_buf_head = 0;                          // Drop all buffers
-            return null;
-        }
-
-        int max_retries = 4;
-        int retries = 0;
-        for (retries = 0; retries < max_retries; retries++) {
-            vid_sem_head++;
-            if (vid_sem_head == 1)
-                break;
-            vid_sem_head--;
-            Utils.loge ("vid_sem_head wait");
-            Utils.ms_sleep(10);
-        }
-        if (retries >= max_retries) {
-            Utils.loge ("vid_sem_head could not be acquired");
-            return null;
-        }
-
-        if (vid_buf_buf_head < 0 || vid_buf_buf_head > num_vid_buf_bufs - 1)   // Protect
-            vid_buf_buf_head &= num_vid_buf_bufs - 1;
-
-        vid_buf_buf_head++;
-
-        if (vid_buf_buf_head < 0 || vid_buf_buf_head > num_vid_buf_bufs - 1)
-            vid_buf_buf_head &= num_vid_buf_bufs - 1;
-
-        ByteArray result = new ByteArray(VIDEO_BUFS_SIZE);
-        result.data = vid_buf_bufs[vid_buf_buf_head];
-        result.length = vid_buf_lens[vid_buf_buf_head];
-
-        //logd ("vid_read_head_buf_get done  ret: %p  bufs: %d  head len: %d  head: %d  tail: %d", ret, bufs, * len, vid_buf_buf_head, vid_buf_buf_tail);
-
-        vid_sem_head--;
-
-        return result;
+    ByteArray poll() {
+        return mQueue.poll();
     }
 
     //iaap_video_process
@@ -118,71 +62,16 @@ class AapVideo {
             // Decode H264 video fully re-assembled
         }
         else
-            Utils.loge("Video error msg_type: %d  flags: 0x%x  buf: %p  len: %d", msg_type, flags, buf, len);
+            AppLog.loge("Video error msg_type: %d  flags: 0x%x  buf: %p  len: %d", msg_type, flags, buf, len);
 
         return 0;
     }
 
     private void iaap_video_decode(byte[] buf, int start, int len) {
+        ByteArray ba = new ByteArray(len);
+        ba.put(start, buf, len);
 
-        byte[] q_buf = vid_write_tail_buf_get(len);                         // Get queue buffer tail to write to     !!! Need to lock until buffer written to !!!!
-
-        // logd ("video q_buf: %p  buf: %p  len: %d", q_buf, buf, len);
-        if (q_buf == null) {
-            Utils.loge ("Error video no q_buf: %p  buf: %p  len: %d", q_buf, buf, len);
-            //return;                                                         // Continue in order to write to record file
-        } else {
-            System.arraycopy(buf, start, q_buf, 0, len);
-        }
+        mQueue.add(ba);
     }
 
-
-    private byte[] vid_write_tail_buf_get(int len) {                          // Get tail buffer to write to
-
-        int bufs = vid_buf_buf_tail - vid_buf_buf_head;
-        if (bufs < 0)                                                       // If underflowed...
-            bufs += num_vid_buf_bufs;                                         // Wrap
-        //logd ("vid_write_tail_buf_get start bufs: %d  head: %d  tail: %d", bufs, vid_buf_buf_head, vid_buf_buf_tail);
-
-        if (bufs > vid_max_bufs)                                            // If new maximum buffers in progress...
-            vid_max_bufs = bufs;                                              // Save new max
-        if (bufs >= num_vid_buf_bufs - 1) {                                 // If room for another (max = NUM_vid_buf_BUFS - 1)
-            Utils.loge ("vid_write_tail_buf_get out of vid_buf_bufs");
-            vid_buf_errs++;
-            //vid_buf_buf_tail = vid_buf_buf_head = 0;                        // Drop all buffers
-            return null;
-        }
-
-        int max_retries = 4;
-        int retries = 0;
-        for (retries = 0; retries < max_retries; retries++) {
-            vid_sem_tail++;
-            if (vid_sem_tail == 1)
-                break;
-            vid_sem_tail--;
-            Utils.loge ("vid_sem_tail wait");
-            Utils.ms_sleep(10);
-        }
-        if (retries >= max_retries) {
-            Utils.loge ("vid_sem_tail could not be acquired");
-            return null;
-        }
-
-        if (vid_buf_buf_tail < 0 || vid_buf_buf_tail > num_vid_buf_bufs - 1)   // Protect
-            vid_buf_buf_tail &= num_vid_buf_bufs - 1;
-
-        vid_buf_buf_tail++;
-
-        if (vid_buf_buf_tail < 0 || vid_buf_buf_tail > num_vid_buf_bufs - 1)
-            vid_buf_buf_tail &= num_vid_buf_bufs - 1;
-
-        byte[] ret = vid_buf_bufs[vid_buf_buf_tail];
-        vid_buf_lens[vid_buf_buf_tail] = len;
-
-        //logd ("vid_write_tail_buf_get done  ret: %p  bufs: %d  tail len: %d  head: %d  tail: %d", ret, bufs, len, vid_buf_buf_head, vid_buf_buf_tail);
-
-        vid_sem_tail--;
-
-        return ret;
-    }
 }

@@ -7,7 +7,7 @@ import android.view.KeyEvent;
 
 import ca.yyx.hu.aap.AapTransport;
 import ca.yyx.hu.aap.Protocol;
-import ca.yyx.hu.utils.Utils;
+import ca.yyx.hu.utils.AppLog;
 
 /**
  * @author algavris
@@ -18,7 +18,7 @@ public class RemoteControlReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())) {
             KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
-            Utils.logd("ACTION_MEDIA_BUTTON: "+event.getKeyCode());
+            AppLog.logd("ACTION_MEDIA_BUTTON: "+event.getKeyCode());
 
             AapTransport transport = App.get(context).transport();
 

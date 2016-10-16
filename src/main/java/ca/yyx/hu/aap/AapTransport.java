@@ -4,7 +4,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
 
 import java.util.Locale;
 
@@ -12,6 +11,7 @@ import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.usb.UsbAccessoryConnection;
+import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
 
 public class AapTransport extends HandlerThread implements Handler.Callback {
@@ -53,11 +53,6 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         System.loadLibrary("hu_jni");
     }
 
-    private static native int native_aap_start(int ep_in_addr, int ep_out_addr);
-    // Java_ca_yyx_hu_aap_AapTransport_native_1aa_1cmd
-    private static native int native_aap_poll(int res_len, byte[] res_buf);
-    private static native int native_aap_stop();
-
     private static native int native_ssl_prepare();
     private static native int native_ssl_do_handshake();
     private static native int native_ssl_bio_read(int res_len, byte[] res_buf);
@@ -89,7 +84,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
                 Utils.put_time(2, mic_buf, SystemClock.elapsedRealtime());
                 ret = sendEncrypted(Channel.AA_CH_MIC, mic_buf, mic_audio_len);    // Send mic audio
             } else if (mic_audio_len > 0) {
-                Utils.loge("No data from microphone");
+                AppLog.loge("No data from microphone");
             }
         }
 
@@ -99,7 +94,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             byte[] data = (byte[]) msg.obj;
             ret = sendEncrypted(channel, data, dataLength);
             if (ret < 0) {
-                Utils.loge("Send data result: " + ret);
+                AppLog.loge("Send data result: " + ret);
             }
         }
 
@@ -117,7 +112,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         }
 
         if (ret < 0) {
-            Utils.loge("Error result: " + ret);
+            AppLog.loge("Error result: " + ret);
             this.quit();
         }
 
@@ -127,7 +122,6 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     @Override
     public boolean quit() {
 
-        native_aap_stop();
         if (mConnection != null) {
             sendEncrypted(Channel.AA_CH_CTR, Protocol.BYEBYE_REQUEST, Protocol.BYEBYE_REQUEST.length);
         }
@@ -145,24 +139,18 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     }
 
     public boolean connectAndStart(UsbAccessoryConnection connection) {
-        Utils.logd("Start Aap transport for " + connection);
+        AppLog.logd("Start Aap transport for " + connection);
 
         if (!handshake(connection))
         {
-            Utils.loge("Handshake failed");
+            AppLog.loge("Handshake failed");
             return false;
         }
 
-        int ret = native_aap_start(connection.getEndpointInAddr(), connection.getEndpointOutAddr());
-
-        if (ret == 0) {                                                     // If started OK...
-            mConnection = connection;
-            mAapPoll = new AapPoll(connection, this);
-            this.start();                                          // Create and start Transport Thread
-            return true;
-        }
-        Utils.loge("Cannot start AAP ret:" + ret);
-        return false;
+        mConnection = connection;
+        mAapPoll = new AapPoll(connection, this);
+        this.start();                                          // Create and start Transport Thread
+        return true;
     }
 
     private boolean handshake(UsbAccessoryConnection connection) {
@@ -172,21 +160,21 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         ByteArray version = Protocol.createMessage(0, 3, 1, Protocol.VERSION_REQUEST, Protocol.VERSION_REQUEST.length); // Version Request
         int ret = connection.send(version.data, version.length, 1000);
         if (ret < 0) {
-            Utils.loge("Version request sendEncrypted ret: " + ret);
+            AppLog.loge("Version request sendEncrypted ret: " + ret);
             return false;
         }
 
         ret = connection.recv(buffer, 1000);
         if (ret <= 0) {
-            Utils.loge("Version request recv ret: " + ret);
+            AppLog.loge("Version request recv ret: " + ret);
             return false;
         }
-        Utils.logd("Version response recv ret: %d", ret);
+        AppLog.logd("Version response recv ret: %d", ret);
 
         // SSL
         ret = native_ssl_prepare();
         if (ret < 0) {
-            Utils.loge("SSL prepare failed: " + ret);
+            AppLog.loge("SSL prepare failed: " + ret);
             return false;
         }
 
@@ -196,25 +184,25 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         {
             native_ssl_do_handshake();
             int size = native_ssl_bio_read(Protocol.DEF_BUFFER_LENGTH, buffer);
-            Utils.logd("SSL BIO read: %d", size);
+            AppLog.logd("SSL BIO read: %d", size);
             if (size <= 0) {
-                Utils.logd("SSL BIO read error");
+                AppLog.logd("SSL BIO read error");
                 return false;
             }
 
             ByteArray bio = Protocol.createMessage(Channel.AA_CH_CTR, 3, 3, buffer, size);
             size = connection.send(bio.data, bio.length, 1000);
-            Utils.logd("SSL BIO sent: %d", size);
+            AppLog.logd("SSL BIO sent: %d", size);
 
             size = connection.recv(buffer, 1000);
-            Utils.logd("SSL received: %d", size);
+            AppLog.logd("SSL received: %d", size);
             if (size <= 0) {
-                Utils.logd("SSL receive error");
+                AppLog.logd("SSL receive error");
                 return false;
             }
 
             ret = native_ssl_bio_write(6, size - 6, buffer);
-            Utils.logd("SSL BIO write: %d", ret);
+            AppLog.logd("SSL BIO write: %d", ret);
         }
 
         // Status = OK
@@ -223,11 +211,11 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         ByteArray status = Protocol.createMessage(0, 3, 4, new byte[]{8, 0}, 2);
         ret = connection.send(status.data, status.length, 1000);
         if (ret < 0) {
-            Utils.loge("Status request sendEncrypted ret: " + ret);
+            AppLog.loge("Status request sendEncrypted ret: " + ret);
             return false;
         }
 
-        Utils.logd("Status OK sent: %d", ret);
+        AppLog.logd("Status OK sent: %d", ret);
 
         return true;
     }
@@ -236,21 +224,21 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     // Send AA packet/HU command/mic audio AND/OR receive video/output audio/audio notifications
     void onPollResult(int ret, byte[] res_buf) {
 
-        if (ret == Protocol.RESPONSE_MIC_STOP) {                                                     // If mic stop...
-            Utils.logd("Microphone Stop");
+        if (ret == AapPoll.RESPONSE_MIC_STOP) {                                                     // If mic stop...
+            AppLog.logd("Microphone Stop");
             setMicRecording(false);
             mMicRecorder.mic_audio_stop();
-        } else if (ret == Protocol.RESPONSE_MIC_START) {                                                // Else if mic start...
-            Utils.logd("Microphone Start");
+        } else if (ret == AapPoll.RESPONSE_MIC_START) {                                                // Else if mic start...
+            AppLog.logd("Microphone Start");
             setMicRecording(true);
-        } else if (ret == Protocol.RESPONSE_AUDIO_STOP) {                                                // Else if audio stop...
-            Utils.logd("Audio Stop");
+        } else if (ret == AapPoll.RESPONSE_AUDIO_STOP) {                                                // Else if audio stop...
+            AppLog.logd("Audio Stop");
             mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AUD);
-        } else if (ret == Protocol.RESPONSE_AUDIO1_STOP) {                                                // Else if audio1 stop...
-            Utils.logd("Audio1 Stop");
+        } else if (ret == AapPoll.RESPONSE_AUDIO1_STOP) {                                                // Else if audio1 stop...
+            AppLog.logd("Audio1 Stop");
             mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AU1);
-        } else if (ret == Protocol.RESPONSE_AUDIO2_STOP) {                                                // Else if audio2 stop...
-            Utils.logd("Audio2 Stop");
+        } else if (ret == AapPoll.RESPONSE_AUDIO2_STOP) {                                                // Else if audio2 stop...
+            AppLog.logd("Audio2 Stop");
             mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AU2);
         } else if (ret > 0) {
             handleMedia(res_buf, ret);
@@ -311,32 +299,33 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
         int bytes_written = native_ssl_write(len, buf);               // Write plaintext to SSL
         if (bytes_written <= 0) {
-            Utils.loge ("SSL_write() bytes_written: %d", bytes_written);
+            AppLog.loge ("SSL_write() bytes_written: %d", bytes_written);
             //hu_ssl_ret_log (bytes_written);
             //hu_ssl_inf_log ();
             return -1;
         }
         if (bytes_written != len) {
-            Utils.loge("SSL Write len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, Channel.name(chan));
+            AppLog.loge("SSL Write len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, Channel.name(chan));
         }
 
-        Utils.logv ("SSL Write len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, Channel.name(chan));
+        AppLog.logv ("SSL Write len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, Channel.name(chan));
 
         byte[] enc_buf = new byte[Protocol.DEF_BUFFER_LENGTH];
         int bytes_read = native_ssl_bio_read(Protocol.DEF_BUFFER_LENGTH - 4,enc_buf);
         if (bytes_read <= 0) {
-            Utils.loge ("BIO read  bytes_read: %d", bytes_read);
+            AppLog.loge ("BIO read  bytes_read: %d", bytes_read);
             return -1;
         }
 
-        Utils.logv("BIO read bytes_read: %d", bytes_read);
+        AppLog.logv("BIO read bytes_read: %d", bytes_read);
 
         ByteArray msg = Protocol.createMessage(chan, flags, -1, enc_buf, bytes_read);
         int size = mConnection.send(msg.data, msg.length, 250);
-        Utils.logv("Sent size: %d", size);
+        AppLog.logv("Sent size: %d", size);
 
-        AapDump.logHex("US", 0, msg.data, msg.length);
-
+        if (AppLog.LOG_VERBOSE) {
+            AapDump.logHex("US", 0, msg.data, msg.length);
+        }
         return 0;
     }
 

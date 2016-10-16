@@ -2,7 +2,7 @@ package ca.yyx.hu.decoder;
 
 import java.nio.ByteBuffer;
 
-import ca.yyx.hu.utils.Utils;
+import ca.yyx.hu.utils.AppLog;
 
 /**
  * @author algavris
@@ -26,7 +26,7 @@ class NalUnitsStore {
         {
             mCapturedNal[0] = new byte[size];
             System.arraycopy(buffer, 0, mCapturedNal[0], 0, size);
-            Utils.logd("SPS: %d", mCapturedNal[0].length);
+            AppLog.logd("SPS: %d", mCapturedNal[0].length);
             mTotalSize+=size;
             mCapturedCount++;
             return;
@@ -41,7 +41,7 @@ class NalUnitsStore {
         mCapturedNal[mCapturedCount] = new byte[size];
         System.arraycopy(buffer, 0, mCapturedNal[mCapturedCount], 0, size);
         mTotalSize+=size;
-        Utils.logd("NAL #%d: %d", mCapturedCount, mCapturedNal[mCapturedCount].length);
+        AppLog.logd("NAL #%d: %d", mCapturedCount, mCapturedNal[mCapturedCount].length);
         mCapturedCount++;
     }
 

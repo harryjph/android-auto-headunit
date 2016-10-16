@@ -2,17 +2,11 @@ package ca.yyx.hu;
 
 import android.app.Application;
 import android.content.Context;
-import android.hardware.usb.UsbManager;
-import android.support.v4.content.LocalBroadcastManager;
+import android.os.Build;
 
 import ca.yyx.hu.aap.AapTransport;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.VideoDecoder;
-import ca.yyx.hu.usb.UsbAccessoryConnection;
-import ca.yyx.hu.usb.UsbDeviceCompat;
-import ca.yyx.hu.usb.UsbReceiver;
-import ca.yyx.hu.utils.IntentUtils;
-import ca.yyx.hu.utils.Utils;
 
 /**
  * @author algavris
@@ -20,6 +14,7 @@ import ca.yyx.hu.utils.Utils;
  */
 
 public class App extends Application {
+    public static final boolean IS_LOLLIPOP = Build.VERSION.SDK_INT >= 21;
 
     private VideoDecoder mVideoDecoder;
     private AudioDecoder mAudioDecoder;

@@ -1,5 +1,6 @@
 package ca.yyx.hu.aap;
 
+import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
 
 /**
@@ -26,7 +27,7 @@ class AapControl {
     int execute(int chan, int msg_type, byte[] buf, int len) {
 
         if (chan < 0 || chan > Channel.MAX) {
-            Utils.loge("chan >= 0 && chan <= AA_CH_MAX chan: %d", chan);
+            AppLog.loge("chan >= 0 && chan <= AA_CH_MAX chan: %d", chan);
         }
 
         switch (chan)
@@ -61,7 +62,7 @@ class AapControl {
             case MSG_TYPE_2 + 0x05:
                 return aa_pro_mic_b05(chan, buf, len);
             default:
-                Utils.loge("Unsupported");
+                AppLog.loge("Unsupported");
         }
         return 0;
     }
@@ -78,33 +79,33 @@ class AapControl {
             case MSG_TYPE_2 + 0x02:
                 return aa_pro_aud_b02(chan, buf, len);
             default:
-                Utils.loge("Unsupported");
+                AppLog.loge("Unsupported");
         }
         return 0;
     }
 
     private int aa_pro_mic_b01(int chan, byte[] buf, int len) {                  // Media Mic Start Request...
         if (len != 4 || buf[2] != 0x08)
-            Utils.loge ("Media Mic Start Request ????");
+            AppLog.loge ("Media Mic Start Request ????");
         else
-            Utils.loge ("Media Mic Start Request ????: %d", buf[3]);
+            AppLog.loge ("Media Mic Start Request ????: %d", buf[3]);
         return 0;
     }
 
     private int aa_pro_mic_b04(int chan, byte[] buf, int len) {
-        Utils.logd("MIC ACK");
+        AppLog.logd("MIC ACK");
         //hex_dump("MIC ACK: ", 16, buf, len);
         return 0;
     }
 
     private int aa_pro_mic_b05(int chan, byte[] buf, int len) {
         if (len == 4 && buf[2] == 0x08 && buf[3] == 0) {
-            Utils.logd ("Mic Start/Stop Request: 0 STOP");
+            AppLog.logd ("Mic Start/Stop Request: 0 STOP");
             mAapMicrophone.setStatus(1); // Stop Mic
         } else if (len != 10 || buf[2] != 0x08 || buf[3] != 1 || buf[4] != 0x10 || buf[6] != 0x18 || buf[8] != 0x20) {
-            Utils.loge ("Mic Start/Stop Request");
+            AppLog.loge ("Mic Start/Stop Request");
         } else {
-            Utils.logd ("Mic Start/Stop Request: 1 START %d %d %d", buf[5], buf[7], buf[9]);
+            AppLog.logd ("Mic Start/Stop Request: 1 START %d %d %d", buf[5], buf[7], buf[9]);
             mAapMicrophone.setStatus(2); // Start Mic
         }
         return 0;
@@ -113,18 +114,18 @@ class AapControl {
 
     private int aa_pro_aud_b01(int chan, byte[] buf, int len) {                  // Audio Sink Start Request...     First/Second R 4 AUD b 00000000 08 00/01 10 00
         if (len != 6 || buf[2] != 0x08 || buf[4] != 0x10)
-            Utils.loge ("Audio Sink Start Request");
+            AppLog.loge ("Audio Sink Start Request");
         else
-            Utils.logd ("Audio Sink Start Request: %d %d", buf[3], buf[5]);
+            AppLog.logd ("Audio Sink Start Request: %d %d", buf[3], buf[5]);
         mAapAudio.setAudioAckVal(chan, buf[3]);
         return 0;
     }
 
     private int aa_pro_aud_b02(int chan, byte[] buf, int len) {                  // 08-22 20:03:09.075 D/ .... hex_dump(30767): S 4 AUD b 00000000 08 00 10 01   Only at stop ??
         if (len != 2)//4 || buf [2] != 0x08)
-            Utils.loge ("Audio Sink Stop Request");
+            AppLog.loge ("Audio Sink Stop Request");
         else
-            Utils.logd ("Audio Sink Stop Request");//: %d", buf [3]);
+            AppLog.logd ("Audio Sink Stop Request");//: %d", buf [3]);
         mAapAudio.setOutState(chan, 1);
         return 0;
     }
@@ -138,7 +139,7 @@ class AapControl {
             case MSG_TYPE_2 + 0x02:
                 return aa_pro_tou_b02(chan, buf, len);
             default:
-                Utils.loge("Unsupported");
+                AppLog.loge("Unsupported");
         }
         return 0;
     }
@@ -156,7 +157,7 @@ class AapControl {
             case MSG_TYPE_2 + 0x07:
                 return aa_pro_vid_b07(chan, buf, len);
             default:
-                Utils.loge("Unsupported");
+                AppLog.loge("Unsupported");
         }
         return 0;
     }
@@ -170,7 +171,7 @@ class AapControl {
             case MSG_TYPE_2 + 0x01:
                 return aa_pro_sen_b01(chan, buf, len);
             default:
-                Utils.loge("Unsupported");
+                AppLog.loge("Unsupported");
         }
         return 0;
     }
@@ -196,25 +197,25 @@ class AapControl {
             case 0x12:
                 return aa_pro_ctr_a12(chan, buf, len);
             default:
-                Utils.loge("Unsupported");
+                AppLog.loge("Unsupported");
         }
         return 0;
     }
 
     private int aa_pro_vid_b07(int chan, byte[] buf, int len) {                  // Media Video ? Request...
         if (len != 4 || buf[2] != 0x10)
-            Utils.loge ("Media Video ? Request");
+            AppLog.loge ("Media Video ? Request");
         else
-            Utils.logd ("Media Video ? Request: %d", buf[3]);
+            AppLog.logd ("Media Video ? Request: %d", buf[3]);
         return 0;
     }
 
     private int aa_pro_vid_b01(int chan, byte[] buf, int len) {
         // Media Video Start Request...
         if (len != 6 || buf[2] != 0x08 || buf[4] != 0x10)
-            Utils.loge ("Media Video Start Request");
+            AppLog.loge ("Media Video Start Request");
         else
-            Utils.logd ("Media Video Start Request: %d %d", buf[3], buf[5]);
+            AppLog.logd ("Media Video Start Request: %d %d", buf[3], buf[5]);
 
 //    byte rsp2 [] = {0x80, 0x08, 0x08, 1, 0x10, 1};
 // 1, 1     VideoFocus gained focusState=1 unsolicited=true
@@ -234,9 +235,9 @@ class AapControl {
     private int aa_pro_snk_b00(int chan, byte[] buf, int len) {
         // Media Sink Setup Request
         if (len != 4 || buf[2] != 0x08)
-            Utils.loge ("Media Sink Setup Request");
+            AppLog.loge ("Media Sink Setup Request");
         else
-            Utils.logd ("Media Sink Setup Request: %d", buf[3]);
+            AppLog.logd ("Media Sink Setup Request: %d", buf[3]);
         // R 2 VID b 00000000 08 03       R 4 AUD b 00000000 08 01
 
         byte rsp[] = {(byte) 0x80, 0x03, 0x08, 2, 0x10, 1, 0x18, 0};
@@ -270,9 +271,9 @@ class AapControl {
     private int aa_pro_tou_b02(int chan, byte[] buf, int len) {
         // TouchScreen/Input Start Request...    Or "send setup, ch:X" for channel X
         if (len < 2 || len > 256)
-            Utils.loge ("Touch/Input/Audio Start/Stop Request");
+            AppLog.loge ("Touch/Input/Audio Start/Stop Request");
         else
-            Utils.logd ("Touch/Input/Audio Start/Stop Request");
+            AppLog.logd ("Touch/Input/Audio Start/Stop Request");
         // R 3 TOU b src: AA  lft:     0  msg_type: 32770 Touch/Input/Audio Start/Stop Request
         // R 3 TOU b src: AA  lft:    18  msg_type: 32770 Touch/Input/Audio Start/Stop Request
         // R 3 TOU b 00000000 0a 10 03 54 55 56 57 58 7e 7f d1 01 81 80 04 84     R 3 TOU b     0010 80 04 (Echo Key Array discovered)
@@ -284,9 +285,9 @@ class AapControl {
 
     private int aa_pro_sen_b01(int chan, byte[] buf, int len) {                  // Sensor Start Request...
         if (len != 6 || buf[2] != 0x08 || buf[4] != 0x10)
-            Utils.loge ("Sensor Start Request");
+            AppLog.loge ("Sensor Start Request");
         else
-            Utils.logd ("Sensor Start Request sensor: %d   period: %d", buf[3], buf[5]);  // R 1 SEN b 00000000 08 01 10 00     Sen: 1, 10, 3, 8, 7
+            AppLog.logd ("Sensor Start Request sensor: %d   period: %d", buf[3], buf[5]);  // R 1 SEN b 00000000 08 01 10 00     Sen: 1, 10, 3, 8, 7
         // Yes: SENSOR_TYPE_COMPASS/LOCATION/RPM/DIAGNOSTICS/GEAR      No: SENSOR_TYPE_DRIVING_STATUS
         byte rsp[] = {(byte) 0x80, 0x02, 0x08, 0};
         int ret = mTransport.sendEncrypted(chan, rsp, rsp.length);
@@ -296,9 +297,9 @@ class AapControl {
 
     private int aa_pro_all_a07(int chan, byte[] buf, int len) {                  // Channel Open Request
         if (len != 6 || buf[2] != 0x08 || buf[4] != 0x10)
-            Utils.loge ("Channel Open Request");
+            AppLog.loge ("Channel Open Request");
         else
-            Utils.logd ("Channel Open Request: %d  chan: %d", buf[3], buf[5]);
+            AppLog.logd ("Channel Open Request: %d  chan: %d", buf[3], buf[5]);
         // R 1 SEN f 00000000 08 00 10 01   R 2 VID f 00000000 08 00 10 02   R 3 TOU f 00000000 08 00 10 03   R 4 AUD f 00000000 08 00 10 04   R 5 MIC f 00000000 08 00 10 05
         byte rsp[] = {0, 8, 8, 0};                                         // Status 0 = OK
         int ret = mTransport.sendEncrypted(chan, rsp, rsp.length);                // Send Channel Open Response
@@ -323,18 +324,18 @@ class AapControl {
 
     private int aa_pro_ctr_a05(int chan, byte[] buf, int len) {                  // Service Discovery Request
         if (len < 4 || buf[2] != 0x0a)
-            Utils.loge ("Service Discovery Request: %x", buf[2]);
+            AppLog.loge ("Service Discovery Request: %x", buf[2]);
         else
-            Utils.logd ("Service Discovery Request");                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
+            AppLog.logd ("Service Discovery Request");                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
         return mTransport.sendEncrypted(chan, sd_buf, sd_buf.length);                // Send Service Discovery Response from sd_buf
     }
 
     private int aa_pro_ctr_a0b(int chan, byte[] buf, int len) {                  // Ping Request
         if (len != 4 || buf[2] != 0x08)
-            Utils.loge ("Ping Request");
+            AppLog.loge ("Ping Request");
         else
-            Utils.logd ("Ping Request: %d", buf[3]);
+            AppLog.logd ("Ping Request: %d", buf[3]);
         buf[0] = 0;                                                        // Use request buffer for response
         buf[1] = 12;                                                       // Channel Open Response
         int ret = mTransport.sendEncrypted(chan, buf, len);                         // Send Channel Open Response
@@ -343,9 +344,9 @@ class AapControl {
 
     private int aa_pro_ctr_a0d(int chan, byte[] buf, int len) {                  // Navigation Focus Request
         if (len != 4 || buf[2] != 0x08)
-            Utils.loge ("Navigation Focus Request");
+            AppLog.loge ("Navigation Focus Request");
         else
-            Utils.logd ("Navigation Focus Request: %d", buf[3]);
+            AppLog.logd ("Navigation Focus Request: %d", buf[3]);
         buf[0] = 0;                                                        // Use request buffer for response
         buf[1] = 14;                                                       // Navigation Focus Notification
         buf[2] = 0x08;
@@ -356,13 +357,13 @@ class AapControl {
 
     private int aa_pro_ctr_a0f(int chan, byte[] buf, int len) {                  // Byebye Request
         if (len != 4 || buf[2] != 0x08)
-            Utils.loge ("Byebye Request");
+            AppLog.loge ("Byebye Request");
         else if (buf[3] == 1)
-            Utils.logd ("Byebye Request reason: 1 AA Exit Car Mode");
+            AppLog.logd ("Byebye Request reason: 1 AA Exit Car Mode");
         else if (buf[3] == 2)
-            Utils.loge ("Byebye Request reason: 2 ?");
+            AppLog.loge ("Byebye Request reason: 2 ?");
         else
-            Utils.loge ("Byebye Request reason: %d", buf[3]);
+            AppLog.loge ("Byebye Request reason: %d", buf[3]);
 
         buf[0] = 0;                                                        // Use request buffer for response
         buf[1] = 16;                                                       // Byebye Response
@@ -377,37 +378,37 @@ class AapControl {
 
     private int aa_pro_ctr_a10(int chan, byte[] buf, int len) {                  // Byebye Response
         if (len != 2)
-            Utils.loge ("Byebye Response");
+            AppLog.loge ("Byebye Response");
         else
-            Utils.logd ("Byebye Response");                                         // R 0 CTR b src: AA  lft:     0  msg_type:    16 Byebye Response
+            AppLog.logd ("Byebye Response");                                         // R 0 CTR b src: AA  lft:     0  msg_type:    16 Byebye Response
         return -1;
     }
 
     private int aa_pro_ctr_a11(int chan, byte[] buf, int len) {                  // sr:  00000000 00 11 08 01      Microphone voice search usage     sr:  00000000 00 11 08 02
         if (len != 4 || buf[2] != 0x08)
-            Utils.loge ("Voice Session Notification");
+            AppLog.loge ("Voice Session Notification");
         else if (buf[3] == 1)
-            Utils.logd ("Voice Session Notification: 1 START");
+            AppLog.logd ("Voice Session Notification: 1 START");
         else if (buf[3] == 2)
-            Utils.logd ("Voice Session Notification: 2 STOP");
+            AppLog.logd ("Voice Session Notification: 2 STOP");
         else
-            Utils.loge ("Voice Session Notification: %d", buf[3]);
+            AppLog.loge ("Voice Session Notification: %d", buf[3]);
         return (0);
     }
 
     private int aa_pro_ctr_a12(int chan, byte[] buf, int len) {                  // Audio Focus Request
         if (len != 4 || buf[2] != 0x08)
-            Utils.loge ("Audio Focus Request");
+            AppLog.loge ("Audio Focus Request");
         else if (buf[3] == 1)
-            Utils.logd ("Audio Focus Request: 1 AUDIO_FOCUS_GAIN ?");
+            AppLog.logd ("Audio Focus Request: 1 AUDIO_FOCUS_GAIN ?");
         else if (buf[3] == 2)
-            Utils.logd ("Audio Focus Request: 2 AUDIO_FOCUS_GAIN_TRANSIENT");
+            AppLog.logd ("Audio Focus Request: 2 AUDIO_FOCUS_GAIN_TRANSIENT");
         else if (buf[3] == 3)
-            Utils.logd ("Audio Focus Request: 3 gain/release ?");
+            AppLog.logd ("Audio Focus Request: 3 gain/release ?");
         else if (buf[3] == 4)
-            Utils.logd ("Audio Focus Request: 4 AUDIO_FOCUS_RELEASE");
+            AppLog.logd ("Audio Focus Request: 4 AUDIO_FOCUS_RELEASE");
         else
-            Utils.loge ("Audio Focus Request: %d", buf[3]);
+            AppLog.loge ("Audio Focus Request: %d", buf[3]);
         buf[0] = 0;                                                        // Use request buffer for response
         buf[1] = 19;                                                       // Audio Focus Response
         buf[2] = 0x08;

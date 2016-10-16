@@ -7,7 +7,7 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 
-import ca.yyx.hu.utils.Utils;
+import ca.yyx.hu.utils.AppLog;
 
 /**
  * @author algavris
@@ -62,32 +62,32 @@ public class UsbAccessoryConnection
         try {
             mUsbDeviceConnection = mUsbMgr.openDevice(device);                 // Open device for connection
         } catch (Throwable e) {
-            Utils.loge(e);                                  // java.lang.IllegalArgumentException: device /dev/bus/usb/001/019 does not exist or is restricted
+            AppLog.loge(e);                                  // java.lang.IllegalArgumentException: device /dev/bus/usb/001/019 does not exist or is restricted
             throw new UsbOpenException(e);
         }
 
-        Utils.logd("Established connection: " + mUsbDeviceConnection);
+        AppLog.logd("Established connection: " + mUsbDeviceConnection);
 
         try {
             int iface_cnt = device.getInterfaceCount();
             if (iface_cnt <= 0) {
-                Utils.loge("iface_cnt: " + iface_cnt);
+                AppLog.loge("iface_cnt: " + iface_cnt);
                 throw new UsbOpenException("No usb interfaces");
             }
-            Utils.logd("iface_cnt: " + iface_cnt);
+            AppLog.logd("iface_cnt: " + iface_cnt);
             mUsbInterface = device.getInterface(0);                            // java.lang.ArrayIndexOutOfBoundsException: length=0; index=0
 
             if (!mUsbDeviceConnection.claimInterface(mUsbInterface, true)) {        // Claim interface, if error...   true = take from kernel
                 throw new UsbOpenException("Error claiming interface");
             }
         } catch (Throwable e) {
-            Utils.loge(e);           // Nexus 7 2013:    Throwable: java.lang.ArrayIndexOutOfBoundsException: length=0; index=0
+            AppLog.loge(e);           // Nexus 7 2013:    Throwable: java.lang.ArrayIndexOutOfBoundsException: length=0; index=0
             throw new UsbOpenException(e);
         }
     }
 
     private int acc_mode_endpoints_set() {                               // Set Accessory mode Endpoints. Called only by usb_connect()
-        Utils.logd("Check accessory endpoints");
+        AppLog.logd("Check accessory endpoints");
         mEndpointIn = null;                                               // Setup bulk endpoints.
         mEndpointOut = null;
         m_ep_in_addr = -1;     // 129
@@ -99,29 +99,29 @@ public class UsbAccessoryConnection
             if (ep.getDirection() == UsbConstants.USB_DIR_IN) {              // If IN
                 if (mEndpointIn == null) {                                      // If Bulk In not set yet...
                     m_ep_in_addr = ep.getAddress();
-                    Utils.logd("Bulk IN m_ep_in_addr: %d  %d", m_ep_in_addr, i);
+                    AppLog.logd("Bulk IN m_ep_in_addr: %d  %d", m_ep_in_addr, i);
                     mEndpointIn = ep;                                             // Set Bulk In
                 }
             } else {                                                            // Else if OUT...
                 if (mEndpointOut == null) {                                     // If Bulk Out not set yet...
                     m_ep_out_addr = ep.getAddress();
-                    Utils.logd("Bulk OUT m_ep_out_addr: %d  %d", m_ep_out_addr, i);
+                    AppLog.logd("Bulk OUT m_ep_out_addr: %d  %d", m_ep_out_addr, i);
                     mEndpointOut = ep;                                            // Set Bulk Out
                 }
             }
         }
         if (mEndpointIn == null || mEndpointOut == null) {
-            Utils.loge("Unable to find bulk endpoints");
+            AppLog.loge("Unable to find bulk endpoints");
             return (-1);                                                      // Done error
         }
 
-        Utils.logd("Connected have EPs");
+        AppLog.logd("Connected have EPs");
         return (0);                                                         // Done success
     }
 
     public void disconnect() {                                           // Release interface and close USB device connection. Called only by usb_disconnect()
         if (mUsbDeviceConnected != null) {
-            Utils.logd(mUsbDeviceConnected.toString());
+            AppLog.logd(mUsbDeviceConnected.toString());
         }
         mEndpointIn = null;                                               // Input  EP
         mEndpointOut = null;                                               // Output EP
@@ -134,9 +134,9 @@ public class UsbAccessoryConnection
                 bret = mUsbDeviceConnection.releaseInterface(mUsbInterface);
             }
             if (bret) {
-                Utils.logd("OK releaseInterface()");
+                AppLog.logd("OK releaseInterface()");
             } else {
-                Utils.loge("Error releaseInterface()");
+                AppLog.loge("Error releaseInterface()");
             }
 
             mUsbDeviceConnection.close();                                        //
@@ -163,19 +163,29 @@ public class UsbAccessoryConnection
      * or negative value for failure
      */
     public int send(byte[] buf, int length, int timeout) {
+        if (mUsbDeviceConnected == null) {
+            AppLog.loge("Not connected");
+            return -1;
+        }
         try {
             return mUsbDeviceConnection.bulkTransfer(mEndpointOut, buf, length, timeout);
         } catch (NullPointerException e) {
-            Utils.loge(e);
+            disconnect();
+            AppLog.loge(e);
             return -1;
         }
     }
 
     public int recv(byte[] buf, int timeout) {
+        if (mUsbDeviceConnected == null) {
+            AppLog.loge("Not connected");
+            return -1;
+        }
         try {
             return mUsbDeviceConnection.bulkTransfer(mEndpointIn, buf, buf.length, timeout);
         } catch (NullPointerException e) {
-            Utils.loge(e);
+            disconnect();
+            AppLog.loge(e);
             return -1;
         }
     }

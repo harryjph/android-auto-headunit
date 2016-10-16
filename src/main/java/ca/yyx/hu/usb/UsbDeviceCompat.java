@@ -1,10 +1,11 @@
 package ca.yyx.hu.usb;
 
 import android.hardware.usb.UsbDevice;
-import android.support.annotation.Nullable;
 
 import java.util.Locale;
 
+import ca.yyx.hu.App;
+import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
 
 /**
@@ -66,7 +67,7 @@ public class UsbDeviceCompat {
         else if (prod_id == USB_PID_ACC_AUD_ADB)
             return ("ALL");//ACC_AUD_ADB");
         else
-            //return ("0x" + Utils.hex_get (prod_id));
+            //return ("0x" + AppLog.hex_get (prod_id));
             return ("" + prod_id);
     }
 
@@ -98,9 +99,9 @@ public class UsbDeviceCompat {
             Class<?> c = Class.forName("android.hardware.usb.UsbDeviceCompat");
             java.lang.reflect.Method get = c.getMethod("getManufacturerName");
             ret = (String) get.invoke(device);
-            Utils.logd("ret: " + ret);
+            AppLog.logd("ret: " + ret);
         } catch (Throwable t) {
-            Utils.loge("Throwable t: " + t);
+            AppLog.loge("Throwable t: " + t);
         }
         return (ret);
     }
@@ -112,9 +113,9 @@ public class UsbDeviceCompat {
             Class<?> c = Class.forName("android.hardware.usb.UsbDeviceCompat");
             java.lang.reflect.Method get = c.getMethod("getProductName");
             ret = (String) get.invoke(device);
-            Utils.logd("ret: " + ret);
+            AppLog.logd("ret: " + ret);
         } catch (Throwable t) {
-            Utils.loge("Throwable t: " + t);
+            AppLog.loge("Throwable t: " + t);
         }
         return (ret);
     }
@@ -126,9 +127,9 @@ public class UsbDeviceCompat {
             Class<?> c = Class.forName("android.hardware.usb.UsbDeviceCompat");
             java.lang.reflect.Method get = c.getMethod("getSerialNumber");
             ret = (String) get.invoke(device);
-            Utils.logd("ret: " + ret);
+            AppLog.logd("ret: " + ret);
         } catch (Throwable t) {
-            Utils.loge("Throwable t: " + t);
+            AppLog.loge("Throwable t: " + t);
         }
         return (ret);
     }
@@ -143,13 +144,13 @@ public class UsbDeviceCompat {
         String dev_prod = "";
         String dev_ser = "";
 
-        if (Utils.IS_LOLLIPOP) {                                 // Android 5.0+ only
+        if (App.IS_LOLLIPOP) {                                 // Android 5.0+ only
             try {
                 dev_man = usb_man_get(device);                                // mManufacturerName=HTC
                 dev_prod = usb_pro_get(device);                                // mProductName=Android Phone
                 dev_ser = usb_ser_get(device);                                // mSerialNumber=FA46RWM22264
             } catch (Throwable e) {
-                Utils.loge(e);
+                AppLog.loge(e);
             }
             if (dev_man == null)
                 dev_man = "";

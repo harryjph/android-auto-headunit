@@ -1,86 +1,15 @@
-
-// General utility functions
-
-// Utils.log
-
-
 package ca.yyx.hu.utils;
-
-import android.os.Build;
-import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.IllegalFormatException;
-import java.util.Locale;
 
+/**
+ * @author algavris
+ * @date 16/10/2016.
+ */
 
-public final class Utils {
-
-    public static final String TAG = "CAR.HU.J";
-    public static final boolean IS_LOLLIPOP = Build.VERSION.SDK_INT >= 21;
-
-    public static void logd(String msg) {
-        Log.d(TAG, format(msg));
-    }
-
-    public static void logd(final String msg, final Object... params) {
-        Log.d(TAG, format(msg, params));
-    }
-
-    public static void logv(String msg) {
-        Log.v(TAG, format(msg));
-    }
-
-    public static void loge(String msg) {
-        Log.e(TAG, format(msg));
-    }
-
-    public static void logw(String msg) {
-        Log.w(TAG, format(msg));
-    }
-
-    public static void loge(String msg, Throwable tr) {
-        Log.e(TAG, format(msg), tr);
-    }
-
-    public static void loge(Throwable tr) {
-        Log.e(TAG, tr.getMessage(), tr);
-    }
-
-    public static void loge(String msg, final Object... params) {
-        Log.e(TAG, format(msg, params));
-    }
-
-    public static void logv(String msg, final Object... params) {
-        Log.v(TAG, format(msg, params));
-    }
-
-    private static String format(final String msg, final Object... array) {
-        String formatted;
-        if (array == null || array.length == 0) {
-            formatted = msg;
-        } else {
-            try {
-                formatted = String.format(Locale.US, msg, array);
-            } catch (IllegalFormatException ex) {
-                loge("IllegalFormatException: formatString='%s' numArgs=%d", msg, array.length);
-                formatted = msg + " (An error occurred while formatting the message.)";
-            }
-        }
-        final StackTraceElement[] stackTrace = new Throwable().fillInStackTrace().getStackTrace();
-        String string = "<unknown>";
-        for (int i = 2; i < stackTrace.length; ++i) {
-            final String className = stackTrace[i].getClassName();
-            if (!className.equals(Utils.class.getName())) {
-                final String substring = className.substring(1 + className.lastIndexOf(46));
-                string = substring.substring(1 + substring.lastIndexOf(36)) + "." + stackTrace[i].getMethodName();
-                break;
-            }
-        }
-        return String.format(Locale.US, "[%d] %s | %s", Thread.currentThread().getId(), string, formatted);
-    }
+public class Utils {
 
     public static long ms_sleep(long ms) {
 
@@ -90,14 +19,14 @@ public final class Utils {
         } catch (InterruptedException e) {
             //Thread.currentThread().interrupt();
             e.printStackTrace();
-            Utils.loge("Exception e: " + e);
+            AppLog.loge("Exception e: " + e);
             return (0);
         }
     }
 
     public static long tmr_ms_get() {        // Current timestamp of the most precise timer available on the local system, in nanoseconds. Equivalent to Linux's CLOCK_MONOTONIC.
         // Values returned by this method do not have a defined correspondence to wall clock times; the zero value is typically whenever the device last booted
-        //Utils.logd ("ms: " + ms);           // Changing system time will not affect results.
+        //AppLog.logd ("ms: " + ms);           // Changing system time will not affect results.
         return (System.nanoTime() / 1000000);
     }
 
@@ -154,4 +83,3 @@ public final class Utils {
         return ((buf[idx] & 0xFF) << 24) + ((buf[idx + 1] & 0xFF) << 16) + ((buf[idx + 2] & 0xFF) << 8) + (buf[idx + 3] & 0xFF);
     }
 }
-

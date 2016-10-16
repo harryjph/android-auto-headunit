@@ -3,6 +3,7 @@ package ca.yyx.hu.aap;
 import java.util.Locale;
 
 import ca.yyx.hu.usb.UsbAccessoryConnection;
+import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
 
 
@@ -12,6 +13,13 @@ import ca.yyx.hu.utils.Utils;
  */
 
 class AapPoll {
+
+    static final byte RESPONSE_MIC_STOP = 1;
+    static final byte RESPONSE_MIC_START = 2;
+    static final byte RESPONSE_AUDIO_STOP = 3;
+    static final byte RESPONSE_AUDIO1_STOP = 4;
+    static final byte RESPONSE_AUDIO2_STOP = 5;
+
     private final UsbAccessoryConnection mConnection;
     private final AapTransport mTransport;
 
@@ -40,7 +48,7 @@ class AapPoll {
         byte[] fixed_res_buf = new byte[DEFBUF];
         int size = mConnection.recv(fixed_res_buf, 150);
         if (size <= 0) {
-            Utils.loge ("RECV %d", size);
+            AppLog.loge ("RECV %d", size);
             return 0;
         }
         int result = process(size, fixed_res_buf);
@@ -50,7 +58,6 @@ class AapPoll {
 
 
     private int process(int msg_len, byte[] msg_buf) {
-        int res_len = 0;
         int ret;
 
         int vid_bufs = mAapVideo.buffersCount();
@@ -75,20 +82,20 @@ class AapPoll {
             // Else if no microphone state change...
 
             if (mAapAudio.state(Channel.AA_CH_AUD) >= 0)                              // If audio out stop...
-                return 3;                                                     // Done w/ audio out notification 0
+                return RESPONSE_AUDIO_STOP;                                                     // Done w/ audio out notification 0
             if (mAapAudio.state(Channel.AA_CH_AU1) >= 0)                              // If audio out stop...
-                return 4;                                                     // Done w/ audio out notification 1
+                return RESPONSE_AUDIO1_STOP;                                                     // Done w/ audio out notification 1
             if (mAapAudio.state(Channel.AA_CH_AU2) >= 0)                              // If audio out stop...
-                return 5;                                                     // Done w/ audio out notification 2
+                return RESPONSE_AUDIO2_STOP;                                                     // Done w/ audio out notification 2
         }
 
-        ByteArray dq_buf = mAapAudio.aud_read_head_buf_get();                         // Get audio if ready
+        ByteArray dq_buf = mAapAudio.poll();                         // Get audio if ready
         if (dq_buf == null) {                                           // If no audio... (Audio has priority over video)
-            dq_buf = mAapVideo.vid_read_head_buf_get();                       // Get video if ready
+            dq_buf = mAapVideo.poll();                       // Get video if ready
         } else {                                                              // If audio
             if (dq_buf.data[0] == 0 && dq_buf.data[1] == 0 && dq_buf.data[2] == 0 && dq_buf.data[3] == 1) {
                 dq_buf.data[3] = 0;                                                   // If audio happened to have magic video signature... (rare), then 0 the 1
-                Utils.loge ("magic video signature in audio");
+                AppLog.loge ("magic video signature in audio");
             }
         }
 
@@ -98,7 +105,7 @@ class AapPoll {
 
         System.arraycopy(dq_buf.data, 0, msg_buf, 0, dq_buf.length);
 
-        return res_len;
+        return dq_buf.length;
     }
 
 
@@ -123,14 +130,14 @@ class AapPoll {
             // buf points to data to be decrypted
             msg_start += 4;
             if ((flags & 0x08) != 0x08) {
-                Utils.loge("NOT ENCRYPTED !!!!!!!!! have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%02x  msg_type: %d", have_len, enc_len, msg_buf, chan, Channel.name(chan), flags, msg_type);
+                AppLog.loge("NOT ENCRYPTED !!!!!!!!! have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%02x  msg_type: %d", have_len, enc_len, msg_buf, chan, Channel.name(chan), flags, msg_type);
                 return -1;
             }
             if (chan == Channel.AA_CH_VID && flags == 9) {
                 // If First fragment Video... (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
                 int total_size = Utils.bytesToInt(msg_buf, msg_start, false);
 
-                Utils.logv("First fragment total_size: %d", total_size);
+                AppLog.logv("First fragment total_size: %d", total_size);
 
                 have_len -= 4;
                 // Remove 4 length bytes inserted into first video fragment
@@ -138,20 +145,20 @@ class AapPoll {
             }
             int need_len = enc_len - have_len;
             if (need_len > 0) {                                         // If we need more data for the full packet...
-                Utils.loge("have_len: %d < enc_len: %d  need_len: %d", have_len, enc_len, need_len);
+                AppLog.loge("have_len: %d < enc_len: %d  need_len: %d", have_len, enc_len, need_len);
                 return -1;
             }
 
             int ret = iaap_recv_dec_process(chan, flags, msg_start, enc_len, msg_buf);          // Decrypt & Process 1 received encrypted message
             if (ret < 0) {                                                    // If error...
-                Utils.loge ("Error iaap_recv_dec_process: %d have_len: %d enc_len: %d chan: %d %s flags: %01x msg_type: %d", ret, have_len, enc_len, chan, Channel.name(chan), flags, msg_type);
+                AppLog.loge ("Error iaap_recv_dec_process: %d have_len: %d enc_len: %d chan: %d %s flags: %01x msg_type: %d", ret, have_len, enc_len, chan, Channel.name(chan), flags, msg_type);
                 return ret;
             }
 
             have_len -= enc_len;
             msg_start += enc_len;
             if (have_len != 0) {
-                Utils.logd ("iaap_recv_dec_process() more than one message have_len: %d  enc_len: %d", have_len, enc_len);
+                AppLog.logd ("iaap_recv_dec_process() more than one message have_len: %d  enc_len: %d", have_len, enc_len);
             }
         }
 
@@ -164,7 +171,7 @@ class AapPoll {
         int bytes_written = mTransport.sslBioWrite(start, enc_len, buf);
         // Write encrypted to SSL input BIO
         if (bytes_written <= 0) {
-            Utils.loge ("BIO_write() bytes_written: %d", bytes_written);
+            AppLog.loge ("BIO_write() bytes_written: %d", bytes_written);
             return (-1);
         }
 
@@ -172,7 +179,7 @@ class AapPoll {
         int bytes_read = mTransport.sslRead(enc_buf, enc_buf.length);
         // Read decrypted to decrypted rx buf
         if (bytes_read <= 0) {
-            Utils.loge ("SSL_read bytes_read: %d", bytes_read);
+            AppLog.loge ("SSL_read bytes_read: %d", bytes_read);
             return -1;
         }
 
@@ -198,7 +205,7 @@ class AapPoll {
         } else if ((msg_type >= 0 && msg_type <= 31) || (msg_type >= 32768 && msg_type <= 32799) || (msg_type >= 65504 && msg_type <= 65535)) {
             mAapControl.execute(chan, msg_type, buf, len);
         } else {
-            Utils.loge ("Unknown msg_type: %d", msg_type);
+            AppLog.loge ("Unknown msg_type: %d", msg_type);
         }
 
         return 0;

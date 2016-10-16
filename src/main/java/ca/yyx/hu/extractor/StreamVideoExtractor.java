@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.security.InvalidParameterException;
 import java.util.Map;
 
-import ca.yyx.hu.utils.Utils;
+import ca.yyx.hu.utils.AppLog;
 
 
 /**
@@ -35,7 +35,7 @@ public class StreamVideoExtractor implements MediaExtractorInterface {
             int size = nextSample - mSampleOffset;
             buffer.clear();
             buffer.put(mContentData);
-            Utils.logd("readSampleData (offset: %d,next: %d,size: %d,length: %d, flags: 0x%08x)",mSampleOffset, nextSample, size, mContentData.length, mFlags);
+            AppLog.logd("readSampleData (offset: %d,next: %d,size: %d,length: %d, flags: 0x%08x)",mSampleOffset, nextSample, size, mContentData.length, mFlags);
             return size;
         }
         return 0;
@@ -110,7 +110,7 @@ public class StreamVideoExtractor implements MediaExtractorInterface {
     private int findNextNAL(int offset) {
         while(offset < mContentData.length) {
             if (mContentData[offset] == 0 && mContentData[offset + 1] == 0 && mContentData[offset + 2] == 0 && mContentData[offset + 3] == 1) {
-                Utils.logd("Found sequence at %d: 0x0 0x0 0x0 0x1 0x%01x (%d)",mSampleOffset, mContentData[offset + 4], mContentData[offset + 4]);
+                AppLog.logd("Found sequence at %d: 0x0 0x0 0x0 0x1 0x%01x (%d)",mSampleOffset, mContentData[offset + 4], mContentData[offset + 4]);
                 return offset;
             }
             offset++;

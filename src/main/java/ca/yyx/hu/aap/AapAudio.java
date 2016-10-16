@@ -1,6 +1,8 @@
 package ca.yyx.hu.aap;
 
-import ca.yyx.hu.utils.Utils;
+import java.util.ArrayDeque;
+
+import ca.yyx.hu.utils.AppLog;
 
 /**
  * @author algavris
@@ -36,6 +38,10 @@ class AapAudio {
     private int out_state_au2 = -1;
 
     private byte aud_ack[] = {(byte) 0x80, 0x04, 0x08, 0, 0x10, 1};
+
+
+    private ArrayDeque<ByteArray> mQueue = new ArrayDeque<>(AUDIO_BUFS_NUM);
+
 
     AapAudio(AapTransport transport) {
         mTransport = transport;
@@ -84,9 +90,9 @@ class AapAudio {
                 ts += (long) buf[ctr];
                 t2 += buf[ctr];
                 if (ctr == 6)
-                    Utils.logv ("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
+                    AppLog.logv ("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
             }
-            Utils.logv ("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
+            AppLog.logv ("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
 /*
 07-02 03:33:26.486 W/                        hex_dump( 1549): AUDIO:  00000000 00 00 00 00 00 79 3e 5c bd 60 45 ef 6c 1a 79 f6
 07-02 03:33:26.486 W/                        hex_dump( 1549): AUDIO:      0010 a8 15 15 fe b3 14 8c fc e8 0c 34 f8 bf 02 ec 00
@@ -103,127 +109,22 @@ class AapAudio {
 
 
     private void decode(int chan,int start, byte[] buf, int len) {
-
-
         if (len > AUDIO_BUFS_SIZE) {
-            Utils.loge ("Error audio len: %d  aud_buf_BUFS_SIZE: %d", len, AUDIO_BUFS_SIZE);
+            AppLog.loge ("Error audio len: %d  aud_buf_BUFS_SIZE: %d", len, AUDIO_BUFS_SIZE);
             len = AUDIO_BUFS_SIZE;
         }
 
-        byte[] q_buf = aud_write_tail_buf_get(len);
-        // Get queue buffer tail to write to     !!! Need to lock until buffer written to !!!!
-//      logd ("audio q_buf: %p  buf: %p  len: %d", q_buf, buf, len);
-        if (q_buf == null) {
-            Utils.loge ("Error audio no q_buf: %p  buf: %p  len: %d", q_buf, buf, len);
-            //return;                                                         // Continue in order to write to record file
-        } else {
-            System.arraycopy(buf, start, q_buf, 0, len);
-        }
+        ByteArray ba = new ByteArray(len);
+        ba.put(start, buf, len);
+        mQueue.add(ba);
     }
 
     int buffersCount() {
-        return aud_buf_buf_tail - aud_buf_buf_head;
+        return mQueue.size();
     }
 
-    ByteArray aud_read_head_buf_get() {                              // Get head buffer to read from
-
-        int bufs = aud_buf_buf_tail - aud_buf_buf_head;
-        if (bufs < 0)                                                      // If underflowed...
-            bufs += num_aud_buf_bufs;                                          // Wrap
-        //logd ("aud_read_head_buf_get start bufs: %d  head: %d  tail: %d", bufs, aud_buf_buf_head, aud_buf_buf_tail);
-
-        if (bufs <= 0) {                                                    // If no buffers are ready...
-            //logd ("aud_read_head_buf_get no aud_buf_bufs");
-            //aud_buf_errs ++;  // Not an error; just no data
-            //aud_buf_buf_tail = aud_buf_buf_head = 0;                          // Drop all buffers
-            return null;
-        }
-
-        int max_retries = 4;
-        int retries = 0;
-        for (retries = 0; retries < max_retries; retries++) {
-            aud_sem_head++;
-            if (aud_sem_head == 1)
-                break;
-            aud_sem_head--;
-            Utils.loge ("aud_sem_head wait");
-            Utils.ms_sleep(10);
-        }
-        if (retries >= max_retries) {
-            Utils.loge ("aud_sem_head could not be acquired");
-            return null;
-        }
-
-        if (aud_buf_buf_head < 0 || aud_buf_buf_head > num_aud_buf_bufs - 1)   // Protect
-            aud_buf_buf_head &= num_aud_buf_bufs - 1;
-
-        aud_buf_buf_head++;
-
-        if (aud_buf_buf_head < 0 || aud_buf_buf_head > num_aud_buf_bufs - 1)
-            aud_buf_buf_head &= num_aud_buf_bufs - 1;
-
-        ByteArray result = new ByteArray(AUDIO_BUFS_SIZE);
-        result.data = aud_buf_bufs[aud_buf_buf_head];
-        result.length = aud_buf_lens[aud_buf_buf_head];
-
-        aud_sem_head--;
-
-        return result;
-    }
-
-    private byte[] aud_write_tail_buf_get(int len) {                          // Get tail buffer to write to
-
-        if (len > AUDIO_BUFS_SIZE) {
-            Utils.loge ("!!!!!!!!!! aud_write_tail_buf_get too big len: %d", len);   // E/aud_write_tail_buf_get(10699): !!!!!!!!!! aud_write_tail_buf_get too big len: 66338
-            return null;
-        }
-
-        int bufs = aud_buf_buf_tail - aud_buf_buf_head;
-        if (bufs < 0) {                                                     // If underflowed...
-            bufs += num_aud_buf_bufs;                                         // Wrap
-        }
-        //logd ("aud_write_tail_buf_get start bufs: %d  head: %d  tail: %d", bufs, aud_buf_buf_head, aud_buf_buf_tail);
-
-        if (bufs > aud_max_bufs)                                            // If new maximum buffers in progress...
-            aud_max_bufs = bufs;                                              // Save new max
-        if (bufs >= num_aud_buf_bufs - 1) {                                 // If room for another (max = NUM_aud_buf_BUFS - 1)
-            Utils.loge ("aud_write_tail_buf_get out of aud_buf_bufs");
-            aud_buf_errs++;
-            //aud_buf_buf_tail = aud_buf_buf_head = 0;                        // Drop all buffers
-            return null;
-        }
-
-        int max_retries = 4;
-        int retries = 0;
-        for (retries = 0; retries < max_retries; retries++) {
-            aud_sem_tail++;
-            if (aud_sem_tail == 1)
-                break;
-            aud_sem_tail--;
-            Utils.loge ("aud_sem_tail wait");
-            Utils.ms_sleep(10);
-        }
-        if (retries >= max_retries) {
-            Utils.loge ("aud_sem_tail could not be acquired");
-            return null;
-        }
-
-        if (aud_buf_buf_tail < 0 || aud_buf_buf_tail > num_aud_buf_bufs - 1)   // Protect
-            aud_buf_buf_tail &= num_aud_buf_bufs - 1;
-
-        aud_buf_buf_tail++;
-
-        if (aud_buf_buf_tail < 0 || aud_buf_buf_tail > num_aud_buf_bufs - 1)
-            aud_buf_buf_tail &= num_aud_buf_bufs - 1;
-
-        byte[] ret = aud_buf_bufs[aud_buf_buf_tail];
-        aud_buf_lens[aud_buf_buf_tail] = len;
-
-        //logd ("aud_write_tail_buf_get done  ret: %p  bufs: %d  tail len: %d  head: %d  tail: %d", ret, bufs, len, aud_buf_buf_head, aud_buf_buf_tail);
-
-        aud_sem_tail--;
-
-        return ret;
+    ByteArray poll() {                              // Get head buffer to read from
+        return mQueue.poll();
     }
 
     void setAudioAckVal(int chan, byte value) {

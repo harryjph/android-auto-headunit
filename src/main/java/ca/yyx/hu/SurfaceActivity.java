@@ -8,7 +8,7 @@ import android.view.View;
 
 import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.utils.SystemUI;
-import ca.yyx.hu.utils.Utils;
+import ca.yyx.hu.utils.AppLog;
 
 
 public class SurfaceActivity extends Activity implements SurfaceHolder.Callback {
@@ -56,18 +56,18 @@ public class SurfaceActivity extends Activity implements SurfaceHolder.Callback 
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        Utils.logd("holder " + holder);
+        AppLog.logd("holder " + holder);
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Utils.logd("holder %s, format: %d, width: %d, height: %d", holder, format, width, height);
+        AppLog.logd("holder %s, format: %d, width: %d, height: %d", holder, format, width, height);
         mVideoDecoder.onSurfaceHolderAvailable(holder, width, height);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        Utils.logd("holder " + holder);
+        AppLog.logd("holder " + holder);
         mVideoDecoder.stop();
     }
 }

@@ -4,9 +4,8 @@ import android.view.SurfaceHolder;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 
-import ca.yyx.hu.decoder.VideoDecoder;
+import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
 
 /**
@@ -30,7 +29,7 @@ public class VideoTestActivity extends SurfaceActivity {
                 try {
                     videoTestRun();
                 } catch (IOException e) {
-                    Utils.loge(e);
+                    AppLog.loge(e);
                 }
             }
         }, "run_vs").start();
@@ -55,7 +54,7 @@ public class VideoTestActivity extends SurfaceActivity {
                 after = size;
                 //hu_uti.logd ("Last chunk  chunk_size: " + chunk_size + "  idx: " + idx + "  after: " + after + "  size: " + size + "  left: " + left);
             } else if (after <= 0 || after > size) {
-                Utils.loge("Error chunk_size: " + chunk_size + "  idx: " + idx + "  after: " + after + "  size: " + size + "  left: " + left);
+                AppLog.loge("Error chunk_size: " + chunk_size + "  idx: " + idx + "  after: " + after + "  size: " + size + "  left: " + left);
                 return;
             }
 

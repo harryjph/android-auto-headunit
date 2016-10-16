@@ -18,7 +18,6 @@ import android.os.ResultReceiver;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
@@ -33,9 +32,8 @@ import ca.yyx.hu.usb.UsbAccessoryConnection;
 import ca.yyx.hu.usb.UsbDeviceCompat;
 import ca.yyx.hu.usb.UsbReceiver;
 import ca.yyx.hu.utils.IntentUtils;
+import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
-
-import static android.R.attr.enabled;
 
 /**
  * @author algavris
@@ -105,7 +103,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
 
         UsbDevice device = IntentUtils.getDevice(intent);
         if (device == null) {
-            Utils.loge("No device in "+intent);
+            AppLog.loge("No device in "+intent);
             return START_NOT_STICKY;
         }
 
@@ -162,10 +160,10 @@ public class AapService extends Service implements UsbReceiver.Listener {
             }
             else
             {
-                Utils.loge("Cannot connect to device " + UsbDeviceCompat.getUniqueName(device));
+                AppLog.loge("Cannot connect to device " + UsbDeviceCompat.getUniqueName(device));
             }
         } catch (UsbAccessoryConnection.UsbOpenException e) {
-            Utils.loge(e);
+            AppLog.loge(e);
         }
 
         return START_STICKY;
@@ -202,17 +200,17 @@ public class AapService extends Service implements UsbReceiver.Listener {
 
         @Override
         public void onCommand(String command, Bundle extras, ResultReceiver cb) {
-            Utils.logd(command);
+            AppLog.logd(command);
         }
 
         @Override
         public void onCustomAction(String action, Bundle extras) {
-            Utils.logd(action);
+            AppLog.logd(action);
         }
 
         @Override
         public void onSkipToNext() {
-            Utils.logd("onSkipToNext");
+            AppLog.logd("onSkipToNext");
 
             mTransport.sendButton(Protocol.BTN_NEXT, true);
             Utils.ms_sleep(10);
@@ -221,7 +219,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
 
         @Override
         public void onSkipToPrevious() {
-            Utils.logd("onSkipToPrevious");
+            AppLog.logd("onSkipToPrevious");
 
             mTransport.sendButton(Protocol.BTN_PREV, true);
             Utils.ms_sleep(10);
@@ -230,7 +228,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
 
         @Override
         public void onPlay() {
-            Utils.logd("PLAY");
+            AppLog.logd("PLAY");
 
             mTransport.sendButton(Protocol.BTN_PLAYPAUSE, true);
             Utils.ms_sleep(10);
@@ -239,7 +237,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
 
         @Override
         public boolean onMediaButtonEvent(Intent mediaButtonEvent) {
-            Utils.logd(mediaButtonEvent.toString());
+            AppLog.logd(mediaButtonEvent.toString());
             return super.onMediaButtonEvent(mediaButtonEvent);
         }
     }
@@ -249,7 +247,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
         if (mUsbAccessoryConnection.isConnected())
         {
             if (mUsbAccessoryConnection.isDeviceRunning(device)) {
-                Utils.logd("Device already connected");
+                AppLog.logd("Device already connected");
                 return true;
             }
         }
@@ -292,7 +290,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
             {
                 nightmodenow = 0;
             }
-            Utils.logd("NightMode: %d != %d", mNightMode, nightmodenow);
+            AppLog.logd("NightMode: %d != %d", mNightMode, nightmodenow);
             if (mNightMode != nightmodenow) {
                 mNightMode = nightmodenow;
 

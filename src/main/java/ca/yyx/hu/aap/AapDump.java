@@ -4,7 +4,7 @@ import android.util.Log;
 
 import java.util.Locale;
 
-import ca.yyx.hu.utils.Utils;
+import ca.yyx.hu.utils.AppLog;
 
 class AapDump {
     private static final int MAX_HEX_DUMP  = 64;//32;
@@ -15,7 +15,7 @@ class AapDump {
 
         if (len < 2) {
             // If less than 2 bytes, needed for msg_type...
-            Utils.loge ("hu_aad_dmp len: %d", len);
+            AppLog.loge ("hu_aad_dmp len: %d", len);
             return 0;
         }
 
@@ -39,11 +39,11 @@ class AapDump {
 
         String msg_type_str = iaad_msg_type_str_get(msg_type, src, lft);   // Get msg_type string
         if (flags == 0x08)
-            Log.d(Utils.TAG, String.format("%s src: %s  lft: %5d  Media Data Mid", prefix, src, lft));
+            Log.d(AppLog.TAG, String.format("%s src: %s  lft: %5d  Media Data Mid", prefix, src, lft));
         else if (flags == 0x0a)
-            Log.d(Utils.TAG, String.format("%s src: %s  lft: %5d  Media Data End", prefix, src, lft));
+            Log.d(AppLog.TAG, String.format("%s src: %s  lft: %5d  Media Data End", prefix, src, lft));
         else
-            Log.d(Utils.TAG, String.format("%s src: %s  lft: %5d  msg_type: %5d %s", prefix, src, lft, msg_type, msg_type_str));
+            Log.d(AppLog.TAG, String.format("%s src: %s  lft: %5d  msg_type: %5d %s", prefix, src, lft, msg_type, msg_type_str));
 
         logHex(prefix, 2, buf, lft);                                  // Hexdump
 
@@ -61,7 +61,7 @@ class AapDump {
             return (rmv);                                                     // Done
 
         if (lft < 2) {                                                      // If less than 2 bytes for content (impossible if content; need at least 1 byte for 0x08 and 1 byte for varint)
-            Utils.loge ("hu_aad_dmp len: %d  lft: %d", len, lft);
+            AppLog.loge ("hu_aad_dmp len: %d  lft: %d", len, lft);
             return (rmv);                                                     // Done with error
         }
 
@@ -70,9 +70,9 @@ class AapDump {
         // iaad_adj(&rmv, &buf, &lft, adj);                                // Adjust past the content (to nothing, presumably)
 
 //        if (lft != 0 || rmv != len || rmv < 0)                              // If content left... (must be malformed)
-//            Utils.loge ("hu_aad_dmp after content len: %d  lft: %d  rmv: %d  buf: %p", len, lft, rmv, buf);
+//            AppLog.loge ("hu_aad_dmp after content len: %d  lft: %d  rmv: %d  buf: %p", len, lft, rmv, buf);
 
-        Utils.logd ("--------------------------------------------------------");  // Empty line / 56 characters
+        AppLog.logd ("--------------------------------------------------------");  // Empty line / 56 characters
 
         return (rmv);
     }
@@ -180,7 +180,6 @@ class AapDump {
 
     static void logHex(String prefix, int start, byte[] buf, int len) {
 
-
         if (len + start > MAX_HEX_DUMP)
             len = MAX_HEX_DUMP + start;
 
@@ -198,7 +197,7 @@ class AapDump {
 
             if (n == HD_MW) {                                                 // If at specified line width
                 n = 0;                                                          // Reset position in line counter
-                Log.d(Utils.TAG,sb.toString());                                                    // Log line
+                Log.v(AppLog.TAG,sb.toString());                                                    // Log line
 
                 sb.setLength(0);
 
@@ -206,7 +205,7 @@ class AapDump {
                 line = String.format(Locale.US, "     %04d ", i + 1 );
                 sb.append(line);
             } else if (i == len - 1) {                                           // Else if at last byte
-                Log.d(Utils.TAG,sb.toString());                                    // Log line
+                Log.v(AppLog.TAG,sb.toString());                                    // Log line
             }
         }
     }

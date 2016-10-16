@@ -1,13 +1,11 @@
 package ca.yyx.hu.decoder;
 
-import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.util.SparseArray;
 
-import java.nio.ByteBuffer;
-
+import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
 
 /**
@@ -45,7 +43,7 @@ public class AudioDecoder {
         AudioTrack out_audiotrack = mAudioTracks.get(chan);
 
         if (out_audiotrack == null) {
-            Utils.logd("out_audiotrack == null");
+            AppLog.logd("out_audiotrack == null");
             return;
         }
 
@@ -59,7 +57,7 @@ public class AudioDecoder {
             Utils.ms_sleep(150);//300);//100);                                          // 100 ms = time for about 3 KBytes (1.5 buffers of 2Bytes (1024 samples) as used for 16,000 samples per second
             last_frames = curr_frames;
             curr_frames = out_audiotrack.getPlaybackHeadPosition();
-            Utils.logd("curr_frames: " + curr_frames + "  last_frames: " + last_frames);
+            AppLog.logd("curr_frames: " + curr_frames + "  last_frames: " + last_frames);
         }
 
         out_audiotrack.stop();
@@ -95,7 +93,7 @@ public class AudioDecoder {
 
         int written = out_audiotrack.write(aud_buf, 0, len);
         if (written != len) {
-            Utils.loge("Error AudioTrack written: " + written + "  len: " + len);
+            AppLog.loge("Error AudioTrack written: " + written + "  len: " + len);
         }
     }
 

@@ -9,6 +9,7 @@ import android.view.KeyEvent;
 import ca.yyx.hu.App;
 import ca.yyx.hu.aap.AapTransport;
 import ca.yyx.hu.aap.Protocol;
+import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
 
 /**
@@ -38,7 +39,7 @@ public class DeviceListener extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Utils.logd(intent.toString());
+        AppLog.logd(intent.toString());
 
         if (ACTION_KEYEVENT.equals(intent.getAction())) {
             int keyCode = intent.getIntExtra("keyvalue", 0);
@@ -66,7 +67,7 @@ public class DeviceListener extends BroadcastReceiver {
                 sendButton(Protocol.BTN_PREV);
                 break;
             default:
-                Utils.logd("Unknown keyCode: "+keyCode);
+                AppLog.logd("Unknown keyCode: "+keyCode);
         }
     }
 

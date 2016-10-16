@@ -11,9 +11,9 @@ import android.widget.Toast;
 import ca.yyx.hu.aap.AapService;
 import ca.yyx.hu.usb.UsbDeviceCompat;
 import ca.yyx.hu.usb.UsbModeSwitch;
+import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.IntentUtils;
 import ca.yyx.hu.utils.Settings;
-import ca.yyx.hu.utils.Utils;
 
 /**
  * @author algavris
@@ -25,23 +25,23 @@ public class UsbAttachedActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Utils.logd("USB Intent: " + getIntent());
+        AppLog.logd("USB Intent: " + getIntent());
 
         UsbDevice device = IntentUtils.getDevice(getIntent());
         if (device == null) {
-            Utils.loge("No USB device");
+            AppLog.loge("No USB device");
             finish();
             return;
         }
 
         if (App.get(this).transport().isAlive()) {
-            Utils.loge("Thread already running");
+            AppLog.loge("Thread already running");
             finish();
             return;
         }
 
         if (UsbDeviceCompat.isInAccessoryMode(device)) {
-            Utils.loge("Usb in accessory mode");
+            AppLog.loge("Usb in accessory mode");
             startService(AapService.createIntent(device, this));
             finish();
             return;
@@ -50,14 +50,14 @@ public class UsbAttachedActivity extends Activity {
         UsbDeviceCompat deviceCompat = new UsbDeviceCompat(device);
         Settings settings = new Settings(this);
         if (!settings.isConnectingDevice(deviceCompat)) {
-            Utils.logd("Skipping device " + deviceCompat.getUniqueName());
+            AppLog.logd("Skipping device " + deviceCompat.getUniqueName());
             finish();
             return;
         }
 
         UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         UsbModeSwitch usbMode = new UsbModeSwitch(usbManager);
-        Utils.logd("Switching USB device to accessory mode " + deviceCompat.getUniqueName());
+        AppLog.logd("Switching USB device to accessory mode " + deviceCompat.getUniqueName());
         Toast.makeText(this, "Switching USB device to accessory mode " + deviceCompat.getUniqueName(), Toast.LENGTH_SHORT).show();
         if (usbMode.switchMode(device)) {
             Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show();
@@ -74,20 +74,20 @@ public class UsbAttachedActivity extends Activity {
 
         UsbDevice device = IntentUtils.getDevice(getIntent());
         if (device == null) {
-            Utils.loge("No USB device");
+            AppLog.loge("No USB device");
             finish();
             return;
         }
 
-        Utils.logd(UsbDeviceCompat.getUniqueName(device));
+        AppLog.logd(UsbDeviceCompat.getUniqueName(device));
 
         if (!App.get(this).transport().isAlive()) {
             if (UsbDeviceCompat.isInAccessoryMode(device)) {
-                Utils.loge("Usb in accessory mode");
+                AppLog.loge("Usb in accessory mode");
                 startService(AapService.createIntent(device, this));
             }
         } else {
-            Utils.loge("Thread already running");
+            AppLog.loge("Thread already running");
         }
 
         finish();

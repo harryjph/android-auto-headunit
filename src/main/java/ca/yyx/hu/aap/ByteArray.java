@@ -39,7 +39,11 @@ class ByteArray {
     }
 
     public void put(byte[] data, int size) {
-        System.arraycopy(data, 0, this.data, this.length, size);
+        this.put(0, data, size);
+    }
+
+    public void put(int start, byte[] data, int size) {
+        System.arraycopy(data, start, this.data, this.length, size);
         this.length += size;
     }
 }

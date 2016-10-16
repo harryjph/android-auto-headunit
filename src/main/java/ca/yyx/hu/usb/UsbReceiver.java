@@ -7,7 +7,7 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 
-import ca.yyx.hu.utils.Utils;
+import ca.yyx.hu.utils.AppLog;
 
 public class UsbReceiver extends BroadcastReceiver {
     public static String ACTION_USB_DEVICE_PERMISSION = "ca.yyx.hu.ACTION_USB_DEVICE_PERMISSION";
@@ -50,7 +50,7 @@ public class UsbReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         UsbDevice device = intent.<UsbDevice>getParcelableExtra(UsbManager.EXTRA_DEVICE);
-        Utils.logd("USB Intent: " + intent);
+        AppLog.logd("USB Intent: " + intent);
 
         if (device != null) {
             String action = intent.getAction();

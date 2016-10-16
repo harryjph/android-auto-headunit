@@ -92,6 +92,13 @@ public class AapProjectionActivity extends SurfaceActivity {
         }
     };
 
+    public static void start(Context context)
+    {
+        Intent aapIntent = new Intent(context, AapProjectionActivity.class);
+        aapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(aapIntent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -129,11 +136,13 @@ public class AapProjectionActivity extends SurfaceActivity {
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         super.surfaceChanged(holder,format,width,height);
+        mTransport.sendVideoFocusGained();
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         super.surfaceDestroyed(holder);
+        mTransport.sendVideoFocusLost();
     }
 
     private void touch_send(MotionEvent event) {

@@ -125,8 +125,6 @@ public class UsbAccessoryConnection
         }
         mEndpointIn = null;                                               // Input  EP
         mEndpointOut = null;                                               // Output EP
-        m_ep_in_addr = -1;                                                 // Input  endpoint Value
-        m_ep_out_addr = -1;                                                 // Output endpoint Value
 
         if (mUsbDeviceConnection != null) {
             boolean bret = false;
@@ -144,14 +142,6 @@ public class UsbAccessoryConnection
         mUsbDeviceConnection = null;
         mUsbInterface = null;
         mUsbDeviceConnected = null;
-    }
-
-    public int getEndpointInAddr() {
-        return m_ep_in_addr;
-    }
-
-    public int getEndpointOutAddr() {
-        return m_ep_out_addr;
     }
 
     public boolean isConnected() {

@@ -19,10 +19,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private static final int DATA_MESSAGE = 2;
     private static final int MIC_RECORD_START = 3;
     private static final int MIC_RECORD_STOP = 4;
-
-    private static final int DEFBUF = 131080;
-
-    private byte[] fixed_res_buf = new byte[DEFBUF * 16];
+    private final Listener mListener;
 
     private Handler mHandler;
     private boolean mMicRecording;
@@ -38,8 +35,11 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private UsbAccessoryConnection mConnection;
     private AapPoll mAapPoll;
 
+    public interface Listener {
+        void gainVideoFocus();
+    }
 
-    public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder) {
+    public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder, Listener listener) {
         super("AapTransport");
         mAudioDecoder = audioDecoder;
         mVideoDecoder = videoDecoder;
@@ -47,6 +47,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         mAapAudio = new AapAudio(this);
         mAapMicrophone = new AapMicrophone();
         mAapControl = new AapControl(this, mAapAudio, mAapMicrophone);
+        mListener = listener;
     }
 
     static {
@@ -100,9 +101,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
 
         // Send a command (or null command)
-//        ret = native_aap_poll(fixed_res_buf.length, fixed_res_buf);
         ret = mAapPoll.poll();
-        onPollResult(ret, fixed_res_buf);
 
         if (mHandler == null) {
             return false;
@@ -222,7 +221,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
 
     // Send AA packet/HU command/mic audio AND/OR receive video/output audio/audio notifications
-    void onPollResult(int ret, byte[] res_buf) {
+    void onPollResult(int ret) {
 
         if (ret == AapPoll.RESPONSE_MIC_STOP) {                                                     // If mic stop...
             AppLog.logd("Microphone Stop");
@@ -240,17 +239,15 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         } else if (ret == AapPoll.RESPONSE_AUDIO2_STOP) {                                                // Else if audio2 stop...
             AppLog.logd("Audio2 Stop");
             mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AU2);
-        } else if (ret > 0) {
-            handleMedia(res_buf, ret);
         }
     }
 
-    private void handleMedia(byte[] buffer, int size) {
-        if (VideoDecoder.isH246Video(buffer)) {
-            mVideoDecoder.decode(buffer, size);
-        } else {
-            mAudioDecoder.decode(buffer, size);
-        }
+    void onPollVideo(ByteArray buffer) {
+        mVideoDecoder.decode(buffer.data, buffer.length);
+    }
+
+    void onPollAudio(ByteArray buffer) {
+        mAudioDecoder.decode(buffer.data, buffer.length);
     }
 
     void sendTouch(byte action, int x, int y) {
@@ -335,6 +332,27 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
     int sslRead(byte[] res_buf, int res_max) {
         return native_ssl_read(res_max, res_buf);
+    }
+
+    void gainVideoFocus()
+    {
+        mListener.gainVideoFocus();
+    }
+
+    void sendVideoFocusGained() {
+        // Else if success and channel = video...
+        byte rsp2[] = {(byte) 0x80, 0x08, 0x08, 1, 0x10, 1};
+        // 1, 1     VideoFocus gained focusState=1 unsolicited=true     010b0000800808011001
+        sendEncrypted(Channel.AA_CH_VID, rsp2, rsp2.length);
+        // Respond with VideoFocus gained
+    }
+
+    void sendVideoFocusLost() {
+        // Else if success and channel = video...
+        byte rsp2[] = {(byte) 0x80, 0x08, 0x08, 1, 0x10, 0};
+        // 1, 1     VideoFocus gained focusState=1 unsolicited=true     010b0000800808011001
+        sendEncrypted(Channel.AA_CH_VID, rsp2, rsp2.length);
+        // Respond with VideoFocus gained
     }
 }
 

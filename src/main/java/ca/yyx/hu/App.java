@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Build;
 
+import ca.yyx.hu.aap.AapProjectionActivity;
 import ca.yyx.hu.aap.AapTransport;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.VideoDecoder;
@@ -13,7 +14,7 @@ import ca.yyx.hu.decoder.VideoDecoder;
  * @date 30/05/2016.
  */
 
-public class App extends Application {
+public class App extends Application implements AapTransport.Listener {
     public static final boolean IS_LOLLIPOP = Build.VERSION.SDK_INT >= 21;
 
     private VideoDecoder mVideoDecoder;
@@ -37,11 +38,10 @@ public class App extends Application {
     public AapTransport transport()
     {
         if (mTransport == null || mTransport.isStopped()) {
-            mTransport = new AapTransport(mAudioDecoder, mVideoDecoder);
+            mTransport = new AapTransport(mAudioDecoder, mVideoDecoder, this);
         }
         return mTransport;
     }
-
 
     public AudioDecoder audioDecoder() {
         return mAudioDecoder;
@@ -53,5 +53,10 @@ public class App extends Application {
 
     public void reset() {
         mTransport = null;
+    }
+
+    @Override
+    public void gainVideoFocus() {
+        AapProjectionActivity.start(this);
     }
 }

@@ -24,6 +24,9 @@ class AapPoll {
     private final AapTransport mTransport;
 
     private static final int DEFBUF = 131080;
+    private byte[] recv_buffer = new byte[DEFBUF];
+    private byte[] enc_buf = new byte[DEFBUF];
+
     private final AapAudio mAapAudio;
     private final AapMicrophone mAapMicrophone;
     private final AapVideo mAapVideo;
@@ -45,69 +48,53 @@ class AapPoll {
             return -1;
         }
 
-        byte[] fixed_res_buf = new byte[DEFBUF];
-        int size = mConnection.recv(fixed_res_buf, 150);
+        int size = mConnection.recv(recv_buffer, 150);
         if (size <= 0) {
             AppLog.loge ("RECV %d", size);
             return 0;
         }
-        int result = process(size, fixed_res_buf);
-        mTransport.onPollResult(result, fixed_res_buf);
-        return 0;
-    }
-
-
-    private int process(int msg_len, byte[] msg_buf) {
-        int ret;
 
         int vid_bufs = mAapVideo.buffersCount();
         int aud_bufs = mAapAudio.buffersCount();
 
-        // If any queue audio or video...
-        if (vid_bufs > 0 || aud_bufs > 0) {
-            ret = 0;
-        } else {
-            // Else Process 1 message w/ iaap_tra_recv_tmo
-            ret = hu_aap_recv_process(msg_len, msg_buf);
-        }
-        if (ret < 0) {
-            return ret;
-        }
-
-        if (vid_bufs <= 0 && aud_bufs <= 0) {                               // If no queued audio or video...
-            ret = mAapMicrophone.hu_aap_mic_get();
-            if (ret >= 1) {// && ret <= 2) {                                  // If microphone start (2) or stop (1)...
-                return ret;                                                   // Done w/ mic notification: start (2) or stop (1)
+        int result;
+        if (vid_bufs == 0 && aud_bufs == 0) {
+            result = hu_aap_recv_process(size, recv_buffer);
+            if (result == 0) {
+                result = process_mic();
             }
-            // Else if no microphone state change...
-
-            if (mAapAudio.state(Channel.AA_CH_AUD) >= 0)                              // If audio out stop...
-                return RESPONSE_AUDIO_STOP;                                                     // Done w/ audio out notification 0
-            if (mAapAudio.state(Channel.AA_CH_AU1) >= 0)                              // If audio out stop...
-                return RESPONSE_AUDIO1_STOP;                                                     // Done w/ audio out notification 1
-            if (mAapAudio.state(Channel.AA_CH_AU2) >= 0)                              // If audio out stop...
-                return RESPONSE_AUDIO2_STOP;                                                     // Done w/ audio out notification 2
+            mTransport.onPollResult(result);
         }
 
-        ByteArray dq_buf = mAapAudio.poll();                         // Get audio if ready
-        if (dq_buf == null) {                                           // If no audio... (Audio has priority over video)
-            dq_buf = mAapVideo.poll();                       // Get video if ready
-        } else {                                                              // If audio
-            if (dq_buf.data[0] == 0 && dq_buf.data[1] == 0 && dq_buf.data[2] == 0 && dq_buf.data[3] == 1) {
-                dq_buf.data[3] = 0;                                                   // If audio happened to have magic video signature... (rare), then 0 the 1
-                AppLog.loge ("magic video signature in audio");
-            }
+        ByteArray audio_buf = mAapAudio.poll();
+        if (audio_buf != null) {
+            mTransport.onPollAudio(audio_buf);
         }
 
-        if (dq_buf == null) {
-            return 0;
+        ByteArray video_buf = mAapVideo.poll();
+        if (video_buf != null) {
+            mTransport.onPollVideo(video_buf);
         }
 
-        System.arraycopy(dq_buf.data, 0, msg_buf, 0, dq_buf.length);
-
-        return dq_buf.length;
+        return 0;
     }
 
+    private int process_mic() {
+        int result = mAapMicrophone.hu_aap_mic_get();
+        if (result >= 1) {// && ret <= 2) {                                  // If microphone start (2) or stop (1)...
+            return result;                                                   // Done w/ mic notification: start (2) or stop (1)
+        }
+        // Else if no microphone state change...
+
+        if (mAapAudio.state(Channel.AA_CH_AUD) >= 0)                              // If audio out stop...
+            return RESPONSE_AUDIO_STOP;                                                     // Done w/ audio out notification 0
+        if (mAapAudio.state(Channel.AA_CH_AU1) >= 0)                              // If audio out stop...
+            return RESPONSE_AUDIO1_STOP;                                                     // Done w/ audio out notification 1
+        if (mAapAudio.state(Channel.AA_CH_AU2) >= 0)                              // If audio out stop...
+            return RESPONSE_AUDIO2_STOP;
+
+        return 0;
+    }
 
     private int hu_aap_recv_process(int msg_len, byte[] msg_buf) {
 
@@ -164,7 +151,6 @@ class AapPoll {
             }
         }
 
-
         return 0;                                                       // Return value from the last iaap_recv_dec_process() call; should be 0
     }
 
@@ -177,7 +163,6 @@ class AapPoll {
             return null;
         }
 
-        byte[] enc_buf = new byte[DEFBUF];
         int bytes_read = mTransport.sslRead(enc_buf, enc_buf.length);
         // Read decrypted to decrypted rx buf
         if (bytes_read <= 0) {

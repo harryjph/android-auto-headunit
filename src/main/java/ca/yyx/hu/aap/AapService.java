@@ -148,7 +148,6 @@ public class AapService extends Service implements UsbReceiver.Listener {
                 {
                     mTransport.connectAndStart(mUsbAccessoryConnection);
                 }
-                startActivity();
             } else if (connect(device)) {
                 if (mTransport.isAlive())
                 {
@@ -156,7 +155,6 @@ public class AapService extends Service implements UsbReceiver.Listener {
                     mTransport = App.get(this).transport();
                 }
                 mTransport.connectAndStart(mUsbAccessoryConnection);
-                startActivity();
             }
             else
             {
@@ -167,13 +165,6 @@ public class AapService extends Service implements UsbReceiver.Listener {
         }
 
         return START_STICKY;
-    }
-
-    private void startActivity()
-    {
-        Intent aapIntent = new Intent(this, AapProjectionActivity.class);
-        aapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(aapIntent);
     }
 
     private void onDisconnect() {

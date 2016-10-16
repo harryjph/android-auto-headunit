@@ -259,11 +259,7 @@ class AapControl {
         }
 
         if (chan == Channel.AA_CH_VID) {
-            // Else if success and channel = video...
-            byte rsp2[] = {(byte) 0x80, 0x08, 0x08, 1, 0x10, 1};
-            // 1, 1     VideoFocus gained focusState=1 unsolicited=true     010b0000800808011001
-            return mTransport.sendEncrypted(chan, rsp2, rsp2.length);
-            // Respond with VideoFocus gained
+            mTransport.gainVideoFocus();
         }
         return ret;
     }

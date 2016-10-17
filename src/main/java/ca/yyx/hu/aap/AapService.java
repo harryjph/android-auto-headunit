@@ -169,8 +169,8 @@ public class AapService extends Service implements UsbReceiver.Listener {
 
     private void onDisconnect() {
         LocalBroadcastManager.getInstance(this).sendBroadcast(IntentUtils.ACTION_DISCONNECT);
-        mUsbAccessoryConnection.disconnect();
         reset();
+        mUsbAccessoryConnection.disconnect();
     }
 
     private void reset()
@@ -281,8 +281,8 @@ public class AapService extends Service implements UsbReceiver.Listener {
             {
                 nightmodenow = 0;
             }
-            AppLog.logd("NightMode: %d != %d", mNightMode, nightmodenow);
             if (mNightMode != nightmodenow) {
+                AppLog.logd("NightMode: %d != %d", mNightMode, nightmodenow);
                 mNightMode = nightmodenow;
 
                 boolean enabled = nightmodenow == 1;

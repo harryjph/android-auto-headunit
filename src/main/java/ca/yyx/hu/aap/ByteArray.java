@@ -46,4 +46,9 @@ class ByteArray {
         System.arraycopy(data, start, this.data, this.length, size);
         this.length += size;
     }
+
+    public void reset()
+    {
+        this.length = 0;
+    }
 }

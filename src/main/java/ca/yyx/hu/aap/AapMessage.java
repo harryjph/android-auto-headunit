@@ -5,16 +5,17 @@ package ca.yyx.hu.aap;
  * @author algavris
  * @date 04/10/2016.
  */
-class AapMessage extends ByteArray {
+class AapMessage {
 
+    final byte[] data;
+    final int length;
     final int channel;
     final byte flags;
     final int type;
 
-    AapMessage(int channel, byte flags, int msg_type, byte[] data, int size) {
-        super(size);
-        this.data = data;
-        this.length = size;
+    AapMessage(int channel, byte flags, int msg_type,ByteArray ba) {
+        this.data = ba.data;
+        this.length = ba.length;
         this.channel = channel;
         this.flags = flags;
         this.type = msg_type;

@@ -31,6 +31,7 @@ class AapPoll {
     private final AapMicrophone mAapMicrophone;
     private final AapVideo mAapVideo;
     private final AapControl mAapControl;
+    private final ByteArrayPool mByteArrayPool = new ByteArrayPool();
 
     AapPoll(UsbAccessoryConnection connection, AapTransport transport) {
         mConnection = connection;
@@ -50,7 +51,7 @@ class AapPoll {
 
         int size = mConnection.recv(recv_buffer, 150);
         if (size <= 0) {
-            AppLog.loge ("RECV %d", size);
+            AppLog.logd("recv %d", size);
             return 0;
         }
 
@@ -69,11 +70,11 @@ class AapPoll {
         ByteArray audio_buf = mAapAudio.poll();
         if (audio_buf != null) {
             mTransport.onPollAudio(audio_buf);
-        }
-
-        ByteArray video_buf = mAapVideo.poll();
-        if (video_buf != null) {
-            mTransport.onPollVideo(video_buf);
+        } else {
+            ByteArray video_buf = mAapVideo.poll();
+            if (video_buf != null) {
+                mTransport.onPollVideo(video_buf);
+            }
         }
 
         return 0;
@@ -174,7 +175,9 @@ class AapPoll {
         AapDump.log(prefix, "AA", chan, flags, enc_buf, enc_len);
 
         int msg_type = Utils.bytesToInt(enc_buf, 0, true);
-        return new AapMessage(chan, (byte)flags, msg_type, enc_buf, bytes_read);
+        ByteArray ba = mByteArrayPool.obtain(enc_buf, bytes_read);
+
+        return new AapMessage(chan, (byte)flags, msg_type, ba);
     }
 
     private int iaap_msg_process(AapMessage message) {

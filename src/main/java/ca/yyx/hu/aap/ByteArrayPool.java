@@ -22,7 +22,6 @@ class ByteArrayPool {
         if (mNext == CACHE_SIZE) {
             mNext = 0;
         }
-        AppLog.logd("%d",mNext);
         ByteArray ba = mCache.get(mNext);
         if (ba == null) {
             ba = new ByteArray(Protocol.DEF_BUFFER_LENGTH);

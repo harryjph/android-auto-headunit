@@ -142,13 +142,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
         startForeground(1, noty);
 
         try {
-            if (mUsbAccessoryConnection.isDeviceRunning(device))
-            {
-                if (!mTransport.isAlive())
-                {
-                    mTransport.connectAndStart(mUsbAccessoryConnection);
-                }
-            } else if (connect(device)) {
+            if (connect(device)) {
                 if (mTransport.isAlive())
                 {
                     reset();

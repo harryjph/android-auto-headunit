@@ -25,37 +25,42 @@ public class UsbAccessoryConnection
     private int m_ep_in_addr = -1;                                      // Input  endpoint Value  129
     private int m_ep_out_addr = -1;                                      // Output endpoint Value    2
 
+    private static final Object sLock = new Object();
+
     public UsbAccessoryConnection(UsbManager usbMgr) {
         mUsbMgr = usbMgr;
     }
 
     public boolean isDeviceRunning(UsbDevice device) {
-        if (mUsbDeviceConnected == null)
-        {
-            return false;
+        synchronized (sLock) {
+            if (mUsbDeviceConnected == null) {
+                return false;
+            }
+            return UsbDeviceCompat.getUniqueName(device).equals(mUsbDeviceConnected.getUniqueName());
         }
-        return UsbDeviceCompat.getUniqueName(device).equals(mUsbDeviceConnected.getUniqueName());
     }
 
     public boolean connect(UsbDevice device) throws UsbOpenException {                         // Attempt to connect. Called only by usb_attach_handler() & presets_select()
         if (mUsbDeviceConnection != null) {
             disconnect();
         }
-        try {
-            usb_open(device);                                        // Open USB device & claim interface
-        } catch (UsbOpenException e) {
-            disconnect();                                                // Ensure state is disconnected
-            throw e;
-        }
+        synchronized (sLock) {
+            try {
+                usb_open(device);                                        // Open USB device & claim interface
+            } catch (UsbOpenException e) {
+                disconnect();                                                // Ensure state is disconnected
+                throw e;
+            }
 
-        int ret = acc_mode_endpoints_set();                                  // Set Accessory mode Endpoints
-        if (ret < 0) {                                                    // If error...
-            disconnect();                                              // Ensure state is disconnected
-            return false;
-        }
+            int ret = acc_mode_endpoints_set();                                  // Set Accessory mode Endpoints
+            if (ret < 0) {                                                    // If error...
+                disconnect();                                              // Ensure state is disconnected
+                return false;
+            }
 
-        mUsbDeviceConnected = new UsbDeviceCompat(device);
-        return true;
+            mUsbDeviceConnected = new UsbDeviceCompat(device);
+            return true;
+        }
     }
 
     private void usb_open(UsbDevice device) throws UsbOpenException {                             // Open USB device connection & claim interface. Called only by usb_connect()
@@ -120,28 +125,30 @@ public class UsbAccessoryConnection
     }
 
     public void disconnect() {                                           // Release interface and close USB device connection. Called only by usb_disconnect()
-        if (mUsbDeviceConnected != null) {
-            AppLog.logd(mUsbDeviceConnected.toString());
-        }
-        mEndpointIn = null;                                               // Input  EP
-        mEndpointOut = null;                                               // Output EP
-
-        if (mUsbDeviceConnection != null) {
-            boolean bret = false;
-            if (mUsbInterface != null) {
-                bret = mUsbDeviceConnection.releaseInterface(mUsbInterface);
+        synchronized (sLock) {
+            if (mUsbDeviceConnected != null) {
+                AppLog.logd(mUsbDeviceConnected.toString());
             }
-            if (bret) {
-                AppLog.logd("OK releaseInterface()");
-            } else {
-                AppLog.loge("Error releaseInterface()");
-            }
+            mEndpointIn = null;                                               // Input  EP
+            mEndpointOut = null;                                               // Output EP
 
-            mUsbDeviceConnection.close();                                        //
+            if (mUsbDeviceConnection != null) {
+                boolean bret = false;
+                if (mUsbInterface != null) {
+                    bret = mUsbDeviceConnection.releaseInterface(mUsbInterface);
+                }
+                if (bret) {
+                    AppLog.logd("OK releaseInterface()");
+                } else {
+                    AppLog.loge("Error releaseInterface()");
+                }
+
+                mUsbDeviceConnection.close();                                        //
+            }
+            mUsbDeviceConnection = null;
+            mUsbInterface = null;
+            mUsbDeviceConnected = null;
         }
-        mUsbDeviceConnection = null;
-        mUsbInterface = null;
-        mUsbDeviceConnected = null;
     }
 
     public boolean isConnected() {
@@ -153,30 +160,34 @@ public class UsbAccessoryConnection
      * or negative value for failure
      */
     public int send(byte[] buf, int length, int timeout) {
-        if (mUsbDeviceConnected == null) {
-            AppLog.loge("Not connected");
-            return -1;
-        }
-        try {
-            return mUsbDeviceConnection.bulkTransfer(mEndpointOut, buf, length, timeout);
-        } catch (NullPointerException e) {
-            disconnect();
-            AppLog.loge(e);
-            return -1;
+        synchronized (sLock) {
+            if (mUsbDeviceConnected == null) {
+                AppLog.loge("Not connected");
+                return -1;
+            }
+            try {
+                return mUsbDeviceConnection.bulkTransfer(mEndpointOut, buf, length, timeout);
+            } catch (NullPointerException e) {
+                disconnect();
+                AppLog.loge(e);
+                return -1;
+            }
         }
     }
 
     public int recv(byte[] buf, int timeout) {
-        if (mUsbDeviceConnected == null) {
-            AppLog.loge("Not connected");
-            return -1;
-        }
-        try {
-            return mUsbDeviceConnection.bulkTransfer(mEndpointIn, buf, buf.length, timeout);
-        } catch (NullPointerException e) {
-            disconnect();
-            AppLog.loge(e);
-            return -1;
+        synchronized (sLock) {
+            if (mUsbDeviceConnected == null) {
+                AppLog.loge("Not connected");
+                return -1;
+            }
+            try {
+                return mUsbDeviceConnection.bulkTransfer(mEndpointIn, buf, buf.length, timeout);
+            } catch (NullPointerException e) {
+                disconnect();
+                AppLog.loge(e);
+                return -1;
+            }
         }
     }
 

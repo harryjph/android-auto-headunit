@@ -7,6 +7,7 @@ import android.view.SurfaceHolder;
 import java.nio.ByteBuffer;
 
 import ca.yyx.hu.utils.AppLog;
+import ca.yyx.hu.utils.Utils;
 
 /**
  * @author algavris
@@ -24,17 +25,13 @@ public class VideoDecoder {
     private NalUnitsStore mNalUnitsStore = new NalUnitsStore();
     private boolean mCodecConfigured;
 
-    public static boolean isH246Video(byte[] ba) {
-        return ba[0] == 0 && ba[1] == 0 && ba[2] == 0 && ba[3] == 1;
-    }
-
-    public void decode(byte[] buffer, int size) {
+    public void decode(byte[] buffer, int offset, int size) {
 
         synchronized (sLock) {
 
             // AppLog.logd("Video buffer: %02X %02X %02X %02X %02X (%d)", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], size);
 
-            mNalUnitsStore.capture(buffer, size);
+            mNalUnitsStore.capture(buffer, offset, size);
 
             if (mCodec == null) {
                 AppLog.loge("Codec is not initialized");
@@ -67,7 +64,7 @@ public class VideoDecoder {
 
             ByteBuffer content = ByteBuffer.wrap(buffer);
             content.limit(size);
-            content.position(0);
+            content.position(offset);
 
             while (content.hasRemaining()) {                                 // While there is remaining content...
 
@@ -76,8 +73,10 @@ public class VideoDecoder {
                     return;
                 }
 
-                codec_output_consume();                                        // Send result to video codec
+                // Send result to video codec
+                codec_output_consume();
             }
+            Utils.ms_sleep(100);
         }
     }
 
@@ -97,6 +96,7 @@ public class VideoDecoder {
             } catch (Throwable t) {
                 AppLog.loge(t);
             }
+            AppLog.logd("Codec started");
         }
     }
 
@@ -109,6 +109,7 @@ public class VideoDecoder {
             mInputBuffers = null;
             mCodecBufferInfo = null;
             mCodecConfigured = false;
+            AppLog.logd("Codec stopped");
         }
     }
 

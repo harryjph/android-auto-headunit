@@ -2,6 +2,7 @@ package ca.yyx.hu.aap;
 
 import java.util.ArrayDeque;
 
+import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.utils.AppLog;
 
 /**
@@ -11,9 +12,9 @@ import ca.yyx.hu.utils.AppLog;
 
 class AapAudio {
     private final AapTransport mTransport;
+    private final AudioDecoder mAudioDecoder;
 
     private static final int AUDIO_BUFS_SIZE = 65536 * 4;      // Up to 256 Kbytes
-    private static final int AUDIO_BUFS_NUM = 16;
 
     private byte ack_val_aud = 0;
     private byte ack_val_au1 = 0;
@@ -25,12 +26,9 @@ class AapAudio {
 
     private byte aud_ack[] = {(byte) 0x80, 0x04, 0x08, 0, 0x10, 1};
 
-
-    private ArrayDeque<ByteArray> mQueue = new ArrayDeque<>(AUDIO_BUFS_NUM);
-
-
-    AapAudio(AapTransport transport) {
+    AapAudio(AapTransport transport, AudioDecoder audioDecoder) {
         mTransport = transport;
+        mAudioDecoder = audioDecoder;
     }
     // Global Ack: 0, 1     Same as video ack ?
 
@@ -81,14 +79,7 @@ class AapAudio {
                     AppLog.logv("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
             }
             AppLog.logv("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
-/*
-07-02 03:33:26.486 W/                        hex_dump( 1549): AUDIO:  00000000 00 00 00 00 00 79 3e 5c bd 60 45 ef 6c 1a 79 f6
-07-02 03:33:26.486 W/                        hex_dump( 1549): AUDIO:      0010 a8 15 15 fe b3 14 8c fc e8 0c 34 f8 bf 02 ec 00
-07-02 03:33:26.486 W/                        hex_dump( 1549): AUDIO:      0020 ab 0a 9a 0d a1 1d 88 0a ae 1e e5 03 a9 16 8d 10
-07-02 03:33:26.486 W/                        hex_dump( 1549): AUDIO:      0030 d9 1f 3c 28 af 34 9b 35 e2 3e e2 36 fd 3c b4 34
-07-02 03:33:26.487 D/              iaap_audio_process( 1549): iaap_audio_process ts: 31038 0x793e  t2: 31038 0x793e
-07-02 03:33:26.487 D/              iaap_audio_process( 1549): iaap_audio_process ts: 1046265184 0x3e5cbd60  t2: 1046265184 0x3e5cbd60
-*/
+
             decode(chan, 10, buf, len - 10);//assy, assy_size);                                                                                    // Decode PCM audio fully re-assembled
         }
 
@@ -102,17 +93,7 @@ class AapAudio {
             len = AUDIO_BUFS_SIZE;
         }
 
-        ByteArray ba = new ByteArray(len);
-        ba.put(start, buf, len);
-        mQueue.add(ba);
-    }
-
-    int buffersCount() {
-        return mQueue.size();
-    }
-
-    ByteArray poll() {                              // Get head buffer to read from
-        return mQueue.poll();
+        mAudioDecoder.decode(buf, start, len);
     }
 
     void setAudioAckVal(int chan, byte value) {

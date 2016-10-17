@@ -69,15 +69,7 @@ public class VideoTestActivity extends SurfaceActivity {
             idx += chunk_size;
             left -= chunk_size;
 
-//            if (mStarted)
-//            {
-//                if (VideoDecoder.isSps(bc))
-//                {
-//                    continue;
-//                }
-//            }
-
-            mVideoDecoder.decode(bc, chunk_size);                                                // Decode audio or H264 video content
+            mVideoDecoder.decode(bc, 0, chunk_size);                                                // Decode audio or H264 video content
             Utils.ms_sleep(20);                                             // Wait a frame
         }
         mStarted = true;

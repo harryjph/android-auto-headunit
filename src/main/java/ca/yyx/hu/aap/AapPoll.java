@@ -23,9 +23,8 @@ class AapPoll {
     private final UsbAccessoryConnection mConnection;
     private final AapTransport mTransport;
 
-    private static final int DEFBUF = 131080;
-    private byte[] recv_buffer = new byte[DEFBUF];
-    private byte[] enc_buf = new byte[DEFBUF];
+    private byte[] recv_buffer = new byte[Protocol.DEF_BUFFER_LENGTH];
+    private byte[] enc_buf = new byte[Protocol.DEF_BUFFER_LENGTH];
 
     private final AapAudio mAapAudio;
     private final AapMicrophone mAapMicrophone;
@@ -33,11 +32,11 @@ class AapPoll {
     private final AapControl mAapControl;
     private final ByteArrayPool mByteArrayPool = new ByteArrayPool();
 
-    AapPoll(UsbAccessoryConnection connection, AapTransport transport) {
+    AapPoll(UsbAccessoryConnection connection, AapTransport transport, AapAudio aapAudio, AapVideo aapVideo) {
         mConnection = connection;
         mTransport = transport;
-        mAapAudio = new AapAudio(transport);
-        mAapVideo = new AapVideo(transport);
+        mAapAudio = aapAudio;
+        mAapVideo = aapVideo;
         mAapMicrophone = new AapMicrophone();
         mAapControl = new AapControl(transport, mAapAudio, mAapMicrophone);
     }
@@ -54,29 +53,11 @@ class AapPoll {
             AppLog.logd("recv %d", size);
             return 0;
         }
-
-        int vid_bufs = mAapVideo.buffersCount();
-        int aud_bufs = mAapAudio.buffersCount();
-
-        int result;
-        if (vid_bufs == 0 && aud_bufs == 0) {
-            result = hu_aap_recv_process(size, recv_buffer);
-            if (result == 0) {
-                result = process_mic();
-            }
-            mTransport.onPollResult(result);
+        int result = hu_aap_recv_process(size, recv_buffer);
+        if (result == 0) {
+            result = process_mic();
         }
-
-        ByteArray audio_buf = mAapAudio.poll();
-        if (audio_buf != null) {
-            mTransport.onPollAudio(audio_buf);
-        } else {
-            ByteArray video_buf = mAapVideo.poll();
-            if (video_buf != null) {
-                mTransport.onPollVideo(video_buf);
-            }
-        }
-
+        mTransport.onPollResult(result);
         return 0;
     }
 

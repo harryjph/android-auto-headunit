@@ -10,22 +10,22 @@ import ca.yyx.hu.utils.AppLog;
  */
 
 class NalUnitsStore {
-    private final static int TOTAL_CAPTURE_COUNT = 3;
+    private final static int TOTAL_CAPTURE_COUNT = 16;
 
     private byte[][] mCapturedNal = new byte[TOTAL_CAPTURE_COUNT][];
     private int mCapturedCount = 0;
     private int mTotalSize = 0;
 
-    void capture(byte[] buffer,int size)
+    void capture(byte[] buffer, int offset, int size)
     {
         if (mCapturedCount == TOTAL_CAPTURE_COUNT)
         {
             return;
         }
-        if (isSps(buffer))
+        if (isSps(buffer, offset))
         {
             mCapturedNal[0] = new byte[size];
-            System.arraycopy(buffer, 0, mCapturedNal[0], 0, size);
+            System.arraycopy(buffer, offset, mCapturedNal[0], 0, size);
             AppLog.logd("SPS: %d", mCapturedNal[0].length);
             mTotalSize+=size;
             mCapturedCount++;
@@ -39,9 +39,9 @@ class NalUnitsStore {
         }
 
         mCapturedNal[mCapturedCount] = new byte[size];
-        System.arraycopy(buffer, 0, mCapturedNal[mCapturedCount], 0, size);
+        System.arraycopy(buffer, offset, mCapturedNal[mCapturedCount], 0, size);
         mTotalSize+=size;
-        AppLog.logd("NAL #%d: %d", mCapturedCount, mCapturedNal[mCapturedCount].length);
+        AppLog.logd("NAL #%d: %02x %d", mCapturedCount, getNalType(mCapturedNal[mCapturedCount], 0), mCapturedNal[mCapturedCount].length);
         mCapturedCount++;
     }
 
@@ -72,9 +72,9 @@ class NalUnitsStore {
     // For NAL units having nal_unit_type equal to 7 or 8 (indicating
     // a sequence parameter set or a picture parameter set,
     // respectively)
-    private static boolean isSps(byte[] ba)
+    private static boolean isSps(byte[] ba, int offset)
     {
-        return getNalType(ba) == 7;
+        return getNalType(ba, offset) == 7;
     }
 
     // For coded slice NAL units of a primary
@@ -86,7 +86,7 @@ class NalUnitsStore {
         return (ba[4] & 0x1f) == 5;
     }
 
-    private static int getNalType(byte[] ba)
+    private static int getNalType(byte[] ba, int offset)
     {
         // nal_unit_type
         // ba[4] == 0x67
@@ -95,6 +95,6 @@ class NalUnitsStore {
         // +-+-+-+-+-+-+-+-+
         // |F|NRI|  Type   |
         // +---------------+
-        return (ba[4] & 0x1f);
+        return (ba[offset + 4] & 0x1f);
     }
 }

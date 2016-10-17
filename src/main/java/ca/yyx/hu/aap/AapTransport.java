@@ -20,14 +20,14 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     private static final int MIC_RECORD_START = 3;
     private static final int MIC_RECORD_STOP = 4;
     private final Listener mListener;
+    private final AapAudio mAapAudio;
+    private final AapVideo mAapVideo;
 
     private Handler mHandler;
     private boolean mMicRecording;
 
     private final AudioDecoder mAudioDecoder;
     private final MicRecorder mMicRecorder;
-    private final VideoDecoder mVideoDecoder;
-    private final AapAudio mAapAudio;
     private final AapMicrophone mAapMicrophone;
     private final AapControl mAapControl;
 
@@ -42,9 +42,9 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
     public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder, Listener listener) {
         super("AapTransport");
         mAudioDecoder = audioDecoder;
-        mVideoDecoder = videoDecoder;
         mMicRecorder = new MicRecorder();
-        mAapAudio = new AapAudio(this);
+        mAapAudio = new AapAudio(this, audioDecoder);
+        mAapVideo = new AapVideo(this, videoDecoder);
         mAapMicrophone = new AapMicrophone();
         mAapControl = new AapControl(this, mAapAudio, mAapMicrophone);
         mListener = listener;
@@ -147,7 +147,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         }
 
         mConnection = connection;
-        mAapPoll = new AapPoll(connection, this);
+        mAapPoll = new AapPoll(connection, this, mAapAudio, mAapVideo);
         this.start();                                          // Create and start Transport Thread
         return true;
     }
@@ -240,14 +240,6 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
             AppLog.logd("Audio2 Stop");
             mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AU2);
         }
-    }
-
-    void onPollVideo(ByteArray buffer) {
-        mVideoDecoder.decode(buffer.data, buffer.length);
-    }
-
-    void onPollAudio(ByteArray buffer) {
-        mAudioDecoder.decode(buffer.data, buffer.length);
     }
 
     void sendTouch(byte action, int x, int y) {

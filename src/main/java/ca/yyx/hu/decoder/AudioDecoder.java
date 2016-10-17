@@ -18,12 +18,14 @@ public class AudioDecoder {
     public static final int AA_CH_AU2 = 6;
     private static final int AA_CH_MAX = 7;
 
-    public void decode(byte[] buffer, int size) {
+    public void decode(byte[] buffer, int offset, int size) {
         // Create content byte array
         if (size <= 2048 + 96) {
-            out_audio_write(AA_CH_AU1, buffer, size);                     // Position always 0 so just use siz as len ?
+            // Position always 0 so just use siz as len ?
+            out_audio_write(AA_CH_AU1, buffer, offset, size);
         } else {
-            out_audio_write(AA_CH_AUD, buffer, size);                     // Position always 0 so just use siz as len ?
+            // Position always 0 so just use siz as len ?
+            out_audio_write(AA_CH_AUD, buffer, offset, size);
         }
     }
 
@@ -82,7 +84,7 @@ public class AudioDecoder {
         return out_audiotrack;
     }
 
-    private void out_audio_write(int chan, byte[] aud_buf, int len) {
+    private void out_audio_write(int chan, byte[] aud_buf,int offset, int len) {
         AudioTrack out_audiotrack = mAudioTracks.get(chan);
 
         if (out_audiotrack == null) {
@@ -91,7 +93,7 @@ public class AudioDecoder {
                 return;
         }
 
-        int written = out_audiotrack.write(aud_buf, 0, len);
+        int written = out_audiotrack.write(aud_buf, offset, len);
         if (written != len) {
             AppLog.loge("Error AudioTrack written: " + written + "  len: " + len);
         }

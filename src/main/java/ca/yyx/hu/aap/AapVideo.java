@@ -1,7 +1,6 @@
 package ca.yyx.hu.aap;
 
-import java.util.ArrayDeque;
-
+import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.utils.AppLog;
 
 /**
@@ -11,26 +10,16 @@ import ca.yyx.hu.utils.AppLog;
 class AapVideo {
 
     private final AapTransport mTransport;
+    private final VideoDecoder mVideoDecoder;
 
     private byte vid_ack[] = {(byte) 0x80, 0x04, 0x08, 0, 0x10, 1};                    // Global Ack: 0, 1
-
-    private static final int VIDEO_BUFS_NUM = 16;            // Maximum of NUM_vid_buf_BUFS - 1 in progress; 1 is never used
 
     private byte[] assy = new byte[65536 * 16];  // Global assembly buffer for video fragments: Up to 1 megabyte   ; 128K is fine for now at 800*640
     private int assy_size = 0;                   // Current size
 
-    private ArrayDeque<ByteArray> mQueue = new ArrayDeque<>(VIDEO_BUFS_NUM);
-
-    AapVideo(AapTransport transport) {
+    AapVideo(AapTransport transport, VideoDecoder videoDecoder) {
         mTransport = transport;
-    }
-
-    int buffersCount() {
-        return  mQueue.size();// vid_buf_buf_tail - vid_buf_buf_head;
-    }
-
-    ByteArray poll() {
-        return mQueue.poll();
+        mVideoDecoder = videoDecoder;
     }
 
     public int process(AapMessage message) {
@@ -72,10 +61,7 @@ class AapVideo {
     }
 
     private void iaap_video_decode(byte[] buf, int start, int len) {
-        ByteArray ba = new ByteArray(len);
-        ba.put(start, buf, len);
-
-        mQueue.add(ba);
+        mVideoDecoder.decode(buf, start, len);
     }
 
 }

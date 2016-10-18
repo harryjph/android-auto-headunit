@@ -10,7 +10,7 @@ import ca.yyx.hu.utils.AppLog;
  */
 
 class NalUnitsStore {
-    private final static int TOTAL_CAPTURE_COUNT = 16;
+    private final static int TOTAL_CAPTURE_COUNT = 3;
 
     private byte[][] mCapturedNal = new byte[TOTAL_CAPTURE_COUNT][];
     private int mCapturedCount = 0;

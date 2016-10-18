@@ -29,7 +29,7 @@ public class VideoDecoder {
 
         synchronized (sLock) {
 
-            // AppLog.logd("Video buffer: %02X %02X %02X %02X %02X (%d)", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], size);
+            // AppLog.logd("Video buffer: %02X %02X %02X %02X %02X (%d)", buffer[offset], buffer[offset+1], buffer[offset+2], buffer[offset+3], buffer[offset+4], size);
 
             mNalUnitsStore.capture(buffer, offset, size);
 
@@ -62,9 +62,7 @@ public class VideoDecoder {
                 return;
             }
 
-            ByteBuffer content = ByteBuffer.wrap(buffer);
-            content.limit(size);
-            content.position(offset);
+            ByteBuffer content = ByteBuffer.wrap(buffer, offset, size);
 
             while (content.hasRemaining()) {                                 // While there is remaining content...
 
@@ -76,7 +74,6 @@ public class VideoDecoder {
                 // Send result to video codec
                 codec_output_consume();
             }
-            Utils.ms_sleep(100);
         }
     }
 

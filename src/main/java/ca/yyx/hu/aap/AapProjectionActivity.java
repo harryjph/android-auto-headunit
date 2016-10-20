@@ -220,7 +220,7 @@ public class AapProjectionActivity extends SurfaceActivity {
 //                mTransport.sendButton(Protocol.BTN_PLAYPAUSE, isPress);
 //                break;
             default:
-                AppLog.logd("Ignored");
+                AppLog.logd("Ignored: " + keyCode);
         }
     }
 }

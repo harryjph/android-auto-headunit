@@ -10,8 +10,13 @@ class AapDump {
     private static final int MAX_HEX_DUMP  = 64;//32;
     private static final int HD_MW = 16;
 
-    static int log(String prefix, String src, int chan, int flags, byte[] buf, int len) {
+    static int logv(String prefix, String src, int chan, int flags, byte[] buf, int len) {
         // Source:  HU = HU > AA   AA = AA > HU
+
+        if (!AppLog.LOG_VERBOSE)
+        {
+            return 0;
+        }
 
         if (len < 2) {
             // If less than 2 bytes, needed for msg_type...
@@ -45,7 +50,7 @@ class AapDump {
         else
             Log.d(AppLog.TAG, String.format("%s src: %s  lft: %5d  msg_type: %5d %s", prefix, src, lft, msg_type, msg_type_str));
 
-        logHex(prefix, 2, buf, lft);                                  // Hexdump
+        logvHex(prefix, 2, buf, lft);                                  // Hexdump
 
         if (flags == 0x08)                                                  // If Media Data Mid...
             return (len);                                                     // Done
@@ -178,7 +183,12 @@ class AapDump {
     }
 
 
-    static void logHex(String prefix, int start, byte[] buf, int len) {
+    static void logvHex(String prefix, int start, byte[] buf, int len) {
+
+        if (!AppLog.LOG_VERBOSE)
+        {
+            return;
+        }
 
         if (len + start > MAX_HEX_DUMP)
             len = MAX_HEX_DUMP + start;

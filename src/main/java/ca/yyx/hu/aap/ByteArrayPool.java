@@ -3,8 +3,6 @@ package ca.yyx.hu.aap;
 
 import android.support.v4.util.LruCache;
 
-import ca.yyx.hu.utils.AppLog;
-
 /**
  * @author algavris
  * @date 17/10/2016.

@@ -4,7 +4,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.1'
+        classpath 'com.android.tools.build:gradle:2.2.2'
     }
 }
 
@@ -17,9 +17,9 @@ allprojects {
 apply plugin: 'com.android.application'
 
 dependencies {
-    compile 'com.android.support:support-core-utils:24.2.1'
-    compile 'com.android.support:support-media-compat:24.2.1'
-    compile 'com.android.support:recyclerview-v7:24.2.1'
+    compile 'com.android.support:support-core-utils:25.0.0'
+    compile 'com.android.support:support-media-compat:25.0.0'
+    compile 'com.android.support:recyclerview-v7:25.0.0'
     compile 'net.hockeyapp.android:HockeySDK:4.1.1'
 }
 

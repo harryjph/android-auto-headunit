@@ -1,7 +1,5 @@
 package ca.yyx.hu.aap;
 
-import java.util.ArrayDeque;
-
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.utils.AppLog;
 
@@ -30,21 +28,29 @@ class AapAudio {
         mTransport = transport;
         mAudioDecoder = audioDecoder;
     }
+
     // Global Ack: 0, 1     Same as video ack ?
 
     int state(int chan) {
         int state = 0;
         if (chan == Channel.AA_CH_AUD) {
-            state = out_state_aud;                                            // Get current audio output state change
-            out_state_aud = -1;                                               // Reset audio output state change indication
+            state = out_state_aud;
+            // Get current audio output state change
+            out_state_aud = -1;
+            // Reset audio output state change indication
         } else if (chan == Channel.AA_CH_AU1) {
-            state = out_state_au1;                                            // Get current audio output state change
-            out_state_au1 = -1;                                               // Reset audio output state change indication
+            state = out_state_au1;
+            // Get current audio output state change
+            out_state_au1 = -1;
+            // Reset audio output state change indication
         } else if (chan == Channel.AA_CH_AU2) {
-            state = out_state_au2;                                            // Get current audio output state change
-            out_state_au2 = -1;                                               // Reset audio output state change indication
+            state = out_state_au2;
+            // Get current audio output state change
+            out_state_au2 = -1;
+            // Reset audio output state change indication
         }
-        return (state);                                                     // Return what the new state was before reset
+        return state;
+        // Return what the new state was before reset
     }
 
     public int process(AapMessage message) {
@@ -64,7 +70,8 @@ class AapAudio {
         else
             aud_ack[3] = ack_val_aud;
 
-        int ret = mTransport.sendEncrypted(chan, aud_ack, aud_ack.length);      // Respond with ACK (for all fragments ?)
+        int ret = mTransport.sendEncrypted(chan, aud_ack, aud_ack.length);
+        // Respond with ACK (for all fragments ?)
 
         //hex_dump ("AUDIO: ", 16, buf, len);
         if (len >= 10) {
@@ -97,12 +104,16 @@ class AapAudio {
     }
 
     void setAudioAckVal(int chan, byte value) {
-        if (chan == Channel.AA_CH_AUD)
-            ack_val_aud = value;                                            // Save value for audio acks
-        else if (chan == Channel.AA_CH_AU1)
-            ack_val_au1 = value;                                            // Save value for audio1 acks
-        else if (chan == Channel.AA_CH_AU2)
-            ack_val_au2 = value;                                            // Save value for audio2 acks
+        if (chan == Channel.AA_CH_AUD) {
+            ack_val_aud = value;
+            // Save value for audio acks
+        } else if (chan == Channel.AA_CH_AU1) {
+            ack_val_au1 = value;
+            // Save value for audio1 acks
+        } else if (chan == Channel.AA_CH_AU2) {
+            ack_val_au2 = value;
+            // Save value for audio2 acks
+        }
     }
 
     void setOutState(int chan, int state) {

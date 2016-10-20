@@ -12,10 +12,13 @@ class AapVideo {
     private final AapTransport mTransport;
     private final VideoDecoder mVideoDecoder;
 
-    private byte vid_ack[] = {(byte) 0x80, 0x04, 0x08, 0, 0x10, 1};                    // Global Ack: 0, 1
+    // Global Ack: 0, 1
+    private byte vid_ack[] = {(byte) 0x80, 0x04, 0x08, 0, 0x10, 1};
 
-    private byte[] assy = new byte[65536 * 16];  // Global assembly buffer for video fragments: Up to 1 megabyte   ; 128K is fine for now at 800*640
-    private int assy_size = 0;                   // Current size
+    // Global assembly buffer for video fragments: Up to 1 megabyte   ; 128K is fine for now at 800*640
+    private byte[] assy = new byte[65536 * 16];
+    // Current size
+    private int assy_size = 0;
 
     AapVideo(AapTransport transport, VideoDecoder videoDecoder) {
         mTransport = transport;
@@ -26,12 +29,12 @@ class AapVideo {
         return process(message.type, message.flags, message.data, message.length);
     }
 
-    //iaap_video_process
-    int process(int msg_type, int flags, byte[] buf, int len) {
+    private int process(int msg_type, int flags, byte[] buf, int len) {
         // Process video packet
         // MaxUnack
 
-        int ret = mTransport.sendEncrypted(Channel.AA_CH_VID, vid_ack, vid_ack.length);      // Respond with ACK (for all fragments ?)
+        // Respond with ACK (for all fragments ?)
+        int ret = mTransport.sendEncrypted(Channel.AA_CH_VID, vid_ack, vid_ack.length);
 
         if (flags == 11 && (msg_type == 0 || msg_type == 1) && (buf[10] == 0 && buf[11] == 0 && buf[12] == 0 && buf[13] == 1)) {  // If Not fragmented Video
             iaap_video_decode(buf, 10, len - 10);
@@ -54,8 +57,9 @@ class AapVideo {
             iaap_video_decode(assy, 0, assy_size);
             // Decode H264 video fully re-assembled
         }
-        else
+        else {
             AppLog.loge("Video error msg_type: %d  flags: 0x%x  buf: %p  len: %d", msg_type, flags, buf, len);
+        }
 
         return 0;
     }

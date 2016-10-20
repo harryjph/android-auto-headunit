@@ -1,17 +1,7 @@
-
-// General utility functions
-
-// AppLog.log
-
-
 package ca.yyx.hu.utils;
 
-import android.os.Build;
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.IllegalFormatException;
 import java.util.Locale;
 
@@ -22,7 +12,6 @@ public final class AppLog {
 
     public static final String TAG = "CAR.HU.J";
     public static final boolean LOG_VERBOSE = LOG_LEVEL <= Log.VERBOSE;
-
 
     public static void logd(String msg) {
         log(Log.DEBUG, format(msg));

@@ -13,7 +13,7 @@ class AapMessage {
     final byte flags;
     final int type;
 
-    AapMessage(int channel, byte flags, int msg_type,ByteArray ba) {
+    AapMessage(int channel, byte flags, int msg_type, ByteArray ba) {
         this.data = ba.data;
         this.length = ba.length;
         this.channel = channel;

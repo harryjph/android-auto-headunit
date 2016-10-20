@@ -6,8 +6,14 @@ package ca.yyx.hu.aap;
  */
 
 class ByteArray {
-    byte[] data;
+    final byte[] data;
     int length;
+
+    ByteArray(byte[] data, int length)
+    {
+        this.data = data;
+        this.length = length;
+    }
 
     ByteArray(int maxSize) {
         this.data = new byte[maxSize];
@@ -51,4 +57,5 @@ class ByteArray {
     {
         this.length = 0;
     }
+
 }

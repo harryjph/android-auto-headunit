@@ -50,17 +50,6 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         mListener = listener;
     }
 
-    static {
-        System.loadLibrary("hu_jni");
-    }
-
-    private static native int native_ssl_prepare();
-    private static native int native_ssl_do_handshake();
-    private static native int native_ssl_bio_read(int res_len, byte[] res_buf);
-    private static native int native_ssl_bio_write(int start, int msg_len, byte[] msg_buf);
-    private static native int native_ssl_read(int res_len, byte[] res_buf);
-    private static native int native_ssl_write(int msg_len, byte[] msg_buf);
-
     @Override
     protected void onLooperPrepared() {
         super.onLooperPrepared();
@@ -171,7 +160,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         AppLog.logd("Version response recv ret: %d", ret);
 
         // SSL
-        ret = native_ssl_prepare();
+        ret = AapSsl.prepare();
         if (ret < 0) {
             AppLog.loge("SSL prepare failed: " + ret);
             return false;
@@ -179,18 +168,17 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
         int hs_ctr = 0;
         // SSL_is_init_finished (hu_ssl_ssl)
+
         while (hs_ctr++ < 2)
         {
-            native_ssl_do_handshake();
-            int size = native_ssl_bio_read(Protocol.DEF_BUFFER_LENGTH, buffer);
-            AppLog.logd("SSL BIO read: %d", size);
-            if (size <= 0) {
-                AppLog.logd("SSL BIO read error");
+            AapSsl.handshake();
+            ByteArray ba = AapSsl.bioRead();
+            if (ba == null) {
                 return false;
             }
 
-            ByteArray bio = Protocol.createMessage(Channel.AA_CH_CTR, 3, 3, buffer, size);
-            size = connection.send(bio.data, bio.length, 1000);
+            ByteArray bio = Protocol.createMessage(Channel.AA_CH_CTR, 3, 3, ba.data, ba.length);
+            int size = connection.send(bio.data, bio.length, 1000);
             AppLog.logd("SSL BIO sent: %d", size);
 
             size = connection.recv(buffer, 1000);
@@ -200,13 +188,12 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
                 return false;
             }
 
-            ret = native_ssl_bio_write(6, size - 6, buffer);
+            ret = AapSsl.bioWrite(6, size - 6, buffer);
             AppLog.logd("SSL BIO write: %d", ret);
         }
 
         // Status = OK
-        // {0, 3, 0, 4, 0, 4, 8, 0};
-        // byte ac_buf [] = {0, 3, 0, 4, 0, 4, 8, 0};                          // Status = OK
+        // byte ac_buf [] = {0, 3, 0, 4, 0, 4, 8, 0};
         ByteArray status = Protocol.createMessage(0, 3, 4, new byte[]{8, 0}, 2);
         ret = connection.send(status.data, status.length, 1000);
         if (ret < 0) {
@@ -284,46 +271,18 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         }
 
         String prefix = String.format(Locale.US, "SEND %d %s %01x", chan, Channel.name(chan), flags);
-        AapDump.log(prefix, "HU", chan, flags, buf, len);
+        AapDump.logv(prefix, "HU", chan, flags, buf, len);
 
-        int bytes_written = native_ssl_write(len, buf);               // Write plaintext to SSL
-        if (bytes_written <= 0) {
-            AppLog.loge ("SSL_write() bytes_written: %d", bytes_written);
-            //hu_ssl_ret_log (bytes_written);
-            //hu_ssl_inf_log ();
-            return -1;
-        }
-        if (bytes_written != len) {
-            AppLog.loge("SSL Write len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, Channel.name(chan));
-        }
+        ByteArray ba = AapSsl.encrypt(4, len, buf);
 
-        AppLog.logv ("SSL Write len: %d  bytes_written: %d  chan: %d %s", len, bytes_written, chan, Channel.name(chan));
-
-        byte[] enc_buf = new byte[Protocol.DEF_BUFFER_LENGTH];
-        int bytes_read = native_ssl_bio_read(Protocol.DEF_BUFFER_LENGTH - 4,enc_buf);
-        if (bytes_read <= 0) {
-            AppLog.loge ("BIO read  bytes_read: %d", bytes_read);
-            return -1;
-        }
-
-        AppLog.logv("BIO read bytes_read: %d", bytes_read);
-
-        ByteArray msg = Protocol.createMessage(chan, flags, -1, enc_buf, bytes_read);
+        ByteArray msg = Protocol.createMessage(chan, flags, -1, ba.data, ba.length);
         int size = mConnection.send(msg.data, msg.length, 250);
         AppLog.logv("Sent size: %d", size);
 
         if (AppLog.LOG_VERBOSE) {
-            AapDump.logHex("US", 0, msg.data, msg.length);
+            AapDump.logvHex("US", 0, msg.data, msg.length);
         }
         return 0;
-    }
-
-    int sslBioWrite(int start, int len, byte[] buf) {
-        return native_ssl_bio_write(start, len, buf);
-    }
-
-    int sslRead(byte[] res_buf, int res_max) {
-        return native_ssl_read(res_max, res_buf);
     }
 
     void gainVideoFocus()

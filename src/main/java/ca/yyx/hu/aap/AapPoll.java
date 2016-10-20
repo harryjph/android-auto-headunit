@@ -24,13 +24,11 @@ class AapPoll {
     private final AapTransport mTransport;
 
     private byte[] recv_buffer = new byte[Protocol.DEF_BUFFER_LENGTH];
-    private byte[] enc_buf = new byte[Protocol.DEF_BUFFER_LENGTH];
 
     private final AapAudio mAapAudio;
     private final AapMicrophone mAapMicrophone;
     private final AapVideo mAapVideo;
     private final AapControl mAapControl;
-    private final ByteArrayPool mByteArrayPool = new ByteArrayPool();
 
     AapPoll(UsbAccessoryConnection connection, AapTransport transport, AapAudio aapAudio, AapVideo aapVideo) {
         mConnection = connection;
@@ -41,16 +39,14 @@ class AapPoll {
         mAapControl = new AapControl(transport, mAapAudio, mAapMicrophone);
     }
 
-    int poll()
-    {
-        if (mConnection == null)
-        {
+    int poll() {
+        if (mConnection == null) {
             return -1;
         }
 
         int size = mConnection.recv(recv_buffer, 150);
         if (size <= 0) {
-            AppLog.logd("recv %d", size);
+            AppLog.logv("recv %d", size);
             return 0;
         }
         int result = hu_aap_recv_process(size, recv_buffer);
@@ -63,16 +59,23 @@ class AapPoll {
 
     private int process_mic() {
         int result = mAapMicrophone.hu_aap_mic_get();
-        if (result >= 1) {// && ret <= 2) {                                  // If microphone start (2) or stop (1)...
-            return result;                                                   // Done w/ mic notification: start (2) or stop (1)
+        if (result >= 1) {// && ret <= 2) {
+            // If microphone start (2) or stop (1)...
+            return result;
+            // Done w/ mic notification: start (2) or stop (1)
         }
         // Else if no microphone state change...
 
-        if (mAapAudio.state(Channel.AA_CH_AUD) >= 0)                              // If audio out stop...
-            return RESPONSE_AUDIO_STOP;                                                     // Done w/ audio out notification 0
-        if (mAapAudio.state(Channel.AA_CH_AU1) >= 0)                              // If audio out stop...
-            return RESPONSE_AUDIO1_STOP;                                                     // Done w/ audio out notification 1
-        if (mAapAudio.state(Channel.AA_CH_AU2) >= 0)                              // If audio out stop...
+        if (mAapAudio.state(Channel.AA_CH_AUD) >= 0)
+            // If audio out stop...
+            return RESPONSE_AUDIO_STOP;
+        // Done w/ audio out notification 0
+        if (mAapAudio.state(Channel.AA_CH_AU1) >= 0)
+            // If audio out stop...
+            return RESPONSE_AUDIO1_STOP;
+        // Done w/ audio out notification 1
+        if (mAapAudio.state(Channel.AA_CH_AU2) >= 0)
+            // If audio out stop...
             return RESPONSE_AUDIO2_STOP;
 
         return 0;
@@ -81,12 +84,15 @@ class AapPoll {
     private int hu_aap_recv_process(int msg_len, byte[] msg_buf) {
 
         int msg_start = 0;
-        int have_len = msg_len;                                                   // Length remaining to process for all sub-packets plus 4/8 byte headers
+        int have_len = msg_len;
+        // Length remaining to process for all sub-packets plus 4/8 byte headers
 
         while (have_len > 0) {
 
-            int chan = (int) msg_buf[msg_start];                                         // Channel
-            int flags = msg_buf[msg_start + 1];                                              // Flags
+            int chan = (int) msg_buf[msg_start];
+            // Channel
+            int flags = msg_buf[msg_start + 1];
+            // Flags
 
             // Encoded length of bytes to be decrypted (minus 4/8 byte headers)
             int enc_len = Utils.bytesToInt(msg_buf, msg_start + 2, true);
@@ -113,52 +119,47 @@ class AapPoll {
                 msg_start += 4;
             }
             int need_len = enc_len - have_len;
-            if (need_len > 0) {                                         // If we need more data for the full packet...
+            if (need_len > 0) {
+                // If we need more data for the full packet...
                 AppLog.loge("have_len: %d < enc_len: %d  need_len: %d", have_len, enc_len, need_len);
                 return -1;
             }
 
-            AapMessage msg = iaap_recv_dec_process(chan, flags, msg_start, enc_len, msg_buf);          // Decrypt & Process 1 received encrypted message
-            if (msg == null) {                                                    // If error...
-                AppLog.loge ("Error iaap_recv_dec_process: have_len: %d enc_len: %d chan: %d %s flags: %01x msg_type: %d", have_len, enc_len, chan, Channel.name(chan), flags, msg_type);
+            AapMessage msg = iaap_recv_dec_process(chan, flags, msg_start, enc_len, msg_buf);
+            // Decrypt & Process 1 received encrypted message
+            if (msg == null) {
+                // If error...
+                AppLog.loge("Error iaap_recv_dec_process: have_len: %d enc_len: %d chan: %d %s flags: %01x msg_type: %d", have_len, enc_len, chan, Channel.name(chan), flags, msg_type);
                 return -1;
             }
 
-            iaap_msg_process(msg);      // Process decrypted AA protocol message
+            iaap_msg_process(msg);
+            // Process decrypted AA protocol message
 
             have_len -= enc_len;
             msg_start += enc_len;
             if (have_len != 0) {
-                AppLog.logd ("iaap_recv_dec_process() more than one message have_len: %d  enc_len: %d", have_len, enc_len);
+                AppLog.logd("iaap_recv_dec_process() more than one message have_len: %d  enc_len: %d", have_len, enc_len);
             }
         }
 
-        return 0;                                                       // Return value from the last iaap_recv_dec_process() call; should be 0
+        return 0;
+        // Return value from the last iaap_recv_dec_process() call; should be 0
     }
 
-    private AapMessage iaap_recv_dec_process(int chan, int flags, int start, int enc_len, byte[] buf) {// Decrypt & Process 1 received encrypted message
+    private AapMessage iaap_recv_dec_process(int chan, int flags, int start, int enc_len, byte[] buf) {
+        // Decrypt & Process 1 received encrypted message
 
-        int bytes_written = mTransport.sslBioWrite(start, enc_len, buf);
-        // Write encrypted to SSL input BIO
-        if (bytes_written <= 0) {
-            AppLog.loge ("BIO_write() bytes_written: %d", bytes_written);
-            return null;
-        }
-
-        int bytes_read = mTransport.sslRead(enc_buf, enc_buf.length);
-        // Read decrypted to decrypted rx buf
-        if (bytes_read <= 0) {
-            AppLog.loge ("SSL_read bytes_read: %d", bytes_read);
+        ByteArray ba = AapSsl.decrypt(start, enc_len, buf);
+        if (ba == null) {
             return null;
         }
 
         String prefix = String.format(Locale.US, "RECV %d %s %01x", chan, Channel.name(chan), flags);
-        AapDump.log(prefix, "AA", chan, flags, enc_buf, enc_len);
+        AapDump.logv(prefix, "AA", chan, flags, ba.data, ba.length);
 
-        int msg_type = Utils.bytesToInt(enc_buf, 0, true);
-        ByteArray ba = mByteArrayPool.obtain(enc_buf, bytes_read);
-
-        return new AapMessage(chan, (byte)flags, msg_type, ba);
+        int msg_type = Utils.bytesToInt(ba.data, 0, true);
+        return new AapMessage(chan, (byte) flags, msg_type, ba);
     }
 
     private int iaap_msg_process(AapMessage message) {
@@ -167,13 +168,14 @@ class AapPoll {
         byte flags = message.flags;
 
         if (message.isAudio() && (msg_type == 0 || msg_type == 1)) {
-            return mAapAudio.process(message); // 300 ms @ 48000/sec   samples = 14400     stereo 16 bit results in bytes = 57600
+            return mAapAudio.process(message);
+            // 300 ms @ 48000/sec   samples = 14400     stereo 16 bit results in bytes = 57600
         } else if (message.isVideo() && msg_type == 0 || msg_type == 1 || flags == 8 || flags == 9 || flags == 10) {    // If Video...
             return mAapVideo.process(message);
         } else if ((msg_type >= 0 && msg_type <= 31) || (msg_type >= 32768 && msg_type <= 32799) || (msg_type >= 65504 && msg_type <= 65535)) {
             mAapControl.execute(message);
         } else {
-            AppLog.loge ("Unknown msg_type: %d", msg_type);
+            AppLog.loge("Unknown msg_type: %d", msg_type);
         }
 
         return 0;

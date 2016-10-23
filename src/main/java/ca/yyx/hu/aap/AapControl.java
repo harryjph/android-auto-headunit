@@ -12,12 +12,10 @@ class AapControl {
     private static final int MSG_TYPE_2 = 32768;
     private final AapTransport mTransport;
     private final AapAudio mAapAudio;
-    private final AapMicrophone mAapMicrophone;
 
-    AapControl(AapTransport transport, AapAudio audio, AapMicrophone microphone) {
+    AapControl(AapTransport transport, AapAudio audio) {
         mTransport = transport;
         mAapAudio = audio;
-        mAapMicrophone = microphone;
     }
 
     int execute(AapMessage message) {
@@ -101,12 +99,13 @@ class AapControl {
     private int mic_switch_request(int chan, byte[] buf, int len) {
         if (len == 4 && buf[2] == 0x08 && buf[3] == 0) {
             AppLog.logd ("Mic Start/Stop Request: 0 STOP");
-            mAapMicrophone.setStatus(1); // Stop Mic
+
+            mTransport.micStop();
         } else if (len != 10 || buf[2] != 0x08 || buf[3] != 1 || buf[4] != 0x10 || buf[6] != 0x18 || buf[8] != 0x20) {
             AppLog.loge ("Mic Start/Stop Request");
         } else {
             AppLog.logd ("Mic Start/Stop Request: 1 START %d %d %d", buf[5], buf[7], buf[9]);
-            mAapMicrophone.setStatus(2); // Start Mic
+            mTransport.micStart();
         }
         return 0;
     }
@@ -126,7 +125,7 @@ class AapControl {
             AppLog.loge ("Audio Sink Stop Request");
         else
             AppLog.logd ("Audio Sink Stop Request");//: %d", buf [3]);
-        mAapAudio.setOutState(chan, 1);
+            mAapAudio.stopAudio(chan);
         return 0;
     }
 

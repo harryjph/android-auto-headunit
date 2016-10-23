@@ -13,35 +13,34 @@ import ca.yyx.hu.utils.Utils;
  * @date 28/04/2016.
  */
 public class AudioDecoder {
-    public static final int AA_CH_AUD = 4;
-    public static final int AA_CH_AU1 = 5;
-    public static final int AA_CH_AU2 = 6;
-    private static final int AA_CH_MAX = 7;
+    public static final int BUFFER_SIZE_32 = 32768;
+    public static final int BUFFER_SIZE_4 = 4096;
 
-    public void decode(byte[] buffer, int offset, int size) {
-        // Create content byte array
-        if (size <= 2048 + 96) {
-            // Position always 0 so just use siz as len ?
-            out_audio_write(AA_CH_AU1, buffer, offset, size);
-        } else {
-            // Position always 0 so just use siz as len ?
-            out_audio_write(AA_CH_AUD, buffer, offset, size);
+    private SparseArray<AudioTrack> mAudioTracks = new SparseArray<>(3);
+
+    public AudioTrack getTrack(int channel)
+    {
+        return mAudioTracks.get(channel);
+    }
+
+    public void decode(int channel, byte[] buffer, int offset, int size) {
+        AudioTrack audiotrack = mAudioTracks.get(channel);
+
+        int written = audiotrack.write(buffer, offset, size);
+        if (written != size) {
+            AppLog.loge("Error AudioTrack written: " + written + "  len: " + size);
         }
     }
 
     public void stop() {
-        out_audio_stop(AA_CH_AUD);                                         // In case Byebye terminates without proper audio stop
-        out_audio_stop(AA_CH_AU1);
-        out_audio_stop(AA_CH_AU2);
+
+        for (int i = 0; i < mAudioTracks.size(); i++)
+        {
+            stop(mAudioTracks.keyAt(i));
+        }
     }
 
-    private static final int BUFFER_SIZE_32 = 32768;
-    private static final int BUFFER_SIZE_4 = 4096;
-    private static final int OUT_AUDIO_STREAM = AudioManager.STREAM_MUSIC;
-
-    private SparseArray<AudioTrack> mAudioTracks = new SparseArray<>(3);
-
-    public void out_audio_stop(int chan) {
+    public void stop(int chan) {
         AudioTrack out_audiotrack = mAudioTracks.get(chan);
 
         if (out_audiotrack == null) {
@@ -67,36 +66,10 @@ public class AudioDecoder {
         mAudioTracks.put(chan, null);
     }
 
-    private AudioTrack out_audio_start(int chan) {
-        AudioTrack out_audiotrack;
-        if (chan == AA_CH_AUD) {
-            out_audiotrack = new AudioTrack(OUT_AUDIO_STREAM, 48000, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_32, AudioTrack.MODE_STREAM);
-        } else if (chan == AA_CH_AU1) {
-            out_audiotrack = new AudioTrack(OUT_AUDIO_STREAM, 16000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_4, AudioTrack.MODE_STREAM);
-        } else if (chan == AA_CH_AU2) {
-            out_audiotrack = new AudioTrack(OUT_AUDIO_STREAM, 16000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_4, AudioTrack.MODE_STREAM);
-        } else {
-            return null;
-        }
-
-        mAudioTracks.put(chan, out_audiotrack);
-        out_audiotrack.play();                                         // Start output
-        return out_audiotrack;
+    public AudioTrack start(int chan, int sampleRateInHz, int channelConfig, int bufferSizeInBytes) {
+        AudioTrack audiotrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT, bufferSizeInBytes, AudioTrack.MODE_STREAM);
+        mAudioTracks.put(chan, audiotrack);
+        audiotrack.play();
+        return audiotrack;
     }
-
-    private void out_audio_write(int chan, byte[] aud_buf,int offset, int len) {
-        AudioTrack out_audiotrack = mAudioTracks.get(chan);
-
-        if (out_audiotrack == null) {
-            out_audiotrack = out_audio_start(chan);
-            if (out_audiotrack == null)
-                return;
-        }
-
-        int written = out_audiotrack.write(aud_buf, offset, len);
-        if (written != len) {
-            AppLog.loge("Error AudioTrack written: " + written + "  len: " + len);
-        }
-    }
-
 }

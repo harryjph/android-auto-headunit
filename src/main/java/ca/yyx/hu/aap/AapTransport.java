@@ -28,7 +28,6 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
     private final AudioDecoder mAudioDecoder;
     private final MicRecorder mMicRecorder;
-    private final AapMicrophone mAapMicrophone;
     private final AapControl mAapControl;
 
     private boolean mStopped;
@@ -45,8 +44,7 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         mMicRecorder = new MicRecorder();
         mAapAudio = new AapAudio(this, audioDecoder);
         mAapVideo = new AapVideo(this, videoDecoder);
-        mAapMicrophone = new AapMicrophone();
-        mAapControl = new AapControl(this, mAapAudio, mAapMicrophone);
+        mAapControl = new AapControl(this, mAapAudio);
         mListener = listener;
     }
 
@@ -122,9 +120,6 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         return super.quit();
     }
 
-    private void setMicRecording(boolean start) {
-        mHandler.sendEmptyMessage(start ? MIC_RECORD_START : MIC_RECORD_STOP);
-    }
 
     public boolean connectAndStart(UsbAccessoryConnection connection) {
         AppLog.logd("Start Aap transport for " + connection);
@@ -206,27 +201,15 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         return true;
     }
 
+    void micStop() {
+        AppLog.logd("Microphone Stop");
+        mHandler.sendEmptyMessage(MIC_RECORD_STOP);
+        mMicRecorder.mic_audio_stop();
+    }
 
-    // Send AA packet/HU command/mic audio AND/OR receive video/output audio/audio notifications
-    void onPollResult(int ret) {
-
-        if (ret == AapPoll.RESPONSE_MIC_STOP) {                                                     // If mic stop...
-            AppLog.logd("Microphone Stop");
-            setMicRecording(false);
-            mMicRecorder.mic_audio_stop();
-        } else if (ret == AapPoll.RESPONSE_MIC_START) {                                                // Else if mic start...
-            AppLog.logd("Microphone Start");
-            setMicRecording(true);
-        } else if (ret == AapPoll.RESPONSE_AUDIO_STOP) {                                                // Else if audio stop...
-            AppLog.logd("Audio Stop");
-            mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AUD);
-        } else if (ret == AapPoll.RESPONSE_AUDIO1_STOP) {                                                // Else if audio1 stop...
-            AppLog.logd("Audio1 Stop");
-            mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AU1);
-        } else if (ret == AapPoll.RESPONSE_AUDIO2_STOP) {                                                // Else if audio2 stop...
-            AppLog.logd("Audio2 Stop");
-            mAudioDecoder.out_audio_stop(AudioDecoder.AA_CH_AU2);
-        }
+    void micStart() {
+        AppLog.logd("Microphone Start");
+        mHandler.sendEmptyMessage(MIC_RECORD_START);
     }
 
     void sendTouch(byte action, int x, int y) {

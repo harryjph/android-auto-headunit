@@ -14,29 +14,19 @@ import ca.yyx.hu.utils.Utils;
 
 class AapPoll {
 
-    static final byte RESPONSE_MIC_STOP = 1;
-    static final byte RESPONSE_MIC_START = 2;
-    static final byte RESPONSE_AUDIO_STOP = 3;
-    static final byte RESPONSE_AUDIO1_STOP = 4;
-    static final byte RESPONSE_AUDIO2_STOP = 5;
-
     private final UsbAccessoryConnection mConnection;
-    private final AapTransport mTransport;
 
     private byte[] recv_buffer = new byte[Protocol.DEF_BUFFER_LENGTH];
 
     private final AapAudio mAapAudio;
-    private final AapMicrophone mAapMicrophone;
     private final AapVideo mAapVideo;
     private final AapControl mAapControl;
 
     AapPoll(UsbAccessoryConnection connection, AapTransport transport, AapAudio aapAudio, AapVideo aapVideo) {
         mConnection = connection;
-        mTransport = transport;
         mAapAudio = aapAudio;
         mAapVideo = aapVideo;
-        mAapMicrophone = new AapMicrophone();
-        mAapControl = new AapControl(transport, mAapAudio, mAapMicrophone);
+        mAapControl = new AapControl(transport, mAapAudio);
     }
 
     int poll() {
@@ -49,36 +39,7 @@ class AapPoll {
             AppLog.logv("recv %d", size);
             return 0;
         }
-        int result = hu_aap_recv_process(size, recv_buffer);
-        if (result == 0) {
-            result = process_mic();
-        }
-        mTransport.onPollResult(result);
-        return 0;
-    }
-
-    private int process_mic() {
-        int result = mAapMicrophone.hu_aap_mic_get();
-        if (result >= 1) {// && ret <= 2) {
-            // If microphone start (2) or stop (1)...
-            return result;
-            // Done w/ mic notification: start (2) or stop (1)
-        }
-        // Else if no microphone state change...
-
-        if (mAapAudio.state(Channel.AA_CH_AUD) >= 0)
-            // If audio out stop...
-            return RESPONSE_AUDIO_STOP;
-        // Done w/ audio out notification 0
-        if (mAapAudio.state(Channel.AA_CH_AU1) >= 0)
-            // If audio out stop...
-            return RESPONSE_AUDIO1_STOP;
-        // Done w/ audio out notification 1
-        if (mAapAudio.state(Channel.AA_CH_AU2) >= 0)
-            // If audio out stop...
-            return RESPONSE_AUDIO2_STOP;
-
-        return 0;
+        return hu_aap_recv_process(size, recv_buffer);
     }
 
     private int hu_aap_recv_process(int msg_len, byte[] msg_buf) {

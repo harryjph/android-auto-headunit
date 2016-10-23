@@ -1,5 +1,8 @@
 package ca.yyx.hu.aap;
 
+import android.media.AudioFormat;
+
+import ca.yyx.hu.App;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.utils.AppLog;
 
@@ -18,10 +21,6 @@ class AapAudio {
     private byte ack_val_au1 = 0;
     private byte ack_val_au2 = 0;
 
-    private int out_state_aud = -1;
-    private int out_state_au1 = -1;
-    private int out_state_au2 = -1;
-
     private byte aud_ack[] = {(byte) 0x80, 0x04, 0x08, 0, 0x10, 1};
 
     AapAudio(AapTransport transport, AudioDecoder audioDecoder) {
@@ -29,29 +28,6 @@ class AapAudio {
         mAudioDecoder = audioDecoder;
     }
 
-    // Global Ack: 0, 1     Same as video ack ?
-
-    int state(int chan) {
-        int state = 0;
-        if (chan == Channel.AA_CH_AUD) {
-            state = out_state_aud;
-            // Get current audio output state change
-            out_state_aud = -1;
-            // Reset audio output state change indication
-        } else if (chan == Channel.AA_CH_AU1) {
-            state = out_state_au1;
-            // Get current audio output state change
-            out_state_au1 = -1;
-            // Reset audio output state change indication
-        } else if (chan == Channel.AA_CH_AU2) {
-            state = out_state_au2;
-            // Get current audio output state change
-            out_state_au2 = -1;
-            // Reset audio output state change indication
-        }
-        return state;
-        // Return what the new state was before reset
-    }
 
     public int process(AapMessage message) {
         return process(message.channel, message.type, message.flags, message.data, message.length);
@@ -75,19 +51,21 @@ class AapAudio {
 
         //hex_dump ("AUDIO: ", 16, buf, len);
         if (len >= 10) {
-            int ctr = 0;
-            long ts = 0, t2 = 0;
-            for (ctr = 2; ctr <= 9; ctr++) {
-                ts = ts << 8;
-                t2 = t2 << 8;
-                ts += (long) buf[ctr];
-                t2 += buf[ctr];
-                if (ctr == 6)
-                    AppLog.logv("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
+            if (AppLog.LOG_VERBOSE) {
+                int ctr = 0;
+                long ts = 0, t2 = 0;
+                for (ctr = 2; ctr <= 9; ctr++) {
+                    ts = ts << 8;
+                    t2 = t2 << 8;
+                    ts += (long) buf[ctr];
+                    t2 += buf[ctr];
+                    if (ctr == 6)
+                        AppLog.logv("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
+                }
+                AppLog.logv("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
             }
-            AppLog.logv("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
 
-            decode(chan, 10, buf, len - 10);//assy, assy_size);                                                                                    // Decode PCM audio fully re-assembled
+            decode(chan, 10, buf, len - 10); // Decode PCM audio fully re-assembled
         }
 
         return (0);
@@ -100,7 +78,28 @@ class AapAudio {
             len = AUDIO_BUFS_SIZE;
         }
 
-        mAudioDecoder.decode(buf, start, len);
+        int channel = Channel.AA_CH_AUD;
+        if (len <= 2048 + 96) {
+            channel = Channel.AA_CH_AU1;
+        }
+
+        if (channel != chan)
+        {
+            AppLog.loge("Channels are different: %d != %d",channel,chan);
+        } else {
+            AppLog.logv("Channels are the same: %d ", chan);
+        }
+
+        if (mAudioDecoder.getTrack(channel) == null)
+        {
+            if (channel == Channel.AA_CH_AUD) {
+                mAudioDecoder.start(48000, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, AudioDecoder.BUFFER_SIZE_32);
+            } else {
+                mAudioDecoder.start(16000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, AudioDecoder.BUFFER_SIZE_4);
+            }
+        }
+
+        mAudioDecoder.decode(channel, buf, start, len);
     }
 
     void setAudioAckVal(int chan, byte value) {
@@ -116,13 +115,9 @@ class AapAudio {
         }
     }
 
-    void setOutState(int chan, int state) {
-        if (chan == Channel.AA_CH_AUD)
-            out_state_aud = state;                                                      // Signal Audio stop
-        else if (chan == Channel.AA_CH_AU1)
-            out_state_au1 = state;                                                      // Signal Audio1 stop
-        else if (chan == Channel.AA_CH_AU2)
-            out_state_au2 = state;                                                      // Signal Audio2 stop
+    void stopAudio(int chan) {
+        AppLog.logd("Audio Stop: " + chan);
+        mAudioDecoder.stop(chan);
     }
 }
 

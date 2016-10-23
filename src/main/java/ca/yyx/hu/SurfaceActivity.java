@@ -37,15 +37,13 @@ public class SurfaceActivity extends Activity implements SurfaceHolder.Callback 
 
     @Override
     protected void onResume() {
-        mSurfaceView.setVisibility(View.VISIBLE);
         super.onResume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mSurfaceView.setVisibility(View.GONE);
-        mVideoDecoder.stop();
+        mVideoDecoder.stop("onPause");
     }
 
     @Override
@@ -68,6 +66,6 @@ public class SurfaceActivity extends Activity implements SurfaceHolder.Callback 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         AppLog.logd("holder " + holder);
-        mVideoDecoder.stop();
+        mVideoDecoder.stop("surfaceDestroyed");
     }
 }

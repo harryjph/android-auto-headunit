@@ -34,7 +34,7 @@ public class VideoDecoder {
             mNalUnitsStore.capture(buffer, offset, size);
 
             if (mCodec == null) {
-                AppLog.loge("Codec is not initialized");
+                AppLog.logv("Codec is not initialized");
                 return;
             }
 
@@ -58,7 +58,7 @@ public class VideoDecoder {
 
             if (!mCodecConfigured)
             {
-                AppLog.loge("Codec is not configured");
+                AppLog.logv("Codec is not configured");
                 return;
             }
 
@@ -97,7 +97,7 @@ public class VideoDecoder {
         }
     }
 
-    private void codec_stop() {
+    private void codec_stop(String reason) {
         synchronized (sLock) {
             if (mCodec != null) {
                 mCodec.stop();
@@ -106,7 +106,7 @@ public class VideoDecoder {
             mInputBuffers = null;
             mCodecBufferInfo = null;
             mCodecConfigured = false;
-            AppLog.logd("Codec stopped");
+            AppLog.logd("Reason: " + reason);
         }
     }
 
@@ -163,7 +163,7 @@ public class VideoDecoder {
     }
 
     public void onSurfaceHolderAvailable(SurfaceHolder holder, int width, int height) {
-        codec_stop();
+        codec_stop("onSurfaceHolderAvailable");
 
         mHolder = holder;
         mWidth = width;
@@ -171,8 +171,8 @@ public class VideoDecoder {
         codec_init();
     }
 
-    public void stop() {
-        codec_stop();
+    public void stop(String reason) {
+        codec_stop(reason);
     }
 
 }

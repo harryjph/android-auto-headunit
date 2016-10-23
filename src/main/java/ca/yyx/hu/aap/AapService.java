@@ -171,7 +171,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
     {
         mTransport.quit();
         mAudioDecoder.stop();
-        App.get(this).videoDecoder().stop();
+        App.get(this).videoDecoder().stop("AapService::reset");
         App.get(this).reset();
     }
 

@@ -13,8 +13,11 @@ import ca.yyx.hu.utils.Utils;
  * @date 28/04/2016.
  */
 public class AudioDecoder {
-    public static final int BUFFER_SIZE_32 = 32768;
-    public static final int BUFFER_SIZE_4 = 4096;
+    private static final int SAMPLE_RATE_HZ_48 = 32768;
+    private static final int SAMPLE_RATE_HZ_16 = 16000;
+
+    private static final int BUFFER_SIZE_32 = 32768;
+    private static final int BUFFER_SIZE_4 = 4096;
 
     private SparseArray<AudioTrack> mAudioTracks = new SparseArray<>(3);
 
@@ -66,8 +69,13 @@ public class AudioDecoder {
         mAudioTracks.put(chan, null);
     }
 
-    public AudioTrack start(int chan, int sampleRateInHz, int channelConfig, int bufferSizeInBytes) {
-        AudioTrack audiotrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT, bufferSizeInBytes, AudioTrack.MODE_STREAM);
+    public AudioTrack start(int chan, boolean isHiRes) {
+        AudioTrack audiotrack;
+        if (isHiRes) {
+            audiotrack = new AudioTrack(AudioManager.STREAM_MUSIC, SAMPLE_RATE_HZ_48, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_32, AudioTrack.MODE_STREAM);
+        } else {
+            audiotrack = new AudioTrack(AudioManager.STREAM_MUSIC, SAMPLE_RATE_HZ_16, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_4, AudioTrack.MODE_STREAM);
+        }
         mAudioTracks.put(chan, audiotrack);
         audiotrack.play();
         return audiotrack;

@@ -93,9 +93,9 @@ class AapAudio {
         if (mAudioDecoder.getTrack(channel) == null)
         {
             if (channel == Channel.AA_CH_AUD) {
-                mAudioDecoder.start(48000, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, AudioDecoder.BUFFER_SIZE_32);
+                mAudioDecoder.start(channel, true);
             } else {
-                mAudioDecoder.start(16000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, AudioDecoder.BUFFER_SIZE_4);
+                mAudioDecoder.start(channel, false);
             }
         }
 

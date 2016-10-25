@@ -24,7 +24,16 @@ public class Protocol {
     public static final int BTN_NEXT = 0x57;
     public static final int BTN_PREV = 0x58;
     public static final int BTN_STOP = 127;
-
+/*
+    static final int DRIVE_STATUS_FULLY_RESTRICTED = 31;
+    static final int DRIVE_STATUS_LIMIT_MESSAGE_LEN = 16;
+    static final int DRIVE_STATUS_NO_CONFIG = 8;
+    static final int DRIVE_STATUS_NO_KEYBOARD_INPUT = 2;
+    static final int DRIVE_STATUS_NO_VIDEO = 1;
+    static final int DRIVE_STATUS_NO_VOICE_INPUT = 4;
+    static final int DRIVE_STATUS_UNRESTRICTED = 0;
+    static final int GEAR_DRIVE = 100;
+ */
 
     static ByteArray createMessage(int chan, int flags, int type, byte[] data, int size) {
 

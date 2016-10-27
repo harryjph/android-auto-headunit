@@ -257,8 +257,9 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     public void onMicDataAvailable(byte[] mic_buf, int mic_audio_len) {
         if (mic_audio_len > 64) {  // If we read at least 64 bytes of audio data
             ByteArray ba = new ByteArray(mic_audio_len + 10);
-            ba.put(10, mic_buf, mic_audio_len);
             Utils.put_time(2, ba.data, SystemClock.elapsedRealtime());
+            ba.length = 10;
+            ba.put(0, mic_buf, mic_audio_len);
             sendEncrypted(Channel.AA_CH_MIC, ba.data, ba.length);
         }
     }

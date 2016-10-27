@@ -31,8 +31,10 @@ public class AudioDecoder {
 
     public void stop(int chan) {
         AudioTrackWrapper audioTrack = mAudioTracks.get(chan);
-        audioTrack.stop();
-        mAudioTracks.put(chan, null);
+        if (audioTrack != null) {
+            audioTrack.stop();
+            mAudioTracks.put(chan, null);
+        }
     }
 
     public void start(int chan, boolean isHiRes) {

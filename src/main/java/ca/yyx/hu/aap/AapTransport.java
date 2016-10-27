@@ -3,6 +3,7 @@ package ca.yyx.hu.aap;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.os.Process;
 import android.os.SystemClock;
 
 import java.util.Locale;
@@ -12,114 +13,102 @@ import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.usb.UsbAccessoryConnection;
 import ca.yyx.hu.utils.AppLog;
+import ca.yyx.hu.utils.ByteArray;
 import ca.yyx.hu.utils.Utils;
 
-public class AapTransport extends HandlerThread implements Handler.Callback {
+public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     private static final int POLL = 1;
-    private static final int DATA_MESSAGE = 2;
-    private static final int MIC_RECORD_START = 3;
-    private static final int MIC_RECORD_STOP = 4;
+    private static final int MSG_DATA = 2;
+
     private final Listener mListener;
     private final AapAudio mAapAudio;
     private final AapVideo mAapVideo;
-
-    private Handler mHandler;
-    private boolean mMicRecording;
-
-    private final AudioDecoder mAudioDecoder;
+    private final HandlerThread mPollThread;
     private final MicRecorder mMicRecorder;
-    private final AapControl mAapControl;
 
-    private boolean mStopped;
     private UsbAccessoryConnection mConnection;
     private AapPoll mAapPoll;
+    private Handler mHandler;
 
     public interface Listener {
         void gainVideoFocus();
     }
 
     public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder, Listener listener) {
-        super("AapTransport");
-        mAudioDecoder = audioDecoder;
-        mMicRecorder = new MicRecorder();
+
+        mPollThread = new HandlerThread("AapTransport:Handler", Process.THREAD_PRIORITY_AUDIO);
+
+        mMicRecorder = new MicRecorder(this);
         mAapAudio = new AapAudio(this, audioDecoder);
         mAapVideo = new AapVideo(this, videoDecoder);
-        mAapControl = new AapControl(this, mAapAudio);
         mListener = listener;
     }
 
-    @Override
-    protected void onLooperPrepared() {
-        super.onLooperPrepared();
-        mHandler = new Handler(getLooper(), this);
-        mHandler.sendEmptyMessage(POLL);
+    public boolean isAlive() {
+        return mPollThread.isAlive();
     }
 
-    @Override
     public boolean handleMessage(Message msg) {
-        int ret;
 
-        if (msg.what == MIC_RECORD_STOP) {
-            mMicRecording = false;
-        } else if (msg.what == MIC_RECORD_START) {
-            mMicRecording = true;
-        }
-
-        if (mMicRecording) {
-            byte[] mic_buf = Protocol.createMicBuffer();
-            int mic_audio_len = mMicRecorder.mic_audio_read(mic_buf, 10, MicRecorder.MIC_BUFFER_SIZE);
-            if (mic_audio_len >= 78) {                                    // If we read at least 64 bytes of audio data
-                Utils.put_time(2, mic_buf, SystemClock.elapsedRealtime());
-                ret = sendEncrypted(Channel.AA_CH_MIC, mic_buf, mic_audio_len);    // Send mic audio
-            } else if (mic_audio_len > 0) {
-                AppLog.loge("No data from microphone");
-            }
-        }
-
-        if (msg.what == DATA_MESSAGE) {
-            int channel = msg.arg1;
-            int dataLength = msg.arg2;
+        if (msg.what == MSG_DATA) {
+            int chan = msg.arg1;
+            int len = msg.arg2;
             byte[] data = (byte[]) msg.obj;
-            ret = sendEncrypted(channel, data, dataLength);
-            if (ret < 0) {
-                AppLog.loge("Send data result: " + ret);
+            this.sendEncryptedMessage(chan, data, len);
+            return true;
+        }
+
+        if (msg.what == POLL) {
+            int ret = mAapPoll.poll();
+            if (mHandler == null) {
+                return false;
             }
-        }
+            if (!mHandler.hasMessages(POLL)) {
+                mHandler.sendEmptyMessage(POLL);
+            }
 
-
-        // Send a command (or null command)
-        ret = mAapPoll.poll();
-
-        if (mHandler == null) {
-            return false;
-        }
-        if (isAlive() && !mHandler.hasMessages(POLL)) {
-            mHandler.sendEmptyMessage(POLL);
-        }
-
-        if (ret < 0) {
-            AppLog.loge("Error result: " + ret);
-            this.quit();
+            if (ret < 0) {
+                AppLog.loge("Error result: " + ret);
+                this.quit();
+            }
         }
 
         return true;
     }
 
-    @Override
-    public boolean quit() {
+    private int sendEncryptedMessage(int chan, byte[] buf, int len) {
+        int flags = 0x0b;                                                   // Flags = First + Last + Encrypted
+        if (chan != Channel.AA_CH_CTR && buf[0] == 0) {                            // If not control channel and msg_type = 0 - 255 = control type message
+            flags = 0x0f;                                                     // Set Control Flag (On non-control channels, indicates generic/"control type" messages
+        }
+        if (chan == Channel.AA_CH_MIC && buf[0] == 0 && buf[1] == 0) {            // If Mic PCM Data
+            flags = 0x0b;                                                     // Flags = First + Last + Encrypted
+        }
 
+        String prefix = String.format(Locale.US, "SEND %d %s %01x", chan, Channel.name(chan), flags);
+        AapDump.logv(prefix, "HU", chan, flags, buf, len);
+
+        ByteArray ba = AapSsl.encrypt(4, len, buf);
+
+        ByteArray msg = Protocol.createMessage(chan, flags, -1, ba.data, ba.length);
+        int size = mConnection.send(msg.data, msg.length, 250);
+        AppLog.logv("Sent size: %d", size);
+
+        if (AppLog.LOG_VERBOSE) {
+            AapDump.logvHex("US", 0, msg.data, msg.length);
+        }
+        return 0;
+    }
+
+    void quit() {
         if (mConnection != null) {
             sendEncrypted(Channel.AA_CH_CTR, Protocol.BYEBYE_REQUEST, Protocol.BYEBYE_REQUEST.length);
         }
         Utils.ms_sleep(100);
-        if (mHandler != null) {
-            mHandler.removeCallbacks(this);
-            mHandler = null;
-        }
-        mStopped = true;
-        return super.quit();
-    }
 
+        mPollThread.quit();
+        mHandler = null;
+    }
 
     public boolean connectAndStart(UsbAccessoryConnection connection) {
         AppLog.logd("Start Aap transport for " + connection);
@@ -131,8 +120,12 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         }
 
         mConnection = connection;
+
         mAapPoll = new AapPoll(connection, this, mAapAudio, mAapVideo);
-        this.start();                                          // Create and start Transport Thread
+        mPollThread.start();
+        mHandler = new Handler(mPollThread.getLooper(), this);
+        mHandler.sendEmptyMessage(POLL);
+        // Create and start Transport Thread
         return true;
     }
 
@@ -203,67 +196,38 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
 
     void micStop() {
         AppLog.logd("Microphone Stop");
-        mHandler.sendEmptyMessage(MIC_RECORD_STOP);
-        mMicRecorder.mic_audio_stop();
+        mMicRecorder.stop();
     }
 
     void micStart() {
         AppLog.logd("Microphone Start");
-        mHandler.sendEmptyMessage(MIC_RECORD_START);
+        mMicRecorder.start();
     }
 
     void sendTouch(byte action, int x, int y) {
-        if (mHandler != null) {
-            long ts = SystemClock.elapsedRealtime() * 1000000L;
-            ByteArray ba = Protocol.createTouchMessage(ts, action, x, y);
-            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Channel.AA_CH_TOU, ba.length, ba.data);
-            mHandler.sendMessage(msg);
-        }
-    }
-
-    public boolean isStopped() {
-        return mStopped;
+        long ts = SystemClock.elapsedRealtime() * 1000000L;
+        ByteArray ba = Protocol.createTouchMessage(ts, action, x, y);
+        sendEncrypted(Channel.AA_CH_TOU, ba.data, ba.length);
     }
 
     public void sendButton(int btnCode, boolean isPress) {
-        if (mHandler != null)
-        {
-            long ts = SystemClock.elapsedRealtime() * 1000000L;
-            // Timestamp in nanoseconds = microseconds x 1,000,000
-            ByteArray ba = Protocol.createButtonMessage(ts, btnCode, isPress);
-            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Channel.AA_CH_TOU, ba.length, ba.data);
-            mHandler.sendMessage(msg);
-        }
+        long ts = SystemClock.elapsedRealtime() * 1000000L;
+        // Timestamp in nanoseconds = microseconds x 1,000,000
+        ByteArray ba = Protocol.createButtonMessage(ts, btnCode, isPress);
+        sendEncrypted(Channel.AA_CH_TOU, ba.data, ba.length);
     }
 
     void sendNightMode(boolean enabled) {
-        if (mHandler != null) {
-            byte[] modeData = Protocol.createNightModeMessage(enabled);
-            Message msg = mHandler.obtainMessage(DATA_MESSAGE, Channel.AA_CH_SEN, modeData.length, modeData);
-            mHandler.sendMessage(msg);
-        }
+        byte[] modeData = Protocol.createNightModeMessage(enabled);
+        sendEncrypted(Channel.AA_CH_SEN, modeData, modeData.length);
     }
 
     int sendEncrypted(int chan, byte[] buf, int len) {
-        int flags = 0x0b;                                                   // Flags = First + Last + Encrypted
-        if (chan != Channel.AA_CH_CTR && buf[0] == 0) {                            // If not control channel and msg_type = 0 - 255 = control type message
-            flags = 0x0f;                                                     // Set Control Flag (On non-control channels, indicates generic/"control type" messages
-        }
-        if (chan == Channel.AA_CH_MIC && buf[0] == 0 && buf[1] == 0) {            // If Mic PCM Data
-            flags = 0x0b;                                                     // Flags = First + Last + Encrypted
-        }
-
-        String prefix = String.format(Locale.US, "SEND %d %s %01x", chan, Channel.name(chan), flags);
-        AapDump.logv(prefix, "HU", chan, flags, buf, len);
-
-        ByteArray ba = AapSsl.encrypt(4, len, buf);
-
-        ByteArray msg = Protocol.createMessage(chan, flags, -1, ba.data, ba.length);
-        int size = mConnection.send(msg.data, msg.length, 250);
-        AppLog.logv("Sent size: %d", size);
-
-        if (AppLog.LOG_VERBOSE) {
-            AapDump.logvHex("US", 0, msg.data, msg.length);
+        if (mHandler == null) {
+            AppLog.loge("Handler is null");
+        } else {
+            Message msg = mHandler.obtainMessage(MSG_DATA, chan, len, buf);
+            mHandler.sendMessage(msg);
         }
         return 0;
     }
@@ -288,5 +252,16 @@ public class AapTransport extends HandlerThread implements Handler.Callback {
         sendEncrypted(Channel.AA_CH_VID, rsp2, rsp2.length);
         // Respond with VideoFocus gained
     }
+
+    @Override
+    public void onMicDataAvailable(byte[] mic_buf, int mic_audio_len) {
+        if (mic_audio_len > 64) {  // If we read at least 64 bytes of audio data
+            ByteArray ba = new ByteArray(mic_audio_len + 10);
+            ba.put(10, mic_buf, mic_audio_len);
+            Utils.put_time(2, ba.data, SystemClock.elapsedRealtime());
+            sendEncrypted(Channel.AA_CH_MIC, ba.data, ba.length);
+        }
+    }
+
 }
 

@@ -82,7 +82,7 @@ public class AapService extends Service implements UsbReceiver.Listener {
         mUsbReceiver = new UsbReceiver(this);
         mTimeTickReceiver = new TimeTickReceiver(mTransport, mUiModeManager);
 
-        mDeviceListener = new DeviceListener(this);
+        mDeviceListener = new DeviceListener();
         registerReceiver(mDeviceListener, DeviceListener.createIntentFilter());
         registerReceiver(mTimeTickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
         registerReceiver(mUsbReceiver, UsbReceiver.createFilter());
@@ -143,11 +143,8 @@ public class AapService extends Service implements UsbReceiver.Listener {
 
         try {
             if (connect(device)) {
-                if (mTransport.isAlive())
-                {
-                    reset();
-                    mTransport = App.get(this).transport();
-                }
+                reset();
+                mTransport = App.get(this).transport();
                 mTransport.connectAndStart(mUsbAccessoryConnection);
             }
             else

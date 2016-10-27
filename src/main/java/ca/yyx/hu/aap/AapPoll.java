@@ -4,6 +4,7 @@ import java.util.Locale;
 
 import ca.yyx.hu.usb.UsbAccessoryConnection;
 import ca.yyx.hu.utils.AppLog;
+import ca.yyx.hu.utils.ByteArray;
 import ca.yyx.hu.utils.Utils;
 
 

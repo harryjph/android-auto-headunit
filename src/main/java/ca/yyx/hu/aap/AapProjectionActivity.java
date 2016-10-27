@@ -105,7 +105,6 @@ public class AapProjectionActivity extends SurfaceActivity {
 
         AppLog.logd("Headunit for Android Auto (tm) - Copyright 2011-2015 Michael A. Reid. All Rights Reserved...");
 
-        mTransport = App.get(this).transport();
         mSurfaceView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -125,6 +124,7 @@ public class AapProjectionActivity extends SurfaceActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        mTransport = App.get(this).transport();
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, IntentUtils.DISCONNECT_FILTER);
     }
 

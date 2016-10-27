@@ -1,6 +1,8 @@
 package ca.yyx.hu.aap;
 
 
+import ca.yyx.hu.utils.ByteArray;
+
 /**
  * @author algavris
  * @date 04/10/2016.

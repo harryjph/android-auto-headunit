@@ -37,7 +37,7 @@ public class App extends Application implements AapTransport.Listener {
 
     public AapTransport transport()
     {
-        if (mTransport == null || mTransport.isStopped()) {
+        if (mTransport == null) {
             mTransport = new AapTransport(mAudioDecoder, mVideoDecoder, this);
         }
         return mTransport;

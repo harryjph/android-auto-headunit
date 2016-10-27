@@ -1,45 +1,48 @@
-package ca.yyx.hu.aap;
+package ca.yyx.hu.utils;
 
 /**
  * @author algavris
  * @date 24/09/2016.
  */
 
-class ByteArray {
-    final byte[] data;
-    int length;
+public class ByteArray {
+    public final byte[] data;
+    public final int offset;
+    public int length;
 
-    ByteArray(byte[] data, int length)
+    public ByteArray(int offset, byte[] data, int length)
     {
         this.data = data;
         this.length = length;
+        this.offset = offset;
     }
 
-    ByteArray(int maxSize) {
+    public ByteArray(int maxSize) {
         this.data = new byte[maxSize];
         this.length = 0;
+        this.offset = 0;
     }
 
-    void put(int value) {
+    public void put(int value) {
         this.data[this.length++] = (byte) value;
     }
 
-    void put(int... values) {
+    public void put(int... values) {
         for (int i = 0; i < values.length; i++)
         {
             this.put(values[i]);
         }
     }
 
-    void move(int size) {
+    public void move(int size) {
         this.length += size;
     }
 
-    void inc(int index, int value) {
+    public void inc(int index, int value) {
         this.data[index] += value;
     }
 
-    void encodeInt(int value) {
+    public void encodeInt(int value) {
         this.put((byte) (value / 256));                                            // Encode length of following data:
         this.put((byte) (value % 256));
     }

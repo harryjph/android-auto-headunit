@@ -1,6 +1,7 @@
 package ca.yyx.hu.aap;
 
 import ca.yyx.hu.decoder.MicRecorder;
+import ca.yyx.hu.utils.ByteArray;
 
 /**
  * @author algavris
@@ -64,11 +65,6 @@ public class Protocol {
         int press = isPress ? 0x01 : 0x00;
         buffer.put(0x22, 0x0A, 0x0A, 0x08, 0x08, button, 0x10, press, 0x18, 0x00, 0x20, 0x00);
         return buffer;
-    }
-
-    static byte[] createMicBuffer()
-    {
-        return new byte[10 + MicRecorder.MIC_BUFFER_SIZE];
     }
 
     static ByteArray createTouchMessage(long timeStamp, byte action, int x, int y) {

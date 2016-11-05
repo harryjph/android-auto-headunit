@@ -1,14 +1,11 @@
-package ca.yyx.hu;
+package ca.yyx.hu.ui;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
+import android.app.Fragment;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
@@ -18,9 +15,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import net.hockeyapp.android.CrashManager;
-import net.hockeyapp.android.UpdateManager;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,144 +22,50 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Set;
 
-import ca.yyx.hu.aap.AapProjectionActivity;
+import ca.yyx.hu.R;
 import ca.yyx.hu.aap.AapService;
 import ca.yyx.hu.connection.UsbDeviceCompat;
 import ca.yyx.hu.connection.UsbModeSwitch;
 import ca.yyx.hu.connection.UsbReceiver;
 import ca.yyx.hu.utils.Settings;
-import ca.yyx.hu.utils.SystemUI;
 
-public class SettingsActivity extends Activity implements UsbReceiver.Listener {
-    private Settings mSettings;
+/**
+ * @author algavris
+ * @date 05/11/2016.
+ */
+
+public class UsbListFragment extends BaseFragment implements UsbReceiver.Listener {
     private DeviceAdapter mAdapter;
-    private BroadcastReceiver mUsbReceiver;
-    private View mVideoButton;
+    private Settings mSettings;
+    private UsbReceiver mUsbReceiver;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        RecyclerView recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_list, container, false);
 
-        mVideoButton = findViewById(R.id.video_button);
-        mVideoButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent aapIntent = new Intent(SettingsActivity.this, AapProjectionActivity.class);
-                aapIntent.putExtra(AapProjectionActivity.EXTRA_FOCUS, true);
-                startActivity(aapIntent);
-            }
-        });
+        Context context = getContext();
 
-        findViewById(R.id.exit_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopService(new Intent(SettingsActivity.this, AapService.class));
-                finish();
-                Intent intent = new Intent(Intent.ACTION_MAIN);
-                intent.addCategory(Intent.CATEGORY_HOME);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-            }
-        });
-
-        findViewById(R.id.menu).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showMenuDialog();
-            }
-        });
-
-
-        findViewById(R.id.wifi).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startService(AapService.createIntent("10.0.0.11", SettingsActivity.this));
-            }
-        });
-
-        mSettings = new Settings(this);
-        mAdapter = new DeviceAdapter(this, mSettings);
-
-        RecyclerView recyclerView = (RecyclerView) findViewById(android.R.id.list);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mSettings = new Settings(context);
+        mAdapter = new DeviceAdapter(context, mSettings);
+        recyclerView.setLayoutManager(new LinearLayoutManager(context));
         recyclerView.setAdapter(mAdapter);
 
         mUsbReceiver = new UsbReceiver(this);
 
-        UpdateManager.register(this);
-    }
-
-    private void showMenuDialog() {
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(R.string.menu)
-                .setItems(R.array.menu_items, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (which == 0)
-                        {
-                            startActivity(new Intent(SettingsActivity.this, VideoTestActivity.class));
-                        }
-                    }
-                }).create();
-        dialog.show();
-    }
-
-    private ArrayList<UsbDeviceCompat> createDeviceList(final Set<String> allowDevices) {
-        UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        HashMap<String, UsbDevice> devices = manager.getDeviceList();
-        ArrayList<UsbDeviceCompat> list = new ArrayList<>(devices.size());
-
-        for (String name : devices.keySet()) {
-            UsbDevice device = devices.get(name);
-            UsbDeviceCompat compat = new UsbDeviceCompat(device);
-            list.add(compat);
-        }
-
-        Collections.sort(list, new Comparator<UsbDeviceCompat>() {
-            @Override
-            public int compare(UsbDeviceCompat lhs, UsbDeviceCompat rhs) {
-                if (lhs.isInAccessoryMode()) {
-                    return -1;
-                }
-                if (rhs.isInAccessoryMode()) {
-                    return 1;
-                }
-                if (allowDevices.contains(lhs.getUniqueName())) {
-                    return -1;
-                }
-                if (allowDevices.contains(rhs.getUniqueName())) {
-                    return 1;
-                }
-                return lhs.getUniqueName().compareTo(rhs.getUniqueName());
-            }
-        });
-
-        return list;
+        return recyclerView;
     }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        SystemUI.hide(getWindow().getDecorView());
-    }
-
-    @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         Set<String> allowDevices = mSettings.getAllowedDevices();
         mAdapter.setData(createDeviceList(allowDevices), allowDevices);
         registerReceiver(mUsbReceiver, UsbReceiver.createFilter());
-        if (App.get(this).transport().isAlive()) {
-            mVideoButton.setEnabled(true);
-        } else {
-            mVideoButton.setEnabled(false);
-        }
-        CrashManager.register(this);
     }
 
     @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
         unregisterReceiver(mUsbReceiver);
     }
@@ -284,5 +184,38 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
             mDeviceList = deviceList;
             notifyDataSetChanged();
         }
+    }
+
+    private ArrayList<UsbDeviceCompat> createDeviceList(final Set<String> allowDevices) {
+        UsbManager manager = (UsbManager) getContext().getSystemService(Context.USB_SERVICE);
+        HashMap<String, UsbDevice> devices = manager.getDeviceList();
+        ArrayList<UsbDeviceCompat> list = new ArrayList<>(devices.size());
+
+        for (String name : devices.keySet()) {
+            UsbDevice device = devices.get(name);
+            UsbDeviceCompat compat = new UsbDeviceCompat(device);
+            list.add(compat);
+        }
+
+        Collections.sort(list, new Comparator<UsbDeviceCompat>() {
+            @Override
+            public int compare(UsbDeviceCompat lhs, UsbDeviceCompat rhs) {
+                if (lhs.isInAccessoryMode()) {
+                    return -1;
+                }
+                if (rhs.isInAccessoryMode()) {
+                    return 1;
+                }
+                if (allowDevices.contains(lhs.getUniqueName())) {
+                    return -1;
+                }
+                if (allowDevices.contains(rhs.getUniqueName())) {
+                    return 1;
+                }
+                return lhs.getUniqueName().compareTo(rhs.getUniqueName());
+            }
+        });
+
+        return list;
     }
 }

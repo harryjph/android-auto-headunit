@@ -4,20 +4,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:background="@color/primary_dark"
         android:layout_gravity="bottom"
+        android:gravity="center"
         android:orientation="horizontal">
 
         <ImageButton
             android:id="@+id/video_button"
             android:layout_width="128dp"
             android:layout_height="64dp"
-            android:layout_marginLeft="0dp"
-            android:layout_gravity="left|bottom"
             android:src="@drawable/ic_view_stream_white_24dp"
+            android:background="?android:attr/actionBarItemBackground"
+            android:contentDescription="@string/video" />
+
+        <ImageButton
+            android:id="@+id/usb"
+            android:layout_width="128dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_usb_white_24dp"
             android:background="?android:attr/actionBarItemBackground"
             android:contentDescription="@string/video" />
 
@@ -25,8 +32,6 @@
             android:id="@+id/wifi"
             android:layout_width="128dp"
             android:layout_height="64dp"
-            android:layout_marginRight="256dp"
-            android:layout_gravity="right|bottom"
             android:src="@drawable/ic_network_wifi_white_24dp"
             android:background="?android:attr/actionBarItemBackground"
             android:contentDescription="@string/video" />
@@ -35,8 +40,6 @@
             android:id="@+id/menu"
             android:layout_width="128dp"
             android:layout_height="64dp"
-            android:layout_marginRight="128dp"
-            android:layout_gravity="right|bottom"
             android:src="@drawable/ic_menu_white_24dp"
             android:background="?android:attr/actionBarItemBackground"
             android:contentDescription="@string/video" />
@@ -45,16 +48,15 @@
             android:id="@+id/exit_button"
             android:layout_width="128dp"
             android:layout_height="64dp"
-            android:layout_gravity="right|bottom"
             android:src="@drawable/ic_exit_to_app_white_24dp"
             android:background="?android:attr/actionBarItemBackground"
             android:contentDescription="@string/exit" />
 
 
-    </FrameLayout>
+    </LinearLayout>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@android:id/list"
+    <FrameLayout
+        android:id="@+id/main_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="top|center"
@@ -64,5 +66,6 @@
         android:layout_marginRight="96dp"
         android:layout_marginBottom="96dp"
         android:padding="8dp"
-        tools:listitem="@layout/list_item_device" />
+        />
+
 </FrameLayout>

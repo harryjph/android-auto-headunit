@@ -63,7 +63,7 @@
             android:theme="@style/AppTheme" />
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:launchMode="singleTask"
             android:screenOrientation="sensorLandscape"

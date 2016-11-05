@@ -19,14 +19,14 @@ public class Utils {
         } catch (InterruptedException e) {
             //Thread.currentThread().interrupt();
             e.printStackTrace();
-            AppLog.loge("Exception e: " + e);
+            AppLog.e("Exception e: " + e);
             return (0);
         }
     }
 
     public static long tmr_ms_get() {        // Current timestamp of the most precise timer available on the local system, in nanoseconds. Equivalent to Linux's CLOCK_MONOTONIC.
         // Values returned by this method do not have a defined correspondence to wall clock times; the zero value is typically whenever the device last booted
-        //AppLog.logd ("ms: " + ms);           // Changing system time will not affect results.
+        //AppLog.i ("ms: " + ms);           // Changing system time will not affect results.
         return (System.nanoTime() / 1000000);
     }
 

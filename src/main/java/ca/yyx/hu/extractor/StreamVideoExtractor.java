@@ -35,7 +35,7 @@ public class StreamVideoExtractor implements MediaExtractorInterface {
             int size = nextSample - mSampleOffset;
             buffer.clear();
             buffer.put(mContentData);
-            AppLog.logd("readSampleData (offset: %d,next: %d,size: %d,length: %d, flags: 0x%08x)",mSampleOffset, nextSample, size, mContentData.length, mFlags);
+            AppLog.i("readSampleData (offset: %d,next: %d,size: %d,length: %d, flags: 0x%08x)",mSampleOffset, nextSample, size, mContentData.length, mFlags);
             return size;
         }
         return 0;
@@ -110,7 +110,7 @@ public class StreamVideoExtractor implements MediaExtractorInterface {
     private int findNextNAL(int offset) {
         while(offset < mContentData.length) {
             if (mContentData[offset] == 0 && mContentData[offset + 1] == 0 && mContentData[offset + 2] == 0 && mContentData[offset + 3] == 1) {
-                AppLog.logd("Found sequence at %d: 0x0 0x0 0x0 0x1 0x%01x (%d)",mSampleOffset, mContentData[offset + 4], mContentData[offset + 4]);
+                AppLog.i("Found sequence at %d: 0x0 0x0 0x0 0x1 0x%01x (%d)",mSampleOffset, mContentData[offset + 4], mContentData[offset + 4]);
                 return offset;
             }
             offset++;

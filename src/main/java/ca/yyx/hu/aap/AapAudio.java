@@ -1,8 +1,5 @@
 package ca.yyx.hu.aap;
 
-import android.media.AudioFormat;
-
-import ca.yyx.hu.App;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.utils.AppLog;
 
@@ -37,7 +34,7 @@ class AapAudio {
     private int process(int chan, int msg_type, int flags, byte[] buf, int len) {
         // 300 ms @ 48000/sec   samples = 14400     stereo 16 bit results in bytes = 57600
 
-        //logd ("iaap_audio_process chan: %d  msg_type: %d  flags: 0x%x  buf: %p  len: %d", chan, msg_type, flags, buf, len); // iaap_audio_process msg_type: 0  flags: 0xb  buf: 0xe08cbfb8  len: 8202
+        //i ("iaap_audio_process chan: %d  msg_type: %d  flags: 0x%x  buf: %p  len: %d", chan, msg_type, flags, buf, len); // iaap_audio_process msg_type: 0  flags: 0xb  buf: 0xe08cbfb8  len: 8202
 
         if (chan == Channel.AA_CH_AU1)
             aud_ack[3] = ack_val_au1;
@@ -60,9 +57,9 @@ class AapAudio {
                     ts += (long) buf[ctr];
                     t2 += buf[ctr];
                     if (ctr == 6)
-                        AppLog.logv("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
+                        AppLog.v("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
                 }
-                AppLog.logv("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
+                AppLog.v("iaap_audio_process ts: %d 0x%x  t2: %d 0x%x", ts, ts, t2, t2);
             }
 
             decode(chan, 10, buf, len - 10); // Decode PCM audio fully re-assembled
@@ -74,7 +71,7 @@ class AapAudio {
 
     private void decode(int chan, int start, byte[] buf, int len) {
         if (len > AUDIO_BUFS_SIZE) {
-            AppLog.loge("Error audio len: %d  aud_buf_BUFS_SIZE: %d", len, AUDIO_BUFS_SIZE);
+            AppLog.e("Error audio len: %d  aud_buf_BUFS_SIZE: %d", len, AUDIO_BUFS_SIZE);
             len = AUDIO_BUFS_SIZE;
         }
 
@@ -85,9 +82,9 @@ class AapAudio {
 
         if (channel != chan)
         {
-            AppLog.loge("Channels are different: %d != %d",channel,chan);
+            AppLog.e("Channels are different: %d != %d",channel,chan);
         } else {
-            AppLog.logv("Channels are the same: %d ", chan);
+            AppLog.v("Channels are the same: %d ", chan);
         }
 
         if (mAudioDecoder.getTrack(channel) == null)
@@ -116,7 +113,7 @@ class AapAudio {
     }
 
     void stopAudio(int chan) {
-        AppLog.logd("Audio Stop: " + chan);
+        AppLog.i("Audio Stop: " + chan);
         mAudioDecoder.stop(chan);
     }
 }

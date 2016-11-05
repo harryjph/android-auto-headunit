@@ -8,37 +8,46 @@ import java.util.Locale;
 
 public final class AppLog {
 
-    private static final int LOG_LEVEL = Log.DEBUG;
+    private static final int LOG_LEVEL = Log.INFO;
 
     public static final String TAG = "CAR.HU.J";
     public static final boolean LOG_VERBOSE = LOG_LEVEL <= Log.VERBOSE;
+    public static final boolean LOG_DEBUG = LOG_LEVEL <= Log.DEBUG;
 
-    public static void logd(String msg) {
+    public static void i(String msg) {
         log(Log.DEBUG, format(msg));
     }
 
-    public static void logd(final String msg, final Object... params) {
+    public static void i(final String msg, final Object... params) {
         log(Log.DEBUG, format(msg, params));
     }
 
-    public static void loge(String msg) {
+    public static void e(String msg) {
         Log.e(TAG, format(msg));
     }
 
-    public static void loge(String msg, Throwable tr) {
+    public static void e(String msg, Throwable tr) {
         Log.e(TAG, format(msg), tr);
     }
 
-    public static void loge(Throwable tr) {
+    public static void e(Throwable tr) {
         Log.e(TAG, tr.getMessage(), tr);
     }
 
-    public static void loge(String msg, final Object... params) {
+    public static void e(String msg, final Object... params) {
         Log.e(TAG, format(msg, params));
     }
 
-    public static void logv(String msg, final Object... params) {
+    public static void v(String msg, final Object... params) {
         log(Log.VERBOSE, format(msg, params));
+    }
+
+    public static void d(String msg, final Object... params) {
+        log(Log.INFO, format(msg, params));
+    }
+
+    public static void d(String msg) {
+        log(Log.INFO, format(msg));
     }
 
     private static void log(int priority, String msg)
@@ -57,7 +66,7 @@ public final class AppLog {
             try {
                 formatted = String.format(Locale.US, msg, array);
             } catch (IllegalFormatException ex) {
-                loge("IllegalFormatException: formatString='%s' numArgs=%d", msg, array.length);
+                e("IllegalFormatException: formatString='%s' numArgs=%d", msg, array.length);
                 formatted = msg + " (An error occurred while formatting the message.)";
             }
         }

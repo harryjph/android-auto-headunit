@@ -10,7 +10,7 @@ import ca.yyx.hu.utils.AppLog;
  */
 
 class NalUnitsStore {
-    private final static int TOTAL_CAPTURE_COUNT = 3;
+    private final static int TOTAL_CAPTURE_COUNT = 0;
 
     private byte[][] mCapturedNal = new byte[TOTAL_CAPTURE_COUNT][];
     private int mCapturedCount = 0;
@@ -26,7 +26,7 @@ class NalUnitsStore {
         {
             mCapturedNal[0] = new byte[size];
             System.arraycopy(buffer, offset, mCapturedNal[0], 0, size);
-            AppLog.logd("SPS: %d", mCapturedNal[0].length);
+            AppLog.i("SPS: %d", mCapturedNal[0].length);
             mTotalSize+=size;
             mCapturedCount++;
             return;
@@ -41,7 +41,7 @@ class NalUnitsStore {
         mCapturedNal[mCapturedCount] = new byte[size];
         System.arraycopy(buffer, offset, mCapturedNal[mCapturedCount], 0, size);
         mTotalSize+=size;
-        AppLog.logd("NAL #%d: %02x %d", mCapturedCount, getNalType(mCapturedNal[mCapturedCount], 0), mCapturedNal[mCapturedCount].length);
+        AppLog.i("NAL #%d: %02x %d", mCapturedCount, getNalType(mCapturedNal[mCapturedCount], 0), mCapturedNal[mCapturedCount].length);
         mCapturedCount++;
     }
 

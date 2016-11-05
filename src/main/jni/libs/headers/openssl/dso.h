@@ -267,14 +267,14 @@ int DSO_set_filename(DSO *dso, const char *filename);
  * simply duplicated. NB: This function is usually called from within a
  * DSO_METHOD during the processing of a DSO_load() call, and is exposed so
  * that caller-created DSO_METHODs can do the same thing. A non-NULL return
- * value will need to be OPENSSL_free()'d.
+ * value will need to be OPENSSL_free()'i.
  */
 char *DSO_convert_filename(DSO *dso, const char *filename);
 /*
  * This function will invoke the DSO's merger callback to merge two file
  * specifications, or if the callback isn't set it will instead use the
  * DSO_METHOD's merger.  A non-NULL return value will need to be
- * OPENSSL_free()'d.
+ * OPENSSL_free()'i.
  */
 char *DSO_merge(DSO *dso, const char *filespec1, const char *filespec2);
 /*

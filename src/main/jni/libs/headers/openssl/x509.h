@@ -228,7 +228,7 @@ typedef struct X509_req_info_st {
     ASN1_INTEGER *version;
     X509_NAME *subject;
     X509_PUBKEY *pubkey;
-    /*  d=2 hl=2 l=  0 cons: cont: 00 */
+    /*  i=2 hl=2 l=  0 cons: cont: 00 */
     STACK_OF(X509_ATTRIBUTE) *attributes; /* [ 0 ] */
 } X509_REQ_INFO;
 

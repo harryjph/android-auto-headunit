@@ -10,17 +10,17 @@ class AapDump {
     private static final int MAX_HEX_DUMP  = 64;//32;
     private static final int HD_MW = 16;
 
-    static int logv(String prefix, String src, int chan, int flags, byte[] buf, int len) {
+    static int logd(String prefix, String src, int chan, int flags, byte[] buf, int len) {
         // Source:  HU = HU > AA   AA = AA > HU
 
-        if (!AppLog.LOG_VERBOSE)
+        if (!AppLog.LOG_DEBUG)
         {
             return 0;
         }
 
         if (len < 2) {
             // If less than 2 bytes, needed for msg_type...
-            AppLog.loge ("hu_aad_dmp len: %d", len);
+            AppLog.e("hu_aad_dmp len: %d", len);
             return 0;
         }
 
@@ -66,7 +66,7 @@ class AapDump {
             return (rmv);                                                     // Done
 
         if (lft < 2) {                                                      // If less than 2 bytes for content (impossible if content; need at least 1 byte for 0x08 and 1 byte for varint)
-            AppLog.loge ("hu_aad_dmp len: %d  lft: %d", len, lft);
+            AppLog.e("hu_aad_dmp len: %d  lft: %d", len, lft);
             return (rmv);                                                     // Done with error
         }
 
@@ -75,9 +75,9 @@ class AapDump {
         // iaad_adj(&rmv, &buf, &lft, adj);                                // Adjust past the content (to nothing, presumably)
 
 //        if (lft != 0 || rmv != len || rmv < 0)                              // If content left... (must be malformed)
-//            AppLog.loge ("hu_aad_dmp after content len: %d  lft: %d  rmv: %d  buf: %p", len, lft, rmv, buf);
+//            AppLog.e ("hu_aad_dmp after content len: %d  lft: %d  rmv: %d  buf: %p", len, lft, rmv, buf);
 
-        AppLog.logd ("--------------------------------------------------------");  // Empty line / 56 characters
+        AppLog.i("--------------------------------------------------------");  // Empty line / 56 characters
 
         return (rmv);
     }

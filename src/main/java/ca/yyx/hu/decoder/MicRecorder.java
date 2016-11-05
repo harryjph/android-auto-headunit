@@ -5,7 +5,6 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 
 import ca.yyx.hu.utils.AppLog;
-import ca.yyx.hu.utils.Utils;
 
 /**
  * @author algavris
@@ -33,7 +32,7 @@ public class MicRecorder {
     }
 
     public void stop() {
-        AppLog.logd("thread_mic_audio: " + thread_mic_audio + "  thread_mic_audio_active: " + thread_mic_audio_active);
+        AppLog.i("thread_mic_audio: " + thread_mic_audio + "  thread_mic_audio_active: " + thread_mic_audio_active);
         if (thread_mic_audio_active) {
             thread_mic_audio_active = false;
             if (thread_mic_audio != null) {
@@ -57,9 +56,9 @@ public class MicRecorder {
         if (len <= 0) {
             // If no audio data...
             if (len == android.media.AudioRecord.ERROR_INVALID_OPERATION)   // -3
-                AppLog.loge("get expected interruption error due to shutdown: " + len);
+                AppLog.e("get expected interruption error due to shutdown: " + len);
             else
-                AppLog.loge("get error: " + len);
+                AppLog.e("get error: " + len);
             return (len);
         }
 
@@ -86,7 +85,7 @@ public class MicRecorder {
             thread_mic_audio.start();
             return 0;
         } catch (Exception e) {
-            AppLog.loge(e);  // "java.lang.IllegalArgumentException: Invalid audio source."
+            AppLog.e(e);  // "java.lang.IllegalArgumentException: Invalid audio source."
             mMicAudioRecord = null;
             return -2;
         }

@@ -844,7 +844,7 @@ DECLARE_ASN1_FUNCTIONS(IPAddressFamily)
 #  define V3_ASID_RDI     1
 
 /*
- * AFI values, assigned by IANA.  It'd be nice to make the AFI
+ * AFI values, assigned by IANA.  It'i be nice to make the AFI
  * handling code totally generic, but there are too many little things
  * that would need to be defined for other address families for it to
  * be worth the trouble.

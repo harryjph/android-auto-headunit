@@ -33,7 +33,7 @@ public class DeviceListener extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        AppLog.logd(intent.toString());
+        AppLog.i(intent.toString());
 
         AapTransport transport = App.get(context).transport();
 
@@ -63,7 +63,7 @@ public class DeviceListener extends BroadcastReceiver {
                 sendButton(Protocol.BTN_PREV, transport);
                 break;
             default:
-                AppLog.logd("Unknown keyCode: "+keyCode);
+                AppLog.i("Unknown keyCode: "+keyCode);
         }
     }
 

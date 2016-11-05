@@ -68,7 +68,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
             }
 
             if (ret < 0) {
-                AppLog.loge("Error result: " + ret);
+                AppLog.e("Error result: " + ret);
                 this.quit();
             }
         }
@@ -86,13 +86,13 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         }
 
         String prefix = String.format(Locale.US, "SEND %d %s %01x", chan, Channel.name(chan), flags);
-        AapDump.logv(prefix, "HU", chan, flags, buf, len);
+        AapDump.logd(prefix, "HU", chan, flags, buf, len);
 
         ByteArray ba = AapSsl.encrypt(4, len, buf);
 
         ByteArray msg = Protocol.createMessage(chan, flags, -1, ba.data, ba.length);
         int size = mConnection.send(msg.data, msg.length, 250);
-        AppLog.logv("Sent size: %d", size);
+        AppLog.d("Sent size: %d", size);
 
         if (AppLog.LOG_VERBOSE) {
             AapDump.logvHex("US", 0, msg.data, msg.length);
@@ -111,11 +111,11 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     }
 
     public boolean connectAndStart(UsbAccessoryConnection connection) {
-        AppLog.logd("Start Aap transport for " + connection);
+        AppLog.i("Start Aap transport for " + connection);
 
         if (!handshake(connection))
         {
-            AppLog.loge("Handshake failed");
+            AppLog.e("Handshake failed");
             return false;
         }
 
@@ -136,21 +136,21 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         ByteArray version = Protocol.createMessage(0, 3, 1, Protocol.VERSION_REQUEST, Protocol.VERSION_REQUEST.length); // Version Request
         int ret = connection.send(version.data, version.length, 1000);
         if (ret < 0) {
-            AppLog.loge("Version request sendEncrypted ret: " + ret);
+            AppLog.e("Version request sendEncrypted ret: " + ret);
             return false;
         }
 
         ret = connection.recv(buffer, 1000);
         if (ret <= 0) {
-            AppLog.loge("Version request recv ret: " + ret);
+            AppLog.e("Version request recv ret: " + ret);
             return false;
         }
-        AppLog.logd("Version response recv ret: %d", ret);
+        AppLog.i("Version response recv ret: %d", ret);
 
         // SSL
         ret = AapSsl.prepare();
         if (ret < 0) {
-            AppLog.loge("SSL prepare failed: " + ret);
+            AppLog.e("SSL prepare failed: " + ret);
             return false;
         }
 
@@ -167,17 +167,17 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
             ByteArray bio = Protocol.createMessage(Channel.AA_CH_CTR, 3, 3, ba.data, ba.length);
             int size = connection.send(bio.data, bio.length, 1000);
-            AppLog.logd("SSL BIO sent: %d", size);
+            AppLog.i("SSL BIO sent: %d", size);
 
             size = connection.recv(buffer, 1000);
-            AppLog.logd("SSL received: %d", size);
+            AppLog.i("SSL received: %d", size);
             if (size <= 0) {
-                AppLog.logd("SSL receive error");
+                AppLog.i("SSL receive error");
                 return false;
             }
 
             ret = AapSsl.bioWrite(6, size - 6, buffer);
-            AppLog.logd("SSL BIO write: %d", ret);
+            AppLog.i("SSL BIO write: %d", ret);
         }
 
         // Status = OK
@@ -185,22 +185,22 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         ByteArray status = Protocol.createMessage(0, 3, 4, new byte[]{8, 0}, 2);
         ret = connection.send(status.data, status.length, 1000);
         if (ret < 0) {
-            AppLog.loge("Status request sendEncrypted ret: " + ret);
+            AppLog.e("Status request sendEncrypted ret: " + ret);
             return false;
         }
 
-        AppLog.logd("Status OK sent: %d", ret);
+        AppLog.i("Status OK sent: %d", ret);
 
         return true;
     }
 
     void micStop() {
-        AppLog.logd("Microphone Stop");
+        AppLog.i("Microphone Stop");
         mMicRecorder.stop();
     }
 
     void micStart() {
-        AppLog.logd("Microphone Start");
+        AppLog.i("Microphone Start");
         mMicRecorder.start();
     }
 
@@ -224,7 +224,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
     int sendEncrypted(int chan, byte[] buf, int len) {
         if (mHandler == null) {
-            AppLog.loge("Handler is null");
+            AppLog.e("Handler is null");
         } else {
             Message msg = mHandler.obtainMessage(MSG_DATA, chan, len, buf);
             mHandler.sendMessage(msg);
@@ -238,19 +238,28 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     }
 
     void sendVideoFocusGained() {
+
+
         // Else if success and channel = video...
         byte rsp2[] = {(byte) 0x80, 0x08, 0x08, 1, 0x10, 1};
         // 1, 1     VideoFocus gained focusState=1 unsolicited=true     010b0000800808011001
         sendEncrypted(Channel.AA_CH_VID, rsp2, rsp2.length);
         // Respond with VideoFocus gained
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                byte[] ds = Protocol.DRIVING_STATUS.clone();
+                ds[5] = Protocol.DRIVE_STATUS_FULLY_RESTRICTED;
+                sendEncrypted(Channel.AA_CH_SEN, ds, ds.length);
+            }
+        }, 5000);
     }
 
     void sendVideoFocusLost() {
-        // Else if success and channel = video...
         byte rsp2[] = {(byte) 0x80, 0x08, 0x08, 1, 0x10, 0};
-        // 1, 1     VideoFocus gained focusState=1 unsolicited=true     010b0000800808011001
         sendEncrypted(Channel.AA_CH_VID, rsp2, rsp2.length);
-        // Respond with VideoFocus gained
     }
 
     @Override

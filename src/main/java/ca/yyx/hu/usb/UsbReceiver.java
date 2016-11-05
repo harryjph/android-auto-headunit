@@ -50,7 +50,7 @@ public class UsbReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         UsbDevice device = intent.<UsbDevice>getParcelableExtra(UsbManager.EXTRA_DEVICE);
-        AppLog.logd("USB Intent: " + intent);
+        AppLog.i("USB Intent: " + intent);
 
         if (device != null) {
             String action = intent.getAction();

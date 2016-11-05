@@ -103,7 +103,7 @@ public class AapProjectionActivity extends SurfaceActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        AppLog.logd("Headunit for Android Auto (tm) - Copyright 2011-2015 Michael A. Reid. All Rights Reserved...");
+        AppLog.i("Headunit for Android Auto (tm) - Copyright 2011-2015 Michael A. Reid. All Rights Reserved...");
 
         mSurfaceView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -151,7 +151,7 @@ public class AapProjectionActivity extends SurfaceActivity {
         int y = (int) (event.getY(0) / (mSurfaceView.getHeight() / m_virt_vid_hei));
 
         if (x < 0 || y < 0 || x >= 65535 || y >= 65535) {   // Infinity if vid_wid_get() or vid_hei_get() return 0
-            AppLog.loge("Invalid x: " + x + "  y: " + y);
+            AppLog.e("Invalid x: " + x + "  y: " + y);
             return;
         }
 
@@ -171,7 +171,7 @@ public class AapProjectionActivity extends SurfaceActivity {
                 aa_action = MotionEvent.ACTION_UP;
                 break;
             default:
-                AppLog.loge("event: " + event + " (Unknown: " + me_action + ")  x: " + x + "  y: " + y);
+                AppLog.e("event: " + event + " (Unknown: " + me_action + ")  x: " + x + "  y: " + y);
                 return;
         }
         mTransport.sendTouch(aa_action, x, y);
@@ -179,7 +179,7 @@ public class AapProjectionActivity extends SurfaceActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        AppLog.logd("KeyCode: %d", keyCode);
+        AppLog.i("KeyCode: %d", keyCode);
         onKeyEvent(keyCode, true);
 
         return super.onKeyDown(keyCode, event);
@@ -187,7 +187,7 @@ public class AapProjectionActivity extends SurfaceActivity {
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        AppLog.logd("KeyCode: %d", keyCode);
+        AppLog.i("KeyCode: %d", keyCode);
         Utils.ms_sleep(100);
         onKeyEvent(keyCode, false);
         return super.onKeyUp(keyCode, event);
@@ -220,7 +220,7 @@ public class AapProjectionActivity extends SurfaceActivity {
 //                mTransport.sendButton(Protocol.BTN_PLAYPAUSE, isPress);
 //                break;
             default:
-                AppLog.logd("Ignored: " + keyCode);
+                AppLog.i("Ignored: " + keyCode);
         }
     }
 }

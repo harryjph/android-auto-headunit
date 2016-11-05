@@ -312,9 +312,9 @@ typedef struct bn_gencb_st BN_GENCB;
 struct bignum_st {
     BN_ULONG *d;                /* Pointer to an array of 'BN_BITS2' bit
                                  * chunks. */
-    int top;                    /* Index of last used d +1. */
+    int top;                    /* Index of last used i +1. */
     /* The next are internal book keeping for bn_expand. */
-    int dmax;                   /* Size of the d array. */
+    int dmax;                   /* Size of the i array. */
     int neg;                    /* one if the number is negative */
     int flags;
 };
@@ -778,7 +778,7 @@ int RAND_pseudo_bytes(unsigned char *buf, int num);
                          * *genuinely* constant variables that aren't mutable \
                          * wouldn't be constructed with top!=dmax. */ \
                         BN_ULONG *_not_const; \
-                        memcpy(&_not_const, &_bnum1->d, sizeof(BN_ULONG*)); \
+                        memcpy(&_not_const, &_bnum1->i, sizeof(BN_ULONG*)); \
                         RAND_pseudo_bytes(&_tmp_char, 1); \
                         memset((unsigned char *)(_not_const + _bnum1->top), _tmp_char, \
                                 (_bnum1->dmax - _bnum1->top) * sizeof(BN_ULONG)); \
@@ -795,7 +795,7 @@ int RAND_pseudo_bytes(unsigned char *buf, int num);
                 const BIGNUM *_bnum2 = (a); \
                 if (_bnum2 != NULL) { \
                         assert((_bnum2->top == 0) || \
-                                (_bnum2->d[_bnum2->top - 1] != 0)); \
+                                (_bnum2->i[_bnum2->top - 1] != 0)); \
                         bn_pollute(_bnum2); \
                 } \
         } while(0)

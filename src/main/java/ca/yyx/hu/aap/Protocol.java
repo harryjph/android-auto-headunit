@@ -25,7 +25,7 @@ public class Protocol {
     public static final int BTN_NEXT = 0x57;
     public static final int BTN_PREV = 0x58;
     public static final int BTN_STOP = 127;
-/*
+
     static final int DRIVE_STATUS_FULLY_RESTRICTED = 31;
     static final int DRIVE_STATUS_LIMIT_MESSAGE_LEN = 16;
     static final int DRIVE_STATUS_NO_CONFIG = 8;
@@ -34,7 +34,6 @@ public class Protocol {
     static final int DRIVE_STATUS_NO_VOICE_INPUT = 4;
     static final int DRIVE_STATUS_UNRESTRICTED = 0;
     static final int GEAR_DRIVE = 100;
- */
 
     static ByteArray createMessage(int chan, int flags, int type, byte[] data, int size) {
 
@@ -115,7 +114,7 @@ public class Protocol {
     static byte[] VERSION_REQUEST = { 0, 1, 0, 1 };
     static byte[] BYEBYE_REQUEST = { 0x00, 0x0f, 0x08, 0x00 };
     // Driving Status: 0 = Parked, 1 = Moving
-    static byte[] DRIVING_STATUS = {(byte) 0x80, 0x03, 0x6a, 2, 8, 0};
+    static byte[] DRIVING_STATUS = {(byte) 0x80, 0x03, 0x6a, 0x02, 0x08, 0};
     static byte[] NIGHT_MODE = {(byte) 0x80, 0x03, 0x52, 0x02, 0x08, 0};
     static byte[] NAVIGATION_FOCUS = {0, 14, 0x08, 2};
     static byte[] BYEBYE_RESPONSE = { 0x00, 16, 0x08, 0x00 };
@@ -147,9 +146,9 @@ public final class MsgMediaSinkService extends k                        // bd/Ms
   public int      a                 = 0;                                // a
   public int      mCodecType        = 1;                                // b
   public int      mAudioStreamType  = 1;                                // c
-  public f[]      mAudioStreams     = f.a();                            // f[]:d    a:samplingRate    b:numBits     c:channels
+  public f[]      mAudioStreams     = f.a();                            // f[]:i    a:samplingRate    b:numBits     c:channels
   public cz[]     mCodecs           = cz.a();                           // cz[]:e   b:codecResolution 1=800x480 2=1280x720 3=1920x1080
-                                                                                //  c:0/1 for 30/60 fps   d:widthMargin e:heightMargin f:density/fps g: ?
+                                                                                //  c:0/1 for 30/60 fps   i:widthMargin e:heightMargin f:density/fps g: ?
   private boolean f                 = false;                            // f
 
 */

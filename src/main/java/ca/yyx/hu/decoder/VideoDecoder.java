@@ -7,7 +7,6 @@ import android.view.SurfaceHolder;
 import java.nio.ByteBuffer;
 
 import ca.yyx.hu.utils.AppLog;
-import ca.yyx.hu.utils.Utils;
 
 /**
  * @author algavris
@@ -29,12 +28,12 @@ public class VideoDecoder {
 
         synchronized (sLock) {
 
-            // AppLog.logd("Video buffer: %02X %02X %02X %02X %02X (%d)", buffer[offset], buffer[offset+1], buffer[offset+2], buffer[offset+3], buffer[offset+4], size);
+            // AppLog.i("Video buffer: %02X %02X %02X %02X %02X (%d)", buffer[offset], buffer[offset+1], buffer[offset+2], buffer[offset+3], buffer[offset+4], size);
 
             mNalUnitsStore.capture(buffer, offset, size);
 
             if (mCodec == null) {
-                AppLog.logv("Codec is not initialized");
+                AppLog.v("Codec is not initialized");
                 return;
             }
 
@@ -42,12 +41,12 @@ public class VideoDecoder {
             {
                 ByteBuffer content = mNalUnitsStore.getByteBuffer();
 
-                AppLog.logd("Sending SPS & IDR...");
+                AppLog.i("Sending SPS & IDR...");
 
                 while (content.hasRemaining()) {
 
                     if (!codec_input_provide(content)) {
-                        AppLog.loge("Dropping content because there are no available buffers.");
+                        AppLog.e("Dropping content because there are no available buffers.");
                         return;
                     }
 
@@ -58,7 +57,7 @@ public class VideoDecoder {
 
             if (!mCodecConfigured)
             {
-                AppLog.logv("Codec is not configured");
+                AppLog.v("Codec is not configured");
                 return;
             }
 
@@ -67,7 +66,7 @@ public class VideoDecoder {
             while (content.hasRemaining()) {                                 // While there is remaining content...
 
                 if (!codec_input_provide(content)) {                          // Process buffer; if no available buffers...
-                    AppLog.loge("Dropping content because there are no available buffers.");
+                    AppLog.e("Dropping content because there are no available buffers.");
                     return;
                 }
 
@@ -82,7 +81,7 @@ public class VideoDecoder {
             try {
                 mCodec = MediaCodec.createDecoderByType("video/avc");       // Create video codec: ITU-T H.264 / ISO/IEC MPEG-4 Part 10, Advanced Video Coding (MPEG-4 AVC)
             } catch (Throwable t) {
-                AppLog.loge("Throwable creating video/avc decoder: " + t);
+                AppLog.e("Throwable creating video/avc decoder: " + t);
             }
             try {
                 mCodecBufferInfo = new MediaCodec.BufferInfo();                         // Create Buffer Info
@@ -91,9 +90,9 @@ public class VideoDecoder {
                 mCodec.start();                                             // Start codec
                 mInputBuffers = mCodec.getInputBuffers();
             } catch (Throwable t) {
-                AppLog.loge(t);
+                AppLog.e(t);
             }
-            AppLog.logd("Codec started");
+            AppLog.i("Codec started");
         }
     }
 
@@ -106,7 +105,7 @@ public class VideoDecoder {
             mInputBuffers = null;
             mCodecBufferInfo = null;
             mCodecConfigured = false;
-            AppLog.logd("Reason: " + reason);
+            AppLog.i("Reason: " + reason);
         }
     }
 
@@ -114,7 +113,7 @@ public class VideoDecoder {
         try {
             final int inputBufIndex = mCodec.dequeueInputBuffer(1000000);           // Get input buffer with 1 second timeout
             if (inputBufIndex < 0) {
-                AppLog.loge("dequeueInputBuffer: "+inputBufIndex);
+                AppLog.e("dequeueInputBuffer: "+inputBufIndex);
                 return false;                                                 // Done with "No buffer" error
             }
 
@@ -125,7 +124,7 @@ public class VideoDecoder {
             if (content.remaining() <= capacity) {                           // If we can just put() the content...
                 buffer.put(content);                                           // Put the content
             } else {                                                            // Else... (Should not happen ?)
-                AppLog.loge("content.hasRemaining (): " + content.hasRemaining() + "  capacity: " + capacity);
+                AppLog.e("content.hasRemaining (): " + content.hasRemaining() + "  capacity: " + capacity);
 
                 int limit = content.limit();
                 content.limit(content.position() + capacity);                 // Temporarily set constrained limit
@@ -137,7 +136,7 @@ public class VideoDecoder {
             mCodec.queueInputBuffer(inputBufIndex, 0 /* offset */, buffer.limit(), 0, 0);
             return true;                                                    // Processed
         } catch (Throwable t) {
-            AppLog.loge(t);
+            AppLog.e(t);
         }
         return false;                                                     // Error: exception
     }
@@ -149,9 +148,9 @@ public class VideoDecoder {
             if (index >= 0)
                 mCodec.releaseOutputBuffer (index, true /*render*/);           // Return the buffer to the codec
             else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)         // See this 1st shortly after start. API >= 21: Ignore as getOutputBuffers() deprecated
-                AppLog.logd ("INFO_OUTPUT_BUFFERS_CHANGED");
+                AppLog.i("INFO_OUTPUT_BUFFERS_CHANGED");
             else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)          // See this 2nd shortly after start. Output format changed for subsequent data. See getOutputFormat()
-                AppLog.logd ("INFO_OUTPUT_FORMAT_CHANGED");
+                AppLog.i("INFO_OUTPUT_FORMAT_CHANGED");
             else if (index == MediaCodec.INFO_TRY_AGAIN_LATER) {
                 break;
             }
@@ -159,7 +158,7 @@ public class VideoDecoder {
                 break;
         }
         if (index != MediaCodec.INFO_TRY_AGAIN_LATER)
-            AppLog.loge ("index: " + index);
+            AppLog.e("index: " + index);
     }
 
     public void onSurfaceHolderAvailable(SurfaceHolder holder, int width, int height) {

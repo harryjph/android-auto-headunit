@@ -31,7 +31,7 @@ class AapSsl {
     {
         int ret = native_ssl_prepare();
         if (ret < 0) {
-            AppLog.loge("SSL prepare failed: " + ret);
+            AppLog.e("SSL prepare failed: " + ret);
         }
         return ret;
     }
@@ -42,9 +42,9 @@ class AapSsl {
 
     static ByteArray bioRead() {
         int size = native_ssl_bio_read(Protocol.DEF_BUFFER_LENGTH, bio_read);
-        AppLog.logd("SSL BIO read: %d", size);
+        AppLog.i("SSL BIO read: %d", size);
         if (size <= 0) {
-            AppLog.logd("SSL BIO read error");
+            AppLog.i("SSL BIO read error");
             return null;
         }
         return new ByteArray(0, bio_read, size);
@@ -59,14 +59,14 @@ class AapSsl {
         int bytes_written = native_ssl_bio_write(start, length, buffer);
         // Write encrypted to SSL input BIO
         if (bytes_written <= 0) {
-            AppLog.loge ("BIO_write() bytes_written: %d", bytes_written);
+            AppLog.e("BIO_write() bytes_written: %d", bytes_written);
             return null;
         }
 
         int bytes_read = native_ssl_read(Protocol.DEF_BUFFER_LENGTH, dec_buf);
         // Read decrypted to decrypted rx buf
         if (bytes_read <= 0) {
-            AppLog.loge ("SSL_read bytes_read: %d", bytes_read);
+            AppLog.e("SSL_read bytes_read: %d", bytes_read);
             return null;
         }
 
@@ -78,23 +78,23 @@ class AapSsl {
         int bytes_written = native_ssl_write(length, buffer);
         // Write plaintext to SSL
         if (bytes_written <= 0) {
-            AppLog.loge ("SSL_write() bytes_written: %d", bytes_written);
+            AppLog.e("SSL_write() bytes_written: %d", bytes_written);
             return null;
         }
 
         if (bytes_written != length) {
-            AppLog.loge("SSL Write len: %d  bytes_written: %d", length, bytes_written);
+            AppLog.e("SSL Write len: %d  bytes_written: %d", length, bytes_written);
         }
 
-        AppLog.logv("SSL Write len: %d  bytes_written: %d", length, bytes_written);
+        AppLog.v("SSL Write len: %d  bytes_written: %d", length, bytes_written);
 
         int bytes_read = native_ssl_bio_read(Protocol.DEF_BUFFER_LENGTH - start,enc_buf);
         if (bytes_read <= 0) {
-            AppLog.loge("BIO read  bytes_read: %d", bytes_read);
+            AppLog.e("BIO read  bytes_read: %d", bytes_read);
             return null;
         }
 
-        AppLog.logv("BIO read bytes_read: %d", bytes_read);
+        AppLog.v("BIO read bytes_read: %d", bytes_read);
 
         return new ByteArray(0, enc_buf, bytes_read);
     }

@@ -249,7 +249,7 @@ extern "C" {
 /*
  * will have to be provided externally for now ,
  * i.e. build with -DTLSEXT_TYPE_opaque_prf_input=38183
- * using whatever extension number you'd like to try
+ * using whatever extension number you'i like to try
  */
 #  define TLSEXT_TYPE_opaque_prf_input           ??
 # endif

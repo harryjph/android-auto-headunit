@@ -29,7 +29,7 @@ public class VideoTestActivity extends SurfaceActivity {
                 try {
                     videoTestRun();
                 } catch (IOException e) {
-                    AppLog.loge(e);
+                    AppLog.e(e);
                 }
             }
         }, "run_vs").start();
@@ -52,9 +52,9 @@ public class VideoTestActivity extends SurfaceActivity {
             after = h264_after_get(ba, idx);                               // Get index of next packet that starts with 0, 0, 0, 1
             if (after == -1 && left <= max_chunk_size) {
                 after = size;
-                //hu_uti.logd ("Last chunk  chunk_size: " + chunk_size + "  idx: " + idx + "  after: " + after + "  size: " + size + "  left: " + left);
+                //hu_uti.i ("Last chunk  chunk_size: " + chunk_size + "  idx: " + idx + "  after: " + after + "  size: " + size + "  left: " + left);
             } else if (after <= 0 || after > size) {
-                AppLog.loge("Error chunk_size: " + chunk_size + "  idx: " + idx + "  after: " + after + "  size: " + size + "  left: " + left);
+                AppLog.e("Error chunk_size: " + chunk_size + "  idx: " + idx + "  after: " + after + "  size: " + size + "  left: " + left);
                 return;
             }
 

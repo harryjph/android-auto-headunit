@@ -24,7 +24,7 @@ class AudioTrackWrapper {
         int channelConfig = channelCount == 2 ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO;
 
         int bufferSize = AudioBuffer.getSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT, pcmFrameSize);
-        AppLog.logd("Audio buffer size: " + bufferSize + " sampleRateInHz: " + sampleRateInHz + " channelCount: " + channelCount);
+        AppLog.i("Audio buffer size: " + bufferSize + " sampleRateInHz: " + sampleRateInHz + " channelCount: " + channelCount);
 
         return new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz,channelConfig, AudioFormat.ENCODING_PCM_16BIT, bufferSize, AudioTrack.MODE_STREAM);
     }
@@ -32,7 +32,7 @@ class AudioTrackWrapper {
     int write(byte[] buffer, int offset, int size) {
         int written = audioTrack.write(buffer, offset, size);
         if (written != size) {
-            AppLog.loge("Error AudioTrack written: " + written + "  len: " + size);
+            AppLog.e("Error AudioTrack written: " + written + "  len: " + size);
         }
         return written;
     }

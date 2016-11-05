@@ -53,19 +53,19 @@ public class UsbModeSwitch {
         try {
             connection = mUsbMgr.openDevice(device);                 // Open device for connection
         } catch (Throwable e) {
-            AppLog.loge(e);
+            AppLog.e(e);
             return false;
         }
 
         if (connection == null) {
-            AppLog.loge("Cannot open device");
+            AppLog.e("Cannot open device");
             return false;
         }
 
         boolean result = switchMode(connection);
         connection.close();
 
-        AppLog.logd("Result: " + result);
+        AppLog.i("Result: " + result);
         return result;
     }
 
@@ -74,18 +74,18 @@ public class UsbModeSwitch {
         byte buffer[] = new byte[2];
         int len = connection.controlTransfer(UsbConstants.USB_DIR_IN | UsbConstants.USB_TYPE_VENDOR, ACC_REQ_GET_PROTOCOL, 0, 0, buffer, 2, USB_TIMEOUT_IN_MS);
         if (len != 2) {
-            AppLog.loge("Error controlTransfer len: " + len);
+            AppLog.e("Error controlTransfer len: " + len);
             return false;
         }
         int acc_ver = (buffer[1] << 8) | buffer[0];
         // Get OAP / ACC protocol version
-        AppLog.logd("Success controlTransfer len: " + len + "  acc_ver: " + acc_ver);
+        AppLog.i("Success controlTransfer len: " + len + "  acc_ver: " + acc_ver);
         if (acc_ver < 1) {
             // If error or version too low...
-            AppLog.loge("No support acc");
+            AppLog.e("No support acc");
             return false;
         }
-        AppLog.logd("acc_ver: " + acc_ver);
+        AppLog.i("acc_ver: " + acc_ver);
 
         // Send all accessory identification strings
         initStringControlTransfer(connection, ACC_IDX_MAN, MANUFACTURER);
@@ -95,7 +95,7 @@ public class UsbModeSwitch {
         //initStringControlTransfer (conn, ACC_IDX_URI, AppLog.str_URI);
         //initStringControlTransfer (conn, ACC_IDX_SER, AppLog.str_SER);
 
-        AppLog.logd("Sending acc start");
+        AppLog.i("Sending acc start");
         // Send accessory start request. Device should re-enumerate as an accessory.
         len = connection.controlTransfer(UsbConstants.USB_TYPE_VENDOR, ACC_REQ_START, 0, 0, new byte[]{}, 0, USB_TIMEOUT_IN_MS);
         return len == 0;
@@ -104,9 +104,9 @@ public class UsbModeSwitch {
     private void initStringControlTransfer(UsbDeviceConnection conn, int index, String string) {
         int len = conn.controlTransfer(UsbConstants.USB_TYPE_VENDOR, ACC_REQ_SEND_STRING, 0, index, string.getBytes(), string.length(), USB_TIMEOUT_IN_MS);
         if (len != string.length()) {
-            AppLog.loge("Error controlTransfer len: " + len + "  index: " + index + "  string: \"" + string + "\"");
+            AppLog.e("Error controlTransfer len: " + len + "  index: " + index + "  string: \"" + string + "\"");
         } else {
-            AppLog.logd("Success controlTransfer len: " + len + "  index: " + index + "  string: \"" + string + "\"");
+            AppLog.i("Success controlTransfer len: " + len + "  index: " + index + "  string: \"" + string + "\"");
         }
     }
 

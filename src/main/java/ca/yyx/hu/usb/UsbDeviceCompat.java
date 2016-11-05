@@ -99,9 +99,9 @@ public class UsbDeviceCompat {
             Class<?> c = Class.forName("android.hardware.usb.UsbDeviceCompat");
             java.lang.reflect.Method get = c.getMethod("getManufacturerName");
             ret = (String) get.invoke(device);
-            AppLog.logd("ret: " + ret);
+            AppLog.i("ret: " + ret);
         } catch (Throwable t) {
-            AppLog.loge("Throwable t: " + t);
+            AppLog.e("Throwable t: " + t);
         }
         return (ret);
     }
@@ -113,9 +113,9 @@ public class UsbDeviceCompat {
             Class<?> c = Class.forName("android.hardware.usb.UsbDeviceCompat");
             java.lang.reflect.Method get = c.getMethod("getProductName");
             ret = (String) get.invoke(device);
-            AppLog.logd("ret: " + ret);
+            AppLog.i("ret: " + ret);
         } catch (Throwable t) {
-            AppLog.loge("Throwable t: " + t);
+            AppLog.e("Throwable t: " + t);
         }
         return (ret);
     }
@@ -127,9 +127,9 @@ public class UsbDeviceCompat {
             Class<?> c = Class.forName("android.hardware.usb.UsbDeviceCompat");
             java.lang.reflect.Method get = c.getMethod("getSerialNumber");
             ret = (String) get.invoke(device);
-            AppLog.logd("ret: " + ret);
+            AppLog.i("ret: " + ret);
         } catch (Throwable t) {
-            AppLog.loge("Throwable t: " + t);
+            AppLog.e("Throwable t: " + t);
         }
         return (ret);
     }
@@ -150,7 +150,7 @@ public class UsbDeviceCompat {
                 dev_prod = usb_pro_get(device);                                // mProductName=Android Phone
                 dev_ser = usb_ser_get(device);                                // mSerialNumber=FA46RWM22264
             } catch (Throwable e) {
-                AppLog.loge(e);
+                AppLog.e(e);
             }
             if (dev_man == null)
                 dev_man = "";

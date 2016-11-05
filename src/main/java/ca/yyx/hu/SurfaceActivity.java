@@ -54,18 +54,18 @@ public class SurfaceActivity extends Activity implements SurfaceHolder.Callback 
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        AppLog.logd("holder " + holder);
+        AppLog.i("holder " + holder);
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        AppLog.logd("holder %s, format: %d, width: %d, height: %d", holder, format, width, height);
+        AppLog.i("holder %s, format: %d, width: %d, height: %d", holder, format, width, height);
         mVideoDecoder.onSurfaceHolderAvailable(holder, width, height);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        AppLog.logd("holder " + holder);
+        AppLog.i("holder " + holder);
         mVideoDecoder.stop("surfaceDestroyed");
     }
 }

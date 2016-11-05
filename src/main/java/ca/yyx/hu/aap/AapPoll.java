@@ -37,7 +37,7 @@ class AapPoll {
 
         int size = mConnection.recv(recv_buffer, 150);
         if (size <= 0) {
-            AppLog.logv("recv %d", size);
+            AppLog.v("recv %d", size);
             return 0;
         }
         return hu_aap_recv_process(size, recv_buffer);
@@ -67,14 +67,14 @@ class AapPoll {
             // buf points to data to be decrypted
             msg_start += 4;
             if ((flags & 0x08) != 0x08) {
-                AppLog.loge("NOT ENCRYPTED !!!!!!!!! have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%02x  msg_type: %d", have_len, enc_len, msg_buf, chan, Channel.name(chan), flags, msg_type);
+                AppLog.e("NOT ENCRYPTED !!!!!!!!! have_len: %d  enc_len: %d  buf: %p  chan: %d %s  flags: 0x%02x  msg_type: %d", have_len, enc_len, msg_buf, chan, Channel.name(chan), flags, msg_type);
                 return -1;
             }
             if (chan == Channel.AA_CH_VID && flags == 9) {
                 // If First fragment Video... (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
                 int total_size = Utils.bytesToInt(msg_buf, msg_start, false);
 
-                AppLog.logv("First fragment total_size: %d", total_size);
+                AppLog.v("First fragment total_size: %d", total_size);
 
                 have_len -= 4;
                 // Remove 4 length bytes inserted into first video fragment
@@ -83,7 +83,7 @@ class AapPoll {
             int need_len = enc_len - have_len;
             if (need_len > 0) {
                 // If we need more data for the full packet...
-                AppLog.loge("have_len: %d < enc_len: %d  need_len: %d", have_len, enc_len, need_len);
+                AppLog.e("have_len: %d < enc_len: %d  need_len: %d", have_len, enc_len, need_len);
                 return -1;
             }
 
@@ -91,7 +91,7 @@ class AapPoll {
             // Decrypt & Process 1 received encrypted message
             if (msg == null) {
                 // If error...
-                AppLog.loge("Error iaap_recv_dec_process: have_len: %d enc_len: %d chan: %d %s flags: %01x msg_type: %d", have_len, enc_len, chan, Channel.name(chan), flags, msg_type);
+                AppLog.e("Error iaap_recv_dec_process: have_len: %d enc_len: %d chan: %d %s flags: %01x msg_type: %d", have_len, enc_len, chan, Channel.name(chan), flags, msg_type);
                 return -1;
             }
 
@@ -101,7 +101,7 @@ class AapPoll {
             have_len -= enc_len;
             msg_start += enc_len;
             if (have_len != 0) {
-                AppLog.logd("iaap_recv_dec_process() more than one message have_len: %d  enc_len: %d", have_len, enc_len);
+                AppLog.i("iaap_recv_dec_process() more than one message have_len: %d  enc_len: %d", have_len, enc_len);
             }
         }
 
@@ -118,7 +118,7 @@ class AapPoll {
         }
 
         String prefix = String.format(Locale.US, "RECV %d %s %01x", chan, Channel.name(chan), flags);
-        AapDump.logv(prefix, "AA", chan, flags, ba.data, ba.length);
+        AapDump.logd(prefix, "AA", chan, flags, ba.data, ba.length);
 
         int msg_type = Utils.bytesToInt(ba.data, 0, true);
         return new AapMessage(chan, (byte) flags, msg_type, ba);
@@ -137,7 +137,7 @@ class AapPoll {
         } else if ((msg_type >= 0 && msg_type <= 31) || (msg_type >= 32768 && msg_type <= 32799) || (msg_type >= 65504 && msg_type <= 65535)) {
             mAapControl.execute(message);
         } else {
-            AppLog.loge("Unknown msg_type: %d", msg_type);
+            AppLog.e("Unknown msg_type: %d", msg_type);
         }
 
         return 0;

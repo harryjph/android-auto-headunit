@@ -2,7 +2,7 @@ package ca.yyx.hu.aap;
 
 import java.util.Locale;
 
-import ca.yyx.hu.usb.UsbAccessoryConnection;
+import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.ByteArray;
 import ca.yyx.hu.utils.Utils;
@@ -15,7 +15,7 @@ import ca.yyx.hu.utils.Utils;
 
 class AapPoll {
 
-    private final UsbAccessoryConnection mConnection;
+    private final AccessoryConnection mConnection;
 
     private byte[] recv_buffer = new byte[Protocol.DEF_BUFFER_LENGTH];
 
@@ -23,7 +23,7 @@ class AapPoll {
     private final AapVideo mAapVideo;
     private final AapControl mAapControl;
 
-    AapPoll(UsbAccessoryConnection connection, AapTransport transport, AapAudio aapAudio, AapVideo aapVideo) {
+    AapPoll(AccessoryConnection connection, AapTransport transport, AapAudio aapAudio, AapVideo aapVideo) {
         mConnection = connection;
         mAapAudio = aapAudio;
         mAapVideo = aapVideo;

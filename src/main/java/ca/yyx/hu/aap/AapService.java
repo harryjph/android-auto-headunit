@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.media.AudioManager;
+import android.net.Network;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ResultReceiver;
@@ -26,11 +27,12 @@ import java.util.Calendar;
 import ca.yyx.hu.App;
 import ca.yyx.hu.R;
 import ca.yyx.hu.RemoteControlReceiver;
+import ca.yyx.hu.connection.AccessoryConnection;
+import ca.yyx.hu.connection.UsbAccessoryConnection;
+import ca.yyx.hu.connection.SocketAccessoryConnection;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.roadrover.DeviceListener;
-import ca.yyx.hu.usb.UsbAccessoryConnection;
-import ca.yyx.hu.usb.UsbDeviceCompat;
-import ca.yyx.hu.usb.UsbReceiver;
+import ca.yyx.hu.connection.UsbReceiver;
 import ca.yyx.hu.utils.IntentUtils;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
@@ -40,12 +42,17 @@ import ca.yyx.hu.utils.Utils;
  * @date 03/06/2016.
  */
 
-public class AapService extends Service implements UsbReceiver.Listener {
+public class AapService extends Service implements UsbReceiver.Listener, AccessoryConnection.Listener {
+    private static final int TYPE_USB = 1;
+    private static final int TYPE_WIFI = 2;
+    public static final String EXTRA_CONNECTION_TYPE = "extra_connection_type";
+    public static final String EXTRA_IP = "extra_ip";
+
     private MediaSessionCompat mMediaSession;
     private AapTransport mTransport;
     private AudioDecoder mAudioDecoder;
     private UiModeManager mUiModeManager = null;
-    private UsbAccessoryConnection mUsbAccessoryConnection;
+    private AccessoryConnection mAccessoryConnection;
     private UsbReceiver mUsbReceiver;
     private BroadcastReceiver mTimeTickReceiver;
     private DeviceListener mDeviceListener;
@@ -59,15 +66,21 @@ public class AapService extends Service implements UsbReceiver.Listener {
     public static Intent createIntent(UsbDevice device, Context context) {
         Intent intent = new Intent(context, AapService.class);
         intent.putExtra(UsbManager.EXTRA_DEVICE, device);
+        intent.putExtra(EXTRA_CONNECTION_TYPE, TYPE_USB);
         return intent;
     }
+
+    public static Intent createIntent(String ip, Context context) {
+        Intent intent = new Intent(context, AapService.class);
+        intent.putExtra(EXTRA_IP, ip);
+        intent.putExtra(EXTRA_CONNECTION_TYPE, TYPE_WIFI);
+        return intent;
+    }
+
 
     @Override
     public void onCreate() {
         super.onCreate();
-
-        UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        mUsbAccessoryConnection = new UsbAccessoryConnection(usbManager);
 
         mUiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
         mUiModeManager.setNightMode(UiModeManager.MODE_NIGHT_AUTO);
@@ -101,9 +114,10 @@ public class AapService extends Service implements UsbReceiver.Listener {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        UsbDevice device = IntentUtils.getDevice(intent);
-        if (device == null) {
-            AppLog.e("No device in "+intent);
+        mAccessoryConnection = createConnection(intent, this);
+        if (mAccessoryConnection == null) {
+            AppLog.e("Cannot create connection "+intent);
+            stopSelf();
             return START_NOT_STICKY;
         }
 
@@ -141,27 +155,50 @@ public class AapService extends Service implements UsbReceiver.Listener {
 
         startForeground(1, noty);
 
-        try {
-            if (connect(device)) {
-                reset();
-                mTransport = App.get(this).transport();
-                mTransport.connectAndStart(mUsbAccessoryConnection);
-            }
-            else
-            {
-                AppLog.e("Cannot connect to device " + UsbDeviceCompat.getUniqueName(device));
-            }
-        } catch (UsbAccessoryConnection.UsbOpenException e) {
-            AppLog.e(e);
-        }
+        mAccessoryConnection.connect(this);
 
         return START_STICKY;
+    }
+
+    @Override
+    public void onConnectionResult(boolean success) {
+        if (success) {
+            reset();
+            mTransport = App.get(this).transport();
+            mTransport.connectAndStart(mAccessoryConnection);
+        }
+        else
+        {
+            AppLog.e("Cannot connect to device");
+            stopSelf();
+        }
+    }
+
+    private static AccessoryConnection createConnection(Intent intent, Context context) {
+
+        int connectionType = intent.getIntExtra(EXTRA_CONNECTION_TYPE, 0);
+
+        if (connectionType == TYPE_USB) {
+            UsbDevice device = IntentUtils.getDevice(intent);
+            if (device == null) {
+                AppLog.e("No device in " + intent);
+                return null;
+            }
+            UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+            return new UsbAccessoryConnection(usbManager, device);
+        } else if (connectionType == TYPE_WIFI) {
+            String ip = intent.getStringExtra(EXTRA_IP);
+            return new SocketAccessoryConnection(ip);
+        }
+
+        return null;
     }
 
     private void onDisconnect() {
         LocalBroadcastManager.getInstance(this).sendBroadcast(IntentUtils.ACTION_DISCONNECT);
         reset();
-        mUsbAccessoryConnection.disconnect();
+        mAccessoryConnection.disconnect();
+        mAccessoryConnection = null;
     }
 
     private void reset()
@@ -171,6 +208,8 @@ public class AapService extends Service implements UsbReceiver.Listener {
         App.get(this).videoDecoder().stop("AapService::reset");
         App.get(this).reset();
     }
+
+
 
     private static class MediaSessionCallback extends MediaSessionCompat.Callback
     {
@@ -225,22 +264,13 @@ public class AapService extends Service implements UsbReceiver.Listener {
     }
 
 
-    public boolean connect(UsbDevice device) throws UsbAccessoryConnection.UsbOpenException {
-        if (mUsbAccessoryConnection.isConnected())
-        {
-            if (mUsbAccessoryConnection.isDeviceRunning(device)) {
-                AppLog.i("Device already connected");
-                return true;
-            }
-        }
-        return mUsbAccessoryConnection.connect(device);
-    }
-
-    @Override
+     @Override
     public void onUsbDetach(UsbDevice device) {
-        if (mUsbAccessoryConnection.isDeviceRunning(device)) {
-            stopSelf();
-        }
+         if (mAccessoryConnection instanceof UsbAccessoryConnection) {
+             if (((UsbAccessoryConnection)mAccessoryConnection).isDeviceRunning(device)) {
+                 stopSelf();
+             }
+         }
     }
 
     @Override

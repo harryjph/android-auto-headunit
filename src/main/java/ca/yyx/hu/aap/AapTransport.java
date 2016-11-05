@@ -8,10 +8,10 @@ import android.os.SystemClock;
 
 import java.util.Locale;
 
+import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.decoder.VideoDecoder;
-import ca.yyx.hu.usb.UsbAccessoryConnection;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.ByteArray;
 import ca.yyx.hu.utils.Utils;
@@ -26,7 +26,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     private final HandlerThread mPollThread;
     private final MicRecorder mMicRecorder;
 
-    private UsbAccessoryConnection mConnection;
+    private AccessoryConnection mConnection;
     private AapPoll mAapPoll;
     private Handler mHandler;
 
@@ -110,7 +110,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         mHandler = null;
     }
 
-    public boolean connectAndStart(UsbAccessoryConnection connection) {
+    public boolean connectAndStart(AccessoryConnection connection) {
         AppLog.i("Start Aap transport for " + connection);
 
         if (!handshake(connection))
@@ -129,7 +129,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         return true;
     }
 
-    private boolean handshake(UsbAccessoryConnection connection) {
+    private boolean handshake(AccessoryConnection connection) {
         byte[] buffer = new byte[Protocol.DEF_BUFFER_LENGTH];
 
         // Version request
@@ -238,23 +238,11 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     }
 
     void sendVideoFocusGained() {
-
-
         // Else if success and channel = video...
         byte rsp2[] = {(byte) 0x80, 0x08, 0x08, 1, 0x10, 1};
         // 1, 1     VideoFocus gained focusState=1 unsolicited=true     010b0000800808011001
         sendEncrypted(Channel.AA_CH_VID, rsp2, rsp2.length);
         // Respond with VideoFocus gained
-
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                byte[] ds = Protocol.DRIVING_STATUS.clone();
-                ds[5] = Protocol.DRIVE_STATUS_FULLY_RESTRICTED;
-                sendEncrypted(Channel.AA_CH_SEN, ds, ds.length);
-            }
-        }, 5000);
     }
 
     void sendVideoFocusLost() {

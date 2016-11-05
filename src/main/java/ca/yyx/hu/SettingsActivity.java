@@ -30,9 +30,9 @@ import java.util.Set;
 
 import ca.yyx.hu.aap.AapProjectionActivity;
 import ca.yyx.hu.aap.AapService;
-import ca.yyx.hu.usb.UsbDeviceCompat;
-import ca.yyx.hu.usb.UsbModeSwitch;
-import ca.yyx.hu.usb.UsbReceiver;
+import ca.yyx.hu.connection.UsbDeviceCompat;
+import ca.yyx.hu.connection.UsbModeSwitch;
+import ca.yyx.hu.connection.UsbReceiver;
 import ca.yyx.hu.utils.Settings;
 import ca.yyx.hu.utils.SystemUI;
 
@@ -57,12 +57,6 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
             }
         });
 
-        findViewById(R.id.back_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
         findViewById(R.id.exit_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,6 +73,14 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
             @Override
             public void onClick(View v) {
                 showMenuDialog();
+            }
+        });
+
+
+        findViewById(R.id.wifi).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startService(AapService.createIntent("10.0.0.11", SettingsActivity.this));
             }
         });
 
@@ -155,9 +157,9 @@ public class SettingsActivity extends Activity implements UsbReceiver.Listener {
         mAdapter.setData(createDeviceList(allowDevices), allowDevices);
         registerReceiver(mUsbReceiver, UsbReceiver.createFilter());
         if (App.get(this).transport().isAlive()) {
-            mVideoButton.setVisibility(View.VISIBLE);
+            mVideoButton.setEnabled(true);
         } else {
-            mVideoButton.setVisibility(View.GONE);
+            mVideoButton.setEnabled(false);
         }
         CrashManager.register(this);
     }

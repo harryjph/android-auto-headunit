@@ -7,7 +7,7 @@ import android.support.annotation.NonNull;
 import java.util.HashSet;
 import java.util.Set;
 
-import ca.yyx.hu.usb.UsbDeviceCompat;
+import ca.yyx.hu.connection.UsbDeviceCompat;
 
 /**
  * @author algavris

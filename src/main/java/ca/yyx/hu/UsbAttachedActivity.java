@@ -9,8 +9,8 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import ca.yyx.hu.aap.AapService;
-import ca.yyx.hu.usb.UsbDeviceCompat;
-import ca.yyx.hu.usb.UsbModeSwitch;
+import ca.yyx.hu.connection.UsbDeviceCompat;
+import ca.yyx.hu.connection.UsbModeSwitch;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.IntentUtils;
 import ca.yyx.hu.utils.Settings;

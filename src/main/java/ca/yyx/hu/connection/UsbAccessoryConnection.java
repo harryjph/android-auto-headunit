@@ -1,4 +1,4 @@
-package ca.yyx.hu.usb;
+package ca.yyx.hu.connection;
 
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
@@ -6,6 +6,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
+import android.support.annotation.NonNull;
 
 import ca.yyx.hu.utils.AppLog;
 
@@ -14,21 +15,21 @@ import ca.yyx.hu.utils.AppLog;
  * @date 29/05/2016.
  */
 
-public class UsbAccessoryConnection
+public class UsbAccessoryConnection implements AccessoryConnection
 {
+    private final UsbDevice mDevice;
     private UsbManager mUsbMgr;
     private UsbDeviceCompat mUsbDeviceConnected;
     private UsbDeviceConnection mUsbDeviceConnection = null;                   // USB Device connection
     private UsbInterface mUsbInterface = null;                   // USB Interface
     private UsbEndpoint mEndpointIn = null;                   // USB Input  endpoint
     private UsbEndpoint mEndpointOut = null;                   // USB Output endpoint
-    private int m_ep_in_addr = -1;                                      // Input  endpoint Value  129
-    private int m_ep_out_addr = -1;                                      // Output endpoint Value    2
 
     private static final Object sLock = new Object();
 
-    public UsbAccessoryConnection(UsbManager usbMgr) {
+    public UsbAccessoryConnection(UsbManager usbMgr, UsbDevice device) {
         mUsbMgr = usbMgr;
+        mDevice = device;
     }
 
     public boolean isDeviceRunning(UsbDevice device) {
@@ -40,7 +41,19 @@ public class UsbAccessoryConnection
         }
     }
 
-    public boolean connect(UsbDevice device) throws UsbOpenException {                         // Attempt to connect. Called only by usb_attach_handler() & presets_select()
+    @Override
+    public void connect(@NonNull final Listener listener) {
+        try {
+            boolean result = connect(mDevice);
+            listener.onConnectionResult(result);
+        } catch (UsbOpenException e) {
+            AppLog.e(e);
+            listener.onConnectionResult(false);
+        }
+    }
+
+
+    private boolean connect(UsbDevice device) throws UsbOpenException {                         // Attempt to connect. Called only by usb_attach_handler() & presets_select()
         if (mUsbDeviceConnection != null) {
             disconnect();
         }
@@ -95,22 +108,16 @@ public class UsbAccessoryConnection
         AppLog.i("Check accessory endpoints");
         mEndpointIn = null;                                               // Setup bulk endpoints.
         mEndpointOut = null;
-        m_ep_in_addr = -1;     // 129
-        m_ep_out_addr = -1;     // 2
 
 
         for (int i = 0; i < mUsbInterface.getEndpointCount(); i++) {        // For all USB endpoints...
             UsbEndpoint ep = mUsbInterface.getEndpoint(i);
             if (ep.getDirection() == UsbConstants.USB_DIR_IN) {              // If IN
                 if (mEndpointIn == null) {                                      // If Bulk In not set yet...
-                    m_ep_in_addr = ep.getAddress();
-                    AppLog.i("Bulk IN m_ep_in_addr: %d  %d", m_ep_in_addr, i);
                     mEndpointIn = ep;                                             // Set Bulk In
                 }
             } else {                                                            // Else if OUT...
                 if (mEndpointOut == null) {                                     // If Bulk Out not set yet...
-                    m_ep_out_addr = ep.getAddress();
-                    AppLog.i("Bulk OUT m_ep_out_addr: %d  %d", m_ep_out_addr, i);
                     mEndpointOut = ep;                                            // Set Bulk Out
                 }
             }
@@ -191,7 +198,7 @@ public class UsbAccessoryConnection
         }
     }
 
-    public class UsbOpenException extends Exception {
+    private class UsbOpenException extends Exception {
         UsbOpenException(String message) {
             super(message);
         }

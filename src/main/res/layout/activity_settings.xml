@@ -12,22 +12,22 @@
         android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/back_button"
-            android:layout_width="128dp"
-            android:layout_height="64dp"
-            android:layout_gravity="left|bottom"
-            android:src="@drawable/ic_chevron_left_white_24dp"
-            android:background="?android:attr/actionBarItemBackground"
-            android:contentDescription="Back" />
-
-
-        <ImageButton
             android:id="@+id/video_button"
             android:layout_width="128dp"
             android:layout_height="64dp"
-            android:layout_marginLeft="128dp"
+            android:layout_marginLeft="0dp"
             android:layout_gravity="left|bottom"
             android:src="@drawable/ic_view_stream_white_24dp"
+            android:background="?android:attr/actionBarItemBackground"
+            android:contentDescription="@string/video" />
+
+        <ImageButton
+            android:id="@+id/wifi"
+            android:layout_width="128dp"
+            android:layout_height="64dp"
+            android:layout_marginRight="256dp"
+            android:layout_gravity="right|bottom"
+            android:src="@drawable/ic_network_wifi_white_24dp"
             android:background="?android:attr/actionBarItemBackground"
             android:contentDescription="@string/video" />
 

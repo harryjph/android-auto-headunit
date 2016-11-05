@@ -1,4 +1,4 @@
-package ca.yyx.hu.usb;
+package ca.yyx.hu.connection;
 
 import android.hardware.usb.UsbDevice;
 

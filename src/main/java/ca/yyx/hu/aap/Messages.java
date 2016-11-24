@@ -173,6 +173,10 @@ public class Messages {
         sensors.sensorChannel.sensorList[0].type = Protocol.SENSOR_TYPE_DRIVING_STATUS;
         sensors.sensorChannel.sensorList[1].type = Protocol.SENSOR_TYPE_NIGHT_DATA;
 
+        // Bluetooth
+        // 0x0A, 27, 0x08,  8, 0x32, 23, 0x0A, 17, 'F','C',':','5','8',':','F','A',':','1','2',':','1','A',':','0','D',0x12,2,0x02,0x03,
+
+
         video.channelId = Channel.AA_CH_VID;
         video.outputStreamChannel = new ChannelDescriptor.OutputStreamChannel();
         video.outputStreamChannel.type = Protocol.STREAM_TYPE_VIDEO;
@@ -181,7 +185,7 @@ public class Messages {
         VideoConfig videoConfig = new VideoConfig();
         videoConfig.resolution = VideoConfig.VIDEO_RESOLUTION_800x480;
         videoConfig.frameRate = VideoConfig.VIDEO_FPS_60;
-        videoConfig.dpi = 160;
+        videoConfig.dpi = 120;
         video.outputStreamChannel.videoConfigs[0] = videoConfig;
 
         touch.channelId = Channel.AA_CH_TOU;

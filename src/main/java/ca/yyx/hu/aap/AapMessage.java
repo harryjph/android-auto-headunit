@@ -1,6 +1,7 @@
 package ca.yyx.hu.aap;
 
 
+import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.utils.ByteArray;
 
 /**

@@ -8,6 +8,10 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.support.annotation.NonNull;
 
+import junit.framework.Assert;
+
+import java.io.IOException;
+
 import ca.yyx.hu.utils.AppLog;
 
 /**
@@ -162,6 +166,11 @@ public class UsbAccessoryConnection implements AccessoryConnection
         return mUsbDeviceConnected != null;
     }
 
+    @Override
+    public boolean isSingleMessage() {
+        return false;
+    }
+
     /**
      * @return length of data transferred (or zero) for success,
      * or negative value for failure
@@ -182,7 +191,8 @@ public class UsbAccessoryConnection implements AccessoryConnection
         }
     }
 
-    public int recv(byte[] buf, int timeout) {
+    @Override
+    public int recv(byte[] buf,int length, int timeout) {
         synchronized (sLock) {
             if (mUsbDeviceConnected == null) {
                 AppLog.e("Not connected");

@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import ca.yyx.hu.connection.UsbDeviceCompat;
@@ -38,5 +39,13 @@ public class Settings {
 
     public Set<String> getAllowedDevices() {
         return mPrefs.getStringSet("allow-devices", new HashSet<String>());
+    }
+
+    public Set<String> getNetworkAddresses() {
+        return mPrefs.getStringSet("network-addresses", new HashSet<String>());
+    }
+
+    public void setNetworkAddresses(Set<String> addrs) {
+        mPrefs.edit().putStringSet("network-addresses", addrs).apply();
     }
 }

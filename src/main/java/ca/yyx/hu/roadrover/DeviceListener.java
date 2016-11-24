@@ -8,7 +8,7 @@ import android.view.KeyEvent;
 
 import ca.yyx.hu.App;
 import ca.yyx.hu.aap.AapTransport;
-import ca.yyx.hu.aap.Protocol;
+import ca.yyx.hu.aap.Messages;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
 
@@ -42,7 +42,7 @@ public class DeviceListener extends BroadcastReceiver {
             handleKeyEvent(keyCode, transport);
         } else if (ACTION_STARTMUSIC.equals(intent.getAction()))
         {
-            transport.sendButton(Protocol.BTN_PLAYPAUSE, true);
+            transport.sendButton(Messages.BTN_PLAYPAUSE, true);
         }
     }
 
@@ -51,16 +51,16 @@ public class DeviceListener extends BroadcastReceiver {
         {
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
             case KeyEvent.KEYCODE_HEADSETHOOK:
-                sendButton(Protocol.BTN_PLAYPAUSE, transport);
+                sendButton(Messages.BTN_PLAYPAUSE, transport);
                 break;
             case KeyEvent.KEYCODE_MEDIA_STOP:
-                sendButton(Protocol.BTN_STOP, transport);
+                sendButton(Messages.BTN_STOP, transport);
                 break;
             case KeyEvent.KEYCODE_MEDIA_NEXT:
-                sendButton(Protocol.BTN_NEXT, transport);
+                sendButton(Messages.BTN_NEXT, transport);
                 break;
             case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-                sendButton(Protocol.BTN_PREV, transport);
+                sendButton(Messages.BTN_PREV, transport);
                 break;
             default:
                 AppLog.i("Unknown keyCode: "+keyCode);

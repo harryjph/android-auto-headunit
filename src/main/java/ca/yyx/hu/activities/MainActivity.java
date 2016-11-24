@@ -1,40 +1,21 @@
-package ca.yyx.hu;
+package ca.yyx.hu.activities;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.text.Html;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.Toast;
 
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Set;
-
+import ca.yyx.hu.App;
+import ca.yyx.hu.R;
 import ca.yyx.hu.aap.AapProjectionActivity;
 import ca.yyx.hu.aap.AapService;
-import ca.yyx.hu.connection.UsbDeviceCompat;
-import ca.yyx.hu.connection.UsbModeSwitch;
-import ca.yyx.hu.connection.UsbReceiver;
-import ca.yyx.hu.ui.UsbListFragment;
-import ca.yyx.hu.utils.Settings;
+import ca.yyx.hu.fragments.NetworkListFragment;
+import ca.yyx.hu.fragments.UsbListFragment;
 import ca.yyx.hu.utils.SystemUI;
 
 public class MainActivity extends Activity {
@@ -78,28 +59,44 @@ public class MainActivity extends Activity {
         findViewById(R.id.wifi).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startService(AapService.createIntent("10.0.0.11", MainActivity.this));
+                getFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.main_content, new NetworkListFragment(), NetworkListFragment.TAG)
+                        .commit();
+//                startService(AapService.createIntent("10.0.0.11", MainActivity.this));
             }
         });
 
-        getFragmentManager()
-                .beginTransaction()
-                .add(R.id.main_content, new UsbListFragment())
-                .commit();
+        findViewById(R.id.usb).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.main_content, new UsbListFragment())
+                        .commit();
+//                startService(AapService.createIntent("10.0.0.11", MainActivity.this));
+            }
+        });
 
+        if (savedInstanceState == null) {
+            getFragmentManager()
+                    .beginTransaction()
+                    .add(R.id.main_content, new UsbListFragment())
+                    .commit();
+        }
         UpdateManager.register(this);
     }
 
-    private void showMenuDialog() {
+    void showMenuDialog() {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.menu)
                 .setItems(R.array.menu_items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (which == 0)
-                        {
-                            startActivity(new Intent(MainActivity.this, VideoTestActivity.class));
-                        }
+//                        if (which == 0)
+//                        {
+////                            startActivity(new Intent(MainActivity.this, VideoTestActivity.class));
+//                        }
                     }
                 }).create();
         dialog.show();

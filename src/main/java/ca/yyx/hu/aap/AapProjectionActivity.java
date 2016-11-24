@@ -71,16 +71,18 @@ import android.view.SurfaceHolder;
 import android.view.View;
 
 import ca.yyx.hu.App;
-import ca.yyx.hu.SurfaceActivity;
+import ca.yyx.hu.R;
+import ca.yyx.hu.activities.SurfaceActivity;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.IntentUtils;
 import ca.yyx.hu.utils.Utils;
+import ca.yyx.hu.view.ProjectionView;
 
 
-public class AapProjectionActivity extends SurfaceActivity {
+public class AapProjectionActivity extends SurfaceActivity implements SurfaceHolder.Callback {
 
     public static final String EXTRA_FOCUS = "focus";
-    private AapTransport mTransport;
+    private ProjectionView mProjectionView;
 
     private static final double m_virt_vid_wid = 800f;
     private static final double m_virt_vid_hei = 480f;
@@ -105,7 +107,9 @@ public class AapProjectionActivity extends SurfaceActivity {
 
         AppLog.i("Headunit for Android Auto (tm) - Copyright 2011-2015 Michael A. Reid. All Rights Reserved...");
 
-        mSurfaceView.setOnTouchListener(new View.OnTouchListener() {
+        mProjectionView = (ProjectionView) findViewById(R.id.surface);
+        mProjectionView.setSurfaceCallback(this);
+        mProjectionView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 touch_send(event);
@@ -124,8 +128,11 @@ public class AapProjectionActivity extends SurfaceActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mTransport = App.get(this).transport();
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, IntentUtils.DISCONNECT_FILTER);
+    }
+
+    private AapTransport transport() {
+        return App.get(this).transport();
     }
 
     @Override
@@ -134,21 +141,24 @@ public class AapProjectionActivity extends SurfaceActivity {
     }
 
     @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+
+    }
+
+    @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        super.surfaceChanged(holder,format,width,height);
-        mTransport.sendVideoFocusGained();
+        transport().sendVideoFocusGained();
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        super.surfaceDestroyed(holder);
-        mTransport.sendVideoFocusLost();
+        transport().sendVideoFocusLost();
     }
 
-    private void touch_send(MotionEvent event) {
+    void touch_send(MotionEvent event) {
 
-        int x = (int) (event.getX(0) / (mSurfaceView.getWidth() / m_virt_vid_wid));
-        int y = (int) (event.getY(0) / (mSurfaceView.getHeight() / m_virt_vid_hei));
+        int x = (int) (event.getX(0) / (mProjectionView.getWidth() / m_virt_vid_wid));
+        int y = (int) (event.getY(0) / (mProjectionView.getHeight() / m_virt_vid_hei));
 
         if (x < 0 || y < 0 || x >= 65535 || y >= 65535) {   // Infinity if vid_wid_get() or vid_hei_get() return 0
             AppLog.e("Invalid x: " + x + "  y: " + y);
@@ -174,7 +184,7 @@ public class AapProjectionActivity extends SurfaceActivity {
                 AppLog.e("event: " + event + " (Unknown: " + me_action + ")  x: " + x + "  y: " + y);
                 return;
         }
-        mTransport.sendTouch(aa_action, x, y);
+        transport().sendTouch(aa_action, x, y);
     }
 
     @Override
@@ -198,23 +208,23 @@ public class AapProjectionActivity extends SurfaceActivity {
         switch (keyCode)
         {
             case KeyEvent.KEYCODE_DPAD_UP:
-                mTransport.sendButton(Protocol.BTN_UP, isPress);
+                transport().sendButton(Messages.BTN_UP, isPress);
                 break;
             case KeyEvent.KEYCODE_DPAD_DOWN:
-                mTransport.sendButton(Protocol.BTN_DOWN, isPress);
+                transport().sendButton(Messages.BTN_DOWN, isPress);
                 break;
             case KeyEvent.KEYCODE_DPAD_LEFT:
-                mTransport.sendButton(Protocol.BTN_LEFT, isPress);
+                transport().sendButton(Messages.BTN_LEFT, isPress);
                 break;
             case KeyEvent.KEYCODE_DPAD_RIGHT:
-                mTransport.sendButton(Protocol.BTN_RIGHT, isPress);
+                transport().sendButton(Messages.BTN_RIGHT, isPress);
                 break;
             case KeyEvent.KEYCODE_DPAD_CENTER:
             case KeyEvent.KEYCODE_ENTER:
-                mTransport.sendButton(Protocol.BTN_ENTER, isPress);
+                transport().sendButton(Messages.BTN_ENTER, isPress);
                 break;
             case KeyEvent.KEYCODE_BACK:
-                mTransport.sendButton(Protocol.BTN_BACK, isPress);
+                transport().sendButton(Messages.BTN_BACK, isPress);
                 break;
 //            case KeyEvent.KEYCODE_HEADSETHOOK:
 //                mTransport.sendButton(Protocol.BTN_PLAYPAUSE, isPress);

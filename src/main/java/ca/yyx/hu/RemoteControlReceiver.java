@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.view.KeyEvent;
 
 import ca.yyx.hu.aap.AapTransport;
-import ca.yyx.hu.aap.Protocol;
+import ca.yyx.hu.aap.Messages;
 import ca.yyx.hu.utils.AppLog;
 
 /**
@@ -26,13 +26,13 @@ public class RemoteControlReceiver extends BroadcastReceiver {
             {
                 case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
                 case KeyEvent.KEYCODE_HEADSETHOOK:
-                    transport.sendButton(Protocol.BTN_PLAYPAUSE, event.getAction() == KeyEvent.ACTION_DOWN);
+                    transport.sendButton(Messages.BTN_PLAYPAUSE, event.getAction() == KeyEvent.ACTION_DOWN);
                     break;
                 case KeyEvent.KEYCODE_MEDIA_NEXT:
-                    transport.sendButton(Protocol.BTN_NEXT, event.getAction() == KeyEvent.ACTION_DOWN);
+                    transport.sendButton(Messages.BTN_NEXT, event.getAction() == KeyEvent.ACTION_DOWN);
                     break;
                 case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-                    transport.sendButton(Protocol.BTN_PREV, event.getAction() == KeyEvent.ACTION_DOWN);
+                    transport.sendButton(Messages.BTN_PREV, event.getAction() == KeyEvent.ACTION_DOWN);
                     break;
             }
         }

@@ -45,7 +45,7 @@
             android:theme="@style/AppTheme" />
 
         <activity
-            android:name=".UsbAttachedActivity"
+            android:name=".activities.UsbAttachedActivity"
             android:launchMode="singleTop"
             android:theme="@style/AppTheme.Translucent">
             <intent-filter>
@@ -57,13 +57,7 @@
         </activity>
 
         <activity
-            android:name=".VideoTestActivity"
-            android:label="Test video decoder"
-            android:screenOrientation="sensorLandscape"
-            android:theme="@style/AppTheme" />
-
-        <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:launchMode="singleTask"
             android:screenOrientation="sensorLandscape"

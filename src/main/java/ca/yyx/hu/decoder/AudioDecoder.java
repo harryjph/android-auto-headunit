@@ -7,8 +7,8 @@ import android.util.SparseArray;
  * @date 28/04/2016.
  */
 public class AudioDecoder {
-    private static final int SAMPLE_RATE_HZ_48 = 48000;
-    private static final int SAMPLE_RATE_HZ_16 = 16000;
+    public static final int SAMPLE_RATE_HZ_48 = 48000;
+    public static final int SAMPLE_RATE_HZ_16 = 16000;
 
     private SparseArray<AudioTrackWrapper> mAudioTracks = new SparseArray<>(3);
 

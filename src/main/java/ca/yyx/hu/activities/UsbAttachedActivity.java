@@ -1,4 +1,4 @@
-package ca.yyx.hu;
+package ca.yyx.hu.activities;
 
 import android.app.Activity;
 import android.content.Context;
@@ -8,6 +8,7 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import ca.yyx.hu.App;
 import ca.yyx.hu.aap.AapService;
 import ca.yyx.hu.connection.UsbDeviceCompat;
 import ca.yyx.hu.connection.UsbModeSwitch;

@@ -1,6 +1,5 @@
-package ca.yyx.hu.ui;
+package ca.yyx.hu.fragments;
 
-import android.app.Fragment;
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;

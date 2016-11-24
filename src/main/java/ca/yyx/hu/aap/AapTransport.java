@@ -8,6 +8,7 @@ import android.os.SystemClock;
 
 import java.util.Locale;
 
+import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
@@ -68,7 +69,6 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
             }
 
             if (ret < 0) {
-                AppLog.e("Error result: " + ret);
                 this.quit();
             }
         }
@@ -89,8 +89,10 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         AapDump.logd(prefix, "HU", chan, flags, buf, len);
 
         ByteArray ba = AapSsl.encrypt(4, len, buf);
-
-        ByteArray msg = Protocol.createMessage(chan, flags, -1, ba.data, ba.length);
+        if (ba == null) {
+            return -1;
+        }
+        ByteArray msg = Messages.createMessage(chan, flags, -1, ba.data, ba.length);
         int size = mConnection.send(msg.data, msg.length, 250);
         AppLog.d("Sent size: %d", size);
 
@@ -102,7 +104,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
     void quit() {
         if (mConnection != null) {
-            sendEncrypted(Channel.AA_CH_CTR, Protocol.BYEBYE_REQUEST, Protocol.BYEBYE_REQUEST.length);
+            sendEncrypted(Channel.AA_CH_CTR, Messages.BYEBYE_REQUEST, Messages.BYEBYE_REQUEST.length);
         }
         Utils.ms_sleep(100);
 
@@ -110,7 +112,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         mHandler = null;
     }
 
-    public boolean connectAndStart(AccessoryConnection connection) {
+    boolean connectAndStart(AccessoryConnection connection) {
         AppLog.i("Start Aap transport for " + connection);
 
         if (!handshake(connection))
@@ -130,17 +132,17 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     }
 
     private boolean handshake(AccessoryConnection connection) {
-        byte[] buffer = new byte[Protocol.DEF_BUFFER_LENGTH];
+        byte[] buffer = new byte[Messages.DEF_BUFFER_LENGTH];
 
         // Version request
-        ByteArray version = Protocol.createMessage(0, 3, 1, Protocol.VERSION_REQUEST, Protocol.VERSION_REQUEST.length); // Version Request
+        ByteArray version = Messages.createMessage(0, 3, 1, Messages.VERSION_REQUEST, Messages.VERSION_REQUEST.length); // Version Request
         int ret = connection.send(version.data, version.length, 1000);
         if (ret < 0) {
             AppLog.e("Version request sendEncrypted ret: " + ret);
             return false;
         }
 
-        ret = connection.recv(buffer, 1000);
+        ret = connection.recv(buffer, buffer.length, 1000);
         if (ret <= 0) {
             AppLog.e("Version request recv ret: " + ret);
             return false;
@@ -165,11 +167,11 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
                 return false;
             }
 
-            ByteArray bio = Protocol.createMessage(Channel.AA_CH_CTR, 3, 3, ba.data, ba.length);
+            ByteArray bio = Messages.createMessage(Channel.AA_CH_CTR, 3, 3, ba.data, ba.length);
             int size = connection.send(bio.data, bio.length, 1000);
             AppLog.i("SSL BIO sent: %d", size);
 
-            size = connection.recv(buffer, 1000);
+            size = connection.recv(buffer, buffer.length, 1000);
             AppLog.i("SSL received: %d", size);
             if (size <= 0) {
                 AppLog.i("SSL receive error");
@@ -182,7 +184,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
         // Status = OK
         // byte ac_buf [] = {0, 3, 0, 4, 0, 4, 8, 0};
-        ByteArray status = Protocol.createMessage(0, 3, 4, new byte[]{8, 0}, 2);
+        ByteArray status = Messages.createMessage(0, 3, 4, new byte[]{8, 0}, 2);
         ret = connection.send(status.data, status.length, 1000);
         if (ret < 0) {
             AppLog.e("Status request sendEncrypted ret: " + ret);
@@ -206,19 +208,19 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
     void sendTouch(byte action, int x, int y) {
         long ts = SystemClock.elapsedRealtime() * 1000000L;
-        ByteArray ba = Protocol.createTouchMessage(ts, action, x, y);
+        ByteArray ba = Messages.createTouchMessage(ts, action, x, y);
         sendEncrypted(Channel.AA_CH_TOU, ba.data, ba.length);
     }
 
     public void sendButton(int btnCode, boolean isPress) {
         long ts = SystemClock.elapsedRealtime() * 1000000L;
         // Timestamp in nanoseconds = microseconds x 1,000,000
-        ByteArray ba = Protocol.createButtonMessage(ts, btnCode, isPress);
+        ByteArray ba = Messages.createButtonMessage(ts, btnCode, isPress);
         sendEncrypted(Channel.AA_CH_TOU, ba.data, ba.length);
     }
 
     void sendNightMode(boolean enabled) {
-        byte[] modeData = Protocol.createNightModeMessage(enabled);
+        byte[] modeData = Messages.createNightModeMessage(enabled);
         sendEncrypted(Channel.AA_CH_SEN, modeData, modeData.length);
     }
 

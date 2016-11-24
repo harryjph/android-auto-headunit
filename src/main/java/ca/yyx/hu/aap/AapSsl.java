@@ -22,9 +22,9 @@ class AapSsl {
     private static native int native_ssl_write(int msg_len, byte[] msg_buf);
 
 
-    private static final byte[] bio_read = new byte[Protocol.DEF_BUFFER_LENGTH];
-    private static final byte[] enc_buf = new byte[Protocol.DEF_BUFFER_LENGTH];
-    private static final byte[] dec_buf = new byte[Protocol.DEF_BUFFER_LENGTH];
+    private static final byte[] bio_read = new byte[Messages.DEF_BUFFER_LENGTH];
+    private static final byte[] enc_buf = new byte[Messages.DEF_BUFFER_LENGTH];
+    private static final byte[] dec_buf = new byte[Messages.DEF_BUFFER_LENGTH];
 
 
     static int prepare()
@@ -41,7 +41,7 @@ class AapSsl {
     }
 
     static ByteArray bioRead() {
-        int size = native_ssl_bio_read(Protocol.DEF_BUFFER_LENGTH, bio_read);
+        int size = native_ssl_bio_read(Messages.DEF_BUFFER_LENGTH, bio_read);
         AppLog.i("SSL BIO read: %d", size);
         if (size <= 0) {
             AppLog.i("SSL BIO read error");
@@ -63,7 +63,7 @@ class AapSsl {
             return null;
         }
 
-        int bytes_read = native_ssl_read(Protocol.DEF_BUFFER_LENGTH, dec_buf);
+        int bytes_read = native_ssl_read(Messages.DEF_BUFFER_LENGTH, dec_buf);
         // Read decrypted to decrypted rx buf
         if (bytes_read <= 0) {
             AppLog.e("SSL_read bytes_read: %d", bytes_read);
@@ -88,7 +88,7 @@ class AapSsl {
 
         AppLog.v("SSL Write len: %d  bytes_written: %d", length, bytes_written);
 
-        int bytes_read = native_ssl_bio_read(Protocol.DEF_BUFFER_LENGTH - start,enc_buf);
+        int bytes_read = native_ssl_bio_read(Messages.DEF_BUFFER_LENGTH - start,enc_buf);
         if (bytes_read <= 0) {
             AppLog.e("BIO read  bytes_read: %d", bytes_read);
             return null;

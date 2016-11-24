@@ -1,5 +1,10 @@
 package ca.yyx.hu.aap;
 
+import com.google.protobuf.nano.CodedOutputByteBufferNano;
+import com.google.protobuf.nano.InvalidProtocolBufferNanoException;
+import com.google.protobuf.nano.MessageNano;
+
+import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
 
@@ -18,15 +23,11 @@ class AapControl {
         mAapAudio = audio;
     }
 
-    int execute(AapMessage message) {
+    int execute(AapMessage message) throws InvalidProtocolBufferNanoException {
         return execute(message.channel, message.type, message.data, message.length);
     }
 
-    private int execute(int chan, int msg_type, byte[] buf, int len) {
-
-        if (chan < 0 || chan > Channel.MAX) {
-            AppLog.e("chan >= 0 && chan <= AA_CH_MAX chan: %d", chan);
-        }
+    private int execute(int chan, int msg_type, byte[] buf, int len) throws InvalidProtocolBufferNanoException {
 
         if (msg_type == 7)
         {
@@ -37,12 +38,12 @@ class AapControl {
         {
             case Channel.AA_CH_CTR:
                 return executeControl(chan, msg_type, buf, len);
+            case Channel.AA_CH_TOU:
+                return executeTouch(chan, msg_type, buf, len);
             case Channel.AA_CH_SEN:
                 return executeSensor(chan, msg_type, buf, len);
             case Channel.AA_CH_VID:
                 return executeVideo(chan, msg_type, buf, len);
-            case Channel.AA_CH_TOU:
-                return executeTouch(chan, msg_type, buf, len);
             case Channel.AA_CH_AUD:
             case Channel.AA_CH_AU1:
             case Channel.AA_CH_AU2:
@@ -169,7 +170,7 @@ class AapControl {
         return 0;
     }
 
-    private int executeControl(int chan, int msg_type, byte[] buf, int len) {
+    private int executeControl(int chan, int msg_type, byte[] buf, int len) throws InvalidProtocolBufferNanoException {
 
         switch (msg_type)
         {
@@ -270,39 +271,36 @@ class AapControl {
         return (ret);
     }
 
-    private int channel_open_request(int chan, byte[] buf, int len) {                  // Channel Open Request
-        if (len != 6 || buf[2] != 0x08 || buf[4] != 0x10)
-            AppLog.e("Channel Open Request");
-        else
-            AppLog.i("Channel Open Request: %d  chan: %d", buf[3], buf[5]);
+    private int channel_open_request(int chan, byte[] buf, int len) {
+        // Channel Open Request
+        AppLog.i("Channel Open Request: %d  chan: %d %s", buf[3], buf[5], Channel.name(buf[5]));
         // R 1 SEN f 00000000 08 00 10 01   R 2 VID f 00000000 08 00 10 02   R 3 TOU f 00000000 08 00 10 03   R 4 AUD f 00000000 08 00 10 04   R 5 MIC f 00000000 08 00 10 05
         byte rsp[] = {0, 8, 8, 0};                                         // Status 0 = OK
         int ret = mTransport.sendEncrypted(chan, rsp, rsp.length);                // Send Channel Open Response
-
-        if (ret == 0 && chan == Channel.AA_CH_MIC) {
-            //byte rspm [] = {0, 17, 0x08, 1, 0x10, 1};                         // 1, 1     Voice Session not focusState=1=AUDIO_FOCUS_STATE_GAIN unsolicited=true    050b0000001108011001
-            //ret = hu_aap_enc_send (chan, rspm, sizeof (rspm));                // Send AudioFocus Notification
-            //ms_sleep (200);
-            //i ("Channel Open Request AFTER ms_sleep (500)");
-        }
 
         if (ret != 0)                                                            // If error, done with error
             return (ret);
 
         if (chan == Channel.AA_CH_SEN) {                                            // If Sensor channel...
             Utils.ms_sleep(2);//20);
-            return mTransport.sendEncrypted(chan, Protocol.DRIVING_STATUS, Protocol.DRIVING_STATUS.length);           // Send Sensor Notification
+            return mTransport.sendEncrypted(chan, Messages.DRIVING_STATUS, Messages.DRIVING_STATUS.length);           // Send Sensor Notification
         }
         return (ret);
     }
 
-    private int service_discovery_request(int chan, byte[] buf, int len) {                  // Service Discovery Request
+    private int service_discovery_request(int chan, byte[] buf, int len) throws InvalidProtocolBufferNanoException {                  // Service Discovery Request
+//
+//        Protocol.ServiceDiscoveryRequest request = Protocol.ServiceDiscoveryRequest.parseFrom(buf);
+//
+//        MessageNano.mergeFrom(new Protocol.ServiceDiscoveryRequest(), buf, offset, )
+
         if (len < 4 || buf[2] != 0x0a)
             AppLog.e("Service Discovery Request: %x", buf[2]);
         else
             AppLog.i("Service Discovery Request");                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
-        return mTransport.sendEncrypted(chan, Protocol.SERVICE_DISCOVERY, Protocol.SERVICE_DISCOVERY.length);                // Send Service Discovery Response from sd_buf
+        byte[] serviceDiscoveryResponse = Messages.createServiceDiscoveryResponse();
+        return mTransport.sendEncrypted(chan, serviceDiscoveryResponse, serviceDiscoveryResponse.length);                // Send Service Discovery Response from sd_buf
     }
 
     private int ping_request(int chan, byte[] buf, int len) {
@@ -323,7 +321,7 @@ class AapControl {
         else
             AppLog.i("Navigation Focus Request: %d", buf[3]);
         // Send Navigation Focus Notification
-        mTransport.sendEncrypted(chan, Protocol.NAVIGATION_FOCUS, Protocol.NAVIGATION_FOCUS.length);
+        mTransport.sendEncrypted(chan, Messages.NAVIGATION_FOCUS, Messages.NAVIGATION_FOCUS.length);
         return 0;
     }
 
@@ -338,7 +336,7 @@ class AapControl {
             AppLog.e("Byebye Request reason: %d", buf[3]);
 
         // Send Byebye Response
-        int ret = mTransport.sendEncrypted(chan, Protocol.BYEBYE_RESPONSE, Protocol.BYEBYE_RESPONSE.length);
+        int ret = mTransport.sendEncrypted(chan, Messages.BYEBYE_RESPONSE, Messages.BYEBYE_RESPONSE.length);
         Utils.ms_sleep(100);                                                     // Wait a bit for response
         return -1;
     }

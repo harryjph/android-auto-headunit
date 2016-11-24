@@ -15,11 +15,11 @@ public final class AppLog {
     public static final boolean LOG_DEBUG = LOG_LEVEL <= Log.DEBUG;
 
     public static void i(String msg) {
-        log(Log.DEBUG, format(msg));
+        log(Log.INFO, format(msg));
     }
 
     public static void i(final String msg, final Object... params) {
-        log(Log.DEBUG, format(msg, params));
+        log(Log.INFO, format(msg, params));
     }
 
     public static void e(String msg) {
@@ -43,11 +43,11 @@ public final class AppLog {
     }
 
     public static void d(String msg, final Object... params) {
-        log(Log.INFO, format(msg, params));
+        log(Log.DEBUG, format(msg, params));
     }
 
     public static void d(String msg) {
-        log(Log.INFO, format(msg));
+        log(Log.DEBUG, format(msg));
     }
 
     private static void log(int priority, String msg)

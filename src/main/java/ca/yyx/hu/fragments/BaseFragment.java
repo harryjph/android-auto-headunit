@@ -1,4 +1,4 @@
-package ca.yyx.hu.ui;
+package ca.yyx.hu.fragments;
 
 import android.app.Fragment;
 import android.content.BroadcastReceiver;

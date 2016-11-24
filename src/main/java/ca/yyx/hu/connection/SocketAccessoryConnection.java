@@ -16,10 +16,16 @@ import ca.yyx.hu.utils.AppLog;
 public class SocketAccessoryConnection implements AccessoryConnection {
     final String mIp;
     final Socket mSocket;
+    private static final int DEF_BUFFER_LENGTH = 131080;
 
     public SocketAccessoryConnection(String ip) {
         mSocket = new Socket();
         mIp = ip;
+    }
+
+    @Override
+    public boolean isSingleMessage() {
+        return true;
     }
 
     @Override
@@ -35,17 +41,14 @@ public class SocketAccessoryConnection implements AccessoryConnection {
     }
 
     @Override
-    public int recv(byte[] buf, int timeout) {
+    public int recv(byte[] buf, int length, int timeout) {
 
         try {
             mSocket.setSoTimeout(timeout);
-            mSocket.setReceiveBufferSize(buf.length);
-            return mSocket.getInputStream().read(buf,0,buf.length);
+            return mSocket.getInputStream().read(buf, 0, length);
         } catch (IOException e) {
-            AppLog.e(e);
             return -1;
         }
-
     }
 
     @Override
@@ -62,6 +65,7 @@ public class SocketAccessoryConnection implements AccessoryConnection {
                 try {
                     mSocket.setTcpNoDelay(true);
                     mSocket.setReuseAddress(true);
+                    mSocket.setReceiveBufferSize(DEF_BUFFER_LENGTH);
                     mSocket.connect((new InetSocketAddress(mIp, 5277)), 3000);
                     listener.onConnectionResult(true);
                 } catch (IOException e) {

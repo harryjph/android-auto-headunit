@@ -37,13 +37,8 @@ public class AudioDecoder {
         }
     }
 
-    public void start(int chan, boolean isHiRes) {
-        AudioTrackWrapper thread;
-        if (isHiRes) {
-            thread = new AudioTrackWrapper(SAMPLE_RATE_HZ_48, 2);
-        } else {
-            thread = new AudioTrackWrapper(SAMPLE_RATE_HZ_16, 1);
-        }
-        mAudioTracks.put(chan, thread);
+    public void start(int channel, int sampleRate, int bitDepth, int channelCount) {
+        AudioTrackWrapper thread = new AudioTrackWrapper(sampleRate, bitDepth, channelCount);
+        mAudioTracks.put(channel, thread);
     }
 }

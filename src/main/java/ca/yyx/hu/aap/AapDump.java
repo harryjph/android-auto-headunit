@@ -4,7 +4,7 @@ import android.util.Log;
 
 import java.util.Locale;
 
-import ca.yyx.hu.aap.protocol.nano.Protocol;
+import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.utils.AppLog;
 
 class AapDump {

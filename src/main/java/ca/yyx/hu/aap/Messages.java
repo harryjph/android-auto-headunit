@@ -2,6 +2,8 @@ package ca.yyx.hu.aap;
 
 import com.google.protobuf.nano.MessageNano;
 
+import ca.yyx.hu.aap.protocol.AudioConfigs;
+import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.utils.ByteArray;
 
@@ -133,7 +135,6 @@ public class Messages {
     // Driving Status: 0 = Parked, 1 = Moving
     static byte[] DRIVING_STATUS = {(byte) 0x80, 0x03, 0x6a, 0x02, 0x08, 0};
     static byte[] NIGHT_MODE = {(byte) 0x80, 0x03, 0x52, 0x02, 0x08, 0};
-    static byte[] NAVIGATION_FOCUS = {0, 14, 0x08, 2};
     static byte[] BYEBYE_RESPONSE = { 0x00, 16, 0x08, 0x00 };
 
     static byte[] createServiceDiscoveryResponse() {
@@ -185,7 +186,7 @@ public class Messages {
         VideoConfig videoConfig = new VideoConfig();
         videoConfig.resolution = VideoConfig.VIDEO_RESOLUTION_800x480;
         videoConfig.frameRate = VideoConfig.VIDEO_FPS_60;
-        videoConfig.dpi = 120;
+        videoConfig.dpi = 160;
         video.outputStreamChannel.videoConfigs[0] = videoConfig;
 
         touch.channelId = Channel.AA_CH_TOU;
@@ -208,33 +209,21 @@ public class Messages {
         audio0.outputStreamChannel.type = Protocol.STREAM_TYPE_AUDIO;
         audio0.outputStreamChannel.audioType = Protocol.AUDIO_TYPE_MEDIA;
         audio0.outputStreamChannel.audioConfigs = new Protocol.AudioConfig[1];
-        Protocol.AudioConfig audioConfig0 = new Protocol.AudioConfig();
-        audioConfig0.sampleRate = AudioDecoder.SAMPLE_RATE_HZ_48;
-        audioConfig0.bitDepth = 16;
-        audioConfig0.channelCount = 2;
-        audio0.outputStreamChannel.audioConfigs[0] = audioConfig0;
+        audio0.outputStreamChannel.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AUD);
 
         audio1.channelId = Channel.AA_CH_AU1;
         audio1.outputStreamChannel = new ChannelDescriptor.OutputStreamChannel();
         audio1.outputStreamChannel.type = Protocol.STREAM_TYPE_AUDIO;
         audio1.outputStreamChannel.audioType = Protocol.AUDIO_TYPE_SPEECH;
         audio1.outputStreamChannel.audioConfigs = new Protocol.AudioConfig[1];
-        Protocol.AudioConfig audioConfig1 = new Protocol.AudioConfig();
-        audioConfig1.sampleRate = AudioDecoder.SAMPLE_RATE_HZ_16;
-        audioConfig1.bitDepth = 16;
-        audioConfig1.channelCount = 1;
-        audio1.outputStreamChannel.audioConfigs[0] = audioConfig1;
+        audio1.outputStreamChannel.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU1);
 
         audio2.channelId = Channel.AA_CH_AU2;
         audio2.outputStreamChannel = new ChannelDescriptor.OutputStreamChannel();
         audio2.outputStreamChannel.type = Protocol.STREAM_TYPE_AUDIO;
         audio2.outputStreamChannel.audioType = Protocol.AUDIO_TYPE_SYSTEM;
         audio2.outputStreamChannel.audioConfigs = new Protocol.AudioConfig[1];
-        Protocol.AudioConfig audioConfig2 = new Protocol.AudioConfig();
-        audioConfig2.sampleRate = AudioDecoder.SAMPLE_RATE_HZ_16;
-        audioConfig2.bitDepth = 16;
-        audioConfig2.channelCount = 1;
-        audio2.outputStreamChannel.audioConfigs[0] = audioConfig2;
+        audio2.outputStreamChannel.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU2);
 
         byte[] result = new byte[carInfo.getSerializedSize() + 2];
         // Header

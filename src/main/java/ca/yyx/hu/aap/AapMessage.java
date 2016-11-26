@@ -1,7 +1,7 @@
 package ca.yyx.hu.aap;
 
 
-import ca.yyx.hu.aap.protocol.nano.Protocol;
+import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.utils.ByteArray;
 
 /**
@@ -15,13 +15,15 @@ class AapMessage {
     final int channel;
     final byte flags;
     final int type;
+    final int dataOffset;
 
-    AapMessage(int channel, byte flags, int msg_type, ByteArray ba) {
+    AapMessage(int channel, byte flags, int msg_type, int dataOffset, ByteArray ba) {
         this.data = ba.data;
         this.length = ba.length;
         this.channel = channel;
         this.flags = flags;
         this.type = msg_type;
+        this.dataOffset = dataOffset;
     }
 
     public boolean isAudio() {

@@ -1,5 +1,7 @@
 package ca.yyx.hu.aap;
 
+import ca.yyx.hu.aap.protocol.AudioConfigs;
+import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.utils.AppLog;
@@ -70,31 +72,16 @@ class AapAudio {
     }
 
 
-    private void decode(int chan, int start, byte[] buf, int len) {
+    private void decode(int channel, int start, byte[] buf, int len) {
         if (len > AUDIO_BUFS_SIZE) {
             AppLog.e("Error audio len: %d  aud_buf_BUFS_SIZE: %d", len, AUDIO_BUFS_SIZE);
             len = AUDIO_BUFS_SIZE;
         }
 
-        int channel = Channel.AA_CH_AUD;
-        if (len <= 2048 + 96) {
-            channel = Channel.AA_CH_AU1;
-        }
-
-        if (channel != chan)
-        {
-            AppLog.e("Channels are different: %d != %d",channel,chan);
-        } else {
-            AppLog.v("Channels are the same: %d ", chan);
-        }
-
         if (mAudioDecoder.getTrack(channel) == null)
         {
-            if (channel == Channel.AA_CH_AUD) {
-                mAudioDecoder.start(channel, true);
-            } else {
-                mAudioDecoder.start(channel, false);
-            }
+            Protocol.AudioConfig config = AudioConfigs.get(channel);
+            mAudioDecoder.start(channel, config.sampleRate, config.bitDepth, config.channelCount);
         }
 
         mAudioDecoder.decode(channel, buf, start, len);

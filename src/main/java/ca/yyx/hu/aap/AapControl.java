@@ -1,12 +1,15 @@
 package ca.yyx.hu.aap;
 
-import com.google.protobuf.nano.CodedOutputByteBufferNano;
 import com.google.protobuf.nano.InvalidProtocolBufferNanoException;
 import com.google.protobuf.nano.MessageNano;
 
+import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.utils.AppLog;
+import ca.yyx.hu.utils.SystemUI;
 import ca.yyx.hu.utils.Utils;
+
+import static android.R.id.message;
 
 /**
  * @author algavris
@@ -24,32 +27,28 @@ class AapControl {
     }
 
     int execute(AapMessage message) throws InvalidProtocolBufferNanoException {
-        return execute(message.channel, message.type, message.data, message.length);
-    }
 
-    private int execute(int chan, int msg_type, byte[] buf, int len) throws InvalidProtocolBufferNanoException {
-
-        if (msg_type == 7)
+        if (message.type == 7)
         {
-            return channel_open_request(chan, buf, len);
+            return channel_open_request(message);
         }
 
-        switch (chan)
+        switch (message.channel)
         {
             case Channel.AA_CH_CTR:
-                return executeControl(chan, msg_type, buf, len);
+                return executeControl(message);
             case Channel.AA_CH_TOU:
-                return executeTouch(chan, msg_type, buf, len);
+                return executeTouch(message.channel, message.type, message.data, message.length);
             case Channel.AA_CH_SEN:
-                return executeSensor(chan, msg_type, buf, len);
+                return executeSensor(message.channel, message.type, message.data, message.length);
             case Channel.AA_CH_VID:
-                return executeVideo(chan, msg_type, buf, len);
+                return executeVideo(message.channel, message.type, message.data, message.length);
             case Channel.AA_CH_AUD:
             case Channel.AA_CH_AU1:
             case Channel.AA_CH_AU2:
-                return executeAudio(chan, msg_type, buf, len);
+                return executeAudio(message.channel, message.type, message.data, message.length);
             case Channel.AA_CH_MIC:
-                return executeMicrophone(chan, msg_type, buf, len);
+                return executeMicrophone(message.channel, message.type, message.data, message.length);
         }
         return 0;
     }
@@ -170,28 +169,43 @@ class AapControl {
         return 0;
     }
 
-    private int executeControl(int chan, int msg_type, byte[] buf, int len) throws InvalidProtocolBufferNanoException {
+    private final Protocol.AudioFocusRequest mAudioFocusRequest = new Protocol.AudioFocusRequest();
 
-        switch (msg_type)
+    private int executeControl(AapMessage message) throws InvalidProtocolBufferNanoException {
+
+        switch (message.type)
         {
             case 5:
-                return service_discovery_request(chan, buf, len);
+                Protocol.ServiceDiscoveryRequest request = parse(new Protocol.ServiceDiscoveryRequest(), message);
+                return service_discovery_request(request, message.channel);
             case 0x0b:
-                return ping_request(chan, buf, len);
+                Protocol.PingRequest pingRequest = parse(new Protocol.PingRequest(), message);
+                return ping_request(pingRequest, message.channel, message.data);
             case 0x0d:
-                return navigation_focus_request(chan, buf, len);
+                Protocol.NavigationFocusRequest navigationFocusRequest = parse(new Protocol.NavigationFocusRequest(), message);
+                return navigation_focus_request(navigationFocusRequest, message.channel, message.data);
             case 0x0f:
-                return byebye_request(chan, buf, len);
+                Protocol.ShutdownRequest shutdownRequest = parse(new Protocol.ShutdownRequest(), message);
+                return byebye_request(shutdownRequest, message.channel, message.data);
             case 0x10:
-                return byebye_response(chan, buf, len);
+                AppLog.i("Byebye Response");                                         // R 0 CTR b src: AA  lft:     0  msg_type:    16 Byebye Response
+                return -1;
             case 0x11:
-                return voice_session_notification(chan, buf, len);
+                Protocol.VoiceSessionRequest voiceRequest = parse(new Protocol.VoiceSessionRequest(), message);
+                return voice_session_notification(voiceRequest);
             case 0x12:
-                return audio_focus_request(chan, buf, len);
+                mAudioFocusRequest.clear();
+                Protocol.AudioFocusRequest audioFocusRequest = parse(mAudioFocusRequest, message);
+                return audio_focus_request(audioFocusRequest, message.channel, message.data);
             default:
                 AppLog.e("Unsupported");
         }
         return 0;
+    }
+
+    static <T extends MessageNano> T parse(T msg, final AapMessage message) throws InvalidProtocolBufferNanoException
+    {
+        return  MessageNano.mergeFrom(msg, message.data, message.dataOffset, message.length - message.dataOffset);
     }
 
     private int aa_pro_vid_b07(int chan, byte[] buf, int len) {                  // Media Video ? Request...
@@ -271,132 +285,108 @@ class AapControl {
         return (ret);
     }
 
-    private int channel_open_request(int chan, byte[] buf, int len) {
+    private int channel_open_request(AapMessage message) {
         // Channel Open Request
-        AppLog.i("Channel Open Request: %d  chan: %d %s", buf[3], buf[5], Channel.name(buf[5]));
+        AppLog.i("Channel Open Request: %d  chan: %d %s", message.data[3], message.data[5], Channel.name(message.data[5]));
         // R 1 SEN f 00000000 08 00 10 01   R 2 VID f 00000000 08 00 10 02   R 3 TOU f 00000000 08 00 10 03   R 4 AUD f 00000000 08 00 10 04   R 5 MIC f 00000000 08 00 10 05
         byte rsp[] = {0, 8, 8, 0};                                         // Status 0 = OK
-        int ret = mTransport.sendEncrypted(chan, rsp, rsp.length);                // Send Channel Open Response
+        int ret = mTransport.sendEncrypted(message.channel, rsp, rsp.length);                // Send Channel Open Response
 
         if (ret != 0)                                                            // If error, done with error
             return (ret);
 
-        if (chan == Channel.AA_CH_SEN) {                                            // If Sensor channel...
+        if (message.channel == Channel.AA_CH_SEN) {                                            // If Sensor channel...
             Utils.ms_sleep(2);//20);
-            return mTransport.sendEncrypted(chan, Messages.DRIVING_STATUS, Messages.DRIVING_STATUS.length);           // Send Sensor Notification
+            return mTransport.sendEncrypted(message.channel, Messages.DRIVING_STATUS, Messages.DRIVING_STATUS.length);           // Send Sensor Notification
         }
         return (ret);
     }
 
-    private int service_discovery_request(int chan, byte[] buf, int len) throws InvalidProtocolBufferNanoException {                  // Service Discovery Request
-//
-//        Protocol.ServiceDiscoveryRequest request = Protocol.ServiceDiscoveryRequest.parseFrom(buf);
-//
-//        MessageNano.mergeFrom(new Protocol.ServiceDiscoveryRequest(), buf, offset, )
-
-        if (len < 4 || buf[2] != 0x0a)
-            AppLog.e("Service Discovery Request: %x", buf[2]);
-        else
-            AppLog.i("Service Discovery Request");                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
+    private int service_discovery_request(Protocol.ServiceDiscoveryRequest request, int channel) throws InvalidProtocolBufferNanoException {                  // Service Discovery Request
+        AppLog.i("Service Discovery Request: %s", request.phoneName);                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
         byte[] serviceDiscoveryResponse = Messages.createServiceDiscoveryResponse();
-        return mTransport.sendEncrypted(chan, serviceDiscoveryResponse, serviceDiscoveryResponse.length);                // Send Service Discovery Response from sd_buf
+        return mTransport.sendEncrypted(channel, serviceDiscoveryResponse, serviceDiscoveryResponse.length);                // Send Service Discovery Response from sd_buf
     }
 
-    private int ping_request(int chan, byte[] buf, int len) {
-        if (len != 4 || buf[2] != 0x08)
-            AppLog.e("Ping Request");
-        else
-            AppLog.i("Ping Request: %d", buf[3]);
+    private int ping_request(Protocol.PingRequest request, int channel, byte[] buf) {
+        AppLog.i("Ping Request: %d", request.timestamp);
         // Channel Open Response
         buf[0] = 0;
         buf[1] = 12;
+
+        Protocol.PingResponse response = new Protocol.PingResponse();
+        response.timestamp = System.nanoTime();
+        write(response, buf, 2);
         // Send Channel Open Response
-        return mTransport.sendEncrypted(chan, buf, len);
+        return mTransport.sendEncrypted(channel, buf, response.getSerializedSize() + 2);
     }
 
-    private int navigation_focus_request(int chan, byte[] buf, int len) {
-        if (len != 4 || buf[2] != 0x08)
-            AppLog.e("Navigation Focus Request");
-        else
-            AppLog.i("Navigation Focus Request: %d", buf[3]);
+    private int navigation_focus_request(Protocol.NavigationFocusRequest request, int channel, byte[] buf) {
+        AppLog.i("Navigation Focus Request: %d", request.focusType);
         // Send Navigation Focus Notification
-        mTransport.sendEncrypted(chan, Messages.NAVIGATION_FOCUS, Messages.NAVIGATION_FOCUS.length);
+        Protocol.NavigationFocusResponse response = new Protocol.NavigationFocusResponse();
+        response.focusType = 2;
+        buf[0] = 0;
+        buf[1] = 14;
+        write(response, buf, 2);
+        mTransport.sendEncrypted(channel, buf, 4);
         return 0;
     }
 
-    private int byebye_request(int chan, byte[] buf, int len) {                  // Byebye Request
-        if (len != 4 || buf[2] != 0x08)
-            AppLog.e("Byebye Request");
-        else if (buf[3] == 1)
+    private int byebye_request(Protocol.ShutdownRequest request, int channel, byte[] buf) {                  // Byebye Request
+        if (request.reason == 1)
             AppLog.i("Byebye Request reason: 1 AA Exit Car Mode");
-        else if (buf[3] == 2)
-            AppLog.e("Byebye Request reason: 2 ?");
         else
-            AppLog.e("Byebye Request reason: %d", buf[3]);
+            AppLog.e("Byebye Request reason: %d", request.reason);
 
-        // Send Byebye Response
-        int ret = mTransport.sendEncrypted(chan, Messages.BYEBYE_RESPONSE, Messages.BYEBYE_RESPONSE.length);
-        Utils.ms_sleep(100);                                                     // Wait a bit for response
+        mTransport.sendEncrypted(channel, Messages.BYEBYE_RESPONSE, Messages.BYEBYE_RESPONSE.length);
+        Utils.ms_sleep(100);
         return -1;
     }
 
-    private int byebye_response(int chan, byte[] buf, int len) {                  // Byebye Response
-        if (len != 2)
-            AppLog.e("Byebye Response");
-        else
-            AppLog.i("Byebye Response");                                         // R 0 CTR b src: AA  lft:     0  msg_type:    16 Byebye Response
-        return -1;
-    }
-
-    private int voice_session_notification(int chan, byte[] buf, int len) {                  // sr:  00000000 00 11 08 01      Microphone voice search usage     sr:  00000000 00 11 08 02
-        if (len != 4 || buf[2] != 0x08)
-            AppLog.e("Voice Session Notification");
-        else if (buf[3] == 1)
+    private int voice_session_notification(Protocol.VoiceSessionRequest request) {                  // sr:  00000000 00 11 08 01      Microphone voice search usage     sr:  00000000 00 11 08 02
+        if (request.voiceStatus == Protocol.VoiceSessionRequest.VOICE_STATUS_START)
             AppLog.i("Voice Session Notification: 1 START");
-        else if (buf[3] == 2)
+        else if (request.voiceStatus== Protocol.VoiceSessionRequest.VOICE_STATUS_STOP)
             AppLog.i("Voice Session Notification: 2 STOP");
         else
-            AppLog.e("Voice Session Notification: %d", buf[3]);
+            AppLog.e("Voice Session Notification: %d", request.voiceStatus);
         return (0);
     }
 
-    private int audio_focus_request(int chan, byte[] buf, int len) {                  // Audio Focus Request
-        if (len != 4 || buf[2] != 0x08)
-            AppLog.e("Audio Focus Request");
-        else if (buf[3] == 1)
-            AppLog.i("Audio Focus Request: 1 AUDIO_FOCUS_GAIN ?");
-        else if (buf[3] == 2)
+    private final Protocol.AudioFocusResponse mAudioFocusResponse = new Protocol.AudioFocusResponse();
+    private int audio_focus_request(Protocol.AudioFocusRequest request, int channel, byte[] buf) throws InvalidProtocolBufferNanoException {                  // Audio Focus Request
+        if (request.focusType == Protocol.AudioFocusRequest.AUDIO_FOCUS_GAIN)
+            AppLog.i("Audio Focus Request: 1 AUDIO_FOCUS_GAIN");
+        else if (request.focusType == Protocol.AudioFocusRequest.AUDIO_FOCUS_GAIN_TRANSIENT)
             AppLog.i("Audio Focus Request: 2 AUDIO_FOCUS_GAIN_TRANSIENT");
-        else if (buf[3] == 3)
+        else if (request.focusType == Protocol.AudioFocusRequest.AUDIO_FOCUS_UNKNOWN)
             AppLog.i("Audio Focus Request: 3 gain/release ?");
-        else if (buf[3] == 4)
+        else if (request.focusType == Protocol.AudioFocusRequest.AUDIO_FOCUS_RELEASE)
             AppLog.i("Audio Focus Request: 4 AUDIO_FOCUS_RELEASE");
         else
-            AppLog.e("Audio Focus Request: %d", buf[3]);
+            AppLog.e("Audio Focus Request: %d", request.focusType);
+
         buf[0] = 0;                                                        // Use request buffer for response
         buf[1] = 19;                                                       // Audio Focus Response
-        buf[2] = 0x08;
-        // buf[3]: See senderprotocol/q.java:
-        // 1: AUDIO_FOCUS_STATE_GAIN
-        // 2: AUDIO_FOCUS_STATE_GAIN_TRANSIENT
-        // 3: AUDIO_FOCUS_STATE_LOSS
-        // 4: AUDIO_FOCUS_STATE_LOSS_TRANSIENT_CAN_DUCK
-        // 5: AUDIO_FOCUS_STATE_LOSS_TRANSIENT
-        // 6: AUDIO_FOCUS_STATE_GAIN_MEDIA_ONLY
-        // 7: AUDIO_FOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY
-        if (buf[3] == 4) {                                                  // If AUDIO_FOCUS_RELEASE...
-            buf[3] = 3;
-        }   // Send AUDIO_FOCUS_STATE_LOSS
-        else if (buf[3] == 2) {                                             // If AUDIO_FOCUS_GAIN_TRANSIENT...
-            buf[3] = 1;//2;                                                      // Send AUDIO_FOCUS_STATE_GAIN_TRANSIENT
-        } else {
-            buf[3] = 1;                                                      // Send AUDIO_FOCUS_STATE_GAIN
+        mAudioFocusResponse.clear();
+        if (request.focusType == Protocol.AudioFocusRequest.AUDIO_FOCUS_RELEASE) {
+            mAudioFocusResponse.focusType = Protocol.AudioFocusResponse.AUDIO_FOCUS_STATE_LOSS;
         }
-        //buf [4] = 0x10;
-        //buf [5] = 0;                                                      // unsolicited:   0 = false   1 = true
-        int ret = mTransport.sendEncrypted(chan, buf, 4);//6);                      // Send Audio Focus Response
-        return (0);
+        else if (request.focusType == Protocol.AudioFocusRequest.AUDIO_FOCUS_GAIN_TRANSIENT) {
+            mAudioFocusResponse.focusType = Protocol.AudioFocusResponse.AUDIO_FOCUS_STATE_GAIN;
+        } else {
+            mAudioFocusResponse.focusType = Protocol.AudioFocusResponse.AUDIO_FOCUS_STATE_GAIN;
+        }
+        // Send Audio Focus Response3
+        write(mAudioFocusResponse, buf, 2);
+        int ret = mTransport.sendEncrypted(channel, buf, 4);
+        return 0;
     }
 
+    static void write(MessageNano msg, byte[] buf, int offset)
+    {
+        MessageNano.toByteArray(msg, buf, offset, msg.getSerializedSize());
+    }
 }

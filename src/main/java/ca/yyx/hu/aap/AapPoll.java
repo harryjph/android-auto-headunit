@@ -4,7 +4,7 @@ import com.google.protobuf.nano.InvalidProtocolBufferNanoException;
 
 import java.util.Locale;
 
-import ca.yyx.hu.aap.protocol.nano.Protocol;
+import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.ByteArray;
@@ -152,7 +152,7 @@ class AapPoll {
         AapDump.logd(prefix, "AA", header.chan, header.flags, ba.data, ba.length);
 
         int msg_type = Utils.bytesToInt(ba.data, 0, true);
-        return new AapMessage(header.chan, (byte) header.flags, msg_type, ba);
+        return new AapMessage(header.chan, (byte) header.flags, msg_type, 2, ba);
     }
 
     private int iaap_msg_process(AapMessage message) throws InvalidProtocolBufferNanoException {

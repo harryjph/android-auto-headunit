@@ -1,6 +1,6 @@
 package ca.yyx.hu.aap;
 
-import ca.yyx.hu.aap.protocol.nano.Protocol;
+import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.utils.AppLog;
 

@@ -8,10 +8,10 @@ import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.utils.ByteArray;
 
 import ca.yyx.hu.aap.protocol.nano.Protocol;
-import ca.yyx.hu.aap.protocol.nano.Protocol.ChannelDescriptor;
-import ca.yyx.hu.aap.protocol.nano.Protocol.ChannelDescriptor.SensorChannel;
-import ca.yyx.hu.aap.protocol.nano.Protocol.ChannelDescriptor.OutputStreamChannel.VideoConfig;
-import ca.yyx.hu.aap.protocol.nano.Protocol.ChannelDescriptor.InputEventChannel.TouchScreenConfig;
+import ca.yyx.hu.aap.protocol.nano.Protocol.Service;
+import ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService;
+import ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig;
+import ca.yyx.hu.aap.protocol.nano.Protocol.Service.InputSourceService.TouchConfig;
 
 /**
  * @author algavris
@@ -139,97 +139,94 @@ public class Messages {
 
     static byte[] createServiceDiscoveryResponse() {
         Protocol.ServiceDiscoveryResponse carInfo = new Protocol.ServiceDiscoveryResponse();
-        carInfo.headUnitName = "Roadrover CS";
-        carInfo.headunitModel = "ChangAn S";
-        carInfo.headunitMake = "Roadrover";
-        carInfo.carModel = "AACar";
-        carInfo.carSerial = "0001";
-        carInfo.carYear = "2016";
-        carInfo.driverPos = true;
-        carInfo.swBuild = "SWB1";
-        carInfo.swVersion = "SWV1";
-        carInfo.channels = new Protocol.ChannelDescriptor[7];
+        carInfo.services = new Protocol.Service[7];
+        carInfo.make = "AACar";
+        carInfo.model = "0001";
+        carInfo.year = "2016";
+        carInfo.headUnitModel = "ChangAn S";
+        carInfo.headUnitMake = "Roadrover";
+        carInfo.headUnitSoftwareBuild = "SWB1";
+        carInfo.headUnitSoftwareVersion = "SWV1";
+        carInfo.driverPosition = true;
 
-        ChannelDescriptor sensors = new ChannelDescriptor();
-        ChannelDescriptor video = new ChannelDescriptor();
-        ChannelDescriptor touch = new ChannelDescriptor();
-        ChannelDescriptor mic = new ChannelDescriptor();
-        ChannelDescriptor audio0 = new ChannelDescriptor();
-        ChannelDescriptor audio1 = new ChannelDescriptor();
-        ChannelDescriptor audio2 = new ChannelDescriptor();
+        Service sensors = new Service();
+        Service video = new Service();
+        Service touch = new Service();
+        Service mic = new Service();
+        Service audio0 = new Service();
+        Service audio1 = new Service();
+        Service audio2 = new Service();
 
-        carInfo.channels[0] = sensors;
-        carInfo.channels[1] = video;
-        carInfo.channels[2] = touch;
-        carInfo.channels[3] = mic;
-        carInfo.channels[4] = audio0;
-        carInfo.channels[5] = audio1;
-        carInfo.channels[6] = audio2;
+        carInfo.services[0] = sensors;
+        carInfo.services[1] = video;
+        carInfo.services[2] = touch;
+        carInfo.services[3] = mic;
+        carInfo.services[4] = audio0;
+        carInfo.services[5] = audio1;
+        carInfo.services[6] = audio2;
 
-        sensors.channelId = Channel.AA_CH_SEN;
-        sensors.sensorChannel = new SensorChannel();
-        sensors.sensorChannel.sensorList = new SensorChannel.Sensor[2];
-        sensors.sensorChannel.sensorList[0] = new SensorChannel.Sensor();
-        sensors.sensorChannel.sensorList[1] = new SensorChannel.Sensor();
-        sensors.sensorChannel.sensorList[0].type = Protocol.SENSOR_TYPE_DRIVING_STATUS;
-        sensors.sensorChannel.sensorList[1].type = Protocol.SENSOR_TYPE_NIGHT_DATA;
+        sensors.id = Channel.AA_CH_SEN;
+        sensors.sensorSourceService = new SensorSourceService();
+        sensors.sensorSourceService.sensorList = new SensorSourceService.Sensor[2];
+        sensors.sensorSourceService.sensorList[0] = new SensorSourceService.Sensor();
+        sensors.sensorSourceService.sensorList[1] = new SensorSourceService.Sensor();
+        sensors.sensorSourceService.sensorList[0].type = Protocol.SENSOR_TYPE_DRIVING_STATUS;
+        sensors.sensorSourceService.sensorList[1].type = Protocol.SENSOR_TYPE_NIGHT_DATA;
 
-        // Bluetooth
-        // 0x0A, 27, 0x08,  8, 0x32, 23, 0x0A, 17, 'F','C',':','5','8',':','F','A',':','1','2',':','1','A',':','0','D',0x12,2,0x02,0x03,
-
-
-        video.channelId = Channel.AA_CH_VID;
-        video.outputStreamChannel = new ChannelDescriptor.OutputStreamChannel();
-        video.outputStreamChannel.type = Protocol.STREAM_TYPE_VIDEO;
-        video.outputStreamChannel.availableWhileInCall = true;
-        video.outputStreamChannel.videoConfigs = new VideoConfig[1];
+        video.id = Channel.AA_CH_VID;
+        video.mediaSinkService = new Service.MediaSinkService();
+        video.mediaSinkService.availableType = Protocol.STREAM_TYPE_VIDEO;
+        video.mediaSinkService.availableWhileInCall = true;
+        video.mediaSinkService.videoConfigs = new VideoConfig[1];
         VideoConfig videoConfig = new VideoConfig();
         videoConfig.resolution = VideoConfig.VIDEO_RESOLUTION_800x480;
         videoConfig.frameRate = VideoConfig.VIDEO_FPS_60;
         videoConfig.dpi = 160;
-        video.outputStreamChannel.videoConfigs[0] = videoConfig;
+        video.mediaSinkService.videoConfigs[0] = videoConfig;
 
-        touch.channelId = Channel.AA_CH_TOU;
-        touch.inputEventChannel = new ChannelDescriptor.InputEventChannel();
-        touch.inputEventChannel.touchScreenConfig = new TouchScreenConfig();
-        touch.inputEventChannel.touchScreenConfig.width = 800;
-        touch.inputEventChannel.touchScreenConfig.height = 480;
+        touch.id = Channel.AA_CH_TOU;
+        touch.inputSourceService = new Service.InputSourceService();
+        touch.inputSourceService.touchscreen = new TouchConfig();
+        touch.inputSourceService.touchscreen.width = 800;
+        touch.inputSourceService.touchscreen.height = 480;
 
-        mic.channelId = Channel.AA_CH_MIC;
-        mic.inputStreamChannel = new ChannelDescriptor.InputStreamChannel();
-        mic.inputStreamChannel.type = Protocol.STREAM_TYPE_AUDIO;
+        mic.id = Channel.AA_CH_MIC;
+        mic.mediaSourceService = new Service.MediaSourceService();
+        mic.mediaSourceService.type = Protocol.STREAM_TYPE_AUDIO;
         Protocol.AudioConfig micConfig = new Protocol.AudioConfig();
         micConfig.sampleRate = 16000;
         micConfig.bitDepth = 16;
         micConfig.channelCount = 1;
-        mic.inputStreamChannel.audioConfig = micConfig;
+        mic.mediaSourceService.audioConfig = micConfig;
 
-        audio0.channelId = Channel.AA_CH_AUD;
-        audio0.outputStreamChannel = new ChannelDescriptor.OutputStreamChannel();
-        audio0.outputStreamChannel.type = Protocol.STREAM_TYPE_AUDIO;
-        audio0.outputStreamChannel.audioType = Protocol.AUDIO_TYPE_MEDIA;
-        audio0.outputStreamChannel.audioConfigs = new Protocol.AudioConfig[1];
-        audio0.outputStreamChannel.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AUD);
+        audio0.id = Channel.AA_CH_AUD;
+        audio0.mediaSinkService = new Service.MediaSinkService();
+        audio0.mediaSinkService.availableType = Protocol.STREAM_TYPE_AUDIO;
+        audio0.mediaSinkService.audioType = Protocol.AUDIO_TYPE_MEDIA;
+        audio0.mediaSinkService.audioConfigs = new Protocol.AudioConfig[1];
+        audio0.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AUD);
 
-        audio1.channelId = Channel.AA_CH_AU1;
-        audio1.outputStreamChannel = new ChannelDescriptor.OutputStreamChannel();
-        audio1.outputStreamChannel.type = Protocol.STREAM_TYPE_AUDIO;
-        audio1.outputStreamChannel.audioType = Protocol.AUDIO_TYPE_SPEECH;
-        audio1.outputStreamChannel.audioConfigs = new Protocol.AudioConfig[1];
-        audio1.outputStreamChannel.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU1);
+        audio1.id = Channel.AA_CH_AU1;
+        audio1.mediaSinkService = new Service.MediaSinkService();
+        audio1.mediaSinkService.availableType = Protocol.STREAM_TYPE_AUDIO;
+        audio1.mediaSinkService.audioType = Protocol.AUDIO_TYPE_SPEECH;
+        audio1.mediaSinkService.audioConfigs = new Protocol.AudioConfig[1];
+        audio1.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU1);
 
-        audio2.channelId = Channel.AA_CH_AU2;
-        audio2.outputStreamChannel = new ChannelDescriptor.OutputStreamChannel();
-        audio2.outputStreamChannel.type = Protocol.STREAM_TYPE_AUDIO;
-        audio2.outputStreamChannel.audioType = Protocol.AUDIO_TYPE_SYSTEM;
-        audio2.outputStreamChannel.audioConfigs = new Protocol.AudioConfig[1];
-        audio2.outputStreamChannel.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU2);
+        audio2.id = Channel.AA_CH_AU2;
+        audio2.mediaSinkService = new Service.MediaSinkService();
+        audio2.mediaSinkService.availableType = Protocol.STREAM_TYPE_AUDIO;
+        audio2.mediaSinkService.audioType = Protocol.AUDIO_TYPE_SYSTEM;
+        audio2.mediaSinkService.audioConfigs = new Protocol.AudioConfig[1];
+        audio2.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU2);
 
         byte[] result = new byte[carInfo.getSerializedSize() + 2];
         // Header
         result[0] = 0x00;
         result[1] = 0x06;
         MessageNano.toByteArray(carInfo, result, 2, carInfo.getSerializedSize());
+
+
         return result;
     }
 }

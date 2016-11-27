@@ -171,11 +171,11 @@ public class Messages {
 
         sensors.id = Channel.AA_CH_SEN;
         sensors.sensorSourceService = new SensorSourceService();
-        sensors.sensorSourceService.sensorList = new SensorSourceService.Sensor[2];
-        sensors.sensorSourceService.sensorList[0] = new SensorSourceService.Sensor();
-        sensors.sensorSourceService.sensorList[1] = new SensorSourceService.Sensor();
-        sensors.sensorSourceService.sensorList[0].type = Protocol.SENSOR_TYPE_DRIVING_STATUS;
-        sensors.sensorSourceService.sensorList[1].type = Protocol.SENSOR_TYPE_NIGHT_DATA;
+        sensors.sensorSourceService.sensors = new SensorSourceService.Sensor[2];
+        sensors.sensorSourceService.sensors[0] = new SensorSourceService.Sensor();
+        sensors.sensorSourceService.sensors[0].type = Protocol.SENSOR_TYPE_DRIVING_STATUS;
+        sensors.sensorSourceService.sensors[1] = new SensorSourceService.Sensor();
+        sensors.sensorSourceService.sensors[1].type = Protocol.SENSOR_TYPE_NIGHT_DATA;
 
         video.id = Channel.AA_CH_VID;
         video.mediaSinkService = new Service.MediaSinkService();

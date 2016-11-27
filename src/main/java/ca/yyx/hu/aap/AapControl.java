@@ -10,6 +10,7 @@ import ca.yyx.hu.utils.SystemUI;
 import ca.yyx.hu.utils.Utils;
 
 import static android.R.id.message;
+import static android.R.id.paste;
 
 /**
  * @author algavris
@@ -32,7 +33,8 @@ class AapControl {
 
         if (message.type == 7)
         {
-            return channel_open_request(message);
+            Protocol.ChannelOpenRequest request = parse(new Protocol.ChannelOpenRequest(), message);
+            return channel_open_request(request, message.channel, message.data);
         }
 
         switch (message.channel)
@@ -284,21 +286,24 @@ class AapControl {
         return (ret);
     }
 
-    private int channel_open_request(AapMessage message) {
+    private int channel_open_request(Protocol.ChannelOpenRequest request, int channel, byte[] buf) {
         // Channel Open Request
-        AppLog.i("Channel Open Request: %d  chan: %d %s", message.data[3], message.data[5], Channel.name(message.data[5]));
-        // R 1 SEN f 00000000 08 00 10 01   R 2 VID f 00000000 08 00 10 02   R 3 TOU f 00000000 08 00 10 03   R 4 AUD f 00000000 08 00 10 04   R 5 MIC f 00000000 08 00 10 05
-        byte rsp[] = {0, 8, 8, 0};                                         // Status 0 = OK
-        int ret = mTransport.sendEncrypted(message.channel, rsp, rsp.length);                // Send Channel Open Response
+        AppLog.i("Channel Open Request - priority: %d  chan: %d %s", request.priority, request.serviceId, Channel.name(request.serviceId));
 
-        if (ret != 0)                                                            // If error, done with error
-            return (ret);
+        Protocol.ChannelOpenResponse response = new Protocol.ChannelOpenResponse();
+        response.status = Protocol.STATUS_OK;
+        // Channel Open Response
+        buf[0] = 0;
+        buf[1] = 8;
+        write(response, buf, 2);
+        int ret = mTransport.sendEncrypted(channel, buf, response.getSerializedSize() + 2);
+        AppLog.i("Channel Open Response: %d", ret);
 
-        if (message.channel == Channel.AA_CH_SEN) {                                            // If Sensor channel...
+        if (request.serviceId == Channel.AA_CH_SEN) {                                            // If Sensor channel...
             Utils.ms_sleep(2);//20);
-            return mTransport.sendEncrypted(message.channel, Messages.DRIVING_STATUS, Messages.DRIVING_STATUS.length);           // Send Sensor Notification
+            return mTransport.sendEncrypted(Channel.AA_CH_SEN, Messages.DRIVING_STATUS, Messages.DRIVING_STATUS.length);           // Send Sensor Notification
         }
-        return (ret);
+        return 0;
     }
 
     private int service_discovery_request(Protocol.ServiceDiscoveryRequest request, int channel) throws InvalidProtocolBufferNanoException {                  // Service Discovery Request

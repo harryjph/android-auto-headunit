@@ -2,7 +2,7 @@ syntax = "proto2";
 
 package ca.yyx.hu.aap.protocol;
 
-enum STATUS
+enum MessageStatus
 {
     STATUS_OK = 0;
 }
@@ -55,11 +55,32 @@ message BindingRequest
 
 message BindingResponse
 {
-    required STATUS status = 1;
+    required MessageStatus status = 1;
 }
 
-message SensorEvent
+enum SensorType
 {
+    SENSOR_TYPE_DRIVING_STATUS = 11;
+    SENSOR_TYPE_NIGHT_DATA = 10;
+    SENSOR_TYPE_RPM = 3;
+    SENSOR_TYPE_DIAGNOSTICS = 8;
+    SENSOR_TYPE_GEAR = 7;
+    SENSOR_TYPE_COMPASS = 1;
+    SENSOR_TYPE_LOCATION = 9;
+}
+
+message SensorBatch
+{
+    message LocationData
+    {
+        optional int64 timestamp = 1;
+        optional int32 latitude = 2;
+        optional int32 longitude = 3;
+        optional int32 accuracy = 4;
+        optional int32 altitude = 5;
+        optional int32 speed = 6;
+        optional int32 bearing = 7;
+    }
     message NightMode
     {
         required bool is_night = 1;
@@ -68,8 +89,9 @@ message SensorEvent
     {
         required int32 is_driving = 1;
     }
-    //repeated Location = 1;
-    //repeated Compass = 2;
+
+    repeated LocationData location_data = 1;
+    //repeated CompassData compass_data = 2;
     //repeated Speed = 3;
     //repeated RPM = 4;
     //repeated Odometer = 5;
@@ -89,17 +111,6 @@ message SensorEvent
     //repeated Accel = 19;
     //repeated Gyro = 20;
     //repeated GPS = 21;
-}
-
-enum SENSOR_TYPE
-{
-    SENSOR_TYPE_DRIVING_STATUS = 11;
-    SENSOR_TYPE_NIGHT_DATA = 10;
-    SENSOR_TYPE_RPM = 3;
-    SENSOR_TYPE_DIAGNOSTICS = 8;
-    SENSOR_TYPE_GEAR = 7;
-    SENSOR_TYPE_COMPASS = 1;
-    SENSOR_TYPE_LOCATION = 9;
 }
 
 enum AUDIO_TYPE
@@ -135,9 +146,9 @@ message Service
     {
         message Sensor
         {
-            required SENSOR_TYPE type = 1;
+            required SensorType type = 1;
         }
-        repeated Sensor sensor_list = 1;
+        repeated Sensor sensors = 1;
     }
     optional SensorSourceService sensor_source_service = 2;
 
@@ -235,12 +246,12 @@ message ServiceDiscoveryResponse
 message ChannelOpenRequest
 {
     optional int32 priority = 1;
-    optional int32 id = 2;
+    optional int32 service_id = 2;
 }
 
 message ChannelOpenResponse
 {
-    required STATUS status = 1;
+    required MessageStatus status = 1;
 }
 
 message PingRequest
@@ -341,15 +352,15 @@ message VideoFocusNotification
     optional bool unsolicited = 2;
 }
 
-message SensorStartRequest
+message SensorRequest
 {
-    required SENSOR_TYPE type = 1;
-    optional int64 refresh_interval = 2;
+    optional SensorType type = 1;
+    optional int64 min_update_period = 2;
 }
 
-message SensorStartResponse
+message SensorResponse
 {
-    required STATUS status = 1;
+    required MessageStatus status = 1;
 }
 
 message NavigationFocusRequest

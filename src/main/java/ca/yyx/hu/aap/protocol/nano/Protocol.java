@@ -5,10 +5,10 @@ package ca.yyx.hu.aap.protocol.nano;
 @SuppressWarnings("hiding")
 public interface Protocol {
 
-  // enum STATUS
+  // enum MessageStatus
   public static final int STATUS_OK = 0;
 
-  // enum SENSOR_TYPE
+  // enum SensorType
   public static final int SENSOR_TYPE_DRIVING_STATUS = 11;
   public static final int SENSOR_TYPE_NIGHT_DATA = 10;
   public static final int SENSOR_TYPE_RPM = 3;
@@ -779,7 +779,7 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // required .ca.yyx.hu.aap.protocol.STATUS status = 1;
+    // required .ca.yyx.hu.aap.protocol.MessageStatus status = 1;
     public int status;
 
     public BindingResponse() {
@@ -847,8 +847,182 @@ public interface Protocol {
     }
   }
 
-  public static final class SensorEvent extends
+  public static final class SensorBatch extends
       com.google.protobuf.nano.MessageNano {
+
+    public static final class LocationData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile LocationData[] _emptyArray;
+      public static LocationData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new LocationData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional int64 timestamp = 1;
+      public long timestamp;
+
+      // optional int32 latitude = 2;
+      public int latitude;
+
+      // optional int32 longitude = 3;
+      public int longitude;
+
+      // optional int32 accuracy = 4;
+      public int accuracy;
+
+      // optional int32 altitude = 5;
+      public int altitude;
+
+      // optional int32 speed = 6;
+      public int speed;
+
+      // optional int32 bearing = 7;
+      public int bearing;
+
+      public LocationData() {
+        clear();
+      }
+
+      public LocationData clear() {
+        timestamp = 0L;
+        latitude = 0;
+        longitude = 0;
+        accuracy = 0;
+        altitude = 0;
+        speed = 0;
+        bearing = 0;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.timestamp != 0L) {
+          output.writeInt64(1, this.timestamp);
+        }
+        if (this.latitude != 0) {
+          output.writeInt32(2, this.latitude);
+        }
+        if (this.longitude != 0) {
+          output.writeInt32(3, this.longitude);
+        }
+        if (this.accuracy != 0) {
+          output.writeInt32(4, this.accuracy);
+        }
+        if (this.altitude != 0) {
+          output.writeInt32(5, this.altitude);
+        }
+        if (this.speed != 0) {
+          output.writeInt32(6, this.speed);
+        }
+        if (this.bearing != 0) {
+          output.writeInt32(7, this.bearing);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.timestamp != 0L) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt64Size(1, this.timestamp);
+        }
+        if (this.latitude != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(2, this.latitude);
+        }
+        if (this.longitude != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(3, this.longitude);
+        }
+        if (this.accuracy != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(4, this.accuracy);
+        }
+        if (this.altitude != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(5, this.altitude);
+        }
+        if (this.speed != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(6, this.speed);
+        }
+        if (this.bearing != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(7, this.bearing);
+        }
+        return size;
+      }
+
+      @Override
+      public LocationData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.timestamp = input.readInt64();
+              break;
+            }
+            case 16: {
+              this.latitude = input.readInt32();
+              break;
+            }
+            case 24: {
+              this.longitude = input.readInt32();
+              break;
+            }
+            case 32: {
+              this.accuracy = input.readInt32();
+              break;
+            }
+            case 40: {
+              this.altitude = input.readInt32();
+              break;
+            }
+            case 48: {
+              this.speed = input.readInt32();
+              break;
+            }
+            case 56: {
+              this.bearing = input.readInt32();
+              break;
+            }
+          }
+        }
+      }
+
+      public static LocationData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new LocationData(), data);
+      }
+
+      public static LocationData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new LocationData().mergeFrom(input);
+      }
+    }
 
     public static final class NightMode extends
         com.google.protobuf.nano.MessageNano {
@@ -1010,33 +1184,37 @@ public interface Protocol {
       }
     }
 
-    private static volatile SensorEvent[] _emptyArray;
-    public static SensorEvent[] emptyArray() {
+    private static volatile SensorBatch[] _emptyArray;
+    public static SensorBatch[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new SensorEvent[0];
+            _emptyArray = new SensorBatch[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // repeated .ca.yyx.hu.aap.protocol.SensorEvent.NightMode night_mode = 10;
-    public ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.NightMode[] nightMode;
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.LocationData location_data = 1;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.LocationData[] locationData;
 
-    // repeated .ca.yyx.hu.aap.protocol.SensorEvent.DrivingStatus driving_status = 13;
-    public ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.DrivingStatus[] drivingStatus;
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.NightMode night_mode = 10;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode[] nightMode;
 
-    public SensorEvent() {
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.DrivingStatus driving_status = 13;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus[] drivingStatus;
+
+    public SensorBatch() {
       clear();
     }
 
-    public SensorEvent clear() {
-      nightMode = ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.NightMode.emptyArray();
-      drivingStatus = ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.DrivingStatus.emptyArray();
+    public SensorBatch clear() {
+      locationData = ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.LocationData.emptyArray();
+      nightMode = ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode.emptyArray();
+      drivingStatus = ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus.emptyArray();
       cachedSize = -1;
       return this;
     }
@@ -1044,9 +1222,17 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
+      if (this.locationData != null && this.locationData.length > 0) {
+        for (int i = 0; i < this.locationData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.LocationData element = this.locationData[i];
+          if (element != null) {
+            output.writeMessage(1, element);
+          }
+        }
+      }
       if (this.nightMode != null && this.nightMode.length > 0) {
         for (int i = 0; i < this.nightMode.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.NightMode element = this.nightMode[i];
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode element = this.nightMode[i];
           if (element != null) {
             output.writeMessage(10, element);
           }
@@ -1054,7 +1240,7 @@ public interface Protocol {
       }
       if (this.drivingStatus != null && this.drivingStatus.length > 0) {
         for (int i = 0; i < this.drivingStatus.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.DrivingStatus element = this.drivingStatus[i];
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus element = this.drivingStatus[i];
           if (element != null) {
             output.writeMessage(13, element);
           }
@@ -1066,9 +1252,18 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
+      if (this.locationData != null && this.locationData.length > 0) {
+        for (int i = 0; i < this.locationData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.LocationData element = this.locationData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(1, element);
+          }
+        }
+      }
       if (this.nightMode != null && this.nightMode.length > 0) {
         for (int i = 0; i < this.nightMode.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.NightMode element = this.nightMode[i];
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode element = this.nightMode[i];
           if (element != null) {
             size += com.google.protobuf.nano.CodedOutputByteBufferNano
               .computeMessageSize(10, element);
@@ -1077,7 +1272,7 @@ public interface Protocol {
       }
       if (this.drivingStatus != null && this.drivingStatus.length > 0) {
         for (int i = 0; i < this.drivingStatus.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.DrivingStatus element = this.drivingStatus[i];
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus element = this.drivingStatus[i];
           if (element != null) {
             size += com.google.protobuf.nano.CodedOutputByteBufferNano
               .computeMessageSize(13, element);
@@ -1088,7 +1283,7 @@ public interface Protocol {
     }
 
     @Override
-    public SensorEvent mergeFrom(
+    public SensorBatch mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -1102,22 +1297,42 @@ public interface Protocol {
             }
             break;
           }
-          case 82: {
+          case 10: {
             int arrayLength = com.google.protobuf.nano.WireFormatNano
-                .getRepeatedFieldArrayLength(input, 82);
-            int i = this.nightMode == null ? 0 : this.nightMode.length;
-            ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.NightMode[] newArray =
-                new ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.NightMode[i + arrayLength];
+                .getRepeatedFieldArrayLength(input, 10);
+            int i = this.locationData == null ? 0 : this.locationData.length;
+            ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.LocationData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.LocationData[i + arrayLength];
             if (i != 0) {
-              java.lang.System.arraycopy(this.nightMode, 0, newArray, 0, i);
+              java.lang.System.arraycopy(this.locationData, 0, newArray, 0, i);
             }
             for (; i < newArray.length - 1; i++) {
-              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.NightMode();
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.LocationData();
               input.readMessage(newArray[i]);
               input.readTag();
             }
             // Last one without readTag.
-            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.NightMode();
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.LocationData();
+            input.readMessage(newArray[i]);
+            this.locationData = newArray;
+            break;
+          }
+          case 82: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 82);
+            int i = this.nightMode == null ? 0 : this.nightMode.length;
+            ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.nightMode, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode();
             input.readMessage(newArray[i]);
             this.nightMode = newArray;
             break;
@@ -1126,18 +1341,18 @@ public interface Protocol {
             int arrayLength = com.google.protobuf.nano.WireFormatNano
                 .getRepeatedFieldArrayLength(input, 106);
             int i = this.drivingStatus == null ? 0 : this.drivingStatus.length;
-            ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.DrivingStatus[] newArray =
-                new ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.DrivingStatus[i + arrayLength];
+            ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus[i + arrayLength];
             if (i != 0) {
               java.lang.System.arraycopy(this.drivingStatus, 0, newArray, 0, i);
             }
             for (; i < newArray.length - 1; i++) {
-              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.DrivingStatus();
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus();
               input.readMessage(newArray[i]);
               input.readTag();
             }
             // Last one without readTag.
-            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorEvent.DrivingStatus();
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus();
             input.readMessage(newArray[i]);
             this.drivingStatus = newArray;
             break;
@@ -1146,15 +1361,15 @@ public interface Protocol {
       }
     }
 
-    public static SensorEvent parseFrom(byte[] data)
+    public static SensorBatch parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new SensorEvent(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new SensorBatch(), data);
     }
 
-    public static SensorEvent parseFrom(
+    public static SensorBatch parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new SensorEvent().mergeFrom(input);
+      return new SensorBatch().mergeFrom(input);
     }
   }
 
@@ -1287,7 +1502,7 @@ public interface Protocol {
           return _emptyArray;
         }
 
-        // required .ca.yyx.hu.aap.protocol.SENSOR_TYPE type = 1;
+        // required .ca.yyx.hu.aap.protocol.SensorType type = 1;
         public int type;
 
         public Sensor() {
@@ -1375,15 +1590,15 @@ public interface Protocol {
         return _emptyArray;
       }
 
-      // repeated .ca.yyx.hu.aap.protocol.Service.SensorSourceService.Sensor sensor_list = 1;
-      public ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService.Sensor[] sensorList;
+      // repeated .ca.yyx.hu.aap.protocol.Service.SensorSourceService.Sensor sensors = 1;
+      public ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService.Sensor[] sensors;
 
       public SensorSourceService() {
         clear();
       }
 
       public SensorSourceService clear() {
-        sensorList = ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService.Sensor.emptyArray();
+        sensors = ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService.Sensor.emptyArray();
         cachedSize = -1;
         return this;
       }
@@ -1391,9 +1606,9 @@ public interface Protocol {
       @Override
       public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
           throws java.io.IOException {
-        if (this.sensorList != null && this.sensorList.length > 0) {
-          for (int i = 0; i < this.sensorList.length; i++) {
-            ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService.Sensor element = this.sensorList[i];
+        if (this.sensors != null && this.sensors.length > 0) {
+          for (int i = 0; i < this.sensors.length; i++) {
+            ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService.Sensor element = this.sensors[i];
             if (element != null) {
               output.writeMessage(1, element);
             }
@@ -1405,9 +1620,9 @@ public interface Protocol {
       @Override
       protected int computeSerializedSize() {
         int size = super.computeSerializedSize();
-        if (this.sensorList != null && this.sensorList.length > 0) {
-          for (int i = 0; i < this.sensorList.length; i++) {
-            ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService.Sensor element = this.sensorList[i];
+        if (this.sensors != null && this.sensors.length > 0) {
+          for (int i = 0; i < this.sensors.length; i++) {
+            ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService.Sensor element = this.sensors[i];
             if (element != null) {
               size += com.google.protobuf.nano.CodedOutputByteBufferNano
                 .computeMessageSize(1, element);
@@ -1435,11 +1650,11 @@ public interface Protocol {
             case 10: {
               int arrayLength = com.google.protobuf.nano.WireFormatNano
                   .getRepeatedFieldArrayLength(input, 10);
-              int i = this.sensorList == null ? 0 : this.sensorList.length;
+              int i = this.sensors == null ? 0 : this.sensors.length;
               ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService.Sensor[] newArray =
                   new ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService.Sensor[i + arrayLength];
               if (i != 0) {
-                java.lang.System.arraycopy(this.sensorList, 0, newArray, 0, i);
+                java.lang.System.arraycopy(this.sensors, 0, newArray, 0, i);
               }
               for (; i < newArray.length - 1; i++) {
                 newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService.Sensor();
@@ -1449,7 +1664,7 @@ public interface Protocol {
               // Last one without readTag.
               newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService.Sensor();
               input.readMessage(newArray[i]);
-              this.sensorList = newArray;
+              this.sensors = newArray;
               break;
             }
           }
@@ -2928,8 +3143,8 @@ public interface Protocol {
     // optional int32 priority = 1;
     public int priority;
 
-    // optional int32 id = 2;
-    public int id;
+    // optional int32 service_id = 2;
+    public int serviceId;
 
     public ChannelOpenRequest() {
       clear();
@@ -2937,7 +3152,7 @@ public interface Protocol {
 
     public ChannelOpenRequest clear() {
       priority = 0;
-      id = 0;
+      serviceId = 0;
       cachedSize = -1;
       return this;
     }
@@ -2948,8 +3163,8 @@ public interface Protocol {
       if (this.priority != 0) {
         output.writeInt32(1, this.priority);
       }
-      if (this.id != 0) {
-        output.writeInt32(2, this.id);
+      if (this.serviceId != 0) {
+        output.writeInt32(2, this.serviceId);
       }
       super.writeTo(output);
     }
@@ -2961,9 +3176,9 @@ public interface Protocol {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
             .computeInt32Size(1, this.priority);
       }
-      if (this.id != 0) {
+      if (this.serviceId != 0) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeInt32Size(2, this.id);
+            .computeInt32Size(2, this.serviceId);
       }
       return size;
     }
@@ -2988,7 +3203,7 @@ public interface Protocol {
             break;
           }
           case 16: {
-            this.id = input.readInt32();
+            this.serviceId = input.readInt32();
             break;
           }
         }
@@ -3024,7 +3239,7 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // required .ca.yyx.hu.aap.protocol.STATUS status = 1;
+    // required .ca.yyx.hu.aap.protocol.MessageStatus status = 1;
     public int status;
 
     public ChannelOpenResponse() {
@@ -4335,36 +4550,36 @@ public interface Protocol {
     }
   }
 
-  public static final class SensorStartRequest extends
+  public static final class SensorRequest extends
       com.google.protobuf.nano.MessageNano {
 
-    private static volatile SensorStartRequest[] _emptyArray;
-    public static SensorStartRequest[] emptyArray() {
+    private static volatile SensorRequest[] _emptyArray;
+    public static SensorRequest[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new SensorStartRequest[0];
+            _emptyArray = new SensorRequest[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // required .ca.yyx.hu.aap.protocol.SENSOR_TYPE type = 1;
+    // optional .ca.yyx.hu.aap.protocol.SensorType type = 1;
     public int type;
 
-    // optional int64 refresh_interval = 2;
-    public long refreshInterval;
+    // optional int64 min_update_period = 2;
+    public long minUpdatePeriod;
 
-    public SensorStartRequest() {
+    public SensorRequest() {
       clear();
     }
 
-    public SensorStartRequest clear() {
+    public SensorRequest clear() {
       type = ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DRIVING_STATUS;
-      refreshInterval = 0L;
+      minUpdatePeriod = 0L;
       cachedSize = -1;
       return this;
     }
@@ -4372,9 +4587,11 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      output.writeInt32(1, this.type);
-      if (this.refreshInterval != 0L) {
-        output.writeInt64(2, this.refreshInterval);
+      if (this.type != ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DRIVING_STATUS) {
+        output.writeInt32(1, this.type);
+      }
+      if (this.minUpdatePeriod != 0L) {
+        output.writeInt64(2, this.minUpdatePeriod);
       }
       super.writeTo(output);
     }
@@ -4382,17 +4599,19 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      size += com.google.protobuf.nano.CodedOutputByteBufferNano
-        .computeInt32Size(1, this.type);
-      if (this.refreshInterval != 0L) {
+      if (this.type != ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DRIVING_STATUS) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeInt64Size(2, this.refreshInterval);
+          .computeInt32Size(1, this.type);
+      }
+      if (this.minUpdatePeriod != 0L) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt64Size(2, this.minUpdatePeriod);
       }
       return size;
     }
 
     @Override
-    public SensorStartRequest mergeFrom(
+    public SensorRequest mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -4422,50 +4641,50 @@ public interface Protocol {
             break;
           }
           case 16: {
-            this.refreshInterval = input.readInt64();
+            this.minUpdatePeriod = input.readInt64();
             break;
           }
         }
       }
     }
 
-    public static SensorStartRequest parseFrom(byte[] data)
+    public static SensorRequest parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new SensorStartRequest(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new SensorRequest(), data);
     }
 
-    public static SensorStartRequest parseFrom(
+    public static SensorRequest parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new SensorStartRequest().mergeFrom(input);
+      return new SensorRequest().mergeFrom(input);
     }
   }
 
-  public static final class SensorStartResponse extends
+  public static final class SensorResponse extends
       com.google.protobuf.nano.MessageNano {
 
-    private static volatile SensorStartResponse[] _emptyArray;
-    public static SensorStartResponse[] emptyArray() {
+    private static volatile SensorResponse[] _emptyArray;
+    public static SensorResponse[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new SensorStartResponse[0];
+            _emptyArray = new SensorResponse[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // required .ca.yyx.hu.aap.protocol.STATUS status = 1;
+    // required .ca.yyx.hu.aap.protocol.MessageStatus status = 1;
     public int status;
 
-    public SensorStartResponse() {
+    public SensorResponse() {
       clear();
     }
 
-    public SensorStartResponse clear() {
+    public SensorResponse clear() {
       status = ca.yyx.hu.aap.protocol.nano.Protocol.STATUS_OK;
       cachedSize = -1;
       return this;
@@ -4487,7 +4706,7 @@ public interface Protocol {
     }
 
     @Override
-    public SensorStartResponse mergeFrom(
+    public SensorResponse mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -4514,15 +4733,15 @@ public interface Protocol {
       }
     }
 
-    public static SensorStartResponse parseFrom(byte[] data)
+    public static SensorResponse parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new SensorStartResponse(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new SensorResponse(), data);
     }
 
-    public static SensorStartResponse parseFrom(
+    public static SensorResponse parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new SensorStartResponse().mergeFrom(input);
+      return new SensorResponse().mergeFrom(input);
     }
   }
 

@@ -1,6 +1,8 @@
 package ca.yyx.hu.aap.protocol;
 
+import android.media.AudioManager;
 import android.util.SparseArray;
+import android.util.SparseIntArray;
 
 import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.decoder.AudioDecoder;
@@ -11,29 +13,35 @@ import ca.yyx.hu.decoder.AudioDecoder;
  */
 
 public class AudioConfigs {
-    private static SparseArray<Protocol.AudioConfig> mAudioTracks = new SparseArray<>(3);
+    private static SparseArray<Protocol.AudioConfiguration> mAudioTracks = new SparseArray<>(3);
+    private static SparseIntArray mStreamTypes = new SparseIntArray(3);
 
-    public static Protocol.AudioConfig get(int channel) {
+    public static Protocol.AudioConfiguration get(int channel) {
         return mAudioTracks.get(channel);
     }
+    public static int getStreamType(int channel) { return mStreamTypes.get(channel); }
 
     static {
-        Protocol.AudioConfig audioConfig0 = new Protocol.AudioConfig();
+        Protocol.AudioConfiguration audioConfig0 = new Protocol.AudioConfiguration();
         audioConfig0.sampleRate = AudioDecoder.SAMPLE_RATE_HZ_48;
-        audioConfig0.bitDepth = 16;
-        audioConfig0.channelCount = 2;
+        audioConfig0.numberOfBits = 16;
+        audioConfig0.numberOfChannels = 2;
         mAudioTracks.put(Channel.AA_CH_AUD, audioConfig0);
+        mStreamTypes.put(Channel.AA_CH_AUD, AudioManager.STREAM_MUSIC);
 
-        Protocol.AudioConfig audioConfig1 = new Protocol.AudioConfig();
+        Protocol.AudioConfiguration audioConfig1 = new Protocol.AudioConfiguration();
         audioConfig1.sampleRate = AudioDecoder.SAMPLE_RATE_HZ_16;
-        audioConfig1.bitDepth = 16;
-        audioConfig1.channelCount = 1;
+        audioConfig1.numberOfBits = 16;
+        audioConfig1.numberOfChannels = 1;
         mAudioTracks.put(Channel.AA_CH_AU1, audioConfig1);
+        mStreamTypes.put(Channel.AA_CH_AU1, AudioManager.STREAM_SYSTEM);
 
-        Protocol.AudioConfig audioConfig2 = new Protocol.AudioConfig();
+        Protocol.AudioConfiguration audioConfig2 = new Protocol.AudioConfiguration();
         audioConfig2.sampleRate = AudioDecoder.SAMPLE_RATE_HZ_16;
-        audioConfig2.bitDepth = 16;
-        audioConfig2.channelCount = 1;
+        audioConfig2.numberOfBits = 16;
+        audioConfig2.numberOfChannels = 1;
         mAudioTracks.put(Channel.AA_CH_AU2, audioConfig1);
+        mStreamTypes.put(Channel.AA_CH_AU2, AudioManager.STREAM_RING);
+
     }
 }

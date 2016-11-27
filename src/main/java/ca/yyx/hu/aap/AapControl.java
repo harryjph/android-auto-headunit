@@ -20,10 +20,12 @@ class AapControl {
     private static final int MSG_TYPE_2 = 32768;
     private final AapTransport mTransport;
     private final AapAudio mAapAudio;
+    private final String mBtMacAddress;
 
-    AapControl(AapTransport transport, AapAudio audio) {
+    AapControl(AapTransport transport, AapAudio audio, String btMacAddress) {
         mTransport = transport;
         mAapAudio = audio;
+        mBtMacAddress = btMacAddress;
     }
 
     int execute(AapMessage message) throws InvalidProtocolBufferNanoException {
@@ -169,8 +171,6 @@ class AapControl {
         return 0;
     }
 
-    private final Protocol.AudioFocusRequest mAudioFocusRequest = new Protocol.AudioFocusRequest();
-
     private int executeControl(AapMessage message) throws InvalidProtocolBufferNanoException {
 
         switch (message.type)
@@ -191,11 +191,10 @@ class AapControl {
                 AppLog.i("Byebye Response");                                         // R 0 CTR b src: AA  lft:     0  msg_type:    16 Byebye Response
                 return -1;
             case 0x11:
-                Protocol.VoiceSessionRequest voiceRequest = parse(new Protocol.VoiceSessionRequest(), message);
+                Protocol.VoiceSessionNotification voiceRequest = parse(new Protocol.VoiceSessionNotification(), message);
                 return voice_session_notification(voiceRequest);
             case 0x12:
-                mAudioFocusRequest.clear();
-                Protocol.AudioFocusRequest audioFocusRequest = parse(mAudioFocusRequest, message);
+                Protocol.AudioFocusRequestNotification audioFocusRequest = parse(new Protocol.AudioFocusRequestNotification(), message);
                 return audio_focus_request(audioFocusRequest, message.channel, message.data);
             default:
                 AppLog.e("Unsupported");
@@ -305,7 +304,7 @@ class AapControl {
     private int service_discovery_request(Protocol.ServiceDiscoveryRequest request, int channel) throws InvalidProtocolBufferNanoException {                  // Service Discovery Request
         AppLog.i("Service Discovery Request: %s", request.phoneName);                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
-        byte[] serviceDiscoveryResponse = Messages.createServiceDiscoveryResponse();
+        byte[] serviceDiscoveryResponse = Messages.createServiceDiscoveryResponse(mBtMacAddress);
         return mTransport.sendEncrypted(channel, serviceDiscoveryResponse, serviceDiscoveryResponse.length);                // Send Service Discovery Response from sd_buf
     }
 
@@ -345,43 +344,43 @@ class AapControl {
         return -1;
     }
 
-    private int voice_session_notification(Protocol.VoiceSessionRequest request) {                  // sr:  00000000 00 11 08 01      Microphone voice search usage     sr:  00000000 00 11 08 02
-        if (request.voiceStatus == Protocol.VoiceSessionRequest.VOICE_STATUS_START)
+    private int voice_session_notification(Protocol.VoiceSessionNotification request) {                  // sr:  00000000 00 11 08 01      Microphone voice search usage     sr:  00000000 00 11 08 02
+        if (request.status == Protocol.VoiceSessionNotification.VOICE_STATUS_START)
             AppLog.i("Voice Session Notification: 1 START");
-        else if (request.voiceStatus== Protocol.VoiceSessionRequest.VOICE_STATUS_STOP)
+        else if (request.status== Protocol.VoiceSessionNotification.VOICE_STATUS_STOP)
             AppLog.i("Voice Session Notification: 2 STOP");
         else
-            AppLog.e("Voice Session Notification: %d", request.voiceStatus);
+            AppLog.e("Voice Session Notification: %d", request.status);
         return (0);
     }
 
-    private final Protocol.AudioFocusResponse mAudioFocusResponse = new Protocol.AudioFocusResponse();
-    private int audio_focus_request(Protocol.AudioFocusRequest request, int channel, byte[] buf) throws InvalidProtocolBufferNanoException {                  // Audio Focus Request
-        if (request.focusType == Protocol.AudioFocusRequest.AUDIO_FOCUS_GAIN)
+    private int audio_focus_request(Protocol.AudioFocusRequestNotification notification, int channel, byte[] buf) throws InvalidProtocolBufferNanoException {                  // Audio Focus Request
+        if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN)
             AppLog.i("Audio Focus Request: 1 AUDIO_FOCUS_GAIN");
-        else if (request.focusType == Protocol.AudioFocusRequest.AUDIO_FOCUS_GAIN_TRANSIENT)
+        else if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN_TRANSIENT)
             AppLog.i("Audio Focus Request: 2 AUDIO_FOCUS_GAIN_TRANSIENT");
-        else if (request.focusType == Protocol.AudioFocusRequest.AUDIO_FOCUS_UNKNOWN)
+        else if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_UNKNOWN)
             AppLog.i("Audio Focus Request: 3 gain/release ?");
-        else if (request.focusType == Protocol.AudioFocusRequest.AUDIO_FOCUS_RELEASE)
+        else if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE)
             AppLog.i("Audio Focus Request: 4 AUDIO_FOCUS_RELEASE");
         else
-            AppLog.e("Audio Focus Request: %d", request.focusType);
+            AppLog.e("Audio Focus Request: %d", notification.request);
 
         buf[0] = 0;                                                        // Use request buffer for response
         buf[1] = 19;                                                       // Audio Focus Response
-        mAudioFocusResponse.clear();
-        if (request.focusType == Protocol.AudioFocusRequest.AUDIO_FOCUS_RELEASE) {
-            mAudioFocusResponse.focusType = Protocol.AudioFocusResponse.AUDIO_FOCUS_STATE_LOSS;
-        }
-        else if (request.focusType == Protocol.AudioFocusRequest.AUDIO_FOCUS_GAIN_TRANSIENT) {
-            mAudioFocusResponse.focusType = Protocol.AudioFocusResponse.AUDIO_FOCUS_STATE_GAIN;
+
+        mAapAudio.requestFocusChange(channel, notification.request);
+        Protocol.AudioFocusNotification response = new Protocol.AudioFocusNotification();
+        if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE) {
+            response.focusState = Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_LOSS;
+        } else if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN_TRANSIENT) {
+            response.focusState = Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN;
         } else {
-            mAudioFocusResponse.focusType = Protocol.AudioFocusResponse.AUDIO_FOCUS_STATE_GAIN;
+            response.focusState = Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN;
         }
         // Send Audio Focus Response3
-        write(mAudioFocusResponse, buf, 2);
-        int ret = mTransport.sendEncrypted(channel, buf, 4);
+        write(response, buf, 2);
+        mTransport.sendEncrypted(channel, buf, 4);
         return 0;
     }
 

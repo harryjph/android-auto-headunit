@@ -27,11 +27,11 @@ class AapPoll {
     private final AapVideo mAapVideo;
     private final AapControl mAapControl;
 
-    AapPoll(AccessoryConnection connection, AapTransport transport, AapAudio aapAudio, AapVideo aapVideo) {
+    AapPoll(AccessoryConnection connection, AapTransport transport, AapAudio aapAudio, AapVideo aapVideo, String btMacAddress) {
         mConnection = connection;
         mAapAudio = aapAudio;
         mAapVideo = aapVideo;
-        mAapControl = new AapControl(transport, mAapAudio);
+        mAapControl = new AapControl(transport, mAapAudio, btMacAddress);
     }
 
     int poll() {

@@ -14,20 +14,20 @@ import ca.yyx.hu.utils.AppLog;
 class AudioTrackWrapper {
     private final AudioTrack audioTrack;
 
-    AudioTrackWrapper(int sampleRateInHz, int bitDepth, int channelCount) {
-        audioTrack = createAudioTrack(sampleRateInHz, bitDepth, channelCount);
+    AudioTrackWrapper(int stream, int sampleRateInHz, int bitDepth, int channelCount) {
+        audioTrack = createAudioTrack(stream, sampleRateInHz, bitDepth, channelCount);
         audioTrack.play();
     }
 
-    private AudioTrack createAudioTrack(int sampleRateInHz, int bitDepth, int channelCount) {
+    private AudioTrack createAudioTrack(int stream, int sampleRateInHz, int bitDepth, int channelCount) {
         int pcmFrameSize = 2 * channelCount;
         int channelConfig = channelCount == 2 ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO;
         int dataFormat = bitDepth == 16 ? AudioFormat.ENCODING_PCM_16BIT : AudioFormat.ENCODING_PCM_8BIT;
         int bufferSize = AudioBuffer.getSize(sampleRateInHz, channelConfig, dataFormat, pcmFrameSize);
 
-        AppLog.i("Audio buffer size: " + bufferSize + " sampleRateInHz: " + sampleRateInHz + " channelCount: " + channelCount);
+        AppLog.i("Audio stream: " + stream + " buffer size: " + bufferSize + " sampleRateInHz: " + sampleRateInHz + " channelCount: " + channelCount);
 
-        return new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz,channelConfig, dataFormat, bufferSize, AudioTrack.MODE_STREAM);
+        return new AudioTrack(stream, sampleRateInHz,channelConfig, dataFormat, bufferSize, AudioTrack.MODE_STREAM);
     }
 
     int write(byte[] buffer, int offset, int size) {

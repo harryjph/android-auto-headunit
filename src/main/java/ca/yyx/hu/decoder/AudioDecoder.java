@@ -37,8 +37,8 @@ public class AudioDecoder {
         }
     }
 
-    public void start(int channel, int sampleRate, int bitDepth, int channelCount) {
-        AudioTrackWrapper thread = new AudioTrackWrapper(sampleRate, bitDepth, channelCount);
+    public void start(int channel, int stream, int sampleRate, int numberOfBits, int numberOfChannels) {
+        AudioTrackWrapper thread = new AudioTrackWrapper(stream, sampleRate, numberOfBits, numberOfChannels);
         mAudioTracks.put(channel, thread);
     }
 }

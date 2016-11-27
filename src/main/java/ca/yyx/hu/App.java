@@ -1,7 +1,9 @@
 package ca.yyx.hu;
 
 import android.app.Application;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.media.AudioManager;
 import android.os.Build;
 
 import ca.yyx.hu.aap.AapProjectionActivity;
@@ -38,7 +40,11 @@ public class App extends Application implements AapTransport.Listener {
     public AapTransport transport()
     {
         if (mTransport == null) {
-            mTransport = new AapTransport(mAudioDecoder, mVideoDecoder, this);
+            String btMacAddress =  BluetoothAdapter.getDefaultAdapter().getAddress();
+            if ("02:00:00:00:00:00".equals(btMacAddress)) {
+                btMacAddress = android.provider.Settings.Secure.getString(getContentResolver(), "bluetooth_address");
+            }
+            mTransport = new AapTransport(mAudioDecoder, mVideoDecoder, (AudioManager) getSystemService(AUDIO_SERVICE), btMacAddress, this);
         }
         return mTransport;
     }

@@ -121,11 +121,11 @@ enum BLUETOOTH_PARING_METHOD
     BLUETOOTH_PARING_METHOD_3 = 3;
 }
 
-message AudioConfig
+message AudioConfiguration
 {
-    required uint32 sample_rate = 1;
-    required uint32 bit_depth = 2;
-    required uint32 channel_count = 3;
+    optional uint32 sample_rate = 1;
+    required uint32 number_of_bits = 2;
+    required uint32 number_of_channels = 3;
 }
 
 message Service
@@ -145,7 +145,7 @@ message Service
     {
         optional STREAM_TYPE available_type = 1;
         optional AUDIO_TYPE audio_type = 2;
-        repeated AudioConfig audio_configs = 3;
+        repeated AudioConfiguration audio_configs = 3;
 
         message VideoConfig
         {
@@ -190,7 +190,7 @@ message Service
     message MediaSourceService
     {
         required STREAM_TYPE type = 1;
-        required AudioConfig audio_config = 2;
+        required AudioConfiguration audio_config = 2;
         optional bool available_while_in_call = 3;
     }
 
@@ -316,17 +316,29 @@ message MicResponse
     required uint32 value = 2;
 }
 
-message VideoFocusRequest
+enum VideoFocusMode
 {
-    optional int32 disp_index = 1;
-    optional uint32 mode = 2; //Enum?
-    optional uint32 reason = 3; //Enum?
+    VIDEO_FOCUS_MODE_1 = 1;
+    VIDEO_FOCUS_MODE_2 = 2;
 }
 
-message VideoFocus
+message VideoFocusRequestNotification
 {
-    optional uint32 mode = 1; //Enum?
-    optional bool unrequested = 2;
+    enum VideoFocusReason
+    {
+        VIDEO_FOCUS_REASON_1 = 1;
+        VIDEO_FOCUS_REASON_2 = 2;
+    }
+
+    optional int32 disp_channel_id = 1;
+    optional VideoFocusMode mode = 2; //Enum?
+    optional VideoFocusReason reason = 3; //Enum?
+}
+
+message VideoFocusNotification
+{
+    optional VideoFocusMode mode = 1;
+    optional bool unsolicited = 2;
 }
 
 message SensorStartRequest
@@ -350,31 +362,31 @@ message NavigationFocusResponse
     optional uint32 focus_type = 1; //Enum?
 }
 
-message VoiceSessionRequest
+message VoiceSessionNotification
 {
-    enum VOICE_STATUS
+    enum VoiceSessionStatus
     {
         VOICE_STATUS_START = 1;
         VOICE_STATUS_STOP = 2;
     }
-    optional VOICE_STATUS voice_status = 1;
+    optional VoiceSessionStatus status = 1;
 }
 
-message AudioFocusRequest
+message AudioFocusRequestNotification
 {
-    enum AUDIO_FOCUS
+    enum AudioFocusRequestType
     {
         AUDIO_FOCUS_GAIN = 1;
         AUDIO_FOCUS_GAIN_TRANSIENT = 2;
         AUDIO_FOCUS_UNKNOWN = 3;
         AUDIO_FOCUS_RELEASE = 4;
     }
-    required AUDIO_FOCUS focus_type = 1;
+    optional AudioFocusRequestType request = 1;
 }
 
-message AudioFocusResponse
+message AudioFocusNotification
 {
-    enum AUDIO_FOCUS_STATE
+    enum AudioFocusStateType
     {
         AUDIO_FOCUS_STATE_GAIN = 1;
         AUDIO_FOCUS_STATE_GAIN_TRANSIENT = 2;
@@ -384,5 +396,6 @@ message AudioFocusResponse
         AUDIO_FOCUS_STATE_GAIN_MEDIA_ONLY = 6;
         AUDIO_FOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY = 7;
     }
-    required AUDIO_FOCUS_STATE focus_type = 1;
+    optional AudioFocusStateType focus_state = 1;
+    optional bool unsolicited = 2;
 }

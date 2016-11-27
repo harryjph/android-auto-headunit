@@ -1,5 +1,7 @@
 package ca.yyx.hu.aap;
 
+import android.media.AudioManager;
+
 import ca.yyx.hu.aap.protocol.AudioConfigs;
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
@@ -11,11 +13,12 @@ import ca.yyx.hu.utils.AppLog;
  * @date 01/10/2016.
  */
 
-class AapAudio {
+class AapAudio implements AudioManager.OnAudioFocusChangeListener {
     private final AapTransport mTransport;
     private final AudioDecoder mAudioDecoder;
 
     private static final int AUDIO_BUFS_SIZE = 65536 * 4;      // Up to 256 Kbytes
+    private final AudioManager mAudioManager;
 
     private byte ack_val_aud = 0;
     private byte ack_val_au1 = 0;
@@ -23,11 +26,25 @@ class AapAudio {
 
     private byte aud_ack[] = {(byte) 0x80, 0x04, 0x08, 0, 0x10, 1};
 
-    AapAudio(AapTransport transport, AudioDecoder audioDecoder) {
+    AapAudio(AapTransport transport, AudioDecoder audioDecoder, AudioManager audioManager) {
         mTransport = transport;
         mAudioDecoder = audioDecoder;
+        mAudioManager = audioManager;
     }
 
+    void requestFocusChange(int channel, int focusRequest)
+    {
+        int stream = AudioConfigs.getStreamType(channel);
+        if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE) {
+            mAudioManager.abandonAudioFocus(this);
+        } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN) {
+            mAudioManager.requestAudioFocus(this, stream, AudioManager.AUDIOFOCUS_GAIN);
+        } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN_TRANSIENT) {
+            mAudioManager.requestAudioFocus(this, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+        } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_UNKNOWN) {
+            mAudioManager.requestAudioFocus(this, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
+        }
+    }
 
     public int process(AapMessage message) {
         return process(message.channel, message.type, message.flags, message.data, message.length);
@@ -80,8 +97,9 @@ class AapAudio {
 
         if (mAudioDecoder.getTrack(channel) == null)
         {
-            Protocol.AudioConfig config = AudioConfigs.get(channel);
-            mAudioDecoder.start(channel, config.sampleRate, config.bitDepth, config.channelCount);
+            Protocol.AudioConfiguration config = AudioConfigs.get(channel);
+            int stream = AudioConfigs.getStreamType(channel);
+            mAudioDecoder.start(channel, stream, config.sampleRate, config.numberOfBits, config.numberOfChannels);
         }
 
         mAudioDecoder.decode(channel, buf, start, len);
@@ -103,6 +121,11 @@ class AapAudio {
     void stopAudio(int chan) {
         AppLog.i("Audio Stop: " + chan);
         mAudioDecoder.stop(chan);
+    }
+
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+        AppLog.i("" + focusChange);
     }
 }
 

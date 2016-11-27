@@ -1,5 +1,7 @@
 package ca.yyx.hu.aap;
 
+import android.bluetooth.BluetoothAdapter;
+
 import com.google.protobuf.nano.MessageNano;
 
 import ca.yyx.hu.aap.protocol.AudioConfigs;
@@ -137,9 +139,9 @@ public class Messages {
     static byte[] NIGHT_MODE = {(byte) 0x80, 0x03, 0x52, 0x02, 0x08, 0};
     static byte[] BYEBYE_RESPONSE = { 0x00, 16, 0x08, 0x00 };
 
-    static byte[] createServiceDiscoveryResponse() {
+    static byte[] createServiceDiscoveryResponse(String btAddress) {
         Protocol.ServiceDiscoveryResponse carInfo = new Protocol.ServiceDiscoveryResponse();
-        carInfo.services = new Protocol.Service[7];
+        carInfo.services = new Protocol.Service[8];
         carInfo.make = "AACar";
         carInfo.model = "0001";
         carInfo.year = "2016";
@@ -156,6 +158,7 @@ public class Messages {
         Service audio0 = new Service();
         Service audio1 = new Service();
         Service audio2 = new Service();
+        Service bluetooth = new Service();
 
         carInfo.services[0] = sensors;
         carInfo.services[1] = video;
@@ -164,6 +167,7 @@ public class Messages {
         carInfo.services[4] = audio0;
         carInfo.services[5] = audio1;
         carInfo.services[6] = audio2;
+        carInfo.services[7] = bluetooth;
 
         sensors.id = Channel.AA_CH_SEN;
         sensors.sensorSourceService = new SensorSourceService();
@@ -193,32 +197,37 @@ public class Messages {
         mic.id = Channel.AA_CH_MIC;
         mic.mediaSourceService = new Service.MediaSourceService();
         mic.mediaSourceService.type = Protocol.STREAM_TYPE_AUDIO;
-        Protocol.AudioConfig micConfig = new Protocol.AudioConfig();
+        Protocol.AudioConfiguration micConfig = new Protocol.AudioConfiguration();
         micConfig.sampleRate = 16000;
-        micConfig.bitDepth = 16;
-        micConfig.channelCount = 1;
+        micConfig.numberOfBits = 16;
+        micConfig.numberOfChannels = 1;
         mic.mediaSourceService.audioConfig = micConfig;
 
         audio0.id = Channel.AA_CH_AUD;
         audio0.mediaSinkService = new Service.MediaSinkService();
         audio0.mediaSinkService.availableType = Protocol.STREAM_TYPE_AUDIO;
-        audio0.mediaSinkService.audioType = Protocol.AUDIO_TYPE_MEDIA;
-        audio0.mediaSinkService.audioConfigs = new Protocol.AudioConfig[1];
+        audio0.mediaSinkService.audioType = AudioConfigs.getStreamType(Channel.AA_CH_AUD);
+        audio0.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
         audio0.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AUD);
 
         audio1.id = Channel.AA_CH_AU1;
         audio1.mediaSinkService = new Service.MediaSinkService();
         audio1.mediaSinkService.availableType = Protocol.STREAM_TYPE_AUDIO;
-        audio1.mediaSinkService.audioType = Protocol.AUDIO_TYPE_SPEECH;
-        audio1.mediaSinkService.audioConfigs = new Protocol.AudioConfig[1];
+        audio1.mediaSinkService.audioType = AudioConfigs.getStreamType(Channel.AA_CH_AU1);
+        audio1.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
         audio1.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU1);
 
         audio2.id = Channel.AA_CH_AU2;
         audio2.mediaSinkService = new Service.MediaSinkService();
         audio2.mediaSinkService.availableType = Protocol.STREAM_TYPE_AUDIO;
-        audio2.mediaSinkService.audioType = Protocol.AUDIO_TYPE_SYSTEM;
-        audio2.mediaSinkService.audioConfigs = new Protocol.AudioConfig[1];
+        audio2.mediaSinkService.audioType = AudioConfigs.getStreamType(Channel.AA_CH_AU2);
+        audio2.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
         audio2.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU2);
+
+        bluetooth.id = Channel.AA_CH_BTH;
+        bluetooth.bluetoothService = new Service.BluetoothService();
+        bluetooth.bluetoothService.carAddress = btAddress;
+        bluetooth.bluetoothService.supportedPairingMethods = new int[] { 1 };
 
         byte[] result = new byte[carInfo.getSerializedSize() + 2];
         // Header
@@ -229,4 +238,5 @@ public class Messages {
 
         return result;
     }
+
 }

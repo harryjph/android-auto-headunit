@@ -1,5 +1,6 @@
 package ca.yyx.hu.aap;
 
+import android.media.AudioManager;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
@@ -26,6 +27,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     private final AapVideo mAapVideo;
     private final HandlerThread mPollThread;
     private final MicRecorder mMicRecorder;
+    private final String mBtMacAddress;
 
     private AccessoryConnection mConnection;
     private AapPoll mAapPoll;
@@ -35,13 +37,14 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         void gainVideoFocus();
     }
 
-    public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder, Listener listener) {
+    public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder, AudioManager audioManager, String btMacAddress, Listener listener) {
 
         mPollThread = new HandlerThread("AapTransport:Handler", Process.THREAD_PRIORITY_AUDIO);
 
         mMicRecorder = new MicRecorder(this);
-        mAapAudio = new AapAudio(this, audioDecoder);
+        mAapAudio = new AapAudio(this, audioDecoder, audioManager);
         mAapVideo = new AapVideo(this, videoDecoder);
+        mBtMacAddress = btMacAddress;
         mListener = listener;
     }
 
@@ -123,7 +126,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
         mConnection = connection;
 
-        mAapPoll = new AapPoll(connection, this, mAapAudio, mAapVideo);
+        mAapPoll = new AapPoll(connection, this, mAapAudio, mAapVideo, mBtMacAddress);
         mPollThread.start();
         mHandler = new Handler(mPollThread.getLooper(), this);
         mHandler.sendEmptyMessage(POLL);

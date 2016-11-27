@@ -10,8 +10,9 @@ public class Channel {
     public static final int AA_CH_AU1 = 5;
     public static final int AA_CH_AU2 = 6;
     public static final int AA_CH_MIC = 7;
+    public static final int AA_CH_BTH = 8;
 
-    static final int MAX = 7;
+    static final int MAX = 8;
 
     public static String name(int channel)
     {

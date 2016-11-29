@@ -7,7 +7,7 @@ public interface Protocol {
 
   // enum MessageTypeControl
   public static final int MSG_TYPE_MEDIADATA0 = 0;
-  public static final int MSG_TYPE_MEDIADATA1 = 1;
+  public static final int MSG_TYPE_CODECDATA1 = 1;
   public static final int MSG_TYPE_VERSIONRESPONSE = 2;
   public static final int MSG_TYPE_SSLHANDSHAKE = 3;
   public static final int MSG_TYPE_SERVICEDISCOVERYREQUEST = 5;
@@ -1781,19 +1781,19 @@ public interface Protocol {
           return _emptyArray;
         }
 
-        // optional .ca.yyx.hu.aap.protocol.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType codec_resolution = 1;
+        // required .ca.yyx.hu.aap.protocol.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType codec_resolution = 1;
         public int codecResolution;
 
-        // optional .ca.yyx.hu.aap.protocol.Service.MediaSinkService.VideoConfiguration.VideoFrameRateType frame_rate = 2;
+        // required .ca.yyx.hu.aap.protocol.Service.MediaSinkService.VideoConfiguration.VideoFrameRateType frame_rate = 2;
         public int frameRate;
 
-        // optional uint32 margin_width = 3;
+        // required uint32 margin_width = 3;
         public int marginWidth;
 
-        // optional uint32 margin_height = 4;
+        // required uint32 margin_height = 4;
         public int marginHeight;
 
-        // optional uint32 density = 5;
+        // required uint32 density = 5;
         public int density;
 
         // optional uint32 decoder_additional_depth = 6;
@@ -1817,21 +1817,11 @@ public interface Protocol {
         @Override
         public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
             throws java.io.IOException {
-          if (this.codecResolution != ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_RESOLUTION_800x480) {
-            output.writeInt32(1, this.codecResolution);
-          }
-          if (this.frameRate != ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_FPS_30) {
-            output.writeInt32(2, this.frameRate);
-          }
-          if (this.marginWidth != 0) {
-            output.writeUInt32(3, this.marginWidth);
-          }
-          if (this.marginHeight != 0) {
-            output.writeUInt32(4, this.marginHeight);
-          }
-          if (this.density != 0) {
-            output.writeUInt32(5, this.density);
-          }
+          output.writeInt32(1, this.codecResolution);
+          output.writeInt32(2, this.frameRate);
+          output.writeUInt32(3, this.marginWidth);
+          output.writeUInt32(4, this.marginHeight);
+          output.writeUInt32(5, this.density);
           if (this.decoderAdditionalDepth != 0) {
             output.writeUInt32(6, this.decoderAdditionalDepth);
           }
@@ -1841,26 +1831,16 @@ public interface Protocol {
         @Override
         protected int computeSerializedSize() {
           int size = super.computeSerializedSize();
-          if (this.codecResolution != ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_RESOLUTION_800x480) {
-            size += com.google.protobuf.nano.CodedOutputByteBufferNano
-              .computeInt32Size(1, this.codecResolution);
-          }
-          if (this.frameRate != ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_FPS_30) {
-            size += com.google.protobuf.nano.CodedOutputByteBufferNano
-              .computeInt32Size(2, this.frameRate);
-          }
-          if (this.marginWidth != 0) {
-            size += com.google.protobuf.nano.CodedOutputByteBufferNano
-                .computeUInt32Size(3, this.marginWidth);
-          }
-          if (this.marginHeight != 0) {
-            size += com.google.protobuf.nano.CodedOutputByteBufferNano
-                .computeUInt32Size(4, this.marginHeight);
-          }
-          if (this.density != 0) {
-            size += com.google.protobuf.nano.CodedOutputByteBufferNano
-                .computeUInt32Size(5, this.density);
-          }
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt32Size(1, this.codecResolution);
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt32Size(2, this.frameRate);
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeUInt32Size(3, this.marginWidth);
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeUInt32Size(4, this.marginHeight);
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeUInt32Size(5, this.density);
           if (this.decoderAdditionalDepth != 0) {
             size += com.google.protobuf.nano.CodedOutputByteBufferNano
                 .computeUInt32Size(6, this.decoderAdditionalDepth);

@@ -4,9 +4,12 @@ import android.bluetooth.BluetoothAdapter;
 
 import com.google.protobuf.nano.MessageNano;
 
+import java.util.ArrayList;
+
 import ca.yyx.hu.aap.protocol.AudioConfigs;
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.decoder.AudioDecoder;
+import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.ByteArray;
 
 import ca.yyx.hu.aap.protocol.nano.Protocol;
@@ -102,7 +105,7 @@ public class Messages {
         Protocol.SensorBatch sensorBatch = new Protocol.SensorBatch();
         sensorBatch.drivingStatus = new Protocol.SensorBatch.DrivingStatus[1];
         sensorBatch.drivingStatus[0] = new Protocol.SensorBatch.DrivingStatus();
-        sensorBatch.drivingStatus[0].status = 0;
+        sensorBatch.drivingStatus[0].status = status;
 
         return createByteArray(Protocol.MSG_TYPE_SENSOREVENT, sensorBatch);
     }
@@ -113,7 +116,6 @@ public class Messages {
 
     static byte[] createServiceDiscoveryResponse(String btAddress) {
         Protocol.ServiceDiscoveryResponse carInfo = new Protocol.ServiceDiscoveryResponse();
-        carInfo.services = new Protocol.Service[8];
         carInfo.make = "AACar";
         carInfo.model = "0001";
         carInfo.year = "2016";
@@ -123,24 +125,9 @@ public class Messages {
         carInfo.headUnitSoftwareVersion = "SWV1";
         carInfo.driverPosition = true;
 
+        ArrayList<Service> services = new ArrayList<>();
+
         Service sensors = new Service();
-        Service video = new Service();
-        Service touch = new Service();
-        Service mic = new Service();
-        Service audio0 = new Service();
-        Service audio1 = new Service();
-        Service audio2 = new Service();
-        Service bluetooth = new Service();
-
-        carInfo.services[0] = sensors;
-        carInfo.services[1] = video;
-        carInfo.services[2] = touch;
-        carInfo.services[3] = mic;
-        carInfo.services[4] = audio0;
-        carInfo.services[5] = audio1;
-        carInfo.services[6] = audio2;
-        carInfo.services[7] = bluetooth;
-
         sensors.id = Channel.AA_CH_SEN;
         sensors.sensorSourceService = new SensorSourceService();
         sensors.sensorSourceService.sensors = new SensorSourceService.Sensor[2];
@@ -148,7 +135,9 @@ public class Messages {
         sensors.sensorSourceService.sensors[0].type = Protocol.SENSOR_TYPE_DRIVING_STATUS;
         sensors.sensorSourceService.sensors[1] = new SensorSourceService.Sensor();
         sensors.sensorSourceService.sensors[1].type = Protocol.SENSOR_TYPE_NIGHT_DATA;
+        services.add(sensors);
 
+        Service video = new Service();
         video.id = Channel.AA_CH_VID;
         video.mediaSinkService = new Service.MediaSinkService();
         video.mediaSinkService.availableType = Protocol.MEDIA_CODEC_VIDEO;
@@ -159,13 +148,17 @@ public class Messages {
         videoConfig.frameRate = VideoConfiguration.VIDEO_FPS_60;
         videoConfig.density = 120;
         video.mediaSinkService.videoConfigs[0] = videoConfig;
+        services.add(video);
 
+        Service touch = new Service();
         touch.id = Channel.AA_CH_TOU;
         touch.inputSourceService = new Service.InputSourceService();
         touch.inputSourceService.touchscreen = new TouchConfig();
         touch.inputSourceService.touchscreen.width = 800;
         touch.inputSourceService.touchscreen.height = 480;
+        services.add(touch);
 
+        Service mic = new Service();
         mic.id = Channel.AA_CH_MIC;
         mic.mediaSourceService = new Service.MediaSourceService();
         mic.mediaSourceService.type = Protocol.MEDIA_CODEC_AUDIO;
@@ -174,33 +167,47 @@ public class Messages {
         micConfig.numberOfBits = 16;
         micConfig.numberOfChannels = 1;
         mic.mediaSourceService.audioConfig = micConfig;
+        services.add(mic);
 
+        Service audio0 = new Service();
         audio0.id = Channel.AA_CH_AUD;
         audio0.mediaSinkService = new Service.MediaSinkService();
         audio0.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
         audio0.mediaSinkService.audioType = AudioConfigs.getStreamType(Channel.AA_CH_AUD);
         audio0.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
         audio0.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AUD);
+        services.add(audio0);
 
+        Service audio1 = new Service();
         audio1.id = Channel.AA_CH_AU1;
         audio1.mediaSinkService = new Service.MediaSinkService();
         audio1.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
         audio1.mediaSinkService.audioType = AudioConfigs.getStreamType(Channel.AA_CH_AU1);
         audio1.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
         audio1.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU1);
+        services.add(audio1);
 
+        Service audio2 = new Service();
         audio2.id = Channel.AA_CH_AU2;
         audio2.mediaSinkService = new Service.MediaSinkService();
         audio2.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
         audio2.mediaSinkService.audioType = AudioConfigs.getStreamType(Channel.AA_CH_AU2);
         audio2.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
         audio2.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU2);
+        services.add(audio2);
 
-        bluetooth.id = Channel.AA_CH_BTH;
-        bluetooth.bluetoothService = new Service.BluetoothService();
-        bluetooth.bluetoothService.carAddress = btAddress;
-        bluetooth.bluetoothService.supportedPairingMethods = new int[] { 2, 3 };
+        if (btAddress != null) {
+            Service bluetooth = new Service();
+            bluetooth.id = Channel.AA_CH_BTH;
+            bluetooth.bluetoothService = new Service.BluetoothService();
+            bluetooth.bluetoothService.carAddress = btAddress;
+            bluetooth.bluetoothService.supportedPairingMethods = new int[]{2, 3};
+            services.add(bluetooth);
+        } else {
+            AppLog.i("BT MAC Address is null. Skip bluetooth service");
+        }
 
+        carInfo.services = services.toArray(new Service[0]);
         return createByteArray(Protocol.MSG_TYPE_SERVICEDISCOVERYRESPONSE, carInfo);
     }
 

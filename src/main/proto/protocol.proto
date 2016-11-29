@@ -224,11 +224,11 @@ message Service
                 VIDEO_FPS_30 = 1;
                 VIDEO_FPS_60 = 2;
             }
-            optional VideoCodecResolutionType codec_resolution = 1;
-            optional VideoFrameRateType frame_rate = 2;
-            optional uint32 margin_width = 3;
-            optional uint32 margin_height = 4;
-            optional uint32 density = 5;
+            required VideoCodecResolutionType codec_resolution = 1;
+            required VideoFrameRateType frame_rate = 2;
+            required uint32 margin_width = 3;
+            required uint32 margin_height = 4;
+            required uint32 density = 5;
             optional uint32 decoder_additional_depth = 6;
         }
         repeated VideoConfiguration video_configs = 4;

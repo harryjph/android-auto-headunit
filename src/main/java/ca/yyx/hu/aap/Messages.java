@@ -12,7 +12,7 @@ import ca.yyx.hu.utils.ByteArray;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.aap.protocol.nano.Protocol.Service;
 import ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService;
-import ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig;
+import ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration;
 import ca.yyx.hu.aap.protocol.nano.Protocol.Service.InputSourceService.TouchConfig;
 
 /**
@@ -181,11 +181,11 @@ public class Messages {
         video.mediaSinkService = new Service.MediaSinkService();
         video.mediaSinkService.availableType = Protocol.MEDIA_CODEC_VIDEO;
         video.mediaSinkService.availableWhileInCall = true;
-        video.mediaSinkService.videoConfigs = new VideoConfig[1];
-        VideoConfig videoConfig = new VideoConfig();
-        videoConfig.resolution = VideoConfig.VIDEO_RESOLUTION_800x480;
-        videoConfig.frameRate = VideoConfig.VIDEO_FPS_60;
-        videoConfig.dpi = 160;
+        video.mediaSinkService.videoConfigs = new VideoConfiguration[1];
+        VideoConfiguration videoConfig = new VideoConfiguration();
+        videoConfig.codecResolution = VideoConfiguration.VIDEO_RESOLUTION_800x480;
+        videoConfig.frameRate = VideoConfiguration.VIDEO_FPS_60;
+        videoConfig.density = 120;
         video.mediaSinkService.videoConfigs[0] = videoConfig;
 
         touch.id = Channel.AA_CH_TOU;

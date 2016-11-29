@@ -7,50 +7,54 @@ enum MessageStatus
     STATUS_OK = 0;
 }
 
-message ButtonInfo
+message Key
 {
-    required uint32 scan_code = 1;
-    required bool is_pressed = 2;
-    required uint32 meta = 3;
-    required bool long_press = 4;
+    required uint32 keycode = 1;
+    required bool down = 2;
+    required uint32 metastate = 3;
+    required bool longpress = 4;
 }
 
-message ButtonInfoWrapper
+message KeyEvent
 {
-    repeated ButtonInfo button = 1;
+    repeated Key keys = 1;
 }
 
-message TouchInfo
+message TouchEvent
 {
-    enum TOUCH_ACTION
+    enum PointerAction
     {
         RELEASE = 0;
         PRESS = 1;
         DRAG = 2;
+        // 0x6
     }
-    message Location
+    message Pointer
     {
-        required uint32 x = 1;
-        required uint32 y = 2;
-        required uint32 pointer_id = 3;
+        optional uint32 x = 1;
+        optional uint32 y = 2;
+        optional uint32 pointer_id = 3;
     }
-    repeated Location location = 1;
-    required uint32 action_index = 2;
-    required TOUCH_ACTION action = 3;
+    repeated Pointer pointer_data = 1;
+    optional uint32 action_index = 2;
+    optional PointerAction action = 3;
 }
 
 
-message InputEvent
+message InputReport
 {
-    required uint64 time_stamp = 1;
-    optional int32 disp_channel = 2;
-    optional TouchInfo touch = 3;
-    optional ButtonInfoWrapper button = 4;
+    optional uint64 timestamp = 1;
+    optional int32 disp_channel_id = 2;
+    optional TouchEvent touch_event = 3;
+    optional KeyEvent key_event = 4;
+//    optional AbsoluteEvent absolute_event = 5;
+//    optional RelativeEvent relative_event = 6;
+//    optional TouchEvent touchpad_event = 7;
 }
 
-message BindingRequest
+message KeyBindingRequest
 {
-    repeated int32 scan_codes = 1;
+    repeated int32 keycodes = 1;
 }
 
 message BindingResponse
@@ -113,17 +117,18 @@ message SensorBatch
     //repeated GPS = 21;
 }
 
-enum AUDIO_TYPE
+enum AudioStreamType
 {
     AUDIO_TYPE_SPEECH = 1;
     AUDIO_TYPE_SYSTEM = 2;
     AUDIO_TYPE_MEDIA = 3;
+    AUDIO_TYPE_ALARM = 4;
 }
 
-enum STREAM_TYPE
+enum MediaCodecType
 {
-    STREAM_TYPE_AUDIO = 1;
-    STREAM_TYPE_VIDEO = 3;
+    MEDIA_CODEC_AUDIO = 1;
+    MEDIA_CODEC_VIDEO = 3;
 }
 
 message AudioConfiguration
@@ -148,32 +153,32 @@ message Service
 
     message MediaSinkService
     {
-        optional STREAM_TYPE available_type = 1;
-        optional AUDIO_TYPE audio_type = 2;
+        optional MediaCodecType available_type = 1;
+        optional AudioStreamType audio_type = 2;
         repeated AudioConfiguration audio_configs = 3;
 
-        message VideoConfig
+        message VideoConfiguration
         {
-            enum VIDEO_RESOLUTION
+            enum VideoCodecResolutionType
             {
                 VIDEO_RESOLUTION_800x480 = 1;
                 VIDEO_RESOLUTION_1280x720 = 2;
                 VIDEO_RESOLUTION_1920x1080 = 3;
             }
 
-            enum VIDEO_FPS
+            enum VideoFrameRateType
             {
                 VIDEO_FPS_30 = 1;
                 VIDEO_FPS_60 = 2;
             }
-            required VIDEO_RESOLUTION resolution = 1;
-            required VIDEO_FPS frame_rate = 2;
-            required uint32 margin_width = 3;
-            required uint32 margin_height = 4;
-            required uint32 dpi = 5;
-            optional uint32 additional_depth = 6;
+            optional VideoCodecResolutionType codec_resolution = 1;
+            optional VideoFrameRateType frame_rate = 2;
+            optional uint32 margin_width = 3;
+            optional uint32 margin_height = 4;
+            optional uint32 density = 5;
+            optional uint32 decoder_additional_depth = 6;
         }
-        repeated VideoConfig video_configs = 4;
+        repeated VideoConfiguration video_configs = 4;
         optional bool available_while_in_call = 5;
     }
     optional MediaSinkService media_sink_service = 3;
@@ -194,7 +199,7 @@ message Service
 
     message MediaSourceService
     {
-        required STREAM_TYPE type = 1;
+        required MediaCodecType type = 1;
         required AudioConfiguration audio_config = 2;
         optional bool available_while_in_call = 3;
     }
@@ -214,8 +219,21 @@ message Service
     }
     optional BluetoothService bluetooth_service = 6;
 
+    message NavigationStatusService {
+        message ImageOptions
+        {
+            required int32 width = 1;
+            required int32 height = 2;
+            required int32 colour_deth_bits = 3;
+        }
+
+        required uint32 minimum_interval_ms = 1;
+        required uint32 type = 2;
+        optional ImageOptions image_options = 3;
+    }
+    optional NavigationStatusService navigation_status_service = 8;
+
     //radio_service = 7
-    //navigation_status_service=8
     //media_playback_service == 9
     //phone_status_service = 10
     //media_browser_service=11
@@ -257,26 +275,22 @@ message ChannelOpenResponse
 
 message PingRequest
 {
-    required int64 timestamp = 1;
+    optional int64 timestamp = 1;
+    optional int32 bug_report = 2;
 }
 
 message PingResponse
 {
-    required int64 timestamp = 1;
+    optional int64 timestamp = 1;
 }
 
-message ShutdownRequest
+message ByeByeRequest
 {
-    enum REASON
+    enum ByeByeReason
     {
         REASON_QUIT = 1;
     }
-    optional REASON reason = 1;
-}
-
-message ShutdownResponse
-{
-
+    optional ByeByeReason reason = 1;
 }
 
 message MediaSetupRequest
@@ -284,48 +298,42 @@ message MediaSetupRequest
     optional uint32 type = 1; //Enum?
 }
 
-message MediaSetupResponse
+message Config
 {
-    enum MEDIA_STATUS
+    enum ConfigStatus
     {
-        MEDIA_STATUS_1 = 1;
-        MEDIA_STATUS_2 = 2;
+        CONFIG_STATUS_1 = 1;
+        CONFIG_STATUS_2 = 2;
     }
-    required MEDIA_STATUS media_status = 1;
+    required ConfigStatus status = 1;
     required uint32 max_unacked = 2;
-    repeated uint32 configs = 3;
+    repeated uint32 configuration_indices = 3;
 }
 
-
-message MediaStopRequest
+message Start
 {
-
+    optional int32 session_id = 1;
+    optional uint32 configuration_index = 2;
 }
 
-message MediaStartRequest
+message Ack
 {
-    required int32 session = 1;
-    optional uint32 config = 2;
+    optional int32 session_id = 1;
+    optional uint32 ack = 2;
 }
 
-message MediaAck
-{
-    required int32 session = 1;
-    required uint32 value = 2;
-}
-
-message MicRequest
+message MicrophoneRequest
 {
     required bool open = 1;
-    optional bool anc = 2;
-    optional bool ec = 3;
+    optional bool anc_enabled = 2;
+    optional bool ec_enabled = 3;
     required int32 max_unacked = 4;
 }
 
-message MicResponse
+message MicrophoneResponse
 {
-    required int32 session = 1;
-    required uint32 value = 2;
+    optional int32 status = 1;
+    optional uint32 session_id = 2;
 }
 
 enum VideoFocusMode
@@ -364,14 +372,20 @@ message SensorResponse
     required MessageStatus status = 1;
 }
 
-message NavigationFocusRequest
+enum NavFocusType
 {
-    optional uint32 focus_type = 1; //Enum?
+    NAV_FOCUS_1 = 1;
+    NAV_FOCUS_2 = 2;
 }
 
-message NavigationFocusResponse
+message NavFocusRequestNotification
 {
-    optional uint32 focus_type = 1; //Enum?
+    optional NavFocusType focus_type = 1;
+}
+
+message NavFocusNotification
+{
+    optional NavFocusType focus_type = 1;
 }
 
 message VoiceSessionNotification

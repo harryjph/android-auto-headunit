@@ -179,7 +179,7 @@ public class Messages {
 
         video.id = Channel.AA_CH_VID;
         video.mediaSinkService = new Service.MediaSinkService();
-        video.mediaSinkService.availableType = Protocol.STREAM_TYPE_VIDEO;
+        video.mediaSinkService.availableType = Protocol.MEDIA_CODEC_VIDEO;
         video.mediaSinkService.availableWhileInCall = true;
         video.mediaSinkService.videoConfigs = new VideoConfig[1];
         VideoConfig videoConfig = new VideoConfig();
@@ -196,7 +196,7 @@ public class Messages {
 
         mic.id = Channel.AA_CH_MIC;
         mic.mediaSourceService = new Service.MediaSourceService();
-        mic.mediaSourceService.type = Protocol.STREAM_TYPE_AUDIO;
+        mic.mediaSourceService.type = Protocol.MEDIA_CODEC_AUDIO;
         Protocol.AudioConfiguration micConfig = new Protocol.AudioConfiguration();
         micConfig.sampleRate = 16000;
         micConfig.numberOfBits = 16;
@@ -205,21 +205,21 @@ public class Messages {
 
         audio0.id = Channel.AA_CH_AUD;
         audio0.mediaSinkService = new Service.MediaSinkService();
-        audio0.mediaSinkService.availableType = Protocol.STREAM_TYPE_AUDIO;
+        audio0.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
         audio0.mediaSinkService.audioType = AudioConfigs.getStreamType(Channel.AA_CH_AUD);
         audio0.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
         audio0.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AUD);
 
         audio1.id = Channel.AA_CH_AU1;
         audio1.mediaSinkService = new Service.MediaSinkService();
-        audio1.mediaSinkService.availableType = Protocol.STREAM_TYPE_AUDIO;
+        audio1.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
         audio1.mediaSinkService.audioType = AudioConfigs.getStreamType(Channel.AA_CH_AU1);
         audio1.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
         audio1.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU1);
 
         audio2.id = Channel.AA_CH_AU2;
         audio2.mediaSinkService = new Service.MediaSinkService();
-        audio2.mediaSinkService.availableType = Protocol.STREAM_TYPE_AUDIO;
+        audio2.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
         audio2.mediaSinkService.audioType = AudioConfigs.getStreamType(Channel.AA_CH_AU2);
         audio2.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
         audio2.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU2);

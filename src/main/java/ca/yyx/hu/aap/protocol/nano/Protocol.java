@@ -17,57 +17,62 @@ public interface Protocol {
   public static final int SENSOR_TYPE_COMPASS = 1;
   public static final int SENSOR_TYPE_LOCATION = 9;
 
-  // enum AUDIO_TYPE
+  // enum AudioStreamType
   public static final int AUDIO_TYPE_SPEECH = 1;
   public static final int AUDIO_TYPE_SYSTEM = 2;
   public static final int AUDIO_TYPE_MEDIA = 3;
+  public static final int AUDIO_TYPE_ALARM = 4;
 
-  // enum STREAM_TYPE
-  public static final int STREAM_TYPE_AUDIO = 1;
-  public static final int STREAM_TYPE_VIDEO = 3;
+  // enum MediaCodecType
+  public static final int MEDIA_CODEC_AUDIO = 1;
+  public static final int MEDIA_CODEC_VIDEO = 3;
 
   // enum VideoFocusMode
   public static final int VIDEO_FOCUS_MODE_1 = 1;
   public static final int VIDEO_FOCUS_MODE_2 = 2;
 
-  public static final class ButtonInfo extends
+  // enum NavFocusType
+  public static final int NAV_FOCUS_1 = 1;
+  public static final int NAV_FOCUS_2 = 2;
+
+  public static final class Key extends
       com.google.protobuf.nano.MessageNano {
 
-    private static volatile ButtonInfo[] _emptyArray;
-    public static ButtonInfo[] emptyArray() {
+    private static volatile Key[] _emptyArray;
+    public static Key[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new ButtonInfo[0];
+            _emptyArray = new Key[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // required uint32 scan_code = 1;
-    public int scanCode;
+    // required uint32 keycode = 1;
+    public int keycode;
 
-    // required bool is_pressed = 2;
-    public boolean isPressed;
+    // required bool down = 2;
+    public boolean down;
 
-    // required uint32 meta = 3;
-    public int meta;
+    // required uint32 metastate = 3;
+    public int metastate;
 
-    // required bool long_press = 4;
-    public boolean longPress;
+    // required bool longpress = 4;
+    public boolean longpress;
 
-    public ButtonInfo() {
+    public Key() {
       clear();
     }
 
-    public ButtonInfo clear() {
-      scanCode = 0;
-      isPressed = false;
-      meta = 0;
-      longPress = false;
+    public Key clear() {
+      keycode = 0;
+      down = false;
+      metastate = 0;
+      longpress = false;
       cachedSize = -1;
       return this;
     }
@@ -75,10 +80,10 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      output.writeUInt32(1, this.scanCode);
-      output.writeBool(2, this.isPressed);
-      output.writeUInt32(3, this.meta);
-      output.writeBool(4, this.longPress);
+      output.writeUInt32(1, this.keycode);
+      output.writeBool(2, this.down);
+      output.writeUInt32(3, this.metastate);
+      output.writeBool(4, this.longpress);
       super.writeTo(output);
     }
 
@@ -86,18 +91,18 @@ public interface Protocol {
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
       size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeUInt32Size(1, this.scanCode);
+          .computeUInt32Size(1, this.keycode);
       size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeBoolSize(2, this.isPressed);
+          .computeBoolSize(2, this.down);
       size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeUInt32Size(3, this.meta);
+          .computeUInt32Size(3, this.metastate);
       size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeBoolSize(4, this.longPress);
+          .computeBoolSize(4, this.longpress);
       return size;
     }
 
     @Override
-    public ButtonInfo mergeFrom(
+    public Key mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -112,63 +117,63 @@ public interface Protocol {
             break;
           }
           case 8: {
-            this.scanCode = input.readUInt32();
+            this.keycode = input.readUInt32();
             break;
           }
           case 16: {
-            this.isPressed = input.readBool();
+            this.down = input.readBool();
             break;
           }
           case 24: {
-            this.meta = input.readUInt32();
+            this.metastate = input.readUInt32();
             break;
           }
           case 32: {
-            this.longPress = input.readBool();
+            this.longpress = input.readBool();
             break;
           }
         }
       }
     }
 
-    public static ButtonInfo parseFrom(byte[] data)
+    public static Key parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new ButtonInfo(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new Key(), data);
     }
 
-    public static ButtonInfo parseFrom(
+    public static Key parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new ButtonInfo().mergeFrom(input);
+      return new Key().mergeFrom(input);
     }
   }
 
-  public static final class ButtonInfoWrapper extends
+  public static final class KeyEvent extends
       com.google.protobuf.nano.MessageNano {
 
-    private static volatile ButtonInfoWrapper[] _emptyArray;
-    public static ButtonInfoWrapper[] emptyArray() {
+    private static volatile KeyEvent[] _emptyArray;
+    public static KeyEvent[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new ButtonInfoWrapper[0];
+            _emptyArray = new KeyEvent[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // repeated .ca.yyx.hu.aap.protocol.ButtonInfo button = 1;
-    public ca.yyx.hu.aap.protocol.nano.Protocol.ButtonInfo[] button;
+    // repeated .ca.yyx.hu.aap.protocol.Key keys = 1;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.Key[] keys;
 
-    public ButtonInfoWrapper() {
+    public KeyEvent() {
       clear();
     }
 
-    public ButtonInfoWrapper clear() {
-      button = ca.yyx.hu.aap.protocol.nano.Protocol.ButtonInfo.emptyArray();
+    public KeyEvent clear() {
+      keys = ca.yyx.hu.aap.protocol.nano.Protocol.Key.emptyArray();
       cachedSize = -1;
       return this;
     }
@@ -176,9 +181,9 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.button != null && this.button.length > 0) {
-        for (int i = 0; i < this.button.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Protocol.ButtonInfo element = this.button[i];
+      if (this.keys != null && this.keys.length > 0) {
+        for (int i = 0; i < this.keys.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Protocol.Key element = this.keys[i];
           if (element != null) {
             output.writeMessage(1, element);
           }
@@ -190,9 +195,9 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.button != null && this.button.length > 0) {
-        for (int i = 0; i < this.button.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Protocol.ButtonInfo element = this.button[i];
+      if (this.keys != null && this.keys.length > 0) {
+        for (int i = 0; i < this.keys.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Protocol.Key element = this.keys[i];
           if (element != null) {
             size += com.google.protobuf.nano.CodedOutputByteBufferNano
               .computeMessageSize(1, element);
@@ -203,7 +208,7 @@ public interface Protocol {
     }
 
     @Override
-    public ButtonInfoWrapper mergeFrom(
+    public KeyEvent mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -220,78 +225,78 @@ public interface Protocol {
           case 10: {
             int arrayLength = com.google.protobuf.nano.WireFormatNano
                 .getRepeatedFieldArrayLength(input, 10);
-            int i = this.button == null ? 0 : this.button.length;
-            ca.yyx.hu.aap.protocol.nano.Protocol.ButtonInfo[] newArray =
-                new ca.yyx.hu.aap.protocol.nano.Protocol.ButtonInfo[i + arrayLength];
+            int i = this.keys == null ? 0 : this.keys.length;
+            ca.yyx.hu.aap.protocol.nano.Protocol.Key[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Protocol.Key[i + arrayLength];
             if (i != 0) {
-              java.lang.System.arraycopy(this.button, 0, newArray, 0, i);
+              java.lang.System.arraycopy(this.keys, 0, newArray, 0, i);
             }
             for (; i < newArray.length - 1; i++) {
-              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.ButtonInfo();
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.Key();
               input.readMessage(newArray[i]);
               input.readTag();
             }
             // Last one without readTag.
-            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.ButtonInfo();
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.Key();
             input.readMessage(newArray[i]);
-            this.button = newArray;
+            this.keys = newArray;
             break;
           }
         }
       }
     }
 
-    public static ButtonInfoWrapper parseFrom(byte[] data)
+    public static KeyEvent parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new ButtonInfoWrapper(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new KeyEvent(), data);
     }
 
-    public static ButtonInfoWrapper parseFrom(
+    public static KeyEvent parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new ButtonInfoWrapper().mergeFrom(input);
+      return new KeyEvent().mergeFrom(input);
     }
   }
 
-  public static final class TouchInfo extends
+  public static final class TouchEvent extends
       com.google.protobuf.nano.MessageNano {
 
-    // enum TOUCH_ACTION
+    // enum PointerAction
     public static final int RELEASE = 0;
     public static final int PRESS = 1;
     public static final int DRAG = 2;
 
-    public static final class Location extends
+    public static final class Pointer extends
         com.google.protobuf.nano.MessageNano {
 
-      private static volatile Location[] _emptyArray;
-      public static Location[] emptyArray() {
+      private static volatile Pointer[] _emptyArray;
+      public static Pointer[] emptyArray() {
         // Lazily initializes the empty array
         if (_emptyArray == null) {
           synchronized (
               com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
             if (_emptyArray == null) {
-              _emptyArray = new Location[0];
+              _emptyArray = new Pointer[0];
             }
           }
         }
         return _emptyArray;
       }
 
-      // required uint32 x = 1;
+      // optional uint32 x = 1;
       public int x;
 
-      // required uint32 y = 2;
+      // optional uint32 y = 2;
       public int y;
 
-      // required uint32 pointer_id = 3;
+      // optional uint32 pointer_id = 3;
       public int pointerId;
 
-      public Location() {
+      public Pointer() {
         clear();
       }
 
-      public Location clear() {
+      public Pointer clear() {
         x = 0;
         y = 0;
         pointerId = 0;
@@ -302,26 +307,38 @@ public interface Protocol {
       @Override
       public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
           throws java.io.IOException {
-        output.writeUInt32(1, this.x);
-        output.writeUInt32(2, this.y);
-        output.writeUInt32(3, this.pointerId);
+        if (this.x != 0) {
+          output.writeUInt32(1, this.x);
+        }
+        if (this.y != 0) {
+          output.writeUInt32(2, this.y);
+        }
+        if (this.pointerId != 0) {
+          output.writeUInt32(3, this.pointerId);
+        }
         super.writeTo(output);
       }
 
       @Override
       protected int computeSerializedSize() {
         int size = super.computeSerializedSize();
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeUInt32Size(1, this.x);
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeUInt32Size(2, this.y);
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeUInt32Size(3, this.pointerId);
+        if (this.x != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeUInt32Size(1, this.x);
+        }
+        if (this.y != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeUInt32Size(2, this.y);
+        }
+        if (this.pointerId != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeUInt32Size(3, this.pointerId);
+        }
         return size;
       }
 
       @Override
-      public Location mergeFrom(
+      public Pointer mergeFrom(
               com.google.protobuf.nano.CodedInputByteBufferNano input)
           throws java.io.IOException {
         while (true) {
@@ -351,49 +368,49 @@ public interface Protocol {
         }
       }
 
-      public static Location parseFrom(byte[] data)
+      public static Pointer parseFrom(byte[] data)
           throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-        return com.google.protobuf.nano.MessageNano.mergeFrom(new Location(), data);
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new Pointer(), data);
       }
 
-      public static Location parseFrom(
+      public static Pointer parseFrom(
               com.google.protobuf.nano.CodedInputByteBufferNano input)
           throws java.io.IOException {
-        return new Location().mergeFrom(input);
+        return new Pointer().mergeFrom(input);
       }
     }
 
-    private static volatile TouchInfo[] _emptyArray;
-    public static TouchInfo[] emptyArray() {
+    private static volatile TouchEvent[] _emptyArray;
+    public static TouchEvent[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new TouchInfo[0];
+            _emptyArray = new TouchEvent[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // repeated .ca.yyx.hu.aap.protocol.TouchInfo.Location location = 1;
-    public ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo.Location[] location;
+    // repeated .ca.yyx.hu.aap.protocol.TouchEvent.Pointer pointer_data = 1;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.Pointer[] pointerData;
 
-    // required uint32 action_index = 2;
+    // optional uint32 action_index = 2;
     public int actionIndex;
 
-    // required .ca.yyx.hu.aap.protocol.TouchInfo.TOUCH_ACTION action = 3;
+    // optional .ca.yyx.hu.aap.protocol.TouchEvent.PointerAction action = 3;
     public int action;
 
-    public TouchInfo() {
+    public TouchEvent() {
       clear();
     }
 
-    public TouchInfo clear() {
-      location = ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo.Location.emptyArray();
+    public TouchEvent clear() {
+      pointerData = ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.Pointer.emptyArray();
       actionIndex = 0;
-      action = ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo.RELEASE;
+      action = ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.RELEASE;
       cachedSize = -1;
       return this;
     }
@@ -401,40 +418,48 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.location != null && this.location.length > 0) {
-        for (int i = 0; i < this.location.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo.Location element = this.location[i];
+      if (this.pointerData != null && this.pointerData.length > 0) {
+        for (int i = 0; i < this.pointerData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.Pointer element = this.pointerData[i];
           if (element != null) {
             output.writeMessage(1, element);
           }
         }
       }
-      output.writeUInt32(2, this.actionIndex);
-      output.writeInt32(3, this.action);
+      if (this.actionIndex != 0) {
+        output.writeUInt32(2, this.actionIndex);
+      }
+      if (this.action != ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.RELEASE) {
+        output.writeInt32(3, this.action);
+      }
       super.writeTo(output);
     }
 
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.location != null && this.location.length > 0) {
-        for (int i = 0; i < this.location.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo.Location element = this.location[i];
+      if (this.pointerData != null && this.pointerData.length > 0) {
+        for (int i = 0; i < this.pointerData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.Pointer element = this.pointerData[i];
           if (element != null) {
             size += com.google.protobuf.nano.CodedOutputByteBufferNano
               .computeMessageSize(1, element);
           }
         }
       }
-      size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeUInt32Size(2, this.actionIndex);
-      size += com.google.protobuf.nano.CodedOutputByteBufferNano
-        .computeInt32Size(3, this.action);
+      if (this.actionIndex != 0) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeUInt32Size(2, this.actionIndex);
+      }
+      if (this.action != ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.RELEASE) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeInt32Size(3, this.action);
+      }
       return size;
     }
 
     @Override
-    public TouchInfo mergeFrom(
+    public TouchEvent mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -451,21 +476,21 @@ public interface Protocol {
           case 10: {
             int arrayLength = com.google.protobuf.nano.WireFormatNano
                 .getRepeatedFieldArrayLength(input, 10);
-            int i = this.location == null ? 0 : this.location.length;
-            ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo.Location[] newArray =
-                new ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo.Location[i + arrayLength];
+            int i = this.pointerData == null ? 0 : this.pointerData.length;
+            ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.Pointer[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.Pointer[i + arrayLength];
             if (i != 0) {
-              java.lang.System.arraycopy(this.location, 0, newArray, 0, i);
+              java.lang.System.arraycopy(this.pointerData, 0, newArray, 0, i);
             }
             for (; i < newArray.length - 1; i++) {
-              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo.Location();
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.Pointer();
               input.readMessage(newArray[i]);
               input.readTag();
             }
             // Last one without readTag.
-            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo.Location();
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.Pointer();
             input.readMessage(newArray[i]);
-            this.location = newArray;
+            this.pointerData = newArray;
             break;
           }
           case 16: {
@@ -475,9 +500,9 @@ public interface Protocol {
           case 24: {
             int value = input.readInt32();
             switch (value) {
-              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo.RELEASE:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo.PRESS:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo.DRAG:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.RELEASE:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.PRESS:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.DRAG:
                 this.action = value;
                 break;
             }
@@ -487,56 +512,56 @@ public interface Protocol {
       }
     }
 
-    public static TouchInfo parseFrom(byte[] data)
+    public static TouchEvent parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new TouchInfo(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new TouchEvent(), data);
     }
 
-    public static TouchInfo parseFrom(
+    public static TouchEvent parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new TouchInfo().mergeFrom(input);
+      return new TouchEvent().mergeFrom(input);
     }
   }
 
-  public static final class InputEvent extends
+  public static final class InputReport extends
       com.google.protobuf.nano.MessageNano {
 
-    private static volatile InputEvent[] _emptyArray;
-    public static InputEvent[] emptyArray() {
+    private static volatile InputReport[] _emptyArray;
+    public static InputReport[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new InputEvent[0];
+            _emptyArray = new InputReport[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // required uint64 time_stamp = 1;
-    public long timeStamp;
+    // optional uint64 timestamp = 1;
+    public long timestamp;
 
-    // optional int32 disp_channel = 2;
-    public int dispChannel;
+    // optional int32 disp_channel_id = 2;
+    public int dispChannelId;
 
-    // optional .ca.yyx.hu.aap.protocol.TouchInfo touch = 3;
-    public ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo touch;
+    // optional .ca.yyx.hu.aap.protocol.TouchEvent touch_event = 3;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent touchEvent;
 
-    // optional .ca.yyx.hu.aap.protocol.ButtonInfoWrapper button = 4;
-    public ca.yyx.hu.aap.protocol.nano.Protocol.ButtonInfoWrapper button;
+    // optional .ca.yyx.hu.aap.protocol.KeyEvent key_event = 4;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.KeyEvent keyEvent;
 
-    public InputEvent() {
+    public InputReport() {
       clear();
     }
 
-    public InputEvent clear() {
-      timeStamp = 0L;
-      dispChannel = 0;
-      touch = null;
-      button = null;
+    public InputReport clear() {
+      timestamp = 0L;
+      dispChannelId = 0;
+      touchEvent = null;
+      keyEvent = null;
       cachedSize = -1;
       return this;
     }
@@ -544,15 +569,17 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      output.writeUInt64(1, this.timeStamp);
-      if (this.dispChannel != 0) {
-        output.writeInt32(2, this.dispChannel);
+      if (this.timestamp != 0L) {
+        output.writeUInt64(1, this.timestamp);
       }
-      if (this.touch != null) {
-        output.writeMessage(3, this.touch);
+      if (this.dispChannelId != 0) {
+        output.writeInt32(2, this.dispChannelId);
       }
-      if (this.button != null) {
-        output.writeMessage(4, this.button);
+      if (this.touchEvent != null) {
+        output.writeMessage(3, this.touchEvent);
+      }
+      if (this.keyEvent != null) {
+        output.writeMessage(4, this.keyEvent);
       }
       super.writeTo(output);
     }
@@ -560,25 +587,27 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeUInt64Size(1, this.timeStamp);
-      if (this.dispChannel != 0) {
+      if (this.timestamp != 0L) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeInt32Size(2, this.dispChannel);
+            .computeUInt64Size(1, this.timestamp);
       }
-      if (this.touch != null) {
+      if (this.dispChannelId != 0) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeMessageSize(3, this.touch);
+            .computeInt32Size(2, this.dispChannelId);
       }
-      if (this.button != null) {
+      if (this.touchEvent != null) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeMessageSize(4, this.button);
+          .computeMessageSize(3, this.touchEvent);
+      }
+      if (this.keyEvent != null) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeMessageSize(4, this.keyEvent);
       }
       return size;
     }
 
     @Override
-    public InputEvent mergeFrom(
+    public InputReport mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -593,69 +622,69 @@ public interface Protocol {
             break;
           }
           case 8: {
-            this.timeStamp = input.readUInt64();
+            this.timestamp = input.readUInt64();
             break;
           }
           case 16: {
-            this.dispChannel = input.readInt32();
+            this.dispChannelId = input.readInt32();
             break;
           }
           case 26: {
-            if (this.touch == null) {
-              this.touch = new ca.yyx.hu.aap.protocol.nano.Protocol.TouchInfo();
+            if (this.touchEvent == null) {
+              this.touchEvent = new ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent();
             }
-            input.readMessage(this.touch);
+            input.readMessage(this.touchEvent);
             break;
           }
           case 34: {
-            if (this.button == null) {
-              this.button = new ca.yyx.hu.aap.protocol.nano.Protocol.ButtonInfoWrapper();
+            if (this.keyEvent == null) {
+              this.keyEvent = new ca.yyx.hu.aap.protocol.nano.Protocol.KeyEvent();
             }
-            input.readMessage(this.button);
+            input.readMessage(this.keyEvent);
             break;
           }
         }
       }
     }
 
-    public static InputEvent parseFrom(byte[] data)
+    public static InputReport parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new InputEvent(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new InputReport(), data);
     }
 
-    public static InputEvent parseFrom(
+    public static InputReport parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new InputEvent().mergeFrom(input);
+      return new InputReport().mergeFrom(input);
     }
   }
 
-  public static final class BindingRequest extends
+  public static final class KeyBindingRequest extends
       com.google.protobuf.nano.MessageNano {
 
-    private static volatile BindingRequest[] _emptyArray;
-    public static BindingRequest[] emptyArray() {
+    private static volatile KeyBindingRequest[] _emptyArray;
+    public static KeyBindingRequest[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new BindingRequest[0];
+            _emptyArray = new KeyBindingRequest[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // repeated int32 scan_codes = 1;
-    public int[] scanCodes;
+    // repeated int32 keycodes = 1;
+    public int[] keycodes;
 
-    public BindingRequest() {
+    public KeyBindingRequest() {
       clear();
     }
 
-    public BindingRequest clear() {
-      scanCodes = com.google.protobuf.nano.WireFormatNano.EMPTY_INT_ARRAY;
+    public KeyBindingRequest clear() {
+      keycodes = com.google.protobuf.nano.WireFormatNano.EMPTY_INT_ARRAY;
       cachedSize = -1;
       return this;
     }
@@ -663,9 +692,9 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.scanCodes != null && this.scanCodes.length > 0) {
-        for (int i = 0; i < this.scanCodes.length; i++) {
-          output.writeInt32(1, this.scanCodes[i]);
+      if (this.keycodes != null && this.keycodes.length > 0) {
+        for (int i = 0; i < this.keycodes.length; i++) {
+          output.writeInt32(1, this.keycodes[i]);
         }
       }
       super.writeTo(output);
@@ -674,21 +703,21 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.scanCodes != null && this.scanCodes.length > 0) {
+      if (this.keycodes != null && this.keycodes.length > 0) {
         int dataSize = 0;
-        for (int i = 0; i < this.scanCodes.length; i++) {
-          int element = this.scanCodes[i];
+        for (int i = 0; i < this.keycodes.length; i++) {
+          int element = this.keycodes[i];
           dataSize += com.google.protobuf.nano.CodedOutputByteBufferNano
               .computeInt32SizeNoTag(element);
         }
         size += dataSize;
-        size += 1 * this.scanCodes.length;
+        size += 1 * this.keycodes.length;
       }
       return size;
     }
 
     @Override
-    public BindingRequest mergeFrom(
+    public KeyBindingRequest mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -705,10 +734,10 @@ public interface Protocol {
           case 8: {
             int arrayLength = com.google.protobuf.nano.WireFormatNano
                 .getRepeatedFieldArrayLength(input, 8);
-            int i = this.scanCodes == null ? 0 : this.scanCodes.length;
+            int i = this.keycodes == null ? 0 : this.keycodes.length;
             int[] newArray = new int[i + arrayLength];
             if (i != 0) {
-              java.lang.System.arraycopy(this.scanCodes, 0, newArray, 0, i);
+              java.lang.System.arraycopy(this.keycodes, 0, newArray, 0, i);
             }
             for (; i < newArray.length - 1; i++) {
               newArray[i] = input.readInt32();
@@ -716,7 +745,7 @@ public interface Protocol {
             }
             // Last one without readTag.
             newArray[i] = input.readInt32();
-            this.scanCodes = newArray;
+            this.keycodes = newArray;
             break;
           }
           case 10: {
@@ -730,15 +759,15 @@ public interface Protocol {
               arrayLength++;
             }
             input.rewindToPosition(startPos);
-            int i = this.scanCodes == null ? 0 : this.scanCodes.length;
+            int i = this.keycodes == null ? 0 : this.keycodes.length;
             int[] newArray = new int[i + arrayLength];
             if (i != 0) {
-              java.lang.System.arraycopy(this.scanCodes, 0, newArray, 0, i);
+              java.lang.System.arraycopy(this.keycodes, 0, newArray, 0, i);
             }
             for (; i < newArray.length; i++) {
               newArray[i] = input.readInt32();
             }
-            this.scanCodes = newArray;
+            this.keycodes = newArray;
             input.popLimit(limit);
             break;
           }
@@ -746,15 +775,15 @@ public interface Protocol {
       }
     }
 
-    public static BindingRequest parseFrom(byte[] data)
+    public static KeyBindingRequest parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new BindingRequest(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new KeyBindingRequest(), data);
     }
 
-    public static BindingRequest parseFrom(
+    public static KeyBindingRequest parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new BindingRequest().mergeFrom(input);
+      return new KeyBindingRequest().mergeFrom(input);
     }
   }
 
@@ -1857,10 +1886,10 @@ public interface Protocol {
         return _emptyArray;
       }
 
-      // optional .ca.yyx.hu.aap.protocol.STREAM_TYPE available_type = 1;
+      // optional .ca.yyx.hu.aap.protocol.MediaCodecType available_type = 1;
       public int availableType;
 
-      // optional .ca.yyx.hu.aap.protocol.AUDIO_TYPE audio_type = 2;
+      // optional .ca.yyx.hu.aap.protocol.AudioStreamType audio_type = 2;
       public int audioType;
 
       // repeated .ca.yyx.hu.aap.protocol.AudioConfiguration audio_configs = 3;
@@ -1877,7 +1906,7 @@ public interface Protocol {
       }
 
       public MediaSinkService clear() {
-        availableType = ca.yyx.hu.aap.protocol.nano.Protocol.STREAM_TYPE_AUDIO;
+        availableType = ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO;
         audioType = ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SPEECH;
         audioConfigs = ca.yyx.hu.aap.protocol.nano.Protocol.AudioConfiguration.emptyArray();
         videoConfigs = ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig.emptyArray();
@@ -1889,7 +1918,7 @@ public interface Protocol {
       @Override
       public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
           throws java.io.IOException {
-        if (this.availableType != ca.yyx.hu.aap.protocol.nano.Protocol.STREAM_TYPE_AUDIO) {
+        if (this.availableType != ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO) {
           output.writeInt32(1, this.availableType);
         }
         if (this.audioType != ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SPEECH) {
@@ -1920,7 +1949,7 @@ public interface Protocol {
       @Override
       protected int computeSerializedSize() {
         int size = super.computeSerializedSize();
-        if (this.availableType != ca.yyx.hu.aap.protocol.nano.Protocol.STREAM_TYPE_AUDIO) {
+        if (this.availableType != ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO) {
           size += com.google.protobuf.nano.CodedOutputByteBufferNano
             .computeInt32Size(1, this.availableType);
         }
@@ -1971,8 +2000,8 @@ public interface Protocol {
             case 8: {
               int value = input.readInt32();
               switch (value) {
-                case ca.yyx.hu.aap.protocol.nano.Protocol.STREAM_TYPE_AUDIO:
-                case ca.yyx.hu.aap.protocol.nano.Protocol.STREAM_TYPE_VIDEO:
+                case ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO:
+                case ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_VIDEO:
                   this.availableType = value;
                   break;
               }
@@ -1984,6 +2013,7 @@ public interface Protocol {
                 case ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SPEECH:
                 case ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SYSTEM:
                 case ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_MEDIA:
+                case ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_ALARM:
                   this.audioType = value;
                   break;
               }
@@ -2321,7 +2351,7 @@ public interface Protocol {
         return _emptyArray;
       }
 
-      // required .ca.yyx.hu.aap.protocol.STREAM_TYPE type = 1;
+      // required .ca.yyx.hu.aap.protocol.MediaCodecType type = 1;
       public int type;
 
       // required .ca.yyx.hu.aap.protocol.AudioConfiguration audio_config = 2;
@@ -2335,7 +2365,7 @@ public interface Protocol {
       }
 
       public MediaSourceService clear() {
-        type = ca.yyx.hu.aap.protocol.nano.Protocol.STREAM_TYPE_AUDIO;
+        type = ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO;
         audioConfig = null;
         availableWhileInCall = false;
         cachedSize = -1;
@@ -2389,8 +2419,8 @@ public interface Protocol {
             case 8: {
               int value = input.readInt32();
               switch (value) {
-                case ca.yyx.hu.aap.protocol.nano.Protocol.STREAM_TYPE_AUDIO:
-                case ca.yyx.hu.aap.protocol.nano.Protocol.STREAM_TYPE_VIDEO:
+                case ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO:
+                case ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_VIDEO:
                   this.type = value;
                   break;
               }
@@ -2601,6 +2631,217 @@ public interface Protocol {
       }
     }
 
+    public static final class NavigationStatusService extends
+        com.google.protobuf.nano.MessageNano {
+
+      public static final class ImageOptions extends
+          com.google.protobuf.nano.MessageNano {
+
+        private static volatile ImageOptions[] _emptyArray;
+        public static ImageOptions[] emptyArray() {
+          // Lazily initializes the empty array
+          if (_emptyArray == null) {
+            synchronized (
+                com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+              if (_emptyArray == null) {
+                _emptyArray = new ImageOptions[0];
+              }
+            }
+          }
+          return _emptyArray;
+        }
+
+        // required int32 width = 1;
+        public int width;
+
+        // required int32 height = 2;
+        public int height;
+
+        // required int32 colour_deth_bits = 3;
+        public int colourDethBits;
+
+        public ImageOptions() {
+          clear();
+        }
+
+        public ImageOptions clear() {
+          width = 0;
+          height = 0;
+          colourDethBits = 0;
+          cachedSize = -1;
+          return this;
+        }
+
+        @Override
+        public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+            throws java.io.IOException {
+          output.writeInt32(1, this.width);
+          output.writeInt32(2, this.height);
+          output.writeInt32(3, this.colourDethBits);
+          super.writeTo(output);
+        }
+
+        @Override
+        protected int computeSerializedSize() {
+          int size = super.computeSerializedSize();
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(1, this.width);
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(2, this.height);
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(3, this.colourDethBits);
+          return size;
+        }
+
+        @Override
+        public ImageOptions mergeFrom(
+                com.google.protobuf.nano.CodedInputByteBufferNano input)
+            throws java.io.IOException {
+          while (true) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                return this;
+              default: {
+                if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                  return this;
+                }
+                break;
+              }
+              case 8: {
+                this.width = input.readInt32();
+                break;
+              }
+              case 16: {
+                this.height = input.readInt32();
+                break;
+              }
+              case 24: {
+                this.colourDethBits = input.readInt32();
+                break;
+              }
+            }
+          }
+        }
+
+        public static ImageOptions parseFrom(byte[] data)
+            throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+          return com.google.protobuf.nano.MessageNano.mergeFrom(new ImageOptions(), data);
+        }
+
+        public static ImageOptions parseFrom(
+                com.google.protobuf.nano.CodedInputByteBufferNano input)
+            throws java.io.IOException {
+          return new ImageOptions().mergeFrom(input);
+        }
+      }
+
+      private static volatile NavigationStatusService[] _emptyArray;
+      public static NavigationStatusService[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new NavigationStatusService[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // required uint32 minimum_interval_ms = 1;
+      public int minimumIntervalMs;
+
+      // required uint32 type = 2;
+      public int type;
+
+      // optional .ca.yyx.hu.aap.protocol.Service.NavigationStatusService.ImageOptions image_options = 3;
+      public ca.yyx.hu.aap.protocol.nano.Protocol.Service.NavigationStatusService.ImageOptions imageOptions;
+
+      public NavigationStatusService() {
+        clear();
+      }
+
+      public NavigationStatusService clear() {
+        minimumIntervalMs = 0;
+        type = 0;
+        imageOptions = null;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        output.writeUInt32(1, this.minimumIntervalMs);
+        output.writeUInt32(2, this.type);
+        if (this.imageOptions != null) {
+          output.writeMessage(3, this.imageOptions);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeUInt32Size(1, this.minimumIntervalMs);
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeUInt32Size(2, this.type);
+        if (this.imageOptions != null) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeMessageSize(3, this.imageOptions);
+        }
+        return size;
+      }
+
+      @Override
+      public NavigationStatusService mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.minimumIntervalMs = input.readUInt32();
+              break;
+            }
+            case 16: {
+              this.type = input.readUInt32();
+              break;
+            }
+            case 26: {
+              if (this.imageOptions == null) {
+                this.imageOptions = new ca.yyx.hu.aap.protocol.nano.Protocol.Service.NavigationStatusService.ImageOptions();
+              }
+              input.readMessage(this.imageOptions);
+              break;
+            }
+          }
+        }
+      }
+
+      public static NavigationStatusService parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new NavigationStatusService(), data);
+      }
+
+      public static NavigationStatusService parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new NavigationStatusService().mergeFrom(input);
+      }
+    }
+
     private static volatile Service[] _emptyArray;
     public static Service[] emptyArray() {
       // Lazily initializes the empty array
@@ -2633,6 +2874,9 @@ public interface Protocol {
     // optional .ca.yyx.hu.aap.protocol.Service.BluetoothService bluetooth_service = 6;
     public ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService bluetoothService;
 
+    // optional .ca.yyx.hu.aap.protocol.Service.NavigationStatusService navigation_status_service = 8;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.Service.NavigationStatusService navigationStatusService;
+
     public Service() {
       clear();
     }
@@ -2644,6 +2888,7 @@ public interface Protocol {
       inputSourceService = null;
       mediaSourceService = null;
       bluetoothService = null;
+      navigationStatusService = null;
       cachedSize = -1;
       return this;
     }
@@ -2668,6 +2913,9 @@ public interface Protocol {
       }
       if (this.bluetoothService != null) {
         output.writeMessage(6, this.bluetoothService);
+      }
+      if (this.navigationStatusService != null) {
+        output.writeMessage(8, this.navigationStatusService);
       }
       super.writeTo(output);
     }
@@ -2698,6 +2946,10 @@ public interface Protocol {
       if (this.bluetoothService != null) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeMessageSize(6, this.bluetoothService);
+      }
+      if (this.navigationStatusService != null) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeMessageSize(8, this.navigationStatusService);
       }
       return size;
     }
@@ -2754,6 +3006,13 @@ public interface Protocol {
               this.bluetoothService = new ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService();
             }
             input.readMessage(this.bluetoothService);
+            break;
+          }
+          case 66: {
+            if (this.navigationStatusService == null) {
+              this.navigationStatusService = new ca.yyx.hu.aap.protocol.nano.Protocol.Service.NavigationStatusService();
+            }
+            input.readMessage(this.navigationStatusService);
             break;
           }
         }
@@ -3332,8 +3591,11 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // required int64 timestamp = 1;
+    // optional int64 timestamp = 1;
     public long timestamp;
+
+    // optional int32 bug_report = 2;
+    public int bugReport;
 
     public PingRequest() {
       clear();
@@ -3341,6 +3603,7 @@ public interface Protocol {
 
     public PingRequest clear() {
       timestamp = 0L;
+      bugReport = 0;
       cachedSize = -1;
       return this;
     }
@@ -3348,15 +3611,26 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      output.writeInt64(1, this.timestamp);
+      if (this.timestamp != 0L) {
+        output.writeInt64(1, this.timestamp);
+      }
+      if (this.bugReport != 0) {
+        output.writeInt32(2, this.bugReport);
+      }
       super.writeTo(output);
     }
 
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeInt64Size(1, this.timestamp);
+      if (this.timestamp != 0L) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt64Size(1, this.timestamp);
+      }
+      if (this.bugReport != 0) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt32Size(2, this.bugReport);
+      }
       return size;
     }
 
@@ -3377,6 +3651,10 @@ public interface Protocol {
           }
           case 8: {
             this.timestamp = input.readInt64();
+            break;
+          }
+          case 16: {
+            this.bugReport = input.readInt32();
             break;
           }
         }
@@ -3412,7 +3690,7 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // required int64 timestamp = 1;
+    // optional int64 timestamp = 1;
     public long timestamp;
 
     public PingResponse() {
@@ -3428,15 +3706,19 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      output.writeInt64(1, this.timestamp);
+      if (this.timestamp != 0L) {
+        output.writeInt64(1, this.timestamp);
+      }
       super.writeTo(output);
     }
 
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeInt64Size(1, this.timestamp);
+      if (this.timestamp != 0L) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt64Size(1, this.timestamp);
+      }
       return size;
     }
 
@@ -3475,35 +3757,35 @@ public interface Protocol {
     }
   }
 
-  public static final class ShutdownRequest extends
+  public static final class ByeByeRequest extends
       com.google.protobuf.nano.MessageNano {
 
-    // enum REASON
+    // enum ByeByeReason
     public static final int REASON_QUIT = 1;
 
-    private static volatile ShutdownRequest[] _emptyArray;
-    public static ShutdownRequest[] emptyArray() {
+    private static volatile ByeByeRequest[] _emptyArray;
+    public static ByeByeRequest[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new ShutdownRequest[0];
+            _emptyArray = new ByeByeRequest[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // optional .ca.yyx.hu.aap.protocol.ShutdownRequest.REASON reason = 1;
+    // optional .ca.yyx.hu.aap.protocol.ByeByeRequest.ByeByeReason reason = 1;
     public int reason;
 
-    public ShutdownRequest() {
+    public ByeByeRequest() {
       clear();
     }
 
-    public ShutdownRequest clear() {
-      reason = ca.yyx.hu.aap.protocol.nano.Protocol.ShutdownRequest.REASON_QUIT;
+    public ByeByeRequest clear() {
+      reason = ca.yyx.hu.aap.protocol.nano.Protocol.ByeByeRequest.REASON_QUIT;
       cachedSize = -1;
       return this;
     }
@@ -3511,7 +3793,7 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.reason != ca.yyx.hu.aap.protocol.nano.Protocol.ShutdownRequest.REASON_QUIT) {
+      if (this.reason != ca.yyx.hu.aap.protocol.nano.Protocol.ByeByeRequest.REASON_QUIT) {
         output.writeInt32(1, this.reason);
       }
       super.writeTo(output);
@@ -3520,7 +3802,7 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.reason != ca.yyx.hu.aap.protocol.nano.Protocol.ShutdownRequest.REASON_QUIT) {
+      if (this.reason != ca.yyx.hu.aap.protocol.nano.Protocol.ByeByeRequest.REASON_QUIT) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeInt32Size(1, this.reason);
       }
@@ -3528,7 +3810,7 @@ public interface Protocol {
     }
 
     @Override
-    public ShutdownRequest mergeFrom(
+    public ByeByeRequest mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -3545,7 +3827,7 @@ public interface Protocol {
           case 8: {
             int value = input.readInt32();
             switch (value) {
-              case ca.yyx.hu.aap.protocol.nano.Protocol.ShutdownRequest.REASON_QUIT:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.ByeByeRequest.REASON_QUIT:
                 this.reason = value;
                 break;
             }
@@ -3555,72 +3837,15 @@ public interface Protocol {
       }
     }
 
-    public static ShutdownRequest parseFrom(byte[] data)
+    public static ByeByeRequest parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new ShutdownRequest(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new ByeByeRequest(), data);
     }
 
-    public static ShutdownRequest parseFrom(
+    public static ByeByeRequest parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new ShutdownRequest().mergeFrom(input);
-    }
-  }
-
-  public static final class ShutdownResponse extends
-      com.google.protobuf.nano.MessageNano {
-
-    private static volatile ShutdownResponse[] _emptyArray;
-    public static ShutdownResponse[] emptyArray() {
-      // Lazily initializes the empty array
-      if (_emptyArray == null) {
-        synchronized (
-            com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
-          if (_emptyArray == null) {
-            _emptyArray = new ShutdownResponse[0];
-          }
-        }
-      }
-      return _emptyArray;
-    }
-
-    public ShutdownResponse() {
-      clear();
-    }
-
-    public ShutdownResponse clear() {
-      cachedSize = -1;
-      return this;
-    }
-
-    @Override
-    public ShutdownResponse mergeFrom(
-            com.google.protobuf.nano.CodedInputByteBufferNano input)
-        throws java.io.IOException {
-      while (true) {
-        int tag = input.readTag();
-        switch (tag) {
-          case 0:
-            return this;
-          default: {
-            if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
-              return this;
-            }
-            break;
-          }
-        }
-      }
-    }
-
-    public static ShutdownResponse parseFrom(byte[] data)
-        throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new ShutdownResponse(), data);
-    }
-
-    public static ShutdownResponse parseFrom(
-            com.google.protobuf.nano.CodedInputByteBufferNano input)
-        throws java.io.IOException {
-      return new ShutdownResponse().mergeFrom(input);
+      return new ByeByeRequest().mergeFrom(input);
     }
   }
 
@@ -3708,44 +3933,44 @@ public interface Protocol {
     }
   }
 
-  public static final class MediaSetupResponse extends
+  public static final class Config extends
       com.google.protobuf.nano.MessageNano {
 
-    // enum MEDIA_STATUS
-    public static final int MEDIA_STATUS_1 = 1;
-    public static final int MEDIA_STATUS_2 = 2;
+    // enum ConfigStatus
+    public static final int CONFIG_STATUS_1 = 1;
+    public static final int CONFIG_STATUS_2 = 2;
 
-    private static volatile MediaSetupResponse[] _emptyArray;
-    public static MediaSetupResponse[] emptyArray() {
+    private static volatile Config[] _emptyArray;
+    public static Config[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new MediaSetupResponse[0];
+            _emptyArray = new Config[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // required .ca.yyx.hu.aap.protocol.MediaSetupResponse.MEDIA_STATUS media_status = 1;
-    public int mediaStatus;
+    // required .ca.yyx.hu.aap.protocol.Config.ConfigStatus status = 1;
+    public int status;
 
     // required uint32 max_unacked = 2;
     public int maxUnacked;
 
-    // repeated uint32 configs = 3;
-    public int[] configs;
+    // repeated uint32 configuration_indices = 3;
+    public int[] configurationIndices;
 
-    public MediaSetupResponse() {
+    public Config() {
       clear();
     }
 
-    public MediaSetupResponse clear() {
-      mediaStatus = ca.yyx.hu.aap.protocol.nano.Protocol.MediaSetupResponse.MEDIA_STATUS_1;
+    public Config clear() {
+      status = ca.yyx.hu.aap.protocol.nano.Protocol.Config.CONFIG_STATUS_1;
       maxUnacked = 0;
-      configs = com.google.protobuf.nano.WireFormatNano.EMPTY_INT_ARRAY;
+      configurationIndices = com.google.protobuf.nano.WireFormatNano.EMPTY_INT_ARRAY;
       cachedSize = -1;
       return this;
     }
@@ -3753,11 +3978,11 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      output.writeInt32(1, this.mediaStatus);
+      output.writeInt32(1, this.status);
       output.writeUInt32(2, this.maxUnacked);
-      if (this.configs != null && this.configs.length > 0) {
-        for (int i = 0; i < this.configs.length; i++) {
-          output.writeUInt32(3, this.configs[i]);
+      if (this.configurationIndices != null && this.configurationIndices.length > 0) {
+        for (int i = 0; i < this.configurationIndices.length; i++) {
+          output.writeUInt32(3, this.configurationIndices[i]);
         }
       }
       super.writeTo(output);
@@ -3767,24 +3992,24 @@ public interface Protocol {
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
       size += com.google.protobuf.nano.CodedOutputByteBufferNano
-        .computeInt32Size(1, this.mediaStatus);
+        .computeInt32Size(1, this.status);
       size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeUInt32Size(2, this.maxUnacked);
-      if (this.configs != null && this.configs.length > 0) {
+      if (this.configurationIndices != null && this.configurationIndices.length > 0) {
         int dataSize = 0;
-        for (int i = 0; i < this.configs.length; i++) {
-          int element = this.configs[i];
+        for (int i = 0; i < this.configurationIndices.length; i++) {
+          int element = this.configurationIndices[i];
           dataSize += com.google.protobuf.nano.CodedOutputByteBufferNano
               .computeUInt32SizeNoTag(element);
         }
         size += dataSize;
-        size += 1 * this.configs.length;
+        size += 1 * this.configurationIndices.length;
       }
       return size;
     }
 
     @Override
-    public MediaSetupResponse mergeFrom(
+    public Config mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -3801,9 +4026,9 @@ public interface Protocol {
           case 8: {
             int value = input.readInt32();
             switch (value) {
-              case ca.yyx.hu.aap.protocol.nano.Protocol.MediaSetupResponse.MEDIA_STATUS_1:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.MediaSetupResponse.MEDIA_STATUS_2:
-                this.mediaStatus = value;
+              case ca.yyx.hu.aap.protocol.nano.Protocol.Config.CONFIG_STATUS_1:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.Config.CONFIG_STATUS_2:
+                this.status = value;
                 break;
             }
             break;
@@ -3815,10 +4040,10 @@ public interface Protocol {
           case 24: {
             int arrayLength = com.google.protobuf.nano.WireFormatNano
                 .getRepeatedFieldArrayLength(input, 24);
-            int i = this.configs == null ? 0 : this.configs.length;
+            int i = this.configurationIndices == null ? 0 : this.configurationIndices.length;
             int[] newArray = new int[i + arrayLength];
             if (i != 0) {
-              java.lang.System.arraycopy(this.configs, 0, newArray, 0, i);
+              java.lang.System.arraycopy(this.configurationIndices, 0, newArray, 0, i);
             }
             for (; i < newArray.length - 1; i++) {
               newArray[i] = input.readUInt32();
@@ -3826,7 +4051,7 @@ public interface Protocol {
             }
             // Last one without readTag.
             newArray[i] = input.readUInt32();
-            this.configs = newArray;
+            this.configurationIndices = newArray;
             break;
           }
           case 26: {
@@ -3840,15 +4065,15 @@ public interface Protocol {
               arrayLength++;
             }
             input.rewindToPosition(startPos);
-            int i = this.configs == null ? 0 : this.configs.length;
+            int i = this.configurationIndices == null ? 0 : this.configurationIndices.length;
             int[] newArray = new int[i + arrayLength];
             if (i != 0) {
-              java.lang.System.arraycopy(this.configs, 0, newArray, 0, i);
+              java.lang.System.arraycopy(this.configurationIndices, 0, newArray, 0, i);
             }
             for (; i < newArray.length; i++) {
               newArray[i] = input.readUInt32();
             }
-            this.configs = newArray;
+            this.configurationIndices = newArray;
             input.popLimit(limit);
             break;
           }
@@ -3856,105 +4081,48 @@ public interface Protocol {
       }
     }
 
-    public static MediaSetupResponse parseFrom(byte[] data)
+    public static Config parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new MediaSetupResponse(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new Config(), data);
     }
 
-    public static MediaSetupResponse parseFrom(
+    public static Config parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new MediaSetupResponse().mergeFrom(input);
+      return new Config().mergeFrom(input);
     }
   }
 
-  public static final class MediaStopRequest extends
+  public static final class Start extends
       com.google.protobuf.nano.MessageNano {
 
-    private static volatile MediaStopRequest[] _emptyArray;
-    public static MediaStopRequest[] emptyArray() {
+    private static volatile Start[] _emptyArray;
+    public static Start[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new MediaStopRequest[0];
+            _emptyArray = new Start[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    public MediaStopRequest() {
+    // optional int32 session_id = 1;
+    public int sessionId;
+
+    // optional uint32 configuration_index = 2;
+    public int configurationIndex;
+
+    public Start() {
       clear();
     }
 
-    public MediaStopRequest clear() {
-      cachedSize = -1;
-      return this;
-    }
-
-    @Override
-    public MediaStopRequest mergeFrom(
-            com.google.protobuf.nano.CodedInputByteBufferNano input)
-        throws java.io.IOException {
-      while (true) {
-        int tag = input.readTag();
-        switch (tag) {
-          case 0:
-            return this;
-          default: {
-            if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
-              return this;
-            }
-            break;
-          }
-        }
-      }
-    }
-
-    public static MediaStopRequest parseFrom(byte[] data)
-        throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new MediaStopRequest(), data);
-    }
-
-    public static MediaStopRequest parseFrom(
-            com.google.protobuf.nano.CodedInputByteBufferNano input)
-        throws java.io.IOException {
-      return new MediaStopRequest().mergeFrom(input);
-    }
-  }
-
-  public static final class MediaStartRequest extends
-      com.google.protobuf.nano.MessageNano {
-
-    private static volatile MediaStartRequest[] _emptyArray;
-    public static MediaStartRequest[] emptyArray() {
-      // Lazily initializes the empty array
-      if (_emptyArray == null) {
-        synchronized (
-            com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
-          if (_emptyArray == null) {
-            _emptyArray = new MediaStartRequest[0];
-          }
-        }
-      }
-      return _emptyArray;
-    }
-
-    // required int32 session = 1;
-    public int session;
-
-    // optional uint32 config = 2;
-    public int config;
-
-    public MediaStartRequest() {
-      clear();
-    }
-
-    public MediaStartRequest clear() {
-      session = 0;
-      config = 0;
+    public Start clear() {
+      sessionId = 0;
+      configurationIndex = 0;
       cachedSize = -1;
       return this;
     }
@@ -3962,9 +4130,11 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      output.writeInt32(1, this.session);
-      if (this.config != 0) {
-        output.writeUInt32(2, this.config);
+      if (this.sessionId != 0) {
+        output.writeInt32(1, this.sessionId);
+      }
+      if (this.configurationIndex != 0) {
+        output.writeUInt32(2, this.configurationIndex);
       }
       super.writeTo(output);
     }
@@ -3972,17 +4142,19 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeInt32Size(1, this.session);
-      if (this.config != 0) {
+      if (this.sessionId != 0) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeUInt32Size(2, this.config);
+            .computeInt32Size(1, this.sessionId);
+      }
+      if (this.configurationIndex != 0) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeUInt32Size(2, this.configurationIndex);
       }
       return size;
     }
 
     @Override
-    public MediaStartRequest mergeFrom(
+    public Start mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -3997,59 +4169,59 @@ public interface Protocol {
             break;
           }
           case 8: {
-            this.session = input.readInt32();
+            this.sessionId = input.readInt32();
             break;
           }
           case 16: {
-            this.config = input.readUInt32();
+            this.configurationIndex = input.readUInt32();
             break;
           }
         }
       }
     }
 
-    public static MediaStartRequest parseFrom(byte[] data)
+    public static Start parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new MediaStartRequest(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new Start(), data);
     }
 
-    public static MediaStartRequest parseFrom(
+    public static Start parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new MediaStartRequest().mergeFrom(input);
+      return new Start().mergeFrom(input);
     }
   }
 
-  public static final class MediaAck extends
+  public static final class Ack extends
       com.google.protobuf.nano.MessageNano {
 
-    private static volatile MediaAck[] _emptyArray;
-    public static MediaAck[] emptyArray() {
+    private static volatile Ack[] _emptyArray;
+    public static Ack[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new MediaAck[0];
+            _emptyArray = new Ack[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // required int32 session = 1;
-    public int session;
+    // optional int32 session_id = 1;
+    public int sessionId;
 
-    // required uint32 value = 2;
-    public int value;
+    // optional uint32 ack = 2;
+    public int ack;
 
-    public MediaAck() {
+    public Ack() {
       clear();
     }
 
-    public MediaAck clear() {
-      session = 0;
-      value = 0;
+    public Ack clear() {
+      sessionId = 0;
+      ack = 0;
       cachedSize = -1;
       return this;
     }
@@ -4057,23 +4229,31 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      output.writeInt32(1, this.session);
-      output.writeUInt32(2, this.value);
+      if (this.sessionId != 0) {
+        output.writeInt32(1, this.sessionId);
+      }
+      if (this.ack != 0) {
+        output.writeUInt32(2, this.ack);
+      }
       super.writeTo(output);
     }
 
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeInt32Size(1, this.session);
-      size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeUInt32Size(2, this.value);
+      if (this.sessionId != 0) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt32Size(1, this.sessionId);
+      }
+      if (this.ack != 0) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeUInt32Size(2, this.ack);
+      }
       return size;
     }
 
     @Override
-    public MediaAck mergeFrom(
+    public Ack mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -4088,40 +4268,40 @@ public interface Protocol {
             break;
           }
           case 8: {
-            this.session = input.readInt32();
+            this.sessionId = input.readInt32();
             break;
           }
           case 16: {
-            this.value = input.readUInt32();
+            this.ack = input.readUInt32();
             break;
           }
         }
       }
     }
 
-    public static MediaAck parseFrom(byte[] data)
+    public static Ack parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new MediaAck(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new Ack(), data);
     }
 
-    public static MediaAck parseFrom(
+    public static Ack parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new MediaAck().mergeFrom(input);
+      return new Ack().mergeFrom(input);
     }
   }
 
-  public static final class MicRequest extends
+  public static final class MicrophoneRequest extends
       com.google.protobuf.nano.MessageNano {
 
-    private static volatile MicRequest[] _emptyArray;
-    public static MicRequest[] emptyArray() {
+    private static volatile MicrophoneRequest[] _emptyArray;
+    public static MicrophoneRequest[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new MicRequest[0];
+            _emptyArray = new MicrophoneRequest[0];
           }
         }
       }
@@ -4131,23 +4311,23 @@ public interface Protocol {
     // required bool open = 1;
     public boolean open;
 
-    // optional bool anc = 2;
-    public boolean anc;
+    // optional bool anc_enabled = 2;
+    public boolean ancEnabled;
 
-    // optional bool ec = 3;
-    public boolean ec;
+    // optional bool ec_enabled = 3;
+    public boolean ecEnabled;
 
     // required int32 max_unacked = 4;
     public int maxUnacked;
 
-    public MicRequest() {
+    public MicrophoneRequest() {
       clear();
     }
 
-    public MicRequest clear() {
+    public MicrophoneRequest clear() {
       open = false;
-      anc = false;
-      ec = false;
+      ancEnabled = false;
+      ecEnabled = false;
       maxUnacked = 0;
       cachedSize = -1;
       return this;
@@ -4157,11 +4337,11 @@ public interface Protocol {
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
       output.writeBool(1, this.open);
-      if (this.anc != false) {
-        output.writeBool(2, this.anc);
+      if (this.ancEnabled != false) {
+        output.writeBool(2, this.ancEnabled);
       }
-      if (this.ec != false) {
-        output.writeBool(3, this.ec);
+      if (this.ecEnabled != false) {
+        output.writeBool(3, this.ecEnabled);
       }
       output.writeInt32(4, this.maxUnacked);
       super.writeTo(output);
@@ -4172,13 +4352,13 @@ public interface Protocol {
       int size = super.computeSerializedSize();
       size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeBoolSize(1, this.open);
-      if (this.anc != false) {
+      if (this.ancEnabled != false) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeBoolSize(2, this.anc);
+            .computeBoolSize(2, this.ancEnabled);
       }
-      if (this.ec != false) {
+      if (this.ecEnabled != false) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeBoolSize(3, this.ec);
+            .computeBoolSize(3, this.ecEnabled);
       }
       size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeInt32Size(4, this.maxUnacked);
@@ -4186,7 +4366,7 @@ public interface Protocol {
     }
 
     @Override
-    public MicRequest mergeFrom(
+    public MicrophoneRequest mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -4205,11 +4385,11 @@ public interface Protocol {
             break;
           }
           case 16: {
-            this.anc = input.readBool();
+            this.ancEnabled = input.readBool();
             break;
           }
           case 24: {
-            this.ec = input.readBool();
+            this.ecEnabled = input.readBool();
             break;
           }
           case 32: {
@@ -4220,48 +4400,48 @@ public interface Protocol {
       }
     }
 
-    public static MicRequest parseFrom(byte[] data)
+    public static MicrophoneRequest parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new MicRequest(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new MicrophoneRequest(), data);
     }
 
-    public static MicRequest parseFrom(
+    public static MicrophoneRequest parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new MicRequest().mergeFrom(input);
+      return new MicrophoneRequest().mergeFrom(input);
     }
   }
 
-  public static final class MicResponse extends
+  public static final class MicrophoneResponse extends
       com.google.protobuf.nano.MessageNano {
 
-    private static volatile MicResponse[] _emptyArray;
-    public static MicResponse[] emptyArray() {
+    private static volatile MicrophoneResponse[] _emptyArray;
+    public static MicrophoneResponse[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new MicResponse[0];
+            _emptyArray = new MicrophoneResponse[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // required int32 session = 1;
-    public int session;
+    // optional int32 status = 1;
+    public int status;
 
-    // required uint32 value = 2;
-    public int value;
+    // optional uint32 session_id = 2;
+    public int sessionId;
 
-    public MicResponse() {
+    public MicrophoneResponse() {
       clear();
     }
 
-    public MicResponse clear() {
-      session = 0;
-      value = 0;
+    public MicrophoneResponse clear() {
+      status = 0;
+      sessionId = 0;
       cachedSize = -1;
       return this;
     }
@@ -4269,23 +4449,31 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      output.writeInt32(1, this.session);
-      output.writeUInt32(2, this.value);
+      if (this.status != 0) {
+        output.writeInt32(1, this.status);
+      }
+      if (this.sessionId != 0) {
+        output.writeUInt32(2, this.sessionId);
+      }
       super.writeTo(output);
     }
 
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeInt32Size(1, this.session);
-      size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeUInt32Size(2, this.value);
+      if (this.status != 0) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt32Size(1, this.status);
+      }
+      if (this.sessionId != 0) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeUInt32Size(2, this.sessionId);
+      }
       return size;
     }
 
     @Override
-    public MicResponse mergeFrom(
+    public MicrophoneResponse mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -4300,26 +4488,26 @@ public interface Protocol {
             break;
           }
           case 8: {
-            this.session = input.readInt32();
+            this.status = input.readInt32();
             break;
           }
           case 16: {
-            this.value = input.readUInt32();
+            this.sessionId = input.readUInt32();
             break;
           }
         }
       }
     }
 
-    public static MicResponse parseFrom(byte[] data)
+    public static MicrophoneResponse parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new MicResponse(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new MicrophoneResponse(), data);
     }
 
-    public static MicResponse parseFrom(
+    public static MicrophoneResponse parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new MicResponse().mergeFrom(input);
+      return new MicrophoneResponse().mergeFrom(input);
     }
   }
 
@@ -4753,32 +4941,32 @@ public interface Protocol {
     }
   }
 
-  public static final class NavigationFocusRequest extends
+  public static final class NavFocusRequestNotification extends
       com.google.protobuf.nano.MessageNano {
 
-    private static volatile NavigationFocusRequest[] _emptyArray;
-    public static NavigationFocusRequest[] emptyArray() {
+    private static volatile NavFocusRequestNotification[] _emptyArray;
+    public static NavFocusRequestNotification[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new NavigationFocusRequest[0];
+            _emptyArray = new NavFocusRequestNotification[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // optional uint32 focus_type = 1;
+    // optional .ca.yyx.hu.aap.protocol.NavFocusType focus_type = 1;
     public int focusType;
 
-    public NavigationFocusRequest() {
+    public NavFocusRequestNotification() {
       clear();
     }
 
-    public NavigationFocusRequest clear() {
-      focusType = 0;
+    public NavFocusRequestNotification clear() {
+      focusType = ca.yyx.hu.aap.protocol.nano.Protocol.NAV_FOCUS_1;
       cachedSize = -1;
       return this;
     }
@@ -4786,8 +4974,8 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.focusType != 0) {
-        output.writeUInt32(1, this.focusType);
+      if (this.focusType != ca.yyx.hu.aap.protocol.nano.Protocol.NAV_FOCUS_1) {
+        output.writeInt32(1, this.focusType);
       }
       super.writeTo(output);
     }
@@ -4795,15 +4983,15 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.focusType != 0) {
+      if (this.focusType != ca.yyx.hu.aap.protocol.nano.Protocol.NAV_FOCUS_1) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeUInt32Size(1, this.focusType);
+          .computeInt32Size(1, this.focusType);
       }
       return size;
     }
 
     @Override
-    public NavigationFocusRequest mergeFrom(
+    public NavFocusRequestNotification mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -4818,51 +5006,57 @@ public interface Protocol {
             break;
           }
           case 8: {
-            this.focusType = input.readUInt32();
+            int value = input.readInt32();
+            switch (value) {
+              case ca.yyx.hu.aap.protocol.nano.Protocol.NAV_FOCUS_1:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.NAV_FOCUS_2:
+                this.focusType = value;
+                break;
+            }
             break;
           }
         }
       }
     }
 
-    public static NavigationFocusRequest parseFrom(byte[] data)
+    public static NavFocusRequestNotification parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new NavigationFocusRequest(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new NavFocusRequestNotification(), data);
     }
 
-    public static NavigationFocusRequest parseFrom(
+    public static NavFocusRequestNotification parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new NavigationFocusRequest().mergeFrom(input);
+      return new NavFocusRequestNotification().mergeFrom(input);
     }
   }
 
-  public static final class NavigationFocusResponse extends
+  public static final class NavFocusNotification extends
       com.google.protobuf.nano.MessageNano {
 
-    private static volatile NavigationFocusResponse[] _emptyArray;
-    public static NavigationFocusResponse[] emptyArray() {
+    private static volatile NavFocusNotification[] _emptyArray;
+    public static NavFocusNotification[] emptyArray() {
       // Lazily initializes the empty array
       if (_emptyArray == null) {
         synchronized (
             com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
           if (_emptyArray == null) {
-            _emptyArray = new NavigationFocusResponse[0];
+            _emptyArray = new NavFocusNotification[0];
           }
         }
       }
       return _emptyArray;
     }
 
-    // optional uint32 focus_type = 1;
+    // optional .ca.yyx.hu.aap.protocol.NavFocusType focus_type = 1;
     public int focusType;
 
-    public NavigationFocusResponse() {
+    public NavFocusNotification() {
       clear();
     }
 
-    public NavigationFocusResponse clear() {
-      focusType = 0;
+    public NavFocusNotification clear() {
+      focusType = ca.yyx.hu.aap.protocol.nano.Protocol.NAV_FOCUS_1;
       cachedSize = -1;
       return this;
     }
@@ -4870,8 +5064,8 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.focusType != 0) {
-        output.writeUInt32(1, this.focusType);
+      if (this.focusType != ca.yyx.hu.aap.protocol.nano.Protocol.NAV_FOCUS_1) {
+        output.writeInt32(1, this.focusType);
       }
       super.writeTo(output);
     }
@@ -4879,15 +5073,15 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.focusType != 0) {
+      if (this.focusType != ca.yyx.hu.aap.protocol.nano.Protocol.NAV_FOCUS_1) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeUInt32Size(1, this.focusType);
+          .computeInt32Size(1, this.focusType);
       }
       return size;
     }
 
     @Override
-    public NavigationFocusResponse mergeFrom(
+    public NavFocusNotification mergeFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       while (true) {
@@ -4902,22 +5096,28 @@ public interface Protocol {
             break;
           }
           case 8: {
-            this.focusType = input.readUInt32();
+            int value = input.readInt32();
+            switch (value) {
+              case ca.yyx.hu.aap.protocol.nano.Protocol.NAV_FOCUS_1:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.NAV_FOCUS_2:
+                this.focusType = value;
+                break;
+            }
             break;
           }
         }
       }
     }
 
-    public static NavigationFocusResponse parseFrom(byte[] data)
+    public static NavFocusNotification parseFrom(byte[] data)
         throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-      return com.google.protobuf.nano.MessageNano.mergeFrom(new NavigationFocusResponse(), data);
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new NavFocusNotification(), data);
     }
 
-    public static NavigationFocusResponse parseFrom(
+    public static NavFocusNotification parseFrom(
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
-      return new NavigationFocusResponse().mergeFrom(input);
+      return new NavFocusNotification().mergeFrom(input);
     }
   }
 

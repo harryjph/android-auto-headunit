@@ -124,7 +124,7 @@ class AapControl {
         return 0;
     }
 
-    private int audio_sink_stop_request(int chan, byte[] buf, int len) {                  // 08-22 20:03:09.075 D/ .... hex_dump(30767): S 4 AUD b 00000000 08 00 10 01   Only at stop ??
+    private int audio_sink_stop_request(int chan, byte[] buf, int len) {
         if (len != 2)//4 || buf [2] != 0x08)
             AppLog.e("Audio Sink Stop Request");
         else
@@ -184,10 +184,10 @@ class AapControl {
                 Protocol.PingRequest pingRequest = parse(new Protocol.PingRequest(), message);
                 return ping_request(pingRequest, message.channel, message.data);
             case 0x0d:
-                Protocol.NavigationFocusRequest navigationFocusRequest = parse(new Protocol.NavigationFocusRequest(), message);
+                Protocol.NavFocusRequestNotification navigationFocusRequest = parse(new Protocol.NavFocusRequestNotification(), message);
                 return navigation_focus_request(navigationFocusRequest, message.channel, message.data);
             case 0x0f:
-                Protocol.ShutdownRequest shutdownRequest = parse(new Protocol.ShutdownRequest(), message);
+                Protocol.ByeByeRequest shutdownRequest = parse(new Protocol.ByeByeRequest(), message);
                 return byebye_request(shutdownRequest, message.channel, message.data);
             case 0x10:
                 AppLog.i("Byebye Response");                                         // R 0 CTR b src: AA  lft:     0  msg_type:    16 Byebye Response
@@ -326,11 +326,11 @@ class AapControl {
         return mTransport.sendEncrypted(channel, buf, response.getSerializedSize() + 2);
     }
 
-    private int navigation_focus_request(Protocol.NavigationFocusRequest request, int channel, byte[] buf) {
+    private int navigation_focus_request(Protocol.NavFocusRequestNotification request, int channel, byte[] buf) {
         AppLog.i("Navigation Focus Request: %d", request.focusType);
         // Send Navigation Focus Notification
-        Protocol.NavigationFocusResponse response = new Protocol.NavigationFocusResponse();
-        response.focusType = 2;
+        Protocol.NavFocusNotification response = new Protocol.NavFocusNotification();
+        response.focusType = Protocol.NAV_FOCUS_2;
         buf[0] = 0;
         buf[1] = 14;
         write(response, buf, 2);
@@ -338,7 +338,7 @@ class AapControl {
         return 0;
     }
 
-    private int byebye_request(Protocol.ShutdownRequest request, int channel, byte[] buf) {                  // Byebye Request
+    private int byebye_request(Protocol.ByeByeRequest request, int channel, byte[] buf) {                  // Byebye Request
         if (request.reason == 1)
             AppLog.i("Byebye Request reason: 1 AA Exit Car Mode");
         else

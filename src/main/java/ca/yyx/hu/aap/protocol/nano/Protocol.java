@@ -26,10 +26,6 @@ public interface Protocol {
   public static final int STREAM_TYPE_AUDIO = 1;
   public static final int STREAM_TYPE_VIDEO = 3;
 
-  // enum BLUETOOTH_PARING_METHOD
-  public static final int BLUETOOTH_PARING_METHOD_2 = 2;
-  public static final int BLUETOOTH_PARING_METHOD_3 = 3;
-
   // enum VideoFocusMode
   public static final int VIDEO_FOCUS_MODE_1 = 1;
   public static final int VIDEO_FOCUS_MODE_2 = 2;
@@ -2430,6 +2426,12 @@ public interface Protocol {
     public static final class BluetoothService extends
         com.google.protobuf.nano.MessageNano {
 
+      // enum BluetoothPairingMethod
+      public static final int BLUETOOTH_PARING_METHOD_1 = 1;
+      public static final int BLUETOOTH_PARING_METHOD_2 = 2;
+      public static final int BLUETOOTH_PARING_METHOD_3 = 3;
+      public static final int BLUETOOTH_PARING_METHOD_4 = 4;
+
       private static volatile BluetoothService[] _emptyArray;
       public static BluetoothService[] emptyArray() {
         // Lazily initializes the empty array
@@ -2447,7 +2449,7 @@ public interface Protocol {
       // required string car_address = 1;
       public java.lang.String carAddress;
 
-      // repeated .ca.yyx.hu.aap.protocol.BLUETOOTH_PARING_METHOD supported_pairing_methods = 2;
+      // repeated .ca.yyx.hu.aap.protocol.Service.BluetoothService.BluetoothPairingMethod supported_pairing_methods = 2;
       public int[] supportedPairingMethods;
 
       public BluetoothService() {
@@ -2521,8 +2523,10 @@ public interface Protocol {
                 }
                 int value = input.readInt32();
                 switch (value) {
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.BLUETOOTH_PARING_METHOD_2:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.BLUETOOTH_PARING_METHOD_3:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_1:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_2:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_3:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_4:
                     validValues[validCount++] = value;
                     break;
                 }
@@ -2550,8 +2554,10 @@ public interface Protocol {
               int startPos = input.getPosition();
               while (input.getBytesUntilLimit() > 0) {
                 switch (input.readInt32()) {
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.BLUETOOTH_PARING_METHOD_2:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.BLUETOOTH_PARING_METHOD_3:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_1:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_2:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_3:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_4:
                     arrayLength++;
                     break;
                 }
@@ -2566,8 +2572,10 @@ public interface Protocol {
                 while (input.getBytesUntilLimit() > 0) {
                   int value = input.readInt32();
                   switch (value) {
-                    case ca.yyx.hu.aap.protocol.nano.Protocol.BLUETOOTH_PARING_METHOD_2:
-                    case ca.yyx.hu.aap.protocol.nano.Protocol.BLUETOOTH_PARING_METHOD_3:
+                    case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_1:
+                    case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_2:
+                    case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_3:
+                    case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_4:
                       newArray[i++] = value;
                       break;
                   }

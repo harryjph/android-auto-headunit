@@ -40,7 +40,7 @@ public class App extends Application implements AapTransport.Listener {
     public AapTransport transport()
     {
         if (mTransport == null) {
-            String btMacAddress =  BluetoothAdapter.getDefaultAdapter().getAddress();
+            String btMacAddress = "40:EF:4C:A3:CB:A5";// BluetoothAdapter.getDefaultAdapter().getAddress();
             if ("02:00:00:00:00:00".equals(btMacAddress)) {
                 btMacAddress = android.provider.Settings.Secure.getString(getContentResolver(), "bluetooth_address");
             }

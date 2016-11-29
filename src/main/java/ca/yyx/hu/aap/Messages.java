@@ -227,7 +227,7 @@ public class Messages {
         bluetooth.id = Channel.AA_CH_BTH;
         bluetooth.bluetoothService = new Service.BluetoothService();
         bluetooth.bluetoothService.carAddress = btAddress;
-        bluetooth.bluetoothService.supportedPairingMethods = new int[] { 1 };
+        bluetooth.bluetoothService.supportedPairingMethods = new int[] { 2, 3 };
 
         byte[] result = new byte[carInfo.getSerializedSize() + 2];
         // Header

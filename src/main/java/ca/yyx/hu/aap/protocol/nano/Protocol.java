@@ -892,7 +892,7 @@ public interface Protocol {
         return _emptyArray;
       }
 
-      // optional int64 timestamp = 1;
+      // optional uint64 timestamp = 1;
       public long timestamp;
 
       // optional int32 latitude = 2;
@@ -901,7 +901,7 @@ public interface Protocol {
       // optional int32 longitude = 3;
       public int longitude;
 
-      // optional int32 accuracy = 4;
+      // optional uint32 accuracy = 4;
       public int accuracy;
 
       // optional int32 altitude = 5;
@@ -933,7 +933,7 @@ public interface Protocol {
       public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
           throws java.io.IOException {
         if (this.timestamp != 0L) {
-          output.writeInt64(1, this.timestamp);
+          output.writeUInt64(1, this.timestamp);
         }
         if (this.latitude != 0) {
           output.writeInt32(2, this.latitude);
@@ -942,7 +942,7 @@ public interface Protocol {
           output.writeInt32(3, this.longitude);
         }
         if (this.accuracy != 0) {
-          output.writeInt32(4, this.accuracy);
+          output.writeUInt32(4, this.accuracy);
         }
         if (this.altitude != 0) {
           output.writeInt32(5, this.altitude);
@@ -961,7 +961,7 @@ public interface Protocol {
         int size = super.computeSerializedSize();
         if (this.timestamp != 0L) {
           size += com.google.protobuf.nano.CodedOutputByteBufferNano
-              .computeInt64Size(1, this.timestamp);
+              .computeUInt64Size(1, this.timestamp);
         }
         if (this.latitude != 0) {
           size += com.google.protobuf.nano.CodedOutputByteBufferNano
@@ -973,7 +973,7 @@ public interface Protocol {
         }
         if (this.accuracy != 0) {
           size += com.google.protobuf.nano.CodedOutputByteBufferNano
-              .computeInt32Size(4, this.accuracy);
+              .computeUInt32Size(4, this.accuracy);
         }
         if (this.altitude != 0) {
           size += com.google.protobuf.nano.CodedOutputByteBufferNano
@@ -1006,7 +1006,7 @@ public interface Protocol {
               break;
             }
             case 8: {
-              this.timestamp = input.readInt64();
+              this.timestamp = input.readUInt64();
               break;
             }
             case 16: {
@@ -1018,7 +1018,7 @@ public interface Protocol {
               break;
             }
             case 32: {
-              this.accuracy = input.readInt32();
+              this.accuracy = input.readUInt32();
               break;
             }
             case 40: {
@@ -1711,61 +1711,61 @@ public interface Protocol {
     public static final class MediaSinkService extends
         com.google.protobuf.nano.MessageNano {
 
-      public static final class VideoConfig extends
+      public static final class VideoConfiguration extends
           com.google.protobuf.nano.MessageNano {
 
-        // enum VIDEO_RESOLUTION
+        // enum VideoCodecResolutionType
         public static final int VIDEO_RESOLUTION_800x480 = 1;
         public static final int VIDEO_RESOLUTION_1280x720 = 2;
         public static final int VIDEO_RESOLUTION_1920x1080 = 3;
 
-        // enum VIDEO_FPS
+        // enum VideoFrameRateType
         public static final int VIDEO_FPS_30 = 1;
         public static final int VIDEO_FPS_60 = 2;
 
-        private static volatile VideoConfig[] _emptyArray;
-        public static VideoConfig[] emptyArray() {
+        private static volatile VideoConfiguration[] _emptyArray;
+        public static VideoConfiguration[] emptyArray() {
           // Lazily initializes the empty array
           if (_emptyArray == null) {
             synchronized (
                 com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
               if (_emptyArray == null) {
-                _emptyArray = new VideoConfig[0];
+                _emptyArray = new VideoConfiguration[0];
               }
             }
           }
           return _emptyArray;
         }
 
-        // required .ca.yyx.hu.aap.protocol.Service.MediaSinkService.VideoConfig.VIDEO_RESOLUTION resolution = 1;
-        public int resolution;
+        // optional .ca.yyx.hu.aap.protocol.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType codec_resolution = 1;
+        public int codecResolution;
 
-        // required .ca.yyx.hu.aap.protocol.Service.MediaSinkService.VideoConfig.VIDEO_FPS frame_rate = 2;
+        // optional .ca.yyx.hu.aap.protocol.Service.MediaSinkService.VideoConfiguration.VideoFrameRateType frame_rate = 2;
         public int frameRate;
 
-        // required uint32 margin_width = 3;
+        // optional uint32 margin_width = 3;
         public int marginWidth;
 
-        // required uint32 margin_height = 4;
+        // optional uint32 margin_height = 4;
         public int marginHeight;
 
-        // required uint32 dpi = 5;
-        public int dpi;
+        // optional uint32 density = 5;
+        public int density;
 
-        // optional uint32 additional_depth = 6;
-        public int additionalDepth;
+        // optional uint32 decoder_additional_depth = 6;
+        public int decoderAdditionalDepth;
 
-        public VideoConfig() {
+        public VideoConfiguration() {
           clear();
         }
 
-        public VideoConfig clear() {
-          resolution = ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig.VIDEO_RESOLUTION_800x480;
-          frameRate = ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig.VIDEO_FPS_30;
+        public VideoConfiguration clear() {
+          codecResolution = ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_RESOLUTION_800x480;
+          frameRate = ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_FPS_30;
           marginWidth = 0;
           marginHeight = 0;
-          dpi = 0;
-          additionalDepth = 0;
+          density = 0;
+          decoderAdditionalDepth = 0;
           cachedSize = -1;
           return this;
         }
@@ -1773,13 +1773,23 @@ public interface Protocol {
         @Override
         public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
             throws java.io.IOException {
-          output.writeInt32(1, this.resolution);
-          output.writeInt32(2, this.frameRate);
-          output.writeUInt32(3, this.marginWidth);
-          output.writeUInt32(4, this.marginHeight);
-          output.writeUInt32(5, this.dpi);
-          if (this.additionalDepth != 0) {
-            output.writeUInt32(6, this.additionalDepth);
+          if (this.codecResolution != ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_RESOLUTION_800x480) {
+            output.writeInt32(1, this.codecResolution);
+          }
+          if (this.frameRate != ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_FPS_30) {
+            output.writeInt32(2, this.frameRate);
+          }
+          if (this.marginWidth != 0) {
+            output.writeUInt32(3, this.marginWidth);
+          }
+          if (this.marginHeight != 0) {
+            output.writeUInt32(4, this.marginHeight);
+          }
+          if (this.density != 0) {
+            output.writeUInt32(5, this.density);
+          }
+          if (this.decoderAdditionalDepth != 0) {
+            output.writeUInt32(6, this.decoderAdditionalDepth);
           }
           super.writeTo(output);
         }
@@ -1787,25 +1797,35 @@ public interface Protocol {
         @Override
         protected int computeSerializedSize() {
           int size = super.computeSerializedSize();
-          size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeInt32Size(1, this.resolution);
-          size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeInt32Size(2, this.frameRate);
-          size += com.google.protobuf.nano.CodedOutputByteBufferNano
-              .computeUInt32Size(3, this.marginWidth);
-          size += com.google.protobuf.nano.CodedOutputByteBufferNano
-              .computeUInt32Size(4, this.marginHeight);
-          size += com.google.protobuf.nano.CodedOutputByteBufferNano
-              .computeUInt32Size(5, this.dpi);
-          if (this.additionalDepth != 0) {
+          if (this.codecResolution != ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_RESOLUTION_800x480) {
             size += com.google.protobuf.nano.CodedOutputByteBufferNano
-                .computeUInt32Size(6, this.additionalDepth);
+              .computeInt32Size(1, this.codecResolution);
+          }
+          if (this.frameRate != ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_FPS_30) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(2, this.frameRate);
+          }
+          if (this.marginWidth != 0) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+                .computeUInt32Size(3, this.marginWidth);
+          }
+          if (this.marginHeight != 0) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+                .computeUInt32Size(4, this.marginHeight);
+          }
+          if (this.density != 0) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+                .computeUInt32Size(5, this.density);
+          }
+          if (this.decoderAdditionalDepth != 0) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+                .computeUInt32Size(6, this.decoderAdditionalDepth);
           }
           return size;
         }
 
         @Override
-        public VideoConfig mergeFrom(
+        public VideoConfiguration mergeFrom(
                 com.google.protobuf.nano.CodedInputByteBufferNano input)
             throws java.io.IOException {
           while (true) {
@@ -1822,10 +1842,10 @@ public interface Protocol {
               case 8: {
                 int value = input.readInt32();
                 switch (value) {
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig.VIDEO_RESOLUTION_800x480:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig.VIDEO_RESOLUTION_1280x720:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig.VIDEO_RESOLUTION_1920x1080:
-                    this.resolution = value;
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_RESOLUTION_800x480:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_RESOLUTION_1280x720:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_RESOLUTION_1920x1080:
+                    this.codecResolution = value;
                     break;
                 }
                 break;
@@ -1833,8 +1853,8 @@ public interface Protocol {
               case 16: {
                 int value = input.readInt32();
                 switch (value) {
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig.VIDEO_FPS_30:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig.VIDEO_FPS_60:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_FPS_30:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.VIDEO_FPS_60:
                     this.frameRate = value;
                     break;
                 }
@@ -1849,26 +1869,26 @@ public interface Protocol {
                 break;
               }
               case 40: {
-                this.dpi = input.readUInt32();
+                this.density = input.readUInt32();
                 break;
               }
               case 48: {
-                this.additionalDepth = input.readUInt32();
+                this.decoderAdditionalDepth = input.readUInt32();
                 break;
               }
             }
           }
         }
 
-        public static VideoConfig parseFrom(byte[] data)
+        public static VideoConfiguration parseFrom(byte[] data)
             throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-          return com.google.protobuf.nano.MessageNano.mergeFrom(new VideoConfig(), data);
+          return com.google.protobuf.nano.MessageNano.mergeFrom(new VideoConfiguration(), data);
         }
 
-        public static VideoConfig parseFrom(
+        public static VideoConfiguration parseFrom(
                 com.google.protobuf.nano.CodedInputByteBufferNano input)
             throws java.io.IOException {
-          return new VideoConfig().mergeFrom(input);
+          return new VideoConfiguration().mergeFrom(input);
         }
       }
 
@@ -1895,8 +1915,8 @@ public interface Protocol {
       // repeated .ca.yyx.hu.aap.protocol.AudioConfiguration audio_configs = 3;
       public ca.yyx.hu.aap.protocol.nano.Protocol.AudioConfiguration[] audioConfigs;
 
-      // repeated .ca.yyx.hu.aap.protocol.Service.MediaSinkService.VideoConfig video_configs = 4;
-      public ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig[] videoConfigs;
+      // repeated .ca.yyx.hu.aap.protocol.Service.MediaSinkService.VideoConfiguration video_configs = 4;
+      public ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration[] videoConfigs;
 
       // optional bool available_while_in_call = 5;
       public boolean availableWhileInCall;
@@ -1909,7 +1929,7 @@ public interface Protocol {
         availableType = ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO;
         audioType = ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SPEECH;
         audioConfigs = ca.yyx.hu.aap.protocol.nano.Protocol.AudioConfiguration.emptyArray();
-        videoConfigs = ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig.emptyArray();
+        videoConfigs = ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.emptyArray();
         availableWhileInCall = false;
         cachedSize = -1;
         return this;
@@ -1934,7 +1954,7 @@ public interface Protocol {
         }
         if (this.videoConfigs != null && this.videoConfigs.length > 0) {
           for (int i = 0; i < this.videoConfigs.length; i++) {
-            ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig element = this.videoConfigs[i];
+            ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration element = this.videoConfigs[i];
             if (element != null) {
               output.writeMessage(4, element);
             }
@@ -1968,7 +1988,7 @@ public interface Protocol {
         }
         if (this.videoConfigs != null && this.videoConfigs.length > 0) {
           for (int i = 0; i < this.videoConfigs.length; i++) {
-            ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig element = this.videoConfigs[i];
+            ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration element = this.videoConfigs[i];
             if (element != null) {
               size += com.google.protobuf.nano.CodedOutputByteBufferNano
                 .computeMessageSize(4, element);
@@ -2043,18 +2063,18 @@ public interface Protocol {
               int arrayLength = com.google.protobuf.nano.WireFormatNano
                   .getRepeatedFieldArrayLength(input, 34);
               int i = this.videoConfigs == null ? 0 : this.videoConfigs.length;
-              ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig[] newArray =
-                  new ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig[i + arrayLength];
+              ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration[] newArray =
+                  new ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration[i + arrayLength];
               if (i != 0) {
                 java.lang.System.arraycopy(this.videoConfigs, 0, newArray, 0, i);
               }
               for (; i < newArray.length - 1; i++) {
-                newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig();
+                newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration();
                 input.readMessage(newArray[i]);
                 input.readTag();
               }
               // Last one without readTag.
-              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfig();
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration();
               input.readMessage(newArray[i]);
               this.videoConfigs = newArray;
               break;

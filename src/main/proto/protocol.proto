@@ -77,10 +77,10 @@ message SensorBatch
 {
     message LocationData
     {
-        optional int64 timestamp = 1;
+        optional uint64 timestamp = 1;
         optional int32 latitude = 2;
         optional int32 longitude = 3;
-        optional int32 accuracy = 4;
+        optional uint32 accuracy = 4;
         optional int32 altitude = 5;
         optional int32 speed = 6;
         optional int32 bearing = 7;

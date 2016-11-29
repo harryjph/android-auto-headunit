@@ -2,6 +2,54 @@ syntax = "proto2";
 
 package ca.yyx.hu.aap.protocol;
 
+enum MessageTypeControl
+{
+    MSG_TYPE_MEDIADATA0 = 0x00;
+    MSG_TYPE_CODECDATA1 = 0x01;
+    MSG_TYPE_VERSIONRESPONSE = 0x02;
+    MSG_TYPE_SSLHANDSHAKE = 0x03;
+    MSG_TYPE_SERVICEDISCOVERYREQUEST = 0x05;
+    MSG_TYPE_SERVICEDISCOVERYRESPONSE = 0x06;
+    MSG_TYPE_CHANNELOPENREQUEST = 0x07;
+    MSG_TYPE_CHANNELOPENRESPONSE = 0x08;
+    MSG_TYPE_PINGREQUEST = 0x0B;
+    MSG_TYPE_PINGRESPONSE = 0x0C;
+    MSG_TYPE_NAVFOCUSREQUESTNOTIFICATION = 0x0D;
+    MSG_TYPE_NAVFOCUSRNOTIFICATION = 0x0E;
+    MSG_TYPE_BYEYEREQUEST = 0x0F;
+    MSG_TYPE_SHUTDOWNRESPONSE = 0x10;
+    MSG_TYPE_VOICESESSIONNOTIFICATION = 0x11;
+    MSG_TYPE_AUDIOFOCUSREQUESTNOTFICATION = 0x12;
+    MSG_TYPE_AUDIOFOCUSNOTFICATION = 0x13;
+};                                                                                                                           // If video data, put on queue
+
+enum MessageTypeMedia
+{
+    MSG_TYPE_MEDIASETUPREQUEST = 0x8000;
+    MSG_TYPE_MEDIASTARTREQUEST = 0x8001;
+    MSG_TYPE_MEDIASTOPREQUEST = 0x8002;
+    MSG_TYPE_MEDIASETUPRESPONSE = 0x8003;
+    MSG_TYPE_ACK = 0x8004;
+    MSG_TYPE_MICREQUEST = 0x8005;
+    MSG_TYPE_MICREPONSE = 0x8006;
+    MSG_TYPE_VIDEOFOCUSREQUESTNOTIFICATION = 0x8007;
+    MSG_TYPE_VIDEOFOCUSNOTIFICATION = 0x8008;
+};
+
+enum MessageTypeSensor
+{
+    MSG_TYPE_SENSORSTARTREQUEST = 0x8001;
+    MSG_TYPE_SENSORSTARTRESPONSE = 0x8002;
+    MSG_TYPE_SENSOREVENT = 0x8003;
+};
+
+enum MessageTypeInput
+{
+    MSG_TYPE_INPUTEVENT = 0x8001;
+    MSG_TYPE_INPUTBINDINGREQUEST = 0x8002;
+    MSG_TYPE_INPUTBINDINGRESPONSE = 0x8003;
+};
+
 enum MessageStatus
 {
     STATUS_OK = 0;
@@ -91,7 +139,12 @@ message SensorBatch
     }
     message DrivingStatus
     {
-        required int32 is_driving = 1;
+        enum Status
+        {
+            DRIVING_STATUS_PARKED = 0;
+            DRIVING_STATUS_MOOVING = 1;
+        }
+        required int32 status = 1;
     }
 
     repeated LocationData location_data = 1;

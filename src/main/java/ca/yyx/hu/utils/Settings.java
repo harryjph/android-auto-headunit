@@ -48,4 +48,8 @@ public class Settings {
     public void setNetworkAddresses(Set<String> addrs) {
         mPrefs.edit().putStringSet("network-addresses", addrs).apply();
     }
+
+    public String getBluetoothAddress() {
+        return mPrefs.getString("bt-address", "40:EF:4C:A3:CB:A5");
+    }
 }

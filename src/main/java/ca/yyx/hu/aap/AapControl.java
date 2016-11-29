@@ -18,7 +18,6 @@ import static android.R.id.paste;
  */
 
 class AapControl {
-    private static final int MSG_TYPE_2 = 32768;
     private final AapTransport mTransport;
     private final AapAudio mAapAudio;
     private final String mBtMacAddress;
@@ -44,7 +43,7 @@ class AapControl {
             case Channel.AA_CH_TOU:
                 return executeTouch(message.channel, message.type, message.data, message.length);
             case Channel.AA_CH_SEN:
-                return executeSensor(message.channel, message.type, message.data, message.length);
+                return executeSensor(message);
             case Channel.AA_CH_VID:
                 return executeVideo(message.channel, message.type, message.data, message.length);
             case Channel.AA_CH_AUD:
@@ -60,11 +59,11 @@ class AapControl {
     private int executeMicrophone(int chan, int msg_type, byte[] buf, int len) {
         switch (msg_type)
         {
-            case MSG_TYPE_2 + 0x01:
+            case Protocol.MSG_TYPE_MEDIASTARTREQUEST:
                 return mic_start_request(chan, buf, len);
-            case MSG_TYPE_2 + 0x04:
+            case Protocol.MSG_TYPE_ACK:
                 return mic_ack(chan, buf, len);
-            case MSG_TYPE_2 + 0x05:
+            case Protocol.MSG_TYPE_MICREQUEST:
                 return mic_switch_request(chan, buf, len);
             default:
                 AppLog.e("Unsupported");
@@ -75,11 +74,11 @@ class AapControl {
     private int executeAudio(int chan, int msg_type, byte[] buf, int len) {
         switch (msg_type)
         {
-            case MSG_TYPE_2:// + 0x00:
+            case Protocol.MSG_TYPE_MEDIASETUPREQUEST:// + 0x00:
                 return media_sink_setup_request(chan, buf, len);
-            case MSG_TYPE_2 + 0x01:
+            case Protocol.MSG_TYPE_MEDIASTARTREQUEST:
                 return audio_sink_start_request(chan, buf, len);
-            case MSG_TYPE_2 + 0x02:
+            case Protocol.MSG_TYPE_MEDIASTOPREQUEST:
                 return audio_sink_stop_request(chan, buf, len);
             default:
                 AppLog.e("Unsupported");
@@ -137,7 +136,7 @@ class AapControl {
 
         switch (msg_type)
         {
-            case MSG_TYPE_2 + 0x02:
+            case Protocol.MSG_TYPE_SENSORSTARTRESPONSE:
                 return aa_pro_tou_b02(chan, buf, len);
             default:
                 AppLog.e("Unsupported");
@@ -149,11 +148,11 @@ class AapControl {
 
         switch (msg_type)
         {
-            case MSG_TYPE_2:// + 0x00:
+            case Protocol.MSG_TYPE_MEDIASETUPREQUEST:// + 0x00:
                 return media_sink_setup_request(chan, buf, len);
-            case MSG_TYPE_2 + 0x01:
+            case Protocol.MSG_TYPE_MEDIASTARTREQUEST:
                 return video_start_request(chan, buf, len);
-            case MSG_TYPE_2 + 0x07:
+            case Protocol.MSG_TYPE_VIDEOFOCUSREQUESTNOTIFICATION:
                 return aa_pro_vid_b07(chan, buf, len);
             default:
                 AppLog.e("Unsupported");
@@ -161,12 +160,13 @@ class AapControl {
         return 0;
     }
 
-    private int executeSensor(int chan, int msg_type, byte[] buf, int len) {
+    private int executeSensor(AapMessage message) throws InvalidProtocolBufferNanoException {
         // 0 - 31, 32768-32799, 65504-65535
-        switch (msg_type)
+        switch (message.type)
         {
-            case MSG_TYPE_2 + 0x01:
-                return sensor_start_request(chan, buf, len);
+            case Protocol.MSG_TYPE_SENSORSTARTREQUEST:
+                Protocol.SensorRequest request = parse(new Protocol.SensorRequest(), message);
+                return sensor_start_request(request, message.channel, message.data);
             default:
                 AppLog.e("Unsupported");
         }
@@ -273,15 +273,14 @@ class AapControl {
         return (ret);
     }
 
-    private int sensor_start_request(int chan, byte[] buf, int len) {                  // Sensor Start Request...
-        if (len != 6 || buf[2] != 0x08 || buf[4] != 0x10)
-            AppLog.e("Sensor Start Request");
-        else
-            AppLog.i("Sensor Start Request sensor: %d   period: %d", buf[3], buf[5]);
+    private int sensor_start_request(Protocol.SensorRequest request, int channel, byte[] buf) {
+         AppLog.i("Sensor Start Request sensor: %d, minUpdatePeriod: %d", request.type, request.minUpdatePeriod);
+
+
         // R 1 SEN b 00000000 08 01 10 00     Sen: 1, 10, 3, 8, 7
         // Yes: SENSOR_TYPE_COMPASS/LOCATION/RPM/DIAGNOSTICS/GEAR      No: SENSOR_TYPE_DRIVING_STATUS
         byte rsp[] = {(byte) 0x80, 0x02, 0x08, 0};
-        int ret = mTransport.sendEncrypted(chan, rsp, rsp.length);
+        int ret = mTransport.sendEncrypted(channel, rsp, rsp.length);
         // Send Sensor Start Response
         return (ret);
     }
@@ -299,9 +298,11 @@ class AapControl {
         int ret = mTransport.sendEncrypted(channel, buf, response.getSerializedSize() + 2);
         AppLog.i("Channel Open Response: %d", ret);
 
-        if (request.serviceId == Channel.AA_CH_SEN) {                                            // If Sensor channel...
+        if (request.serviceId == Channel.AA_CH_SEN) {
+            // If Sensor channel...
             Utils.ms_sleep(2);//20);
-            return mTransport.sendEncrypted(Channel.AA_CH_SEN, Messages.DRIVING_STATUS, Messages.DRIVING_STATUS.length);           // Send Sensor Notification
+            byte[] ba = Messages.createDrivingStatusEvent(0);
+            return mTransport.sendEncrypted(Channel.AA_CH_SEN, ba, ba.length);
         }
         return 0;
     }

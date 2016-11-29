@@ -1,8 +1,14 @@
 package ca.yyx.hu;
 
+import com.google.protobuf.nano.InvalidProtocolBufferNanoException;
 import com.google.protobuf.nano.MessageNano;
 
+import java.util.Locale;
+
+import ca.yyx.hu.aap.Encode;
+import ca.yyx.hu.aap.Messages;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
+import ca.yyx.hu.utils.ByteArray;
 
 /**
  * @author algavris
@@ -10,43 +16,170 @@ import ca.yyx.hu.aap.protocol.nano.Protocol;
  */
 
 public class Main {
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) throws InvalidProtocolBufferNanoException {
         System.out.println("Main");
 
-        Protocol.Service bluetooth = new Protocol.Service();
-        bluetooth.id = 8;
-        bluetooth.bluetoothService = new Protocol.Service.BluetoothService();
-        bluetooth.bluetoothService.carAddress = "FC:58:FA:12:1A:0D";
-        bluetooth.bluetoothService.supportedPairingMethods = new int[] { 2, 3 };
-        byte[] ba = MessageNano.toByteArray(bluetooth);
 
-        for (int i = 0; i < ba.length; i++) {
-            System.out.print(ba[i]);
-            System.out.print(' ');
-        }
+        //createTouchMessage(System.currentTimeMillis(), 1, 200, 120);
+        //createButtonMessage(System.currentTimeMillis(), 1, true);
+
+        createNightModeMessage(true);
+
+    }
+
+    static byte[] createNightModeMessage(boolean enabled) throws InvalidProtocolBufferNanoException {
+        byte[] buffer = new byte[6];
+
+        buffer[0] = -128;
+        buffer[1] = 0x03;
+        buffer[2] = 0x52;
+        buffer[3] = 0x02;
+        buffer[4] = 0x08;
+        if (enabled)
+            buffer[5] = 0x01;
+        else
+            buffer[5]= 0x00;
+
+
+
+        Protocol.SensorBatch expected = MessageNano.mergeFrom(new Protocol.SensorBatch(), buffer, 2, buffer.length - 2);
+
+        Protocol.SensorBatch sensorBatch = new Protocol.SensorBatch();
+        sensorBatch.nightMode = new Protocol.SensorBatch.NightMode[1];
+        sensorBatch.nightMode[0] = new Protocol.SensorBatch.NightMode();
+        sensorBatch.nightMode[0].isNight = enabled;
+
+        byte[] ba = new byte[sensorBatch.getSerializedSize() + 2];
+        // Header
+        ba[0] = (byte) 0x80;
+        ba[1] = 0x03;
+        MessageNano.toByteArray(sensorBatch, ba, 2, sensorBatch.getSerializedSize());
+
+
+        System.out.println("Actual  : " + sensorBatch.toString());
+        System.out.println("Expected: " + expected.toString());
 
         System.out.println();
-        // 0x12,2,0x02,0x03
+        System.out.println("Bytes:");
+        printByteArray(ba);
+        System.out.println();
+        printByteArray(buffer);
+        return buffer;
+    }
 
-//        00000000 0A 15 08 02 1A 11 08 03 22 0B 08 01 10 02 18 00
-//            0016 20 00 28 A0 01 28 01 12 00 1A 00 22 00 2A 00 30
-//            0032 00 3A 00 42 00 4A 00 52 00 58 00 60 00
+    static ByteArray createButtonMessage(long timeStamp, int button, boolean isPress) throws InvalidProtocolBufferNanoException {
+        ByteArray buffer = new ByteArray(22);
 
-        byte[] ex = { 8, 8, 32, 23, 0x0A, 17, 'F','C',':','5','8',':','F','A',':','1','2',':','1','A',':','0','D',12, 2, 2, 3 };
+        buffer.put(0x80, 0x01, 0x08);
+        int size = Encode.longToByteArray(timeStamp, buffer.data, buffer.length);
+        buffer.move(size);
 
-        for (int i = 0; i < ex.length; i++) {
-            System.out.print(ex[i]);
+        int press = isPress ? 0x01 : 0x00;
+        buffer.put(0x22, 0x0A, 0x0A, 0x08, 0x08, button, 0x10, press, 0x18, 0x00, 0x20, 0x00);
+
+        Protocol.InputReport expected = Protocol.InputReport.mergeFrom(new Protocol.InputReport(), buffer.data, 2, buffer.length - 2);
+
+        Protocol.InputReport inputReport = new Protocol.InputReport();
+        Protocol.KeyEvent keyEvent = new Protocol.KeyEvent();
+        inputReport.timestamp = timeStamp;
+        inputReport.keyEvent = keyEvent;
+
+        keyEvent.keys = new Protocol.Key[1];
+        keyEvent.keys[0] = new Protocol.Key();
+        keyEvent.keys[0].keycode = button;
+        keyEvent.keys[0].down = isPress;
+
+        byte[] ba = new byte[inputReport.getSerializedSize() + 2];
+        // Header
+        ba[0] = (byte) 0x80;
+        ba[1] = 0x01;
+        MessageNano.toByteArray(inputReport, ba, 2, inputReport.getSerializedSize());
+
+
+        System.out.println("Actual  : " + inputReport.toString());
+        System.out.println("Expected: " + expected.toString());
+
+        System.out.println();
+        System.out.println("Bytes:");
+        printByteArray(ba);
+        System.out.println();
+        printByteArray(buffer.data);
+
+        return buffer;
+    }
+
+    static ByteArray createTouchMessage(long timeStamp, int action, int x, int y) throws InvalidProtocolBufferNanoException {
+
+
+        ByteArray buffer = new ByteArray(32);
+
+        buffer.put(0x80, 0x01, 0x08);
+
+        int size = Encode.longToByteArray(timeStamp, buffer.data, buffer.length);          // Encode timestamp
+        buffer.move(size);
+
+        int size1_idx = buffer.length + 1;
+        int size2_idx = buffer.length + 3;
+
+        buffer.put(0x1a, 0x09, 0x0a, 0x03);
+
+        /* Set magnitude of each axis */
+        byte axis = 0;
+        int[] coordinates = {x, y, 0};
+
+        for (int i=0; i<3; i++) {
+            axis += 0x08; //0x08, 0x10, 0x18
+            buffer.put(axis);
+
+            size = Encode.intToByteArray(coordinates[i], buffer.data, buffer.length);
+            buffer.move(size);
+            buffer.inc(size1_idx, size);
+            buffer.inc(size2_idx, size);
+        }
+        buffer.put(0x10, 0x00, 0x18, action);
+
+        Protocol.InputReport inputReport = new Protocol.InputReport();
+        Protocol.TouchEvent touchEvent = new Protocol.TouchEvent();
+        inputReport.timestamp = timeStamp;
+        inputReport.touchEvent = touchEvent;
+
+        touchEvent.pointerData = new Protocol.TouchEvent.Pointer[1];
+        Protocol.TouchEvent.Pointer pointer = new Protocol.TouchEvent.Pointer();
+        pointer.x = x;
+        pointer.y = y;
+        touchEvent.pointerData[0] = pointer;
+        touchEvent.actionIndex = 0;
+        touchEvent.action = action;
+
+        byte[] ba = new byte[inputReport.getSerializedSize() + 2];
+        // Header
+        ba[0] = (byte) 0x80;
+        ba[1] = 0x01;
+        MessageNano.toByteArray(inputReport, ba, 2, inputReport.getSerializedSize());
+
+        System.out.println("Actual:");
+        printByteArray(ba);
+        System.out.println();
+        printByteArray(buffer.data);
+
+        Protocol.InputReport report1 = Protocol.InputReport.mergeFrom(new Protocol.InputReport(), buffer.data, 2, buffer.length - 2);
+
+
+
+        return buffer;
+    }
+
+    static void printByteArray(byte[] ba)
+    {
+        for (int i = 0; i < ba.length; i++) {
+            String hex = String.format(Locale.US, "%02X", ba[i]);
+            System.out.print(hex);
+//            int pos = (ba[i] >> 3);
+//            if (pos > 0) {
+//                System.out.print("[" + pos + "]");
+//            }
             System.out.print(' ');
         }
-
-        // 12 = 00 1100
-        //  4 = 100
-        //  1 = 1
-
-// Video CHANNEL
-//        0x0A, 0x15, 0x08, 3, 0x1A, 0x11, 0x08, 0x03, 0x22, 0x0D, 0x08, 0x01, 0x10, 0x02, 0x18, 0x00, 0x20, 0x00, 0x28, -96, 0x01, 0x30, 0x00,
-//        0x0A, 18, 0x08, 4, 0x1A, 6+8, 0x08, 1,  0x10, 3, 0x1A, 8, 0x08, -128,   -9, 0x02,   0x10, 0x10,   0x18, 02,
     }
 
 }

@@ -211,19 +211,19 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
     void sendTouch(byte action, int x, int y) {
         long ts = SystemClock.elapsedRealtime() * 1000000L;
-        ByteArray ba = Messages.createTouchMessage(ts, action, x, y);
-        sendEncrypted(Channel.AA_CH_TOU, ba.data, ba.length);
+        byte[] ba = Messages.createTouchEvent(ts, action, x, y);
+        sendEncrypted(Channel.AA_CH_TOU, ba, ba.length);
     }
 
-    public void sendButton(int btnCode, boolean isPress) {
+    public void sendButton(int keyCode, boolean isPress) {
         long ts = SystemClock.elapsedRealtime() * 1000000L;
         // Timestamp in nanoseconds = microseconds x 1,000,000
-        ByteArray ba = Messages.createButtonMessage(ts, btnCode, isPress);
-        sendEncrypted(Channel.AA_CH_TOU, ba.data, ba.length);
+        byte[] ba = Messages.createButtonEvent(ts, keyCode, isPress);
+        sendEncrypted(Channel.AA_CH_TOU, ba, ba.length);
     }
 
     void sendNightMode(boolean enabled) {
-        byte[] modeData = Messages.createNightModeMessage(enabled);
+        byte[] modeData = Messages.createNightModeEvent(enabled);
         sendEncrypted(Channel.AA_CH_SEN, modeData, modeData.length);
     }
 

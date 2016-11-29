@@ -10,6 +10,7 @@ import ca.yyx.hu.aap.AapProjectionActivity;
 import ca.yyx.hu.aap.AapTransport;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.VideoDecoder;
+import ca.yyx.hu.utils.Settings;
 
 /**
  * @author algavris
@@ -22,6 +23,7 @@ public class App extends Application implements AapTransport.Listener {
     private VideoDecoder mVideoDecoder;
     private AudioDecoder mAudioDecoder;
     private AapTransport mTransport;
+    private Settings mSettings;
 
     public static App get(Context context)
     {
@@ -34,16 +36,14 @@ public class App extends Application implements AapTransport.Listener {
 
         mAudioDecoder = new AudioDecoder();
         mVideoDecoder = new VideoDecoder();
+        mSettings = new Settings(this);
 
     }
 
     public AapTransport transport()
     {
         if (mTransport == null) {
-            String btMacAddress = "40:EF:4C:A3:CB:A5";// BluetoothAdapter.getDefaultAdapter().getAddress();
-            if ("02:00:00:00:00:00".equals(btMacAddress)) {
-                btMacAddress = android.provider.Settings.Secure.getString(getContentResolver(), "bluetooth_address");
-            }
+            String btMacAddress = mSettings.getBluetoothAddress();
             mTransport = new AapTransport(mAudioDecoder, mVideoDecoder, (AudioManager) getSystemService(AUDIO_SERVICE), btMacAddress, this);
         }
         return mTransport;

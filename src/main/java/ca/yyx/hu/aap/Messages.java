@@ -38,15 +38,6 @@ public class Messages {
     public static final int BTN_PREV = 0x58;
     public static final int BTN_STOP = 127;
 
-    static final int DRIVE_STATUS_FULLY_RESTRICTED = 31;
-    static final int DRIVE_STATUS_LIMIT_MESSAGE_LEN = 16;
-    static final int DRIVE_STATUS_NO_CONFIG = 8;
-    static final int DRIVE_STATUS_NO_KEYBOARD_INPUT = 2;
-    static final int DRIVE_STATUS_NO_VIDEO = 1;
-    static final int DRIVE_STATUS_NO_VOICE_INPUT = 4;
-    static final int DRIVE_STATUS_UNRESTRICTED = 0;
-    static final int GEAR_DRIVE = 100;
-
     static ByteArray createMessage(int chan, int flags, int type, byte[] data, int size) {
 
         ByteArray buffer = new ByteArray(6 + size);
@@ -65,78 +56,59 @@ public class Messages {
         return buffer;
     }
 
-    static ByteArray createButtonMessage(long timeStamp, int button, boolean isPress)
+    static byte[] createButtonEvent(long timeStamp, int button, boolean isPress)
     {
-        ByteArray buffer = new ByteArray(22);
+        Protocol.InputReport inputReport = new Protocol.InputReport();
+        Protocol.KeyEvent keyEvent = new Protocol.KeyEvent();
+        inputReport.timestamp = timeStamp;
+        inputReport.keyEvent = keyEvent;
 
-        buffer.put(0x80, 0x01, 0x08);
-        int size = Encode.longToByteArray(timeStamp, buffer.data, buffer.length);
-        buffer.move(size);
+        keyEvent.keys = new Protocol.Key[1];
+        keyEvent.keys[0] = new Protocol.Key();
+        keyEvent.keys[0].keycode = button;
+        keyEvent.keys[0].down = isPress;
 
-        int press = isPress ? 0x01 : 0x00;
-        buffer.put(0x22, 0x0A, 0x0A, 0x08, 0x08, button, 0x10, press, 0x18, 0x00, 0x20, 0x00);
-        return buffer;
+        return createByteArray(Protocol.MSG_TYPE_INPUTEVENT, inputReport);
     }
 
-    static ByteArray createTouchMessage(long timeStamp, byte action, int x, int y) {
-//
-//        Protocol.TouchInfo touchInfo = new Protocol.TouchInfo();
-//        touchInfo.location = new Protocol.TouchInfo.Location[] {
-//                new Protocol.TouchInfo.Location(), // x
-//                new Protocol.TouchInfo.Location(), // y
-//                new Protocol.TouchInfo.Location()  // z
-//        };
-//        touchInfo.location[0].x
+    static byte[] createTouchEvent(long timeStamp, int action, int x, int y) {
 
-        ByteArray buffer = new ByteArray(32);
+        Protocol.InputReport inputReport = new Protocol.InputReport();
+        Protocol.TouchEvent touchEvent = new Protocol.TouchEvent();
+        inputReport.timestamp = timeStamp;
+        inputReport.touchEvent = touchEvent;
 
-        buffer.put(0x80, 0x01, 0x08);
+        touchEvent.pointerData = new Protocol.TouchEvent.Pointer[1];
+        Protocol.TouchEvent.Pointer pointer = new Protocol.TouchEvent.Pointer();
+        pointer.x = x;
+        pointer.y = y;
+        touchEvent.pointerData[0] = pointer;
+        touchEvent.actionIndex = 0;
+        touchEvent.action = action;
 
-        int size = Encode.longToByteArray(timeStamp, buffer.data, buffer.length);          // Encode timestamp
-        buffer.move(size);
-
-        int size1_idx = buffer.length + 1;
-        int size2_idx = buffer.length + 3;
-
-        buffer.put(0x1a, 0x09, 0x0a, 0x03);
-
-        /* Set magnitude of each axis */
-        byte axis = 0;
-        int[] coordinates = {x, y, 0};
-        for (int i=0; i<3; i++) {
-            axis += 0x08; //0x08, 0x10, 0x18
-            buffer.put(axis);
-            size = Encode.intToByteArray(coordinates[i], buffer.data, buffer.length);
-            buffer.move(size);
-            buffer.inc(size1_idx, size);
-            buffer.inc(size2_idx, size);
-        }
-
-        buffer.put(0x10, 0x00, 0x18, action);
-        return buffer;
+        return createByteArray(Protocol.MSG_TYPE_INPUTEVENT, inputReport);
     }
 
-    static byte[] createNightModeMessage(boolean enabled) {
-        byte[] buffer = new byte[6];
+    static byte[] createNightModeEvent(boolean enabled) {
+        Protocol.SensorBatch sensorBatch = new Protocol.SensorBatch();
+        sensorBatch.nightMode = new Protocol.SensorBatch.NightMode[1];
+        sensorBatch.nightMode[0] = new Protocol.SensorBatch.NightMode();
+        sensorBatch.nightMode[0].isNight = enabled;
 
-        buffer[0] = -128;
-        buffer[1] = 0x03;
-        buffer[2] = 0x52;
-        buffer[3] = 0x02;
-        buffer[4] = 0x08;
-        if (enabled)
-            buffer[5] = 0x01;
-        else
-            buffer[5]= 0x00;
+        return createByteArray(Protocol.MSG_TYPE_SENSOREVENT, sensorBatch);
+    }
 
-        return buffer;
+    static byte[] createDrivingStatusEvent(int status) {
+        Protocol.SensorBatch sensorBatch = new Protocol.SensorBatch();
+        sensorBatch.drivingStatus = new Protocol.SensorBatch.DrivingStatus[1];
+        sensorBatch.drivingStatus[0] = new Protocol.SensorBatch.DrivingStatus();
+        sensorBatch.drivingStatus[0].status = 0;
+
+        return createByteArray(Protocol.MSG_TYPE_SENSOREVENT, sensorBatch);
     }
 
     static byte[] VERSION_REQUEST = { 0, 1, 0, 1 };
     static byte[] BYEBYE_REQUEST = { 0x00, 0x0f, 0x08, 0x00 };
-    // Driving Status: 0 = Parked, 1 = Moving
-    static byte[] DRIVING_STATUS = {(byte) 0x80, 0x03, 0x6a, 0x02, 0x08, 0};
-    static byte[] NIGHT_MODE = {(byte) 0x80, 0x03, 0x52, 0x02, 0x08, 0};
     static byte[] BYEBYE_RESPONSE = { 0x00, 16, 0x08, 0x00 };
 
     static byte[] createServiceDiscoveryResponse(String btAddress) {
@@ -229,14 +201,16 @@ public class Messages {
         bluetooth.bluetoothService.carAddress = btAddress;
         bluetooth.bluetoothService.supportedPairingMethods = new int[] { 2, 3 };
 
-        byte[] result = new byte[carInfo.getSerializedSize() + 2];
-        // Header
-        result[0] = 0x00;
-        result[1] = 0x06;
-        MessageNano.toByteArray(carInfo, result, 2, carInfo.getSerializedSize());
-
-
-        return result;
+        return createByteArray(Protocol.MSG_TYPE_SERVICEDISCOVERYRESPONSE, carInfo);
     }
 
+    static byte[] createByteArray(int msgType, MessageNano msg)
+    {
+        byte[] result = new byte[msg.getSerializedSize() + 2];
+        // Header
+        result[0] = (byte) (msgType >> 8);
+        result[1] = (byte) (msgType & 0xFF);
+        MessageNano.toByteArray(msg, result, 2, msg.getSerializedSize());
+        return result;
+    }
 }

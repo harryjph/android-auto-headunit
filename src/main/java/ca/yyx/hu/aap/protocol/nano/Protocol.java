@@ -5,6 +5,46 @@ package ca.yyx.hu.aap.protocol.nano;
 @SuppressWarnings("hiding")
 public interface Protocol {
 
+  // enum MessageTypeControl
+  public static final int MSG_TYPE_MEDIADATA0 = 0;
+  public static final int MSG_TYPE_MEDIADATA1 = 1;
+  public static final int MSG_TYPE_VERSIONRESPONSE = 2;
+  public static final int MSG_TYPE_SSLHANDSHAKE = 3;
+  public static final int MSG_TYPE_SERVICEDISCOVERYREQUEST = 5;
+  public static final int MSG_TYPE_SERVICEDISCOVERYRESPONSE = 6;
+  public static final int MSG_TYPE_CHANNELOPENREQUEST = 7;
+  public static final int MSG_TYPE_CHANNELOPENRESPONSE = 8;
+  public static final int MSG_TYPE_PINGREQUEST = 11;
+  public static final int MSG_TYPE_PINGRESPONSE = 12;
+  public static final int MSG_TYPE_NAVFOCUSREQUESTNOTIFICATION = 13;
+  public static final int MSG_TYPE_NAVFOCUSRNOTIFICATION = 14;
+  public static final int MSG_TYPE_BYEYEREQUEST = 15;
+  public static final int MSG_TYPE_SHUTDOWNRESPONSE = 16;
+  public static final int MSG_TYPE_VOICESESSIONNOTIFICATION = 17;
+  public static final int MSG_TYPE_AUDIOFOCUSREQUESTNOTFICATION = 18;
+  public static final int MSG_TYPE_AUDIOFOCUSNOTFICATION = 19;
+
+  // enum MessageTypeMedia
+  public static final int MSG_TYPE_MEDIASETUPREQUEST = 32768;
+  public static final int MSG_TYPE_MEDIASTARTREQUEST = 32769;
+  public static final int MSG_TYPE_MEDIASTOPREQUEST = 32770;
+  public static final int MSG_TYPE_MEDIASETUPRESPONSE = 32771;
+  public static final int MSG_TYPE_ACK = 32772;
+  public static final int MSG_TYPE_MICREQUEST = 32773;
+  public static final int MSG_TYPE_MICREPONSE = 32774;
+  public static final int MSG_TYPE_VIDEOFOCUSREQUESTNOTIFICATION = 32775;
+  public static final int MSG_TYPE_VIDEOFOCUSNOTIFICATION = 32776;
+
+  // enum MessageTypeSensor
+  public static final int MSG_TYPE_SENSORSTARTREQUEST = 32769;
+  public static final int MSG_TYPE_SENSORSTARTRESPONSE = 32770;
+  public static final int MSG_TYPE_SENSOREVENT = 32771;
+
+  // enum MessageTypeInput
+  public static final int MSG_TYPE_INPUTEVENT = 32769;
+  public static final int MSG_TYPE_INPUTBINDINGREQUEST = 32770;
+  public static final int MSG_TYPE_INPUTBINDINGRESPONSE = 32771;
+
   // enum MessageStatus
   public static final int STATUS_OK = 0;
 
@@ -1132,6 +1172,10 @@ public interface Protocol {
     public static final class DrivingStatus extends
         com.google.protobuf.nano.MessageNano {
 
+      // enum Status
+      public static final int DRIVING_STATUS_PARKED = 0;
+      public static final int DRIVING_STATUS_MOOVING = 1;
+
       private static volatile DrivingStatus[] _emptyArray;
       public static DrivingStatus[] emptyArray() {
         // Lazily initializes the empty array
@@ -1146,15 +1190,15 @@ public interface Protocol {
         return _emptyArray;
       }
 
-      // required int32 is_driving = 1;
-      public int isDriving;
+      // required int32 status = 1;
+      public int status;
 
       public DrivingStatus() {
         clear();
       }
 
       public DrivingStatus clear() {
-        isDriving = 0;
+        status = 0;
         cachedSize = -1;
         return this;
       }
@@ -1162,7 +1206,7 @@ public interface Protocol {
       @Override
       public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
           throws java.io.IOException {
-        output.writeInt32(1, this.isDriving);
+        output.writeInt32(1, this.status);
         super.writeTo(output);
       }
 
@@ -1170,7 +1214,7 @@ public interface Protocol {
       protected int computeSerializedSize() {
         int size = super.computeSerializedSize();
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeInt32Size(1, this.isDriving);
+            .computeInt32Size(1, this.status);
         return size;
       }
 
@@ -1190,7 +1234,7 @@ public interface Protocol {
               break;
             }
             case 8: {
-              this.isDriving = input.readInt32();
+              this.status = input.readInt32();
               break;
             }
           }

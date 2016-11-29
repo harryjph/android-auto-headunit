@@ -5,9 +5,9 @@ package ca.yyx.hu.aap;
  * @date 24/09/2016.
  */
 
-class Encode {
+public class Encode {
 
-    static int intToByteArray(int value, byte[] ba, int start)
+    public static int intToByteArray(int value, byte[] ba, int start)
     {
         byte cbyte;
         int enc_size = 0;
@@ -25,7 +25,7 @@ class Encode {
         return enc_size;
     }
 
-    static int longToByteArray(long val, byte[] ba, int start) {
+    public static int longToByteArray(long val, byte[] ba, int start) {
         if (val >= 0x7fffffffffffffffL) {
             return 1;
         }

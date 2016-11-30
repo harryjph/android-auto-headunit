@@ -356,13 +356,13 @@ message VideoFocusRequestNotification
     }
 
     optional int32 disp_channel_id = 1;
-    optional VideoFocusMode mode = 2; //Enum?
+    required VideoFocusMode mode = 2; //Enum?
     optional VideoFocusReason reason = 3; //Enum?
 }
 
 message VideoFocusNotification
 {
-    optional VideoFocusMode mode = 1;
+    required VideoFocusMode mode = 1;
     optional bool unsolicited = 2;
 }
 

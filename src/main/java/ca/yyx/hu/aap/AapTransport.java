@@ -10,6 +10,8 @@ import android.os.SystemClock;
 import java.util.Locale;
 
 import ca.yyx.hu.aap.protocol.Channel;
+import ca.yyx.hu.aap.protocol.MsgType;
+import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
@@ -242,17 +244,24 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         mListener.gainVideoFocus();
     }
 
-    void sendVideoFocusGained() {
-        // Else if success and channel = video...
-        byte rsp2[] = {(byte) 0x80, 0x08, 0x08, 1, 0x10, 1};
-        // 1, 1     VideoFocus gained focusState=1 unsolicited=true     010b0000800808011001
-        sendEncrypted(Channel.AA_CH_VID, rsp2, rsp2.length);
-        // Respond with VideoFocus gained
+    void sendVideoFocusGained(boolean unsolicited) {
+
+        Protocol.VideoFocusNotification videoFocus = new Protocol.VideoFocusNotification();
+        videoFocus.mode = 1;
+        videoFocus.unsolicited = unsolicited;
+
+        byte[] ba = Messages.createByteArray(MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
+        sendEncrypted(Channel.AA_CH_VID, ba, ba.length);
     }
 
     void sendVideoFocusLost() {
-        byte rsp2[] = {(byte) 0x80, 0x08, 0x08, 1, 0x10, 0};
-        sendEncrypted(Channel.AA_CH_VID, rsp2, rsp2.length);
+
+        Protocol.VideoFocusNotification videoFocus = new Protocol.VideoFocusNotification();
+        videoFocus.mode = 2;
+        videoFocus.unsolicited = true;
+
+        byte[] ba = Messages.createByteArray(MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
+        sendEncrypted(Channel.AA_CH_VID, ba, ba.length);
     }
 
     @Override

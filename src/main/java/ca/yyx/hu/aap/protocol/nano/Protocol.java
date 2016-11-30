@@ -18,8 +18,10 @@ public interface Protocol {
   public static final int SENSOR_TYPE_LOCATION = 9;
 
   // enum AudioStreamType
-  public static final int AUDIO_TYPE_SYSTEM = 1;
-  public static final int AUDIO_TYPE_MEDIA = 3;
+  public static final int CAR_STREAM_MEDIA = 3;
+  public static final int CAR_STREAM_SYSTEM = 1;
+  public static final int CAR_STREAM_TTS = 5;
+  public static final int CAR_STREAM_VOICE = 0;
 
   // enum MediaCodecType
   public static final int MEDIA_CODEC_AUDIO = 1;
@@ -1909,7 +1911,7 @@ public interface Protocol {
 
       public MediaSinkService clear() {
         availableType = ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO;
-        audioType = ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SYSTEM;
+        audioType = ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_MEDIA;
         audioConfigs = ca.yyx.hu.aap.protocol.nano.Protocol.AudioConfiguration.emptyArray();
         videoConfigs = ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.emptyArray();
         availableWhileInCall = false;
@@ -1923,7 +1925,7 @@ public interface Protocol {
         if (this.availableType != ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO) {
           output.writeInt32(1, this.availableType);
         }
-        if (this.audioType != ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SYSTEM) {
+        if (this.audioType != ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_MEDIA) {
           output.writeInt32(2, this.audioType);
         }
         if (this.audioConfigs != null && this.audioConfigs.length > 0) {
@@ -1955,7 +1957,7 @@ public interface Protocol {
           size += com.google.protobuf.nano.CodedOutputByteBufferNano
             .computeInt32Size(1, this.availableType);
         }
-        if (this.audioType != ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SYSTEM) {
+        if (this.audioType != ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_MEDIA) {
           size += com.google.protobuf.nano.CodedOutputByteBufferNano
             .computeInt32Size(2, this.audioType);
         }
@@ -2012,8 +2014,10 @@ public interface Protocol {
             case 16: {
               int value = input.readInt32();
               switch (value) {
-                case ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SYSTEM:
-                case ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_MEDIA:
+                case ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_MEDIA:
+                case ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_SYSTEM:
+                case ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_TTS:
+                case ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_VOICE:
                   this.audioType = value;
                   break;
               }
@@ -4539,7 +4543,7 @@ public interface Protocol {
     // optional int32 disp_channel_id = 1;
     public int dispChannelId;
 
-    // optional .ca.yyx.hu.aap.protocol.VideoFocusMode mode = 2;
+    // required .ca.yyx.hu.aap.protocol.VideoFocusMode mode = 2;
     public int mode;
 
     // optional .ca.yyx.hu.aap.protocol.VideoFocusRequestNotification.VideoFocusReason reason = 3;
@@ -4563,9 +4567,7 @@ public interface Protocol {
       if (this.dispChannelId != 0) {
         output.writeInt32(1, this.dispChannelId);
       }
-      if (this.mode != ca.yyx.hu.aap.protocol.nano.Protocol.VIDEO_FOCUS_MODE_1) {
-        output.writeInt32(2, this.mode);
-      }
+      output.writeInt32(2, this.mode);
       if (this.reason != ca.yyx.hu.aap.protocol.nano.Protocol.VideoFocusRequestNotification.VIDEO_FOCUS_REASON_1) {
         output.writeInt32(3, this.reason);
       }
@@ -4579,10 +4581,8 @@ public interface Protocol {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
             .computeInt32Size(1, this.dispChannelId);
       }
-      if (this.mode != ca.yyx.hu.aap.protocol.nano.Protocol.VIDEO_FOCUS_MODE_1) {
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeInt32Size(2, this.mode);
-      }
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+        .computeInt32Size(2, this.mode);
       if (this.reason != ca.yyx.hu.aap.protocol.nano.Protocol.VideoFocusRequestNotification.VIDEO_FOCUS_REASON_1) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeInt32Size(3, this.reason);
@@ -4662,7 +4662,7 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // optional .ca.yyx.hu.aap.protocol.VideoFocusMode mode = 1;
+    // required .ca.yyx.hu.aap.protocol.VideoFocusMode mode = 1;
     public int mode;
 
     // optional bool unsolicited = 2;
@@ -4682,9 +4682,7 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.mode != ca.yyx.hu.aap.protocol.nano.Protocol.VIDEO_FOCUS_MODE_1) {
-        output.writeInt32(1, this.mode);
-      }
+      output.writeInt32(1, this.mode);
       if (this.unsolicited != false) {
         output.writeBool(2, this.unsolicited);
       }
@@ -4694,10 +4692,8 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.mode != ca.yyx.hu.aap.protocol.nano.Protocol.VIDEO_FOCUS_MODE_1) {
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeInt32Size(1, this.mode);
-      }
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+        .computeInt32Size(1, this.mode);
       if (this.unsolicited != false) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
             .computeBoolSize(2, this.unsolicited);

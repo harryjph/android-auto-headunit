@@ -162,7 +162,7 @@ public class Messages {
         audio0.id = Channel.AA_CH_AUD;
         audio0.mediaSinkService = new Service.MediaSinkService();
         audio0.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
-        audio0.mediaSinkService.audioType = Protocol.AUDIO_TYPE_MEDIA;
+        audio0.mediaSinkService.audioType = Protocol.CAR_STREAM_MEDIA;
         audio0.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
         audio0.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AUD);
         services.add(audio0);
@@ -171,7 +171,7 @@ public class Messages {
         audio1.id = Channel.AA_CH_AU1;
         audio1.mediaSinkService = new Service.MediaSinkService();
         audio1.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
-        audio1.mediaSinkService.audioType = Protocol.AUDIO_TYPE_SYSTEM;
+        audio1.mediaSinkService.audioType = Protocol.CAR_STREAM_SYSTEM;
         audio1.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
         audio1.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU1);
         services.add(audio1);

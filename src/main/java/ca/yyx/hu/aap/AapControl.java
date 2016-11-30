@@ -66,7 +66,7 @@ class AapControl {
                 return media_sink_stop_request(message.channel);
             case MsgType.Media.VIDEOFOCUSREQUESTNOTIFICATION:
                 Protocol.VideoFocusRequestNotification focusRequest = parse(new Protocol.VideoFocusRequestNotification(), message);
-                AppLog.i("Media Video ? Request: %d", focusRequest.mode);
+                AppLog.i("Video Focus Request - disp_id: %d, mode: %d, reason: %d", focusRequest.dispChannelId, focusRequest.mode, focusRequest.reason);
                 return 0;
             default:
                 AppLog.e("Unsupported");
@@ -229,7 +229,7 @@ class AapControl {
 
     private int sensor_start_request(Protocol.SensorRequest request, int channel, byte[] buf) {
          AppLog.i("Sensor Start Request sensor: %d, minUpdatePeriod: %d", request.type, request.minUpdatePeriod);
-        
+
         // R 1 SEN b 00000000 08 01 10 00     Sen: 1, 10, 3, 8, 7
         // Yes: SENSOR_TYPE_COMPASS/LOCATION/RPM/DIAGNOSTICS/GEAR      No: SENSOR_TYPE_DRIVING_STATUS
 
@@ -342,7 +342,7 @@ class AapControl {
         return 0;
     }
 
-    static void write(MessageNano msg, byte[] buf, int offset)
+    private static void write(MessageNano msg, byte[] buf, int offset)
     {
         MessageNano.toByteArray(msg, buf, offset, msg.getSerializedSize());
     }

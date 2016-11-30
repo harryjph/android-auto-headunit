@@ -72,6 +72,7 @@ import android.view.View;
 
 import ca.yyx.hu.App;
 import ca.yyx.hu.R;
+import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.activities.SurfaceActivity;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.IntentUtils;
@@ -147,7 +148,7 @@ public class AapProjectionActivity extends SurfaceActivity implements SurfaceHol
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        transport().sendVideoFocusGained();
+        transport().sendVideoFocusGained(true);
     }
 
     @Override

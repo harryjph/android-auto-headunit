@@ -3,7 +3,10 @@ package ca.yyx.hu.connection;
 
 import android.support.annotation.NonNull;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -17,6 +20,7 @@ public class SocketAccessoryConnection implements AccessoryConnection {
     final String mIp;
     final Socket mSocket;
     private static final int DEF_BUFFER_LENGTH = 131080;
+    private BufferedInputStream mInputStream;
 
     public SocketAccessoryConnection(String ip) {
         mSocket = new Socket();
@@ -31,8 +35,9 @@ public class SocketAccessoryConnection implements AccessoryConnection {
     @Override
     public int send(byte[] buf, int length, int timeout) {
         try {
-            mSocket.setSendBufferSize(length);
+//            mSocket.setSendBufferSize(length);
             mSocket.getOutputStream().write(buf, 0, length);
+            mSocket.getOutputStream().flush();
             return length;
         } catch (IOException e) {
             AppLog.e(e);
@@ -45,7 +50,7 @@ public class SocketAccessoryConnection implements AccessoryConnection {
 
         try {
             mSocket.setSoTimeout(timeout);
-            return mSocket.getInputStream().read(buf, 0, length);
+            return mInputStream.read(buf, 0, length);
         } catch (IOException e) {
             return -1;
         }
@@ -65,9 +70,10 @@ public class SocketAccessoryConnection implements AccessoryConnection {
                 try {
                     mSocket.setTcpNoDelay(true);
                     mSocket.setReuseAddress(true);
-                    mSocket.setReceiveBufferSize(DEF_BUFFER_LENGTH);
+//                    mSocket.setReceiveBufferSize(DEF_BUFFER_LENGTH);
                     mSocket.connect((new InetSocketAddress(mIp, 5277)), 3000);
-                    listener.onConnectionResult(true);
+                    mInputStream = new BufferedInputStream(mSocket.getInputStream(), DEF_BUFFER_LENGTH);
+                    listener.onConnectionResult(mSocket.isConnected());
                 } catch (IOException e) {
                     AppLog.e(e);
                     listener.onConnectionResult(false);
@@ -86,5 +92,6 @@ public class SocketAccessoryConnection implements AccessoryConnection {
                 //catch logic
             }
         }
+        mInputStream = null;
     }
 }

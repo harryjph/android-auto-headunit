@@ -1,7 +1,10 @@
 package ca.yyx.hu.aap;
 
 
+import java.util.Locale;
+
 import ca.yyx.hu.aap.protocol.Channel;
+import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.utils.ByteArray;
 
 /**
@@ -32,5 +35,23 @@ class AapMessage {
 
     public boolean isVideo() {
         return this.channel == Channel.AA_CH_VID;
+    }
+
+    @Override
+    public String toString() {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(Channel.name(channel));
+        sb.append(' ');
+        sb.append(MsgType.name(type, channel));
+        sb.append(' ');
+
+        for (int i = 0; i < Math.max(length, 64); i++) {
+            String hex = String.format(Locale.US, "%02X", data[i]);
+            sb.append(hex);
+            sb.append(' ');
+        }
+
+        return sb.toString();
     }
 }

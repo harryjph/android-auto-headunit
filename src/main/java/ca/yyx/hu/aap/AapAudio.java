@@ -1,6 +1,7 @@
 package ca.yyx.hu.aap;
 
 import android.media.AudioManager;
+import android.util.SparseIntArray;
 
 import ca.yyx.hu.aap.protocol.AudioConfigs;
 import ca.yyx.hu.aap.protocol.Channel;
@@ -20,9 +21,7 @@ class AapAudio implements AudioManager.OnAudioFocusChangeListener {
     private static final int AUDIO_BUFS_SIZE = 65536 * 4;      // Up to 256 Kbytes
     private final AudioManager mAudioManager;
 
-    private byte ack_val_aud = 0;
-    private byte ack_val_au1 = 0;
-    private byte ack_val_au2 = 0;
+    private SparseIntArray mSessionIds = new SparseIntArray(3);
 
     private byte aud_ack[] = {(byte) 0x80, 0x04, 0x08, 0, 0x10, 1};
 
@@ -34,7 +33,7 @@ class AapAudio implements AudioManager.OnAudioFocusChangeListener {
 
     void requestFocusChange(int channel, int focusRequest)
     {
-        int stream = AudioConfigs.getStreamType(channel);
+        int stream = AudioManager.STREAM_MUSIC;
         if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE) {
             mAudioManager.abandonAudioFocus(this);
         } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN) {
@@ -56,12 +55,7 @@ class AapAudio implements AudioManager.OnAudioFocusChangeListener {
 
         //i ("iaap_audio_process chan: %d  msg_type: %d  flags: 0x%x  buf: %p  len: %d", chan, msg_type, flags, buf, len); // iaap_audio_process msg_type: 0  flags: 0xb  buf: 0xe08cbfb8  len: 8202
 
-        if (chan == Channel.AA_CH_AU1)
-            aud_ack[3] = ack_val_au1;
-        else if (chan == Channel.AA_CH_AU2)
-            aud_ack[3] = ack_val_au2;
-        else
-            aud_ack[3] = ack_val_aud;
+        aud_ack[3] = (byte) mSessionIds.get(chan);
 
         int ret = mTransport.sendEncrypted(chan, aud_ack, aud_ack.length);
         // Respond with ACK (for all fragments ?)
@@ -98,24 +92,11 @@ class AapAudio implements AudioManager.OnAudioFocusChangeListener {
         if (mAudioDecoder.getTrack(channel) == null)
         {
             Protocol.AudioConfiguration config = AudioConfigs.get(channel);
-            int stream = AudioConfigs.getStreamType(channel);
+            int stream = AudioManager.STREAM_MUSIC;
             mAudioDecoder.start(channel, stream, config.sampleRate, config.numberOfBits, config.numberOfChannels);
         }
 
         mAudioDecoder.decode(channel, buf, start, len);
-    }
-
-    void setAudioAckVal(int chan, byte value) {
-        if (chan == Channel.AA_CH_AUD) {
-            ack_val_aud = value;
-            // Save value for audio acks
-        } else if (chan == Channel.AA_CH_AU1) {
-            ack_val_au1 = value;
-            // Save value for audio1 acks
-        } else if (chan == Channel.AA_CH_AU2) {
-            ack_val_au2 = value;
-            // Save value for audio2 acks
-        }
     }
 
     void stopAudio(int chan) {
@@ -126,6 +107,10 @@ class AapAudio implements AudioManager.OnAudioFocusChangeListener {
     @Override
     public void onAudioFocusChange(int focusChange) {
         AppLog.i("" + focusChange);
+    }
+
+    void setSessionId(int channel, int sessionId) {
+        mSessionIds.put(channel, sessionId);
     }
 }
 

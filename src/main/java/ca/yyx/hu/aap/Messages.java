@@ -1,6 +1,6 @@
 package ca.yyx.hu.aap;
 
-import android.bluetooth.BluetoothAdapter;
+import android.media.AudioManager;
 
 import com.google.protobuf.nano.MessageNano;
 
@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 import ca.yyx.hu.aap.protocol.AudioConfigs;
 import ca.yyx.hu.aap.protocol.Channel;
-import ca.yyx.hu.decoder.AudioDecoder;
+import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.ByteArray;
 
@@ -71,7 +71,7 @@ public class Messages {
         keyEvent.keys[0].keycode = button;
         keyEvent.keys[0].down = isPress;
 
-        return createByteArray(Protocol.MSG_TYPE_INPUTEVENT, inputReport);
+        return createByteArray(MsgType.Input.EVENT, inputReport);
     }
 
     static byte[] createTouchEvent(long timeStamp, int action, int x, int y) {
@@ -89,7 +89,7 @@ public class Messages {
         touchEvent.actionIndex = 0;
         touchEvent.action = action;
 
-        return createByteArray(Protocol.MSG_TYPE_INPUTEVENT, inputReport);
+        return createByteArray(MsgType.Input.EVENT, inputReport);
     }
 
     static byte[] createNightModeEvent(boolean enabled) {
@@ -98,7 +98,7 @@ public class Messages {
         sensorBatch.nightMode[0] = new Protocol.SensorBatch.NightMode();
         sensorBatch.nightMode[0].isNight = enabled;
 
-        return createByteArray(Protocol.MSG_TYPE_SENSOREVENT, sensorBatch);
+        return createByteArray(MsgType.Sensor.EVENT, sensorBatch);
     }
 
     static byte[] createDrivingStatusEvent(int status) {
@@ -107,7 +107,7 @@ public class Messages {
         sensorBatch.drivingStatus[0] = new Protocol.SensorBatch.DrivingStatus();
         sensorBatch.drivingStatus[0].status = status;
 
-        return createByteArray(Protocol.MSG_TYPE_SENSOREVENT, sensorBatch);
+        return createByteArray(MsgType.Sensor.EVENT, sensorBatch);
     }
 
     static byte[] VERSION_REQUEST = { 0, 1, 0, 1 };
@@ -158,6 +158,24 @@ public class Messages {
         touch.inputSourceService.touchscreen.height = 480;
         services.add(touch);
 
+        Service audio0 = new Service();
+        audio0.id = Channel.AA_CH_AUD;
+        audio0.mediaSinkService = new Service.MediaSinkService();
+        audio0.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
+        audio0.mediaSinkService.audioType = Protocol.AUDIO_TYPE_MEDIA;
+        audio0.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
+        audio0.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AUD);
+        services.add(audio0);
+
+        Service audio1 = new Service();
+        audio1.id = Channel.AA_CH_AU1;
+        audio1.mediaSinkService = new Service.MediaSinkService();
+        audio1.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
+        audio1.mediaSinkService.audioType = Protocol.AUDIO_TYPE_SYSTEM;
+        audio1.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
+        audio1.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU1);
+        services.add(audio1);
+
         Service mic = new Service();
         mic.id = Channel.AA_CH_MIC;
         mic.mediaSourceService = new Service.MediaSourceService();
@@ -168,33 +186,6 @@ public class Messages {
         micConfig.numberOfChannels = 1;
         mic.mediaSourceService.audioConfig = micConfig;
         services.add(mic);
-
-        Service audio0 = new Service();
-        audio0.id = Channel.AA_CH_AUD;
-        audio0.mediaSinkService = new Service.MediaSinkService();
-        audio0.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
-        audio0.mediaSinkService.audioType = AudioConfigs.getStreamType(Channel.AA_CH_AUD);
-        audio0.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
-        audio0.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AUD);
-        services.add(audio0);
-
-        Service audio1 = new Service();
-        audio1.id = Channel.AA_CH_AU1;
-        audio1.mediaSinkService = new Service.MediaSinkService();
-        audio1.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
-        audio1.mediaSinkService.audioType = AudioConfigs.getStreamType(Channel.AA_CH_AU1);
-        audio1.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
-        audio1.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU1);
-        services.add(audio1);
-
-        Service audio2 = new Service();
-        audio2.id = Channel.AA_CH_AU2;
-        audio2.mediaSinkService = new Service.MediaSinkService();
-        audio2.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
-        audio2.mediaSinkService.audioType = AudioConfigs.getStreamType(Channel.AA_CH_AU2);
-        audio2.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
-        audio2.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU2);
-        services.add(audio2);
 
         if (btAddress != null) {
             Service bluetooth = new Service();
@@ -208,16 +199,22 @@ public class Messages {
         }
 
         carInfo.services = services.toArray(new Service[0]);
-        return createByteArray(Protocol.MSG_TYPE_SERVICEDISCOVERYRESPONSE, carInfo);
+        return createByteArray(MsgType.Control.SERVICEDISCOVERYRESPONSE, carInfo);
     }
 
     static byte[] createByteArray(int msgType, MessageNano msg)
     {
         byte[] result = new byte[msg.getSerializedSize() + 2];
-        // Header
-        result[0] = (byte) (msgType >> 8);
-        result[1] = (byte) (msgType & 0xFF);
-        MessageNano.toByteArray(msg, result, 2, msg.getSerializedSize());
-        return result;
+        return serializeByteArray(msgType, msg, result);
     }
+
+    private static byte[] serializeByteArray(int msgType, MessageNano msg, byte[] buf)
+    {
+        // Header
+        buf[0] = (byte) (msgType >> 8);
+        buf[1] = (byte) (msgType & 0xFF);
+        MessageNano.toByteArray(msg, buf, 2, msg.getSerializedSize());
+        return buf;
+    }
+
 }

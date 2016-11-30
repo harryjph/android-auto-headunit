@@ -5,46 +5,6 @@ package ca.yyx.hu.aap.protocol.nano;
 @SuppressWarnings("hiding")
 public interface Protocol {
 
-  // enum MessageTypeControl
-  public static final int MSG_TYPE_MEDIADATA0 = 0;
-  public static final int MSG_TYPE_CODECDATA1 = 1;
-  public static final int MSG_TYPE_VERSIONRESPONSE = 2;
-  public static final int MSG_TYPE_SSLHANDSHAKE = 3;
-  public static final int MSG_TYPE_SERVICEDISCOVERYREQUEST = 5;
-  public static final int MSG_TYPE_SERVICEDISCOVERYRESPONSE = 6;
-  public static final int MSG_TYPE_CHANNELOPENREQUEST = 7;
-  public static final int MSG_TYPE_CHANNELOPENRESPONSE = 8;
-  public static final int MSG_TYPE_PINGREQUEST = 11;
-  public static final int MSG_TYPE_PINGRESPONSE = 12;
-  public static final int MSG_TYPE_NAVFOCUSREQUESTNOTIFICATION = 13;
-  public static final int MSG_TYPE_NAVFOCUSRNOTIFICATION = 14;
-  public static final int MSG_TYPE_BYEYEREQUEST = 15;
-  public static final int MSG_TYPE_SHUTDOWNRESPONSE = 16;
-  public static final int MSG_TYPE_VOICESESSIONNOTIFICATION = 17;
-  public static final int MSG_TYPE_AUDIOFOCUSREQUESTNOTFICATION = 18;
-  public static final int MSG_TYPE_AUDIOFOCUSNOTFICATION = 19;
-
-  // enum MessageTypeMedia
-  public static final int MSG_TYPE_MEDIASETUPREQUEST = 32768;
-  public static final int MSG_TYPE_MEDIASTARTREQUEST = 32769;
-  public static final int MSG_TYPE_MEDIASTOPREQUEST = 32770;
-  public static final int MSG_TYPE_MEDIASETUPRESPONSE = 32771;
-  public static final int MSG_TYPE_ACK = 32772;
-  public static final int MSG_TYPE_MICREQUEST = 32773;
-  public static final int MSG_TYPE_MICREPONSE = 32774;
-  public static final int MSG_TYPE_VIDEOFOCUSREQUESTNOTIFICATION = 32775;
-  public static final int MSG_TYPE_VIDEOFOCUSNOTIFICATION = 32776;
-
-  // enum MessageTypeSensor
-  public static final int MSG_TYPE_SENSORSTARTREQUEST = 32769;
-  public static final int MSG_TYPE_SENSORSTARTRESPONSE = 32770;
-  public static final int MSG_TYPE_SENSOREVENT = 32771;
-
-  // enum MessageTypeInput
-  public static final int MSG_TYPE_INPUTEVENT = 32769;
-  public static final int MSG_TYPE_INPUTBINDINGREQUEST = 32770;
-  public static final int MSG_TYPE_INPUTBINDINGRESPONSE = 32771;
-
   // enum MessageStatus
   public static final int STATUS_OK = 0;
 
@@ -58,10 +18,8 @@ public interface Protocol {
   public static final int SENSOR_TYPE_LOCATION = 9;
 
   // enum AudioStreamType
-  public static final int AUDIO_TYPE_SPEECH = 1;
-  public static final int AUDIO_TYPE_SYSTEM = 2;
+  public static final int AUDIO_TYPE_SYSTEM = 1;
   public static final int AUDIO_TYPE_MEDIA = 3;
-  public static final int AUDIO_TYPE_ALARM = 4;
 
   // enum MediaCodecType
   public static final int MEDIA_CODEC_AUDIO = 1;
@@ -302,9 +260,9 @@ public interface Protocol {
       com.google.protobuf.nano.MessageNano {
 
     // enum PointerAction
-    public static final int RELEASE = 0;
-    public static final int PRESS = 1;
-    public static final int DRAG = 2;
+    public static final int TOUCH_ACTION_PRESS = 0;
+    public static final int TOUCH_ACTION_RELEASE = 1;
+    public static final int TOUCH_ACTION_DRAG = 2;
 
     public static final class Pointer extends
         com.google.protobuf.nano.MessageNano {
@@ -450,7 +408,7 @@ public interface Protocol {
     public TouchEvent clear() {
       pointerData = ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.Pointer.emptyArray();
       actionIndex = 0;
-      action = ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.RELEASE;
+      action = ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_PRESS;
       cachedSize = -1;
       return this;
     }
@@ -469,7 +427,7 @@ public interface Protocol {
       if (this.actionIndex != 0) {
         output.writeUInt32(2, this.actionIndex);
       }
-      if (this.action != ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.RELEASE) {
+      if (this.action != ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_PRESS) {
         output.writeInt32(3, this.action);
       }
       super.writeTo(output);
@@ -491,7 +449,7 @@ public interface Protocol {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
             .computeUInt32Size(2, this.actionIndex);
       }
-      if (this.action != ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.RELEASE) {
+      if (this.action != ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_PRESS) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeInt32Size(3, this.action);
       }
@@ -540,9 +498,9 @@ public interface Protocol {
           case 24: {
             int value = input.readInt32();
             switch (value) {
-              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.RELEASE:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.PRESS:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.DRAG:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_PRESS:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_RELEASE:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_DRAG:
                 this.action = value;
                 break;
             }
@@ -1951,7 +1909,7 @@ public interface Protocol {
 
       public MediaSinkService clear() {
         availableType = ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO;
-        audioType = ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SPEECH;
+        audioType = ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SYSTEM;
         audioConfigs = ca.yyx.hu.aap.protocol.nano.Protocol.AudioConfiguration.emptyArray();
         videoConfigs = ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.emptyArray();
         availableWhileInCall = false;
@@ -1965,7 +1923,7 @@ public interface Protocol {
         if (this.availableType != ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO) {
           output.writeInt32(1, this.availableType);
         }
-        if (this.audioType != ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SPEECH) {
+        if (this.audioType != ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SYSTEM) {
           output.writeInt32(2, this.audioType);
         }
         if (this.audioConfigs != null && this.audioConfigs.length > 0) {
@@ -1997,7 +1955,7 @@ public interface Protocol {
           size += com.google.protobuf.nano.CodedOutputByteBufferNano
             .computeInt32Size(1, this.availableType);
         }
-        if (this.audioType != ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SPEECH) {
+        if (this.audioType != ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SYSTEM) {
           size += com.google.protobuf.nano.CodedOutputByteBufferNano
             .computeInt32Size(2, this.audioType);
         }
@@ -2054,10 +2012,8 @@ public interface Protocol {
             case 16: {
               int value = input.readInt32();
               switch (value) {
-                case ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SPEECH:
                 case ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_SYSTEM:
                 case ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_MEDIA:
-                case ca.yyx.hu.aap.protocol.nano.Protocol.AUDIO_TYPE_ALARM:
                   this.audioType = value;
                   break;
               }
@@ -4361,7 +4317,7 @@ public interface Protocol {
     // optional bool ec_enabled = 3;
     public boolean ecEnabled;
 
-    // required int32 max_unacked = 4;
+    // optional int32 max_unacked = 4;
     public int maxUnacked;
 
     public MicrophoneRequest() {
@@ -4387,7 +4343,9 @@ public interface Protocol {
       if (this.ecEnabled != false) {
         output.writeBool(3, this.ecEnabled);
       }
-      output.writeInt32(4, this.maxUnacked);
+      if (this.maxUnacked != 0) {
+        output.writeInt32(4, this.maxUnacked);
+      }
       super.writeTo(output);
     }
 
@@ -4404,8 +4362,10 @@ public interface Protocol {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
             .computeBoolSize(3, this.ecEnabled);
       }
-      size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeInt32Size(4, this.maxUnacked);
+      if (this.maxUnacked != 0) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt32Size(4, this.maxUnacked);
+      }
       return size;
     }
 

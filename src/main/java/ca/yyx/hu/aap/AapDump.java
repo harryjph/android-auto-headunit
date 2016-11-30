@@ -43,7 +43,7 @@ class AapDump {
         rmv+= 2;
         lft-= 2;
 
-        String msg_type_str = iaad_msg_type_str_get(msg_type, src, lft);   // Get msg_type string
+        String msg_type_str = iaad_msg_type_str_get(msg_type, src.charAt(0), lft);   // Get msg_type string
         if (flags == 0x08)
             Log.d(AppLog.TAG, String.format("%s src: %s  lft: %5d  Media Data Mid", prefix, src, lft));
         else if (flags == 0x0a)
@@ -85,14 +85,14 @@ class AapDump {
 
 
     private static final int MSG_TYPE_32 = 32768;
-    private static String iaad_msg_type_str_get(int msg_type, String src, int len) {   // Source:  HU = HU > AA   AA = AA > HU
+    private static String iaad_msg_type_str_get(int msg_type, char src, int len) {   // Source:  HU = HU > AA   AA = AA > HU
 
         switch (msg_type) {
             case 0:
                 return ("Media Data");
             case 1:
-                if (src.charAt(0) == 'H') return ("Version Request");    // Start AA Protocol
-            else if (src.charAt(0) == 'A')
+                if (src == 'H') return ("Version Request");    // Start AA Protocol
+            else if (src == 'A')
             return ("Codec Data");         // First Video packet, respond with Media Ack
             else return ("1 !");
             case 2:
@@ -139,12 +139,12 @@ class AapDump {
             case MSG_TYPE_32:// + 0:
                 return ("Media Setup Request");                        // Video and Audio sinks receive this and send k3 3 / 32771
             case MSG_TYPE_32 + 1:
-                if (src.charAt(0) == 'H') return ("Touch Notification");
-            else if (src.charAt(0) == 'A') return ("Sensor/Media Start Request");
+                if (src == 'H') return ("Touch Notification");
+            else if (src == 'A') return ("Sensor/Media Start Request");
             else return ("32769 !");            // src AA also Media Start Request ????
             case MSG_TYPE_32 + 2:
-                if (src.charAt(0) == 'H') return ("Sensor Start Response");
-            else if (src.charAt(0) == 'A') return ("Touch/Input/Audio Start/Stop Request");
+                if (src == 'H') return ("Sensor Start Response");
+            else if (src == 'A') return ("Touch/Input/Audio Start/Stop Request");
             else return ("32770 !");            // src AA also Media Stop Request ?
             case MSG_TYPE_32 + 3:
                 if (len == 6) return ("Media Setup Response");

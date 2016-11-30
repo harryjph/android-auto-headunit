@@ -142,13 +142,6 @@ public class AapService extends Service implements UsbReceiver.Listener, Accesso
                 .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
                 .build());
 
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        audioManager.requestAudioFocus(new AudioManager.OnAudioFocusChangeListener() {
-            @Override
-            public void onAudioFocusChange(int focusChange) {
-                // Ignore
-            }
-        }, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
         mMediaSession.setActive(true);
 
         startForeground(1, noty);

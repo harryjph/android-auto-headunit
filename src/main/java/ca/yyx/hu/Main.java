@@ -22,8 +22,9 @@ public class Main {
 
         //createTouchMessage(System.currentTimeMillis(), 1, 200, 120);
         //createButtonMessage(System.currentTimeMillis(), 1, true);
+        //createNightModeMessage(true);
 
-        createNightModeMessage(true);
+
 
     }
 

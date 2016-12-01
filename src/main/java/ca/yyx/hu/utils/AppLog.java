@@ -8,7 +8,7 @@ import java.util.Locale;
 
 public final class AppLog {
 
-    private static final int LOG_LEVEL = Log.DEBUG;
+    private static final int LOG_LEVEL = Log.INFO;
 
     public static final String TAG = "CAR.HU.J";
     public static final boolean LOG_VERBOSE = LOG_LEVEL <= Log.VERBOSE;

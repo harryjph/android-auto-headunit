@@ -6,9 +6,9 @@ public class Channel {
     public static final int AA_CH_SEN = 1;
     public static final int AA_CH_VID = 2;
     public static final int AA_CH_TOU = 3;
-    public static final int AA_CH_AUD = 4;
-    public static final int AA_CH_AU1 = 5;
-    public static final int AA_CH_AU2 = 6;
+    public static final int AA_CH_AUD = 6;
+    public static final int AA_CH_AU1 = 4;
+    public static final int AA_CH_AU2 = 5;
     public static final int AA_CH_MIC = 7;
     public static final int AA_CH_BTH = 8;
 

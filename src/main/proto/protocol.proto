@@ -124,10 +124,9 @@ message SensorBatch
 
 enum AudioStreamType
 {
-    CAR_STREAM_MEDIA = 3;
     CAR_STREAM_SYSTEM = 1;
-    CAR_STREAM_TTS = 5;
-    CAR_STREAM_VOICE = 0;
+    CAR_STREAM_VOICE = 2;
+    CAR_STREAM_MEDIA = 3;
 }
 
 enum MediaCodecType
@@ -158,8 +157,8 @@ message Service
 
     message MediaSinkService
     {
-        optional MediaCodecType available_type = 1;
-        optional AudioStreamType audio_type = 2;
+        required MediaCodecType available_type = 1;
+        required AudioStreamType audio_type = 2;
         repeated AudioConfiguration audio_configs = 3;
 
         message VideoConfiguration

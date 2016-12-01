@@ -158,15 +158,6 @@ public class Messages {
         touch.inputSourceService.touchscreen.height = 480;
         services.add(touch);
 
-        Service audio0 = new Service();
-        audio0.id = Channel.AA_CH_AUD;
-        audio0.mediaSinkService = new Service.MediaSinkService();
-        audio0.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
-        audio0.mediaSinkService.audioType = Protocol.CAR_STREAM_MEDIA;
-        audio0.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
-        audio0.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AUD);
-        services.add(audio0);
-
         Service audio1 = new Service();
         audio1.id = Channel.AA_CH_AU1;
         audio1.mediaSinkService = new Service.MediaSinkService();
@@ -175,6 +166,24 @@ public class Messages {
         audio1.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
         audio1.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU1);
         services.add(audio1);
+
+        Service audio2 = new Service();
+        audio2.id = Channel.AA_CH_AU2;
+        audio2.mediaSinkService = new Service.MediaSinkService();
+        audio2.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
+        audio2.mediaSinkService.audioType = Protocol.CAR_STREAM_VOICE;
+        audio2.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
+        audio2.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU2);
+        services.add(audio2);
+
+        Service audio0 = new Service();
+        audio0.id = Channel.AA_CH_AUD;
+        audio0.mediaSinkService = new Service.MediaSinkService();
+        audio0.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
+        audio0.mediaSinkService.audioType = Protocol.CAR_STREAM_MEDIA;
+        audio0.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
+        audio0.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AUD);
+        services.add(audio0);
 
         Service mic = new Service();
         mic.id = Channel.AA_CH_MIC;

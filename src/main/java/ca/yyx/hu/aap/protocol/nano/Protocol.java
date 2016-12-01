@@ -18,10 +18,9 @@ public interface Protocol {
   public static final int SENSOR_TYPE_LOCATION = 9;
 
   // enum AudioStreamType
-  public static final int CAR_STREAM_MEDIA = 3;
   public static final int CAR_STREAM_SYSTEM = 1;
-  public static final int CAR_STREAM_TTS = 5;
-  public static final int CAR_STREAM_VOICE = 0;
+  public static final int CAR_STREAM_VOICE = 2;
+  public static final int CAR_STREAM_MEDIA = 3;
 
   // enum MediaCodecType
   public static final int MEDIA_CODEC_AUDIO = 1;
@@ -1890,10 +1889,10 @@ public interface Protocol {
         return _emptyArray;
       }
 
-      // optional .ca.yyx.hu.aap.protocol.MediaCodecType available_type = 1;
+      // required .ca.yyx.hu.aap.protocol.MediaCodecType available_type = 1;
       public int availableType;
 
-      // optional .ca.yyx.hu.aap.protocol.AudioStreamType audio_type = 2;
+      // required .ca.yyx.hu.aap.protocol.AudioStreamType audio_type = 2;
       public int audioType;
 
       // repeated .ca.yyx.hu.aap.protocol.AudioConfiguration audio_configs = 3;
@@ -1911,7 +1910,7 @@ public interface Protocol {
 
       public MediaSinkService clear() {
         availableType = ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO;
-        audioType = ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_MEDIA;
+        audioType = ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_SYSTEM;
         audioConfigs = ca.yyx.hu.aap.protocol.nano.Protocol.AudioConfiguration.emptyArray();
         videoConfigs = ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration.emptyArray();
         availableWhileInCall = false;
@@ -1922,12 +1921,8 @@ public interface Protocol {
       @Override
       public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
           throws java.io.IOException {
-        if (this.availableType != ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO) {
-          output.writeInt32(1, this.availableType);
-        }
-        if (this.audioType != ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_MEDIA) {
-          output.writeInt32(2, this.audioType);
-        }
+        output.writeInt32(1, this.availableType);
+        output.writeInt32(2, this.audioType);
         if (this.audioConfigs != null && this.audioConfigs.length > 0) {
           for (int i = 0; i < this.audioConfigs.length; i++) {
             ca.yyx.hu.aap.protocol.nano.Protocol.AudioConfiguration element = this.audioConfigs[i];
@@ -1953,14 +1948,10 @@ public interface Protocol {
       @Override
       protected int computeSerializedSize() {
         int size = super.computeSerializedSize();
-        if (this.availableType != ca.yyx.hu.aap.protocol.nano.Protocol.MEDIA_CODEC_AUDIO) {
-          size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeInt32Size(1, this.availableType);
-        }
-        if (this.audioType != ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_MEDIA) {
-          size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeInt32Size(2, this.audioType);
-        }
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeInt32Size(1, this.availableType);
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeInt32Size(2, this.audioType);
         if (this.audioConfigs != null && this.audioConfigs.length > 0) {
           for (int i = 0; i < this.audioConfigs.length; i++) {
             ca.yyx.hu.aap.protocol.nano.Protocol.AudioConfiguration element = this.audioConfigs[i];
@@ -2014,10 +2005,9 @@ public interface Protocol {
             case 16: {
               int value = input.readInt32();
               switch (value) {
-                case ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_MEDIA:
                 case ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_SYSTEM:
-                case ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_TTS:
                 case ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_VOICE:
+                case ca.yyx.hu.aap.protocol.nano.Protocol.CAR_STREAM_MEDIA:
                   this.audioType = value;
                   break;
               }

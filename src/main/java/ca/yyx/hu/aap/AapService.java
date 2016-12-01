@@ -22,7 +22,11 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.widget.Toast;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 import ca.yyx.hu.App;
 import ca.yyx.hu.R;
@@ -35,6 +39,8 @@ import ca.yyx.hu.roadrover.DeviceListener;
 import ca.yyx.hu.connection.UsbReceiver;
 import ca.yyx.hu.utils.IntentUtils;
 import ca.yyx.hu.utils.AppLog;
+import ca.yyx.hu.utils.NightMode;
+import ca.yyx.hu.utils.TwilightCalculator;
 import ca.yyx.hu.utils.Utils;
 
 /**
@@ -277,29 +283,25 @@ public class AapService extends Service implements UsbReceiver.Listener, Accesso
     private static class TimeTickReceiver extends BroadcastReceiver {
         private final UiModeManager mUiModeManager;
         private final Context mContext;
-        private int mNightMode = 0;
+        private final NightMode mNightMode;
+        private boolean mLastNightMode = false;
 
         public TimeTickReceiver(Context context, UiModeManager uiModeManager) {
             mContext = context;
             mUiModeManager = uiModeManager;
+            mNightMode = new NightMode();
         }
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 
-            int nightmodenow = 1;
-            if (hour >= 5 && hour <= 19)
-            {
-                nightmodenow = 0;
-            }
-            if (mNightMode != nightmodenow) {
-                AppLog.i("NightMode: %d != %d", mNightMode, nightmodenow);
-                mNightMode = nightmodenow;
+            boolean isCurrent = mNightMode.current();
+            if (mLastNightMode != isCurrent) {
+                mLastNightMode = isCurrent;
 
-                boolean enabled = nightmodenow == 1;
-                mUiModeManager.setNightMode(enabled ? UiModeManager.MODE_NIGHT_YES : UiModeManager.MODE_NIGHT_NO);
-                App.get(mContext).transport().sendNightMode(enabled);
+                mUiModeManager.setNightMode(isCurrent ? UiModeManager.MODE_NIGHT_YES : UiModeManager.MODE_NIGHT_NO);
+                AppLog.i(mNightMode.toString());
+                App.get(mContext).transport().sendNightMode(isCurrent);
             }
         }
     }

@@ -6,7 +6,9 @@ import com.google.protobuf.nano.MessageNano;
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
+import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.utils.AppLog;
+import ca.yyx.hu.utils.NightMode;
 import ca.yyx.hu.utils.Utils;
 
 /**
@@ -15,12 +17,14 @@ import ca.yyx.hu.utils.Utils;
  */
 
 class AapControl {
-    private final AapTransport mTransport;
+    private final MicRecorder mMicRecorder;
     private final AapAudio mAapAudio;
     private final String mBtMacAddress;
+    private final AapTransport mTransport;
 
-    AapControl(AapTransport transport, AapAudio audio, String btMacAddress) {
+    AapControl(AapTransport transport, MicRecorder recorder, AapAudio audio, String btMacAddress) {
         mTransport = transport;
+        mMicRecorder = recorder;
         mAapAudio = audio;
         mBtMacAddress = btMacAddress;
     }
@@ -106,18 +110,18 @@ class AapControl {
         if (len == 4 && buf[2] == 0x08 && buf[3] == 0) {
             AppLog.i("Mic Start/Stop Request: 0 STOP");
 
-            mTransport.micStop();
+            mMicRecorder.stop();
         } else if (len != 10 || buf[2] != 0x08 || buf[3] != 1 || buf[4] != 0x10 || buf[6] != 0x18 || buf[8] != 0x20) {
             AppLog.e("Mic Start/Stop Request");
         } else {
             AppLog.i("Mic Start/Stop Request: 1 START %d %d %d", buf[5], buf[7], buf[9]);
-            mTransport.micStart();
+            mMicRecorder.start();
         }
         return 0;
     }
 
     private int media_sink_stop_request(int channel) {
-        AppLog.i("Audio Sink Stop Request");
+        AppLog.i("Media Sink Stop Request");
         if (Channel.isAudio(channel)) {
             mAapAudio.stopAudio(channel);
         }
@@ -188,13 +192,9 @@ class AapControl {
     }
 
     private int media_start_request(Protocol.Start request, int channel) {
-
         AppLog.i("Media Start Request %s: %s", Channel.name(channel), request);
 
-        if (Channel.isAudio(channel))
-        {
-            mAapAudio.setSessionId(channel, request.sessionId);
-        }
+        mTransport.setSessionId(channel, request.sessionId);
         return 0;
     }
 
@@ -252,9 +252,15 @@ class AapControl {
 
         if (request.serviceId == Channel.AA_CH_SEN) {
             // If Sensor channel...
-            Utils.ms_sleep(2);//20);
+            Utils.ms_sleep(2);
             byte[] ba = Messages.createDrivingStatusEvent(0);
-            return mTransport.sendEncrypted(Channel.AA_CH_SEN, ba, ba.length);
+            AppLog.i("Send driving status");
+            mTransport.sendEncrypted(Channel.AA_CH_SEN, ba, ba.length);
+            Utils.ms_sleep(2);
+            NightMode nm = new NightMode();
+            AppLog.i("Send night mode");
+            mTransport.sendNightMode(nm.current());
+            AppLog.i(nm.toString());
         }
         return 0;
     }
@@ -327,7 +333,7 @@ class AapControl {
         buf[0] = 0;                                                        // Use request buffer for response
         buf[1] = 19;                                                       // Audio Focus Response
 
-        mAapAudio.requestFocusChange(channel, notification.request);
+        mAapAudio.requestFocusChange(notification.request);
         Protocol.AudioFocusNotification response = new Protocol.AudioFocusNotification();
         if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE) {
             response.focusState = Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_LOSS;

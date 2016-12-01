@@ -6,6 +6,7 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.os.Process;
 import android.os.SystemClock;
+import android.util.SparseIntArray;
 
 import java.util.Locale;
 
@@ -30,6 +31,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     private final HandlerThread mPollThread;
     private final MicRecorder mMicRecorder;
     private final String mBtMacAddress;
+    private final SparseIntArray mSessionIds = new SparseIntArray(4);
 
     private AccessoryConnection mConnection;
     private AapPoll mAapPoll;
@@ -44,8 +46,8 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         mPollThread = new HandlerThread("AapTransport:Handler", Process.THREAD_PRIORITY_AUDIO);
 
         mMicRecorder = new MicRecorder(this);
-        mAapAudio = new AapAudio(this, audioDecoder, audioManager);
-        mAapVideo = new AapVideo(this, videoDecoder);
+        mAapAudio = new AapAudio(audioDecoder, audioManager);
+        mAapVideo = new AapVideo(videoDecoder);
         mBtMacAddress = btMacAddress;
         mListener = listener;
     }
@@ -99,7 +101,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         }
         ByteArray msg = Messages.createMessage(chan, flags, -1, ba.data, ba.length);
         int size = mConnection.send(msg.data, msg.length, 250);
-        AppLog.d("Sent size: %d", size);
+        AppLog.v("Sent size: %d", size);
 
         if (AppLog.LOG_VERBOSE) {
             AapDump.logvHex("US", 0, msg.data, msg.length);
@@ -128,7 +130,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
         mConnection = connection;
 
-        mAapPoll = new AapPoll(connection, this, mAapAudio, mAapVideo, mBtMacAddress);
+        mAapPoll = new AapPoll(connection, this, mMicRecorder, mAapAudio, mAapVideo, mBtMacAddress);
         mPollThread.start();
         mHandler = new Handler(mPollThread.getLooper(), this);
         mHandler.sendEmptyMessage(POLL);
@@ -201,16 +203,6 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         return true;
     }
 
-    void micStop() {
-        AppLog.i("Microphone Stop");
-        mMicRecorder.stop();
-    }
-
-    void micStart() {
-        AppLog.i("Microphone Start");
-        mMicRecorder.start();
-    }
-
     void sendTouch(byte action, int x, int y) {
         long ts = SystemClock.elapsedRealtime() * 1000000L;
         byte[] ba = Messages.createTouchEvent(ts, action, x, y);
@@ -245,6 +237,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     }
 
     void sendVideoFocusGained(boolean unsolicited) {
+        AppLog.i("Gain video focus notification");
 
         Protocol.VideoFocusNotification videoFocus = new Protocol.VideoFocusNotification();
         videoFocus.mode = 1;
@@ -255,6 +248,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     }
 
     void sendVideoFocusLost() {
+        AppLog.i("Lost video focus notification");
 
         Protocol.VideoFocusNotification videoFocus = new Protocol.VideoFocusNotification();
         videoFocus.mode = 2;
@@ -262,6 +256,21 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
         byte[] ba = Messages.createByteArray(MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
         sendEncrypted(Channel.AA_CH_VID, ba, ba.length);
+    }
+
+    private final Protocol.Ack mediaAck = new Protocol.Ack();
+    private final byte[] ackBuf = new byte[10];
+
+    void sendMediaAck(int channel) {
+        mediaAck.clear();
+        mediaAck.sessionId = mSessionIds.get(channel);
+        mediaAck.ack = 1;
+        Messages.serializeByteArray(MsgType.Media.ACK, mediaAck, ackBuf);
+        sendEncrypted(channel, ackBuf, mediaAck.getSerializedSize() + MsgType.SIZE);
+    }
+
+    void setSessionId(int channel, int sessionId) {
+        mSessionIds.put(channel, sessionId);
     }
 
     @Override

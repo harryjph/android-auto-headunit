@@ -6,6 +6,7 @@ import java.util.Locale;
 
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.connection.AccessoryConnection;
+import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.ByteArray;
 import ca.yyx.hu.utils.Utils;
@@ -19,6 +20,7 @@ import ca.yyx.hu.utils.Utils;
 class AapPoll {
 
     private final AccessoryConnection mConnection;
+    private final AapTransport mTransport;
 
     private byte[] recv_buffer = new byte[Messages.DEF_BUFFER_LENGTH];
     private final Header recv_header = new Header();
@@ -27,11 +29,12 @@ class AapPoll {
     private final AapVideo mAapVideo;
     private final AapControl mAapControl;
 
-    AapPoll(AccessoryConnection connection, AapTransport transport, AapAudio aapAudio, AapVideo aapVideo, String btMacAddress) {
+    AapPoll(AccessoryConnection connection, AapTransport transport, MicRecorder recorder, AapAudio aapAudio, AapVideo aapVideo, String btMacAddress) {
         mConnection = connection;
         mAapAudio = aapAudio;
         mAapVideo = aapVideo;
-        mAapControl = new AapControl(transport, mAapAudio, btMacAddress);
+        mTransport = transport;
+        mAapControl = new AapControl(transport, recorder, mAapAudio, btMacAddress);
     }
 
     int poll() {
@@ -69,11 +72,12 @@ class AapPoll {
             return 0;
         }
         try {
-            return processBulk(size, recv_buffer);
+            processBulk(size, recv_buffer);
         } catch (InvalidProtocolBufferNanoException e) {
             AppLog.e(e);
             return -1;
         }
+        return 0;
     }
 
     private int processSingle(Header header, int offset, byte[] buf) throws InvalidProtocolBufferNanoException {
@@ -89,18 +93,18 @@ class AapPoll {
         return 0;
     }
 
-    private int processBulk(int buf_len, byte[] buf) throws InvalidProtocolBufferNanoException {
+    private RecvProcessResult processBulk(int buf_len, byte[] buf) throws InvalidProtocolBufferNanoException {
 
-        int msg_start = 0;
+        int body_start = 0;
         int have_len = buf_len;
 
         while (have_len > 0) {
-
-            recv_header.decode(msg_start, buf);
+            int msg_start = body_start;
+            recv_header.decode(body_start, buf);
 
             // Length starting at byte 4: Unencrypted Message Type or Encrypted data start
             have_len -= 4;
-            msg_start +=4;
+            body_start +=4;
 
             if (recv_header.chan == Channel.AA_CH_VID && recv_header.flags == 9) {
                 have_len -= 4;
@@ -108,24 +112,30 @@ class AapPoll {
 
             int need_len = recv_header.enc_len - have_len;
             if (need_len > 0) {
-                AppLog.e("Need more - offset: %d, msg_start: %d, enc_len: %d. need_len: %d, buf_len: %d, buf_limit: %d", msg_start + have_len, msg_start, recv_header.enc_len, need_len, buf_len, buf.length);
-                return -1;
+                AppLog.e("Need more - offset: %d, msg_start: %d, enc_len: %d. need_len: %d, buf_len: %d, buf_limit: %d",
+                        body_start + have_len, // 6436
+                        msg_start, // 4
+                        recv_header.enc_len, // 26816
+                        need_len, // 20384
+                        buf_len, // 6436
+                        buf.length); // 131080
+
+
+                return RecvProcessResult.NeedMore
+                        .setNeedMore(msg_start, have_len, need_len);
             }
 
-            int res = processSingle(recv_header, msg_start, buf);
-            if (res != 0) {
-                return -1;
-            }
+            processSingle(recv_header, body_start, buf);
 
             have_len -= recv_header.enc_len;
-            msg_start += recv_header.enc_len;
+            body_start += recv_header.enc_len;
             if (have_len != 0) {
                 AppLog.i("iaap_recv_dec_process() more than one message have_len: %d  enc_len: %d", have_len, recv_header.enc_len);
             }
 
         }
 
-        return 0;
+        return RecvProcessResult.Ok;
     }
 
     private AapMessage iaap_recv_dec_process(Header header, int offset, byte[] buf) {
@@ -161,9 +171,11 @@ class AapPoll {
         byte flags = message.flags;
 
         if (message.isAudio() && (msg_type == 0 || msg_type == 1)) {
+            mTransport.sendMediaAck(message.channel);
             return mAapAudio.process(message);
             // 300 ms @ 48000/sec   samples = 14400     stereo 16 bit results in bytes = 57600
-        } else if (message.isVideo() && msg_type == 0 || msg_type == 1 || flags == 8 || flags == 9 || flags == 10) {    // If Video...
+        } else if (message.isVideo() && msg_type == 0 || msg_type == 1 || flags == 8 || flags == 9 || flags == 10) {
+            mTransport.sendMediaAck(message.channel);
             return mAapVideo.process(message);
         } else if ((msg_type >= 0 && msg_type <= 31) || (msg_type >= 32768 && msg_type <= 32799) || (msg_type >= 65504 && msg_type <= 65535)) {
             mAapControl.execute(message);
@@ -193,6 +205,7 @@ class AapPoll {
             // Message Type (or post handshake, mostly indicator of SSL encrypted data)
             this.msg_type = Utils.bytesToInt(buf, offset + 4, true);
         }
+
     }
 
     private static class RecvProcessResult
@@ -202,18 +215,18 @@ class AapPoll {
         static final RecvProcessResult NeedMore = new RecvProcessResult(1);
 
         int result;
-        int offset;
+        int have_length;
         int need_length;
-        int packet_start;
+        int start;
 
         RecvProcessResult(int result) {
             this.result = result;
         }
 
-        RecvProcessResult setNeedMore(int packet_start, int need_offset, int need_length) {
-            this.packet_start = packet_start;
+        RecvProcessResult setNeedMore(int start, int have_length, int need_length) {
+            this.start = start;
             this.need_length = need_length;
-            this.offset = need_offset;
+            this.have_length = have_length;
             return this;
         }
     }

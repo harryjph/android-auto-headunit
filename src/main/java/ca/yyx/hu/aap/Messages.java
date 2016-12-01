@@ -146,7 +146,7 @@ public class Messages {
         VideoConfiguration videoConfig = new VideoConfiguration();
         videoConfig.codecResolution = VideoConfiguration.VIDEO_RESOLUTION_800x480;
         videoConfig.frameRate = VideoConfiguration.VIDEO_FPS_60;
-        videoConfig.density = 120;
+        videoConfig.density = 160;
         video.mediaSinkService.videoConfigs[0] = videoConfig;
         services.add(video);
 
@@ -192,7 +192,7 @@ public class Messages {
             bluetooth.id = Channel.AA_CH_BTH;
             bluetooth.bluetoothService = new Service.BluetoothService();
             bluetooth.bluetoothService.carAddress = btAddress;
-            bluetooth.bluetoothService.supportedPairingMethods = new int[]{2, 3};
+            bluetooth.bluetoothService.supportedPairingMethods = new int[] { 4 };
             services.add(bluetooth);
         } else {
             AppLog.i("BT MAC Address is null. Skip bluetooth service");
@@ -204,16 +204,16 @@ public class Messages {
 
     static byte[] createByteArray(int msgType, MessageNano msg)
     {
-        byte[] result = new byte[msg.getSerializedSize() + 2];
+        byte[] result = new byte[msg.getSerializedSize() + MsgType.SIZE];
         return serializeByteArray(msgType, msg, result);
     }
 
-    private static byte[] serializeByteArray(int msgType, MessageNano msg, byte[] buf)
+    static byte[] serializeByteArray(int msgType, MessageNano msg, byte[] buf)
     {
         // Header
         buf[0] = (byte) (msgType >> 8);
         buf[1] = (byte) (msgType & 0xFF);
-        MessageNano.toByteArray(msg, buf, 2, msg.getSerializedSize());
+        MessageNano.toByteArray(msg, buf, MsgType.SIZE, msg.getSerializedSize());
         return buf;
     }
 

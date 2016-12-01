@@ -78,12 +78,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        if (savedInstanceState == null) {
-            getFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.main_content, new UsbListFragment())
-                    .commit();
-        }
         UpdateManager.register(this);
     }
 

@@ -12,13 +12,13 @@ import ca.yyx.hu.utils.AppLog;
  */
 public class MicRecorder {
     private static final int SAMPLE_RATE_IN_HZ = 16000;
-    private static final int MIC_BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+    static final int MIC_BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
 
     private AudioRecord mMicAudioRecord = null;
 
-    private byte[] mic_audio_buf = new byte[MIC_BUFFER_SIZE];
+    byte[] mic_audio_buf = new byte[MIC_BUFFER_SIZE];
 
-    private boolean thread_mic_audio_active = false;
+    boolean thread_mic_audio_active = false;
     private Thread thread_mic_audio = null;
     private final Listener mListener;
 
@@ -47,7 +47,7 @@ public class MicRecorder {
         }
     }
 
-    private int mic_audio_read(byte[] aud_buf, int max_len) {
+    int mic_audio_read(byte[] aud_buf, int max_len) {
         int len = 0;
         if (mMicAudioRecord == null) {
             return (len);
@@ -85,7 +85,7 @@ public class MicRecorder {
             thread_mic_audio.start();
             return 0;
         } catch (Exception e) {
-            AppLog.e(e);  // "java.lang.IllegalArgumentException: Invalid audio source."
+            AppLog.e(e);
             mMicAudioRecord = null;
             return -2;
         }

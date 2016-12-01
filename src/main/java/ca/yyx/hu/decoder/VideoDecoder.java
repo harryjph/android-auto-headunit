@@ -21,37 +21,20 @@ public class VideoDecoder {
     private int mHeight;
     private int mWidth;
     private SurfaceHolder mHolder;
-    private NalUnitsStore mNalUnitsStore = new NalUnitsStore();
     private boolean mCodecConfigured;
 
     public void decode(byte[] buffer, int offset, int size) {
 
         synchronized (sLock) {
 
-            // AppLog.i("Video buffer: %02X %02X %02X %02X %02X (%d)", buffer[offset], buffer[offset+1], buffer[offset+2], buffer[offset+3], buffer[offset+4], size);
-
-            mNalUnitsStore.capture(buffer, offset, size);
-
             if (mCodec == null) {
                 AppLog.v("Codec is not initialized");
                 return;
             }
 
-            if (!mCodecConfigured && mNalUnitsStore.isReady())
+            if (!mCodecConfigured && isSps(buffer, offset))
             {
-                ByteBuffer content = mNalUnitsStore.getByteBuffer();
-
-                AppLog.i("Sending SPS & IDR...");
-
-                while (content.hasRemaining()) {
-
-                    if (!codec_input_provide(content)) {
-                        AppLog.e("Dropping content because there are no available buffers.");
-                        return;
-                    }
-
-                    codec_output_consume();
-                }
+                AppLog.i("Got SPS sequence...");
                 mCodecConfigured = true;
             }
 
@@ -63,14 +46,13 @@ public class VideoDecoder {
 
             ByteBuffer content = ByteBuffer.wrap(buffer, offset, size);
 
-            while (content.hasRemaining()) {                                 // While there is remaining content...
+            while (content.hasRemaining()) {
 
-                if (!codec_input_provide(content)) {                          // Process buffer; if no available buffers...
+                if (!codec_input_provide(content)) {
                     AppLog.e("Dropping content because there are no available buffers.");
                     return;
                 }
 
-                // Send result to video codec
                 codec_output_consume();
             }
         }
@@ -174,4 +156,32 @@ public class VideoDecoder {
         codec_stop(reason);
     }
 
+    // For NAL units having nal_unit_type equal to 7 or 8 (indicating
+    // a sequence parameter set or a picture parameter set,
+    // respectively)
+    private static boolean isSps(byte[] ba, int offset)
+    {
+        return getNalType(ba, offset) == 7;
+    }
+
+    // For coded slice NAL units of a primary
+    // coded picture having nal_unit_type equal to 5 (indicating a
+    // coded slice belonging to an IDR picture), an H.264 encoder
+    // SHOULD set the value of NRI to 11 (in binary format).
+    private static boolean isIdrSlice(byte[] ba)
+    {
+        return (ba[4] & 0x1f) == 5;
+    }
+
+    private static int getNalType(byte[] ba, int offset)
+    {
+        // nal_unit_type
+        // ba[4] == 0x67
+        // +---------------+
+        // |0|1|1|0|0|1|1|1|
+        // +-+-+-+-+-+-+-+-+
+        // |F|NRI|  Type   |
+        // +---------------+
+        return (ba[offset + 4] & 0x1f);
+    }
 }

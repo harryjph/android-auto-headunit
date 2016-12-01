@@ -7,6 +7,8 @@ package ca.yyx.hu.aap.protocol;
 
 public class MsgType {
 
+    public static final int SIZE = 2;
+
     public static class Control {
         public static final int MEDIADATA = 0x00;
         public static final int CODECDATA = 0x01;

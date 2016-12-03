@@ -232,9 +232,23 @@ class AapControl {
 
         // R 1 SEN b 00000000 08 01 10 00     Sen: 1, 10, 3, 8, 7
         // Yes: SENSOR_TYPE_COMPASS/LOCATION/RPM/DIAGNOSTICS/GEAR      No: SENSOR_TYPE_DRIVING_STATUS
-
         byte[] ba = Messages.createByteArray(MsgType.Sensor.STARTRESPONSE, new Protocol.SensorResponse());
-        return mTransport.sendEncrypted(channel, ba, ba.length);
+        mTransport.sendEncrypted(channel, ba, ba.length);
+
+        if (request.type == 10) {
+            // If Sensor channel...
+            Utils.ms_sleep(2);
+            byte[] ba1 = Messages.createDrivingStatusEvent(0);
+            AppLog.i("Send driving status");
+            mTransport.sendEncrypted(Channel.AA_CH_SEN, ba1, ba1.length);
+            Utils.ms_sleep(2);
+            NightMode nm = new NightMode();
+            AppLog.i("Send night mode");
+            mTransport.sendNightMode(nm.current());
+            AppLog.i(nm.toString());
+        }
+
+        return 0;
     }
 
     private int channel_open_request(Protocol.ChannelOpenRequest request, int channel, byte[] buf) {
@@ -249,19 +263,6 @@ class AapControl {
         write(response, buf, 2);
         int ret = mTransport.sendEncrypted(channel, buf, response.getSerializedSize() + 2);
         AppLog.i("Channel Open Response: %d", ret);
-
-        if (request.serviceId == Channel.AA_CH_SEN) {
-            // If Sensor channel...
-            Utils.ms_sleep(2);
-            byte[] ba = Messages.createDrivingStatusEvent(0);
-            AppLog.i("Send driving status");
-            mTransport.sendEncrypted(Channel.AA_CH_SEN, ba, ba.length);
-            Utils.ms_sleep(2);
-            NightMode nm = new NightMode();
-            AppLog.i("Send night mode");
-            mTransport.sendNightMode(nm.current());
-            AppLog.i(nm.toString());
-        }
         return 0;
     }
 

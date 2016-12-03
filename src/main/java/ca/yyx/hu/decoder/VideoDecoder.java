@@ -144,7 +144,12 @@ public class VideoDecoder {
     }
 
     public void onSurfaceHolderAvailable(SurfaceHolder holder, int width, int height) {
-        codec_stop("onSurfaceHolderAvailable");
+        synchronized (sLock) {
+            if (mCodec != null) {
+                AppLog.i("Codec is running");
+                return;
+            }
+        }
 
         mHolder = holder;
         mWidth = width;

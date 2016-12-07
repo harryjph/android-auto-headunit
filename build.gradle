@@ -20,9 +20,9 @@ apply plugin: 'com.android.application'
 dependencies {
     compile 'com.google.protobuf.nano:protobuf-javanano:3.1.0'
 
-    compile 'com.android.support:support-core-utils:25.0.0'
-    compile 'com.android.support:support-media-compat:25.0.0'
-    compile 'com.android.support:recyclerview-v7:25.0.0'
+    compile 'com.android.support:support-core-utils:25.0.1'
+    compile 'com.android.support:support-media-compat:25.0.1'
+    compile 'com.android.support:recyclerview-v7:25.0.1'
 
     compile 'net.hockeyapp.android:HockeySDK:4.1.1'
 }
@@ -34,7 +34,7 @@ android {
     defaultConfig {
         applicationId "ca.yyx.hu"
         minSdkVersion 16
-        targetSdkVersion 24
+        targetSdkVersion 16
 
         manifestPlaceholders = [HOCKEYAPP_APP_ID: "$HEADUNIT_HOCKEYAPP_ID"]
 

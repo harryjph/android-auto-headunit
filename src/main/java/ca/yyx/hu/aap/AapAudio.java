@@ -1,11 +1,8 @@
 package ca.yyx.hu.aap;
 
 import android.media.AudioManager;
-import android.util.SparseIntArray;
 
 import ca.yyx.hu.aap.protocol.AudioConfigs;
-import ca.yyx.hu.aap.protocol.Channel;
-import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.utils.AppLog;
@@ -41,7 +38,7 @@ class AapAudio implements AudioManager.OnAudioFocusChangeListener {
         }
     }
 
-    public int process(AapMessage message) {
+    public int process(AapIncomingMessage message) {
         if (message.length >= 10) {
             decode(message.channel, 10, message.data, message.length - 10);
         }

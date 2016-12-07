@@ -1048,17 +1048,306 @@ public interface Protocol {
       }
     }
 
-    public static final class NightMode extends
+    public static final class RPM extends
         com.google.protobuf.nano.MessageNano {
 
-      private static volatile NightMode[] _emptyArray;
-      public static NightMode[] emptyArray() {
+      private static volatile RPM[] _emptyArray;
+      public static RPM[] emptyArray() {
         // Lazily initializes the empty array
         if (_emptyArray == null) {
           synchronized (
               com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
             if (_emptyArray == null) {
-              _emptyArray = new NightMode[0];
+              _emptyArray = new RPM[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // required int32 rpm = 1;
+      public int rpm;
+
+      public RPM() {
+        clear();
+      }
+
+      public RPM clear() {
+        rpm = 0;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        output.writeInt32(1, this.rpm);
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt32Size(1, this.rpm);
+        return size;
+      }
+
+      @Override
+      public RPM mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.rpm = input.readInt32();
+              break;
+            }
+          }
+        }
+      }
+
+      public static RPM parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new RPM(), data);
+      }
+
+      public static RPM parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new RPM().mergeFrom(input);
+      }
+    }
+
+    public static final class FuelLevel extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile FuelLevel[] _emptyArray;
+      public static FuelLevel[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new FuelLevel[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // required int32 fuellevel = 1;
+      public int fuellevel;
+
+      // optional int32 range = 2;
+      public int range;
+
+      // optional bool lowfuel = 3;
+      public boolean lowfuel;
+
+      public FuelLevel() {
+        clear();
+      }
+
+      public FuelLevel clear() {
+        fuellevel = 0;
+        range = 0;
+        lowfuel = false;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        output.writeInt32(1, this.fuellevel);
+        if (this.range != 0) {
+          output.writeInt32(2, this.range);
+        }
+        if (this.lowfuel != false) {
+          output.writeBool(3, this.lowfuel);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt32Size(1, this.fuellevel);
+        if (this.range != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(2, this.range);
+        }
+        if (this.lowfuel != false) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeBoolSize(3, this.lowfuel);
+        }
+        return size;
+      }
+
+      @Override
+      public FuelLevel mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.fuellevel = input.readInt32();
+              break;
+            }
+            case 16: {
+              this.range = input.readInt32();
+              break;
+            }
+            case 24: {
+              this.lowfuel = input.readBool();
+              break;
+            }
+          }
+        }
+      }
+
+      public static FuelLevel parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new FuelLevel(), data);
+      }
+
+      public static FuelLevel parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new FuelLevel().mergeFrom(input);
+      }
+    }
+
+    public static final class DeadReckoning extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile DeadReckoning[] _emptyArray;
+      public static DeadReckoning[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new DeadReckoning[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional int32 steering_angel = 1;
+      public int steeringAngel;
+
+      // optional int32 wheel_speed = 2;
+      public int wheelSpeed;
+
+      public DeadReckoning() {
+        clear();
+      }
+
+      public DeadReckoning clear() {
+        steeringAngel = 0;
+        wheelSpeed = 0;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.steeringAngel != 0) {
+          output.writeInt32(1, this.steeringAngel);
+        }
+        if (this.wheelSpeed != 0) {
+          output.writeInt32(2, this.wheelSpeed);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.steeringAngel != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(1, this.steeringAngel);
+        }
+        if (this.wheelSpeed != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(2, this.wheelSpeed);
+        }
+        return size;
+      }
+
+      @Override
+      public DeadReckoning mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.steeringAngel = input.readInt32();
+              break;
+            }
+            case 16: {
+              this.wheelSpeed = input.readInt32();
+              break;
+            }
+          }
+        }
+      }
+
+      public static DeadReckoning parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new DeadReckoning(), data);
+      }
+
+      public static DeadReckoning parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new DeadReckoning().mergeFrom(input);
+      }
+    }
+
+    public static final class NightModeData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile NightModeData[] _emptyArray;
+      public static NightModeData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new NightModeData[0];
             }
           }
         }
@@ -1068,11 +1357,11 @@ public interface Protocol {
       // required bool is_night = 1;
       public boolean isNight;
 
-      public NightMode() {
+      public NightModeData() {
         clear();
       }
 
-      public NightMode clear() {
+      public NightModeData clear() {
         isNight = false;
         cachedSize = -1;
         return this;
@@ -1094,7 +1383,7 @@ public interface Protocol {
       }
 
       @Override
-      public NightMode mergeFrom(
+      public NightModeData mergeFrom(
               com.google.protobuf.nano.CodedInputByteBufferNano input)
           throws java.io.IOException {
         while (true) {
@@ -1116,33 +1405,117 @@ public interface Protocol {
         }
       }
 
-      public static NightMode parseFrom(byte[] data)
+      public static NightModeData parseFrom(byte[] data)
           throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-        return com.google.protobuf.nano.MessageNano.mergeFrom(new NightMode(), data);
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new NightModeData(), data);
       }
 
-      public static NightMode parseFrom(
+      public static NightModeData parseFrom(
               com.google.protobuf.nano.CodedInputByteBufferNano input)
           throws java.io.IOException {
-        return new NightMode().mergeFrom(input);
+        return new NightModeData().mergeFrom(input);
       }
     }
 
-    public static final class DrivingStatus extends
+    public static final class ParkingBrakeData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile ParkingBrakeData[] _emptyArray;
+      public static ParkingBrakeData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new ParkingBrakeData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional bool parking_brake = 1;
+      public boolean parkingBrake;
+
+      public ParkingBrakeData() {
+        clear();
+      }
+
+      public ParkingBrakeData clear() {
+        parkingBrake = false;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.parkingBrake != false) {
+          output.writeBool(1, this.parkingBrake);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.parkingBrake != false) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeBoolSize(1, this.parkingBrake);
+        }
+        return size;
+      }
+
+      @Override
+      public ParkingBrakeData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.parkingBrake = input.readBool();
+              break;
+            }
+          }
+        }
+      }
+
+      public static ParkingBrakeData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new ParkingBrakeData(), data);
+      }
+
+      public static ParkingBrakeData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new ParkingBrakeData().mergeFrom(input);
+      }
+    }
+
+    public static final class DrivingStatusData extends
         com.google.protobuf.nano.MessageNano {
 
       // enum Status
       public static final int DRIVING_STATUS_PARKED = 0;
       public static final int DRIVING_STATUS_MOOVING = 1;
 
-      private static volatile DrivingStatus[] _emptyArray;
-      public static DrivingStatus[] emptyArray() {
+      private static volatile DrivingStatusData[] _emptyArray;
+      public static DrivingStatusData[] emptyArray() {
         // Lazily initializes the empty array
         if (_emptyArray == null) {
           synchronized (
               com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
             if (_emptyArray == null) {
-              _emptyArray = new DrivingStatus[0];
+              _emptyArray = new DrivingStatusData[0];
             }
           }
         }
@@ -1152,11 +1525,11 @@ public interface Protocol {
       // required int32 status = 1;
       public int status;
 
-      public DrivingStatus() {
+      public DrivingStatusData() {
         clear();
       }
 
-      public DrivingStatus clear() {
+      public DrivingStatusData clear() {
         status = 0;
         cachedSize = -1;
         return this;
@@ -1178,7 +1551,7 @@ public interface Protocol {
       }
 
       @Override
-      public DrivingStatus mergeFrom(
+      public DrivingStatusData mergeFrom(
               com.google.protobuf.nano.CodedInputByteBufferNano input)
           throws java.io.IOException {
         while (true) {
@@ -1200,15 +1573,299 @@ public interface Protocol {
         }
       }
 
-      public static DrivingStatus parseFrom(byte[] data)
+      public static DrivingStatusData parseFrom(byte[] data)
           throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-        return com.google.protobuf.nano.MessageNano.mergeFrom(new DrivingStatus(), data);
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new DrivingStatusData(), data);
       }
 
-      public static DrivingStatus parseFrom(
+      public static DrivingStatusData parseFrom(
               com.google.protobuf.nano.CodedInputByteBufferNano input)
           throws java.io.IOException {
-        return new DrivingStatus().mergeFrom(input);
+        return new DrivingStatusData().mergeFrom(input);
+      }
+    }
+
+    public static final class GpsSatelliteData extends
+        com.google.protobuf.nano.MessageNano {
+
+      public static final class GpsSatellite extends
+          com.google.protobuf.nano.MessageNano {
+
+        private static volatile GpsSatellite[] _emptyArray;
+        public static GpsSatellite[] emptyArray() {
+          // Lazily initializes the empty array
+          if (_emptyArray == null) {
+            synchronized (
+                com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+              if (_emptyArray == null) {
+                _emptyArray = new GpsSatellite[0];
+              }
+            }
+          }
+          return _emptyArray;
+        }
+
+        // optional int32 prn = 1;
+        public int prn;
+
+        // optional int32 snr_e3 = 2;
+        public int snrE3;
+
+        // optional bool used_in_fix = 3;
+        public boolean usedInFix;
+
+        // optional int32 azimuth_e3 = 4;
+        public int azimuthE3;
+
+        // optional int32 elevation_e3 = 5;
+        public int elevationE3;
+
+        public GpsSatellite() {
+          clear();
+        }
+
+        public GpsSatellite clear() {
+          prn = 0;
+          snrE3 = 0;
+          usedInFix = false;
+          azimuthE3 = 0;
+          elevationE3 = 0;
+          cachedSize = -1;
+          return this;
+        }
+
+        @Override
+        public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+            throws java.io.IOException {
+          if (this.prn != 0) {
+            output.writeInt32(1, this.prn);
+          }
+          if (this.snrE3 != 0) {
+            output.writeInt32(2, this.snrE3);
+          }
+          if (this.usedInFix != false) {
+            output.writeBool(3, this.usedInFix);
+          }
+          if (this.azimuthE3 != 0) {
+            output.writeInt32(4, this.azimuthE3);
+          }
+          if (this.elevationE3 != 0) {
+            output.writeInt32(5, this.elevationE3);
+          }
+          super.writeTo(output);
+        }
+
+        @Override
+        protected int computeSerializedSize() {
+          int size = super.computeSerializedSize();
+          if (this.prn != 0) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+                .computeInt32Size(1, this.prn);
+          }
+          if (this.snrE3 != 0) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+                .computeInt32Size(2, this.snrE3);
+          }
+          if (this.usedInFix != false) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+                .computeBoolSize(3, this.usedInFix);
+          }
+          if (this.azimuthE3 != 0) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+                .computeInt32Size(4, this.azimuthE3);
+          }
+          if (this.elevationE3 != 0) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+                .computeInt32Size(5, this.elevationE3);
+          }
+          return size;
+        }
+
+        @Override
+        public GpsSatellite mergeFrom(
+                com.google.protobuf.nano.CodedInputByteBufferNano input)
+            throws java.io.IOException {
+          while (true) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                return this;
+              default: {
+                if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                  return this;
+                }
+                break;
+              }
+              case 8: {
+                this.prn = input.readInt32();
+                break;
+              }
+              case 16: {
+                this.snrE3 = input.readInt32();
+                break;
+              }
+              case 24: {
+                this.usedInFix = input.readBool();
+                break;
+              }
+              case 32: {
+                this.azimuthE3 = input.readInt32();
+                break;
+              }
+              case 40: {
+                this.elevationE3 = input.readInt32();
+                break;
+              }
+            }
+          }
+        }
+
+        public static GpsSatellite parseFrom(byte[] data)
+            throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+          return com.google.protobuf.nano.MessageNano.mergeFrom(new GpsSatellite(), data);
+        }
+
+        public static GpsSatellite parseFrom(
+                com.google.protobuf.nano.CodedInputByteBufferNano input)
+            throws java.io.IOException {
+          return new GpsSatellite().mergeFrom(input);
+        }
+      }
+
+      private static volatile GpsSatelliteData[] _emptyArray;
+      public static GpsSatelliteData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new GpsSatelliteData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional int32 number_in_use = 1;
+      public int numberInUse;
+
+      // optional int32 number_in_view = 2;
+      public int numberInView;
+
+      // repeated .ca.yyx.hu.aap.protocol.SensorBatch.GpsSatelliteData.GpsSatellite satellites = 3;
+      public ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData.GpsSatellite[] satellites;
+
+      public GpsSatelliteData() {
+        clear();
+      }
+
+      public GpsSatelliteData clear() {
+        numberInUse = 0;
+        numberInView = 0;
+        satellites = ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData.GpsSatellite.emptyArray();
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.numberInUse != 0) {
+          output.writeInt32(1, this.numberInUse);
+        }
+        if (this.numberInView != 0) {
+          output.writeInt32(2, this.numberInView);
+        }
+        if (this.satellites != null && this.satellites.length > 0) {
+          for (int i = 0; i < this.satellites.length; i++) {
+            ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData.GpsSatellite element = this.satellites[i];
+            if (element != null) {
+              output.writeMessage(3, element);
+            }
+          }
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.numberInUse != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(1, this.numberInUse);
+        }
+        if (this.numberInView != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(2, this.numberInView);
+        }
+        if (this.satellites != null && this.satellites.length > 0) {
+          for (int i = 0; i < this.satellites.length; i++) {
+            ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData.GpsSatellite element = this.satellites[i];
+            if (element != null) {
+              size += com.google.protobuf.nano.CodedOutputByteBufferNano
+                .computeMessageSize(3, element);
+            }
+          }
+        }
+        return size;
+      }
+
+      @Override
+      public GpsSatelliteData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.numberInUse = input.readInt32();
+              break;
+            }
+            case 16: {
+              this.numberInView = input.readInt32();
+              break;
+            }
+            case 26: {
+              int arrayLength = com.google.protobuf.nano.WireFormatNano
+                  .getRepeatedFieldArrayLength(input, 26);
+              int i = this.satellites == null ? 0 : this.satellites.length;
+              ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData.GpsSatellite[] newArray =
+                  new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData.GpsSatellite[i + arrayLength];
+              if (i != 0) {
+                java.lang.System.arraycopy(this.satellites, 0, newArray, 0, i);
+              }
+              for (; i < newArray.length - 1; i++) {
+                newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData.GpsSatellite();
+                input.readMessage(newArray[i]);
+                input.readTag();
+              }
+              // Last one without readTag.
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData.GpsSatellite();
+              input.readMessage(newArray[i]);
+              this.satellites = newArray;
+              break;
+            }
+          }
+        }
+      }
+
+      public static GpsSatelliteData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new GpsSatelliteData(), data);
+      }
+
+      public static GpsSatelliteData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new GpsSatelliteData().mergeFrom(input);
       }
     }
 
@@ -1229,11 +1886,17 @@ public interface Protocol {
     // repeated .ca.yyx.hu.aap.protocol.SensorBatch.LocationData location_data = 1;
     public ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.LocationData[] locationData;
 
-    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.NightMode night_mode = 10;
-    public ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode[] nightMode;
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.ParkingBrakeData parking_break_data = 7;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.ParkingBrakeData[] parkingBreakData;
 
-    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.DrivingStatus driving_status = 13;
-    public ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus[] drivingStatus;
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.NightModeData night_mode = 10;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightModeData[] nightMode;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.DrivingStatusData driving_status = 13;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatusData[] drivingStatus;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.GpsSatelliteData gps_satellite_data = 21;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData[] gpsSatelliteData;
 
     public SensorBatch() {
       clear();
@@ -1241,8 +1904,10 @@ public interface Protocol {
 
     public SensorBatch clear() {
       locationData = ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.LocationData.emptyArray();
-      nightMode = ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode.emptyArray();
-      drivingStatus = ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus.emptyArray();
+      parkingBreakData = ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.ParkingBrakeData.emptyArray();
+      nightMode = ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightModeData.emptyArray();
+      drivingStatus = ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatusData.emptyArray();
+      gpsSatelliteData = ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData.emptyArray();
       cachedSize = -1;
       return this;
     }
@@ -1258,9 +1923,17 @@ public interface Protocol {
           }
         }
       }
+      if (this.parkingBreakData != null && this.parkingBreakData.length > 0) {
+        for (int i = 0; i < this.parkingBreakData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.ParkingBrakeData element = this.parkingBreakData[i];
+          if (element != null) {
+            output.writeMessage(7, element);
+          }
+        }
+      }
       if (this.nightMode != null && this.nightMode.length > 0) {
         for (int i = 0; i < this.nightMode.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode element = this.nightMode[i];
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightModeData element = this.nightMode[i];
           if (element != null) {
             output.writeMessage(10, element);
           }
@@ -1268,9 +1941,17 @@ public interface Protocol {
       }
       if (this.drivingStatus != null && this.drivingStatus.length > 0) {
         for (int i = 0; i < this.drivingStatus.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus element = this.drivingStatus[i];
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatusData element = this.drivingStatus[i];
           if (element != null) {
             output.writeMessage(13, element);
+          }
+        }
+      }
+      if (this.gpsSatelliteData != null && this.gpsSatelliteData.length > 0) {
+        for (int i = 0; i < this.gpsSatelliteData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData element = this.gpsSatelliteData[i];
+          if (element != null) {
+            output.writeMessage(21, element);
           }
         }
       }
@@ -1289,9 +1970,18 @@ public interface Protocol {
           }
         }
       }
+      if (this.parkingBreakData != null && this.parkingBreakData.length > 0) {
+        for (int i = 0; i < this.parkingBreakData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.ParkingBrakeData element = this.parkingBreakData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(7, element);
+          }
+        }
+      }
       if (this.nightMode != null && this.nightMode.length > 0) {
         for (int i = 0; i < this.nightMode.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode element = this.nightMode[i];
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightModeData element = this.nightMode[i];
           if (element != null) {
             size += com.google.protobuf.nano.CodedOutputByteBufferNano
               .computeMessageSize(10, element);
@@ -1300,10 +1990,19 @@ public interface Protocol {
       }
       if (this.drivingStatus != null && this.drivingStatus.length > 0) {
         for (int i = 0; i < this.drivingStatus.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus element = this.drivingStatus[i];
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatusData element = this.drivingStatus[i];
           if (element != null) {
             size += com.google.protobuf.nano.CodedOutputByteBufferNano
               .computeMessageSize(13, element);
+          }
+        }
+      }
+      if (this.gpsSatelliteData != null && this.gpsSatelliteData.length > 0) {
+        for (int i = 0; i < this.gpsSatelliteData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData element = this.gpsSatelliteData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(21, element);
           }
         }
       }
@@ -1345,22 +2044,42 @@ public interface Protocol {
             this.locationData = newArray;
             break;
           }
-          case 82: {
+          case 58: {
             int arrayLength = com.google.protobuf.nano.WireFormatNano
-                .getRepeatedFieldArrayLength(input, 82);
-            int i = this.nightMode == null ? 0 : this.nightMode.length;
-            ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode[] newArray =
-                new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode[i + arrayLength];
+                .getRepeatedFieldArrayLength(input, 58);
+            int i = this.parkingBreakData == null ? 0 : this.parkingBreakData.length;
+            ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.ParkingBrakeData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.ParkingBrakeData[i + arrayLength];
             if (i != 0) {
-              java.lang.System.arraycopy(this.nightMode, 0, newArray, 0, i);
+              java.lang.System.arraycopy(this.parkingBreakData, 0, newArray, 0, i);
             }
             for (; i < newArray.length - 1; i++) {
-              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode();
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.ParkingBrakeData();
               input.readMessage(newArray[i]);
               input.readTag();
             }
             // Last one without readTag.
-            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightMode();
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.ParkingBrakeData();
+            input.readMessage(newArray[i]);
+            this.parkingBreakData = newArray;
+            break;
+          }
+          case 82: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 82);
+            int i = this.nightMode == null ? 0 : this.nightMode.length;
+            ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightModeData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightModeData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.nightMode, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightModeData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.NightModeData();
             input.readMessage(newArray[i]);
             this.nightMode = newArray;
             break;
@@ -1369,20 +2088,40 @@ public interface Protocol {
             int arrayLength = com.google.protobuf.nano.WireFormatNano
                 .getRepeatedFieldArrayLength(input, 106);
             int i = this.drivingStatus == null ? 0 : this.drivingStatus.length;
-            ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus[] newArray =
-                new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus[i + arrayLength];
+            ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatusData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatusData[i + arrayLength];
             if (i != 0) {
               java.lang.System.arraycopy(this.drivingStatus, 0, newArray, 0, i);
             }
             for (; i < newArray.length - 1; i++) {
-              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus();
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatusData();
               input.readMessage(newArray[i]);
               input.readTag();
             }
             // Last one without readTag.
-            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatus();
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.DrivingStatusData();
             input.readMessage(newArray[i]);
             this.drivingStatus = newArray;
+            break;
+          }
+          case 170: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 170);
+            int i = this.gpsSatelliteData == null ? 0 : this.gpsSatelliteData.length;
+            ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.gpsSatelliteData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Protocol.SensorBatch.GpsSatelliteData();
+            input.readMessage(newArray[i]);
+            this.gpsSatelliteData = newArray;
             break;
           }
         }

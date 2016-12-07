@@ -13,7 +13,7 @@ import ca.yyx.hu.aap.AapService;
 import ca.yyx.hu.connection.UsbDeviceCompat;
 import ca.yyx.hu.connection.UsbModeSwitch;
 import ca.yyx.hu.utils.AppLog;
-import ca.yyx.hu.utils.IntentUtils;
+import ca.yyx.hu.utils.LocalIntent;
 import ca.yyx.hu.utils.Settings;
 
 /**
@@ -28,7 +28,7 @@ public class UsbAttachedActivity extends Activity {
 
         AppLog.i("USB Intent: " + getIntent());
 
-        UsbDevice device = IntentUtils.getDevice(getIntent());
+        UsbDevice device = LocalIntent.deviceFromIntent(getIntent());
         if (device == null) {
             AppLog.e("No USB device");
             finish();
@@ -73,7 +73,7 @@ public class UsbAttachedActivity extends Activity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        UsbDevice device = IntentUtils.getDevice(getIntent());
+        UsbDevice device = LocalIntent.deviceFromIntent(getIntent());
         if (device == null) {
             AppLog.e("No USB device");
             finish();

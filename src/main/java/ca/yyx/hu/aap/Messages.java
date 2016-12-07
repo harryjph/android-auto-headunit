@@ -59,11 +59,22 @@ public class Messages {
         return buffer;
     }
 
-    static byte[] createButtonEvent(long timeStamp, int button, boolean isPress)
+    static AapOutgoingMessage createVideoFocus(int mode, boolean unsolicited)
     {
+        Protocol.VideoFocusNotification videoFocus = new Protocol.VideoFocusNotification();
+        videoFocus.mode = mode;
+        videoFocus.unsolicited = unsolicited;
+
+        return new AapOutgoingMessage(Channel.AA_CH_VID, MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
+    }
+
+    static AapOutgoingMessage createButtonEvent(long timeStamp, int button, boolean isPress)
+    {
+        // Timestamp in nanoseconds = microseconds x 1,000,000
+
         Protocol.InputReport inputReport = new Protocol.InputReport();
         Protocol.KeyEvent keyEvent = new Protocol.KeyEvent();
-        inputReport.timestamp = timeStamp;
+        inputReport.timestamp = timeStamp * 1000000L;
         inputReport.keyEvent = keyEvent;
 
         keyEvent.keys = new Protocol.Key[1];
@@ -71,14 +82,14 @@ public class Messages {
         keyEvent.keys[0].keycode = button;
         keyEvent.keys[0].down = isPress;
 
-        return createByteArray(MsgType.Input.EVENT, inputReport);
+        return new AapOutgoingMessage(Channel.AA_CH_TOU, MsgType.Input.EVENT, inputReport);
     }
 
-    static byte[] createTouchEvent(long timeStamp, int action, int x, int y) {
+    static AapOutgoingMessage createTouchEvent(long timeStamp, int action, int x, int y) {
 
         Protocol.InputReport inputReport = new Protocol.InputReport();
         Protocol.TouchEvent touchEvent = new Protocol.TouchEvent();
-        inputReport.timestamp = timeStamp;
+        inputReport.timestamp = timeStamp * 1000000L;
         inputReport.touchEvent = touchEvent;
 
         touchEvent.pointerData = new Protocol.TouchEvent.Pointer[1];
@@ -89,32 +100,32 @@ public class Messages {
         touchEvent.actionIndex = 0;
         touchEvent.action = action;
 
-        return createByteArray(MsgType.Input.EVENT, inputReport);
+        return new AapOutgoingMessage(Channel.AA_CH_TOU, MsgType.Input.EVENT, inputReport);
     }
 
-    static byte[] createNightModeEvent(boolean enabled) {
+    static AapOutgoingMessage createNightModeEvent(boolean enabled) {
         Protocol.SensorBatch sensorBatch = new Protocol.SensorBatch();
-        sensorBatch.nightMode = new Protocol.SensorBatch.NightMode[1];
-        sensorBatch.nightMode[0] = new Protocol.SensorBatch.NightMode();
+        sensorBatch.nightMode = new Protocol.SensorBatch.NightModeData[1];
+        sensorBatch.nightMode[0] = new Protocol.SensorBatch.NightModeData();
         sensorBatch.nightMode[0].isNight = enabled;
 
-        return createByteArray(MsgType.Sensor.EVENT, sensorBatch);
+        return new AapOutgoingMessage(Channel.AA_CH_SEN, MsgType.Sensor.EVENT, sensorBatch);
     }
 
-    static byte[] createDrivingStatusEvent(int status) {
+    static AapOutgoingMessage createDrivingStatusEvent(int status) {
         Protocol.SensorBatch sensorBatch = new Protocol.SensorBatch();
-        sensorBatch.drivingStatus = new Protocol.SensorBatch.DrivingStatus[1];
-        sensorBatch.drivingStatus[0] = new Protocol.SensorBatch.DrivingStatus();
+        sensorBatch.drivingStatus = new Protocol.SensorBatch.DrivingStatusData[1];
+        sensorBatch.drivingStatus[0] = new Protocol.SensorBatch.DrivingStatusData();
         sensorBatch.drivingStatus[0].status = status;
 
-        return createByteArray(MsgType.Sensor.EVENT, sensorBatch);
+        return new AapOutgoingMessage(Channel.AA_CH_SEN, MsgType.Sensor.EVENT, sensorBatch);
     }
 
     static byte[] VERSION_REQUEST = { 0, 1, 0, 1 };
     static byte[] BYEBYE_REQUEST = { 0x00, 0x0f, 0x08, 0x00 };
     static byte[] BYEBYE_RESPONSE = { 0x00, 16, 0x08, 0x00 };
 
-    static byte[] createServiceDiscoveryResponse(String btAddress) {
+    static AapOutgoingMessage createServiceDiscoveryResponse(String btAddress) {
         Protocol.ServiceDiscoveryResponse carInfo = new Protocol.ServiceDiscoveryResponse();
         carInfo.make = "AACar";
         carInfo.model = "0001";
@@ -208,22 +219,19 @@ public class Messages {
         }
 
         carInfo.services = services.toArray(new Service[0]);
-        return createByteArray(MsgType.Control.SERVICEDISCOVERYRESPONSE, carInfo);
+
+        return new AapOutgoingMessage(Channel.AA_CH_CTR, MsgType.Control.SERVICEDISCOVERYRESPONSE, carInfo);
     }
 
-    static byte[] createByteArray(int msgType, MessageNano msg)
-    {
-        byte[] result = new byte[msg.getSerializedSize() + MsgType.SIZE];
-        return serializeByteArray(msgType, msg, result);
-    }
 
-    static byte[] serializeByteArray(int msgType, MessageNano msg, byte[] buf)
-    {
-        // Header
-        buf[0] = (byte) (msgType >> 8);
-        buf[1] = (byte) (msgType & 0xFF);
-        MessageNano.toByteArray(msg, buf, MsgType.SIZE, msg.getSerializedSize());
-        return buf;
-    }
+    private final Protocol.Ack mediaAck = new Protocol.Ack();
+    private final byte[] ackBuf = new byte[10];
 
+    static AapOutgoingMessage createMediaAck(int channel, int sessionId) {
+        mediaAck.clear();
+        mediaAck.sessionId = sessionId;
+        mediaAck.ack = 1;
+
+        return new AapOutgoingMessage(channel, MsgType.Media.ACK, mediaAck);
+    }
 }

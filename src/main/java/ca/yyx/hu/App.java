@@ -10,6 +10,7 @@ import ca.yyx.hu.aap.AapProjectionActivity;
 import ca.yyx.hu.aap.AapTransport;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.VideoDecoder;
+import ca.yyx.hu.location.GpsLocation;
 import ca.yyx.hu.utils.Settings;
 
 /**
@@ -24,6 +25,7 @@ public class App extends Application implements AapTransport.Listener {
     private AudioDecoder mAudioDecoder;
     private AapTransport mTransport;
     private Settings mSettings;
+    private GpsLocation mGpsLocation;
 
     public static App get(Context context)
     {
@@ -37,7 +39,8 @@ public class App extends Application implements AapTransport.Listener {
         mAudioDecoder = new AudioDecoder();
         mVideoDecoder = new VideoDecoder();
         mSettings = new Settings(this);
-
+        mGpsLocation = new GpsLocation(this);
+        mGpsLocation.start();
     }
 
     public AapTransport transport()

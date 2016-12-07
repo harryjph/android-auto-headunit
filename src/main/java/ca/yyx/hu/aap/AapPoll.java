@@ -81,7 +81,7 @@ class AapPoll {
     }
 
     private int processSingle(Header header, int offset, byte[] buf) throws InvalidProtocolBufferNanoException {
-        AapMessage msg = iaap_recv_dec_process(header, offset, buf);
+        AapIncomingMessage msg = iaap_recv_dec_process(header, offset, buf);
         // Decrypt & Process 1 received encrypted message
         if (msg == null) {
             // If error...
@@ -138,7 +138,7 @@ class AapPoll {
         return RecvProcessResult.Ok;
     }
 
-    private AapMessage iaap_recv_dec_process(Header header, int offset, byte[] buf) {
+    private AapIncomingMessage iaap_recv_dec_process(Header header, int offset, byte[] buf) {
         // Decrypt & Process 1 received encrypted message
 
         if ((header.flags & 0x08) != 0x08) {
@@ -162,10 +162,10 @@ class AapPoll {
         AapDump.logd(prefix, "AA", header.chan, header.flags, ba.data, ba.length);
 
         int msg_type = Utils.bytesToInt(ba.data, 0, true);
-        return new AapMessage(header.chan, (byte) header.flags, msg_type, 2, ba);
+        return new AapIncomingMessage(header.chan, (byte) header.flags, msg_type, 2, ba);
     }
 
-    private int iaap_msg_process(AapMessage message) throws InvalidProtocolBufferNanoException {
+    private int iaap_msg_process(AapIncomingMessage message) throws InvalidProtocolBufferNanoException {
 
         int msg_type = message.type;
         byte flags = message.flags;

@@ -11,7 +11,7 @@ import ca.yyx.hu.utils.ByteArray;
  * @author algavris
  * @date 04/10/2016.
  */
-class AapMessage {
+class AapIncomingMessage {
 
     final byte[] data;
     final int length;
@@ -20,7 +20,7 @@ class AapMessage {
     final int type;
     final int dataOffset;
 
-    AapMessage(int channel, byte flags, int msg_type, int dataOffset, ByteArray ba) {
+    AapIncomingMessage(int channel, byte flags, int msg_type, int dataOffset, ByteArray ba) {
         this.data = ba.data;
         this.length = ba.length;
         this.channel = channel;

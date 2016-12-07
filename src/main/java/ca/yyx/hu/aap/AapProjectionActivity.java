@@ -72,10 +72,9 @@ import android.view.View;
 
 import ca.yyx.hu.App;
 import ca.yyx.hu.R;
-import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.activities.SurfaceActivity;
 import ca.yyx.hu.utils.AppLog;
-import ca.yyx.hu.utils.IntentUtils;
+import ca.yyx.hu.utils.LocalIntent;
 import ca.yyx.hu.utils.Utils;
 import ca.yyx.hu.view.ProjectionView;
 
@@ -129,7 +128,7 @@ public class AapProjectionActivity extends SurfaceActivity implements SurfaceHol
     @Override
     protected void onResume() {
         super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, IntentUtils.DISCONNECT_FILTER);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, LocalIntent.DISCONNECT_FILTER);
     }
 
     private AapTransport transport() {

@@ -10,12 +10,12 @@ import android.hardware.usb.UsbManager;
  * @date 30/05/2016.
  */
 
-public class IntentUtils {
+public class LocalIntent {
 
     public static final Intent ACTION_DISCONNECT = new Intent("ca.yyx.hu.ACTION_DISCONNECT");
     public static final IntentFilter DISCONNECT_FILTER = new IntentFilter("ca.yyx.hu.ACTION_DISCONNECT");
 
-    public static UsbDevice getDevice(Intent intent)
+    public static UsbDevice deviceFromIntent(Intent intent)
     {
         if (intent == null) {
             return null;

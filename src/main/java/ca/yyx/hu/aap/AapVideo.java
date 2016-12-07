@@ -1,6 +1,5 @@
 package ca.yyx.hu.aap;
 
-import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.utils.AppLog;
 
@@ -21,7 +20,7 @@ class AapVideo {
         mVideoDecoder = videoDecoder;
     }
 
-    public int process(AapMessage message) {
+    public int process(AapIncomingMessage message) {
         return process(message.type, message.flags, message.data, message.length);
     }
 

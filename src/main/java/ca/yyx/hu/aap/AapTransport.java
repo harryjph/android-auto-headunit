@@ -8,6 +8,8 @@ import android.os.Process;
 import android.os.SystemClock;
 import android.util.SparseIntArray;
 
+import com.google.protobuf.nano.MessageNano;
+
 import java.util.Locale;
 
 import ca.yyx.hu.aap.protocol.Channel;
@@ -204,30 +206,36 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     }
 
     void sendTouch(byte action, int x, int y) {
-        long ts = SystemClock.elapsedRealtime() * 1000000L;
-        byte[] ba = Messages.createTouchEvent(ts, action, x, y);
-        sendEncrypted(Channel.AA_CH_TOU, ba, ba.length);
+        long ts = SystemClock.elapsedRealtime();
+        send(Messages.createTouchEvent(ts, action, x, y));
     }
 
     public void sendButton(int keyCode, boolean isPress) {
-        long ts = SystemClock.elapsedRealtime() * 1000000L;
-        // Timestamp in nanoseconds = microseconds x 1,000,000
-        byte[] ba = Messages.createButtonEvent(ts, keyCode, isPress);
-        sendEncrypted(Channel.AA_CH_TOU, ba, ba.length);
+        long ts = SystemClock.elapsedRealtime();
+        send(Messages.createButtonEvent(ts, keyCode, isPress));
     }
 
     void sendNightMode(boolean enabled) {
-        byte[] modeData = Messages.createNightModeEvent(enabled);
-        sendEncrypted(Channel.AA_CH_SEN, modeData, modeData.length);
+        send(Messages.createNightModeEvent(enabled));
     }
 
-    int sendEncrypted(int chan, byte[] buf, int len) {
+    void send(AapOutgoingMessage outgoing) {
+        byte[] buf = new byte[outgoing.size];
+        send(outgoing, buf);
+    }
+
+    void send(AapOutgoingMessage outgoing, byte[] buf) {
         if (mHandler == null) {
             AppLog.e("Handler is null");
         } else {
-            Message msg = mHandler.obtainMessage(MSG_DATA, chan, len, buf);
+            outgoing.byteArray(buf);
+            Message msg = mHandler.obtainMessage(MSG_DATA, outgoing.channel, outgoing.size, buf);
             mHandler.sendMessage(msg);
         }
+    }
+
+    int sendEncrypted(int chan, byte[] buf, int len) {
+
         return 0;
     }
 
@@ -238,33 +246,18 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
     void sendVideoFocusGained(boolean unsolicited) {
         AppLog.i("Gain video focus notification");
-
-        Protocol.VideoFocusNotification videoFocus = new Protocol.VideoFocusNotification();
-        videoFocus.mode = 1;
-        videoFocus.unsolicited = unsolicited;
-
-        byte[] ba = Messages.createByteArray(MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
-        sendEncrypted(Channel.AA_CH_VID, ba, ba.length);
+        send(Messages.createVideoFocus(1, unsolicited));
     }
 
     void sendVideoFocusLost() {
         AppLog.i("Lost video focus notification");
-
-        Protocol.VideoFocusNotification videoFocus = new Protocol.VideoFocusNotification();
-        videoFocus.mode = 2;
-        videoFocus.unsolicited = true;
-
-        byte[] ba = Messages.createByteArray(MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
-        sendEncrypted(Channel.AA_CH_VID, ba, ba.length);
+        send(Messages.createVideoFocus(2, true));
     }
 
-    private final Protocol.Ack mediaAck = new Protocol.Ack();
-    private final byte[] ackBuf = new byte[10];
-
     void sendMediaAck(int channel) {
-        mediaAck.clear();
-        mediaAck.sessionId = mSessionIds.get(channel);
-        mediaAck.ack = 1;
+
+        send(Messages.createMediaAck(channel, mSessionIds.get(channel)));
+
         Messages.serializeByteArray(MsgType.Media.ACK, mediaAck, ackBuf);
         sendEncrypted(channel, ackBuf, mediaAck.getSerializedSize() + MsgType.SIZE);
     }

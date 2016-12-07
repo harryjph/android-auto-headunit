@@ -11,7 +11,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
-import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ResultReceiver;
@@ -22,12 +21,6 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.widget.Toast;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-
 import ca.yyx.hu.App;
 import ca.yyx.hu.R;
 import ca.yyx.hu.RemoteControlReceiver;
@@ -37,10 +30,9 @@ import ca.yyx.hu.connection.SocketAccessoryConnection;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.roadrover.DeviceListener;
 import ca.yyx.hu.connection.UsbReceiver;
-import ca.yyx.hu.utils.IntentUtils;
+import ca.yyx.hu.utils.LocalIntent;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.NightMode;
-import ca.yyx.hu.utils.TwilightCalculator;
 import ca.yyx.hu.utils.Utils;
 
 /**
@@ -176,7 +168,7 @@ public class AapService extends Service implements UsbReceiver.Listener, Accesso
         int connectionType = intent.getIntExtra(EXTRA_CONNECTION_TYPE, 0);
 
         if (connectionType == TYPE_USB) {
-            UsbDevice device = IntentUtils.getDevice(intent);
+            UsbDevice device = LocalIntent.deviceFromIntent(intent);
             if (device == null) {
                 AppLog.e("No device in " + intent);
                 return null;
@@ -192,7 +184,7 @@ public class AapService extends Service implements UsbReceiver.Listener, Accesso
     }
 
     private void onDisconnect() {
-        LocalBroadcastManager.getInstance(this).sendBroadcast(IntentUtils.ACTION_DISCONNECT);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(LocalIntent.ACTION_DISCONNECT);
         reset();
         mAccessoryConnection.disconnect();
         mAccessoryConnection = null;

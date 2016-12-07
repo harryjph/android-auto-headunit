@@ -85,11 +85,30 @@ message SensorBatch
         optional int32 speed = 6;
         optional int32 bearing = 7;
     }
-    message NightMode
+    message RPM
+    {
+        required int32 rpm = 1;
+    }
+    message FuelLevel
+    {
+        required int32 fuellevel = 1;
+        optional int32 range = 2;
+        optional bool lowfuel = 3;
+    }
+    message DeadReckoning
+    {
+        optional int32 steering_angel = 1;
+        optional int32 wheel_speed = 2;
+    }
+    message NightModeData
     {
         required bool is_night = 1;
     }
-    message DrivingStatus
+    message ParkingBrakeData
+    {
+        optional bool parking_brake = 1;
+    }
+    message DrivingStatusData
     {
         enum Status
         {
@@ -98,28 +117,42 @@ message SensorBatch
         }
         required int32 status = 1;
     }
+    message GpsSatelliteData
+    {
+        message GpsSatellite
+        {
+            optional int32 prn = 1;
+            optional int32 snr_e3 = 2;
+            optional bool used_in_fix = 3;
+            optional int32 azimuth_e3 = 4;
+            optional int32 elevation_e3 = 5;
+        }
+        optional int32 number_in_use = 1;
+        optional int32 number_in_view = 2;
+        repeated GpsSatellite satellites = 3;
+    }
 
     repeated LocationData location_data = 1;
     //repeated CompassData compass_data = 2;
-    //repeated Speed = 3;
-    //repeated RPM = 4;
-    //repeated Odometer = 5;
-    //repeated Fuel = 6;
-    //repeated ParkingBreak = 7;
-    //repeated GearData = 8;
-    //repeated Diagnostics = 9;
-    repeated NightMode night_mode = 10;
-    //repeated Environment = 11;
-    //repeated HVAC = 12;
-    repeated DrivingStatus driving_status = 13;
-    //repeated DeadReckoning = 14;
-    //repeated Passenger = 15;
-    //repeated Door = 16;
-    //repeated Light = 17;
-    //repeated Tire = 18;
-    //repeated Accel = 19;
-    //repeated Gyro = 20;
-    //repeated GPS = 21;
+    //repeated SpeedData speed_data = 3;
+    //repeated RpmData rpm_data = 4;
+    //repeated OdometerData odometer_data = 5;
+    //repeated FuelData fuel_data = 6;
+    repeated ParkingBrakeData parking_break_data = 7;
+    //repeated GearData gear_data = 8;
+    //repeated DiagnosticsData diagnostics_data = 9;
+    repeated NightModeData night_mode = 10;
+    //repeated EnvironmentData environment_data = 11;
+    //repeated HvacData hvac_data = 12;
+    repeated DrivingStatusData driving_status = 13;
+    //repeated DeadReckoningData dead_reckoning_data = 14;
+    //repeated PassengerData passenger_data = 15;
+    //repeated DoorData door_data = 16;
+    //repeated LightData light_data = 17;
+    //repeated TirePressureData tire_pressure_data = 18;
+    //repeated AccelerometerData accelerometer_data = 19;
+    //repeated GyroscopeData gyroscope_data = 20;
+    repeated GpsSatelliteData gps_satellite_data = 21;
 }
 
 enum AudioStreamType

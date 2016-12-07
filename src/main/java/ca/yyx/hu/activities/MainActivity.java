@@ -36,37 +36,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        findViewById(R.id.exit_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopService(new Intent(MainActivity.this, AapService.class));
-                finish();
-                Intent intent = new Intent(Intent.ACTION_MAIN);
-                intent.addCategory(Intent.CATEGORY_HOME);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-            }
-        });
-
-        findViewById(R.id.menu).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showMenuDialog();
-            }
-        });
-
-
-        findViewById(R.id.wifi).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.main_content, new NetworkListFragment(), NetworkListFragment.TAG)
-                        .commit();
-//                startService(AapService.createIntent("10.0.0.11", MainActivity.this));
-            }
-        });
-
         findViewById(R.id.usb).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -74,29 +43,11 @@ public class MainActivity extends Activity {
                         .beginTransaction()
                         .replace(R.id.main_content, new UsbListFragment())
                         .commit();
-//                startService(AapService.createIntent("10.0.0.11", MainActivity.this));
             }
         });
 
         UpdateManager.register(this);
     }
-
-    void showMenuDialog() {
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(R.string.menu)
-                .setItems(R.array.menu_items, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-//                        if (which == 0)
-//                        {
-////                            startActivity(new Intent(MainActivity.this, VideoTestActivity.class));
-//                        }
-                    }
-                }).create();
-        dialog.show();
-    }
-
-
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {

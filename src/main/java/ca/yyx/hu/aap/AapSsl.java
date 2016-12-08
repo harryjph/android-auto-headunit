@@ -1,7 +1,6 @@
 package ca.yyx.hu.aap;
 
 import ca.yyx.hu.utils.AppLog;
-import ca.yyx.hu.utils.ByteArray;
 
 /**
  * @author algavris
@@ -47,7 +46,7 @@ class AapSsl {
             AppLog.i("SSL BIO read error");
             return null;
         }
-        return new ByteArray(0, bio_read, size);
+        return new ByteArray(bio_read, size);
     }
 
     static int bioWrite(int start, int length, byte[] buffer) {
@@ -70,7 +69,7 @@ class AapSsl {
             return null;
         }
 
-        return new ByteArray(0, dec_buf, bytes_read);
+        return new ByteArray(dec_buf, bytes_read);
     }
 
     static ByteArray encrypt(int start, int length, byte[] buffer) {
@@ -96,6 +95,6 @@ class AapSsl {
 
         AppLog.v("BIO read bytes_read: %d", bytes_read);
 
-        return new ByteArray(0, enc_buf, bytes_read);
+        return new ByteArray(enc_buf, bytes_read);
     }
 }

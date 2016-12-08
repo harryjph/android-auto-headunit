@@ -5,13 +5,9 @@ import com.google.protobuf.nano.MessageNano;
 
 import java.util.Locale;
 
-import ca.yyx.hu.aap.Encode;
-import ca.yyx.hu.aap.Messages;
-import ca.yyx.hu.aap.protocol.AudioConfigs;
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.decoder.AudioDecoder;
-import ca.yyx.hu.utils.ByteArray;
 
 /**
  * @author algavris

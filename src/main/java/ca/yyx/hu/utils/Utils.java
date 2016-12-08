@@ -74,6 +74,11 @@ public class Utils {
         }
     }
 
+    public static void intToBytes(int value, int offset, byte[] buf) {
+        buf[offset] = (byte) (value / 256);                                            // Encode length of following data:
+        buf[offset+1] = (byte) (value % 256);
+    }
+
     public static int bytesToInt(byte[] buf,int idx, boolean isShort)
     {
         if (isShort)

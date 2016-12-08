@@ -8,7 +8,6 @@ import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.utils.AppLog;
-import ca.yyx.hu.utils.ByteArray;
 import ca.yyx.hu.utils.Utils;
 
 
@@ -81,7 +80,7 @@ class AapPoll {
     }
 
     private int processSingle(Header header, int offset, byte[] buf) throws InvalidProtocolBufferNanoException {
-        AapIncomingMessage msg = iaap_recv_dec_process(header, offset, buf);
+        AapMessage msg = iaap_recv_dec_process(header, offset, buf);
         // Decrypt & Process 1 received encrypted message
         if (msg == null) {
             // If error...
@@ -138,7 +137,7 @@ class AapPoll {
         return RecvProcessResult.Ok;
     }
 
-    private AapIncomingMessage iaap_recv_dec_process(Header header, int offset, byte[] buf) {
+    private AapMessage iaap_recv_dec_process(Header header, int offset, byte[] buf) {
         // Decrypt & Process 1 received encrypted message
 
         if ((header.flags & 0x08) != 0x08) {
@@ -162,10 +161,10 @@ class AapPoll {
         AapDump.logd(prefix, "AA", header.chan, header.flags, ba.data, ba.length);
 
         int msg_type = Utils.bytesToInt(ba.data, 0, true);
-        return new AapIncomingMessage(header.chan, (byte) header.flags, msg_type, 2, ba);
+        return new AapMessage(header.chan, (byte) header.flags, msg_type, 2, ba.length, ba.data);
     }
 
-    private int iaap_msg_process(AapIncomingMessage message) throws InvalidProtocolBufferNanoException {
+    private int iaap_msg_process(AapMessage message) throws InvalidProtocolBufferNanoException {
 
         int msg_type = message.type;
         byte flags = message.flags;

@@ -327,7 +327,12 @@ message ByeByeRequest
     {
         REASON_QUIT = 1;
     }
-    optional ByeByeReason reason = 1;
+    required ByeByeReason reason = 1;
+}
+
+message ByeByeResponse
+{
+
 }
 
 message MediaSetupRequest

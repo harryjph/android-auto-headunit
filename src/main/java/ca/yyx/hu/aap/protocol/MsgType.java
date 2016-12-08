@@ -9,11 +9,15 @@ public class MsgType {
 
     public static final int SIZE = 2;
 
+    public static boolean isControl(int type) {
+        return type >= Control.MEDIADATA && type <= Control.AUDIOFOCUSNOTFICATION;
+    }
+
     public static class Control {
         public static final int MEDIADATA = 0x00;
         public static final int CODECDATA = 0x01;
         public static final int VERSIONRESPONSE = 0x02;
-        public static final int SSLHANDSHAKE = 0x03;
+        public static final int HANDSHAKE = 0x03;
         public static final int SERVICEDISCOVERYREQUEST = 0x05;
         public static final int SERVICEDISCOVERYRESPONSE = 0x06;
         public static final int CHANNELOPENREQUEST = 0x07;
@@ -23,7 +27,7 @@ public class MsgType {
         public static final int NAVFOCUSREQUESTNOTIFICATION = 0x0D;
         public static final int NAVFOCUSRNOTIFICATION = 0x0E;
         public static final int BYEYEREQUEST = 0x0F;
-        public static final int SHUTDOWNRESPONSE = 0x10;
+        public static final int BYEYERESPONSE = 0x10;
         public static final int VOICESESSIONNOTIFICATION = 0x11;
         public static final int AUDIOFOCUSREQUESTNOTFICATION = 0x12;
         public static final int AUDIOFOCUSNOTFICATION = 0x13;
@@ -64,7 +68,7 @@ public class MsgType {
             case Control.VERSIONRESPONSE:
                 // short:major  short:minor   short:status
                 return "Version Response";
-            case Control.SSLHANDSHAKE:
+            case Control.HANDSHAKE:
                 return "SSL Handshake Data";
             case 4:
                 return "SSL Authentication Complete Notification";
@@ -90,7 +94,7 @@ public class MsgType {
                 return "Navigation Focus Notification";               // NavFocusType
             case Control.BYEYEREQUEST:
                 return "Byebye Request";
-            case Control.SHUTDOWNRESPONSE:
+            case Control.BYEYERESPONSE:
                 return "Byebye Response";
             case Control.VOICESESSIONNOTIFICATION:
                 return "Voice Session Notification";

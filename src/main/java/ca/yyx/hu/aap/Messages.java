@@ -1,22 +1,18 @@
 package ca.yyx.hu.aap;
 
-import android.media.AudioManager;
-
-import com.google.protobuf.nano.MessageNano;
-
 import java.util.ArrayList;
 
 import ca.yyx.hu.aap.protocol.AudioConfigs;
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.utils.AppLog;
-import ca.yyx.hu.utils.ByteArray;
 
 import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.aap.protocol.nano.Protocol.Service;
 import ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService;
 import ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration;
 import ca.yyx.hu.aap.protocol.nano.Protocol.Service.InputSourceService.TouchConfig;
+import ca.yyx.hu.utils.Utils;
 
 /**
  * @author algavris
@@ -41,34 +37,30 @@ public class Messages {
     public static final int BTN_PREV = 0x58;
     public static final int BTN_STOP = 127;
 
-    static ByteArray createMessage(int chan, int flags, int type, byte[] data, int size) {
+    static byte[] createRawMessage(int chan, int flags, int type, byte[] data, int size) {
 
-        ByteArray buffer = new ByteArray(6 + size);
+        int total = 6 + size;
+        byte[] buffer = new byte[total];
 
-        buffer.put(chan, flags);
+        buffer[0] = (byte) chan;
+        buffer[1] = (byte) flags;
+        Utils.intToBytes(size + 2, 2, buffer);
+        Utils.intToBytes(type, 4, buffer);
 
-        if (type >= 0) {
-            buffer.encodeInt(size + 2);
-            // If type not negative, which indicates encrypted type should not be touched...
-            buffer.encodeInt(type);
-        } else {
-            buffer.encodeInt(size);
-        }
-
-        buffer.put(data, size);
+        System.arraycopy(data, 0, buffer, 6, size);
         return buffer;
     }
 
-    static AapOutgoingMessage createVideoFocus(int mode, boolean unsolicited)
+    static AapMessage createVideoFocus(int mode, boolean unsolicited)
     {
         Protocol.VideoFocusNotification videoFocus = new Protocol.VideoFocusNotification();
         videoFocus.mode = mode;
         videoFocus.unsolicited = unsolicited;
 
-        return new AapOutgoingMessage(Channel.AA_CH_VID, MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
+        return new AapMessage(Channel.AA_CH_VID, MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
     }
 
-    static AapOutgoingMessage createButtonEvent(long timeStamp, int button, boolean isPress)
+    static AapMessage createButtonEvent(long timeStamp, int button, boolean isPress)
     {
         // Timestamp in nanoseconds = microseconds x 1,000,000
 
@@ -82,10 +74,10 @@ public class Messages {
         keyEvent.keys[0].keycode = button;
         keyEvent.keys[0].down = isPress;
 
-        return new AapOutgoingMessage(Channel.AA_CH_TOU, MsgType.Input.EVENT, inputReport);
+        return new AapMessage(Channel.AA_CH_TOU, MsgType.Input.EVENT, inputReport);
     }
 
-    static AapOutgoingMessage createTouchEvent(long timeStamp, int action, int x, int y) {
+    static AapMessage createTouchEvent(long timeStamp, int action, int x, int y) {
 
         Protocol.InputReport inputReport = new Protocol.InputReport();
         Protocol.TouchEvent touchEvent = new Protocol.TouchEvent();
@@ -100,32 +92,30 @@ public class Messages {
         touchEvent.actionIndex = 0;
         touchEvent.action = action;
 
-        return new AapOutgoingMessage(Channel.AA_CH_TOU, MsgType.Input.EVENT, inputReport);
+        return new AapMessage(Channel.AA_CH_TOU, MsgType.Input.EVENT, inputReport);
     }
 
-    static AapOutgoingMessage createNightModeEvent(boolean enabled) {
+    static AapMessage createNightModeEvent(boolean enabled) {
         Protocol.SensorBatch sensorBatch = new Protocol.SensorBatch();
         sensorBatch.nightMode = new Protocol.SensorBatch.NightModeData[1];
         sensorBatch.nightMode[0] = new Protocol.SensorBatch.NightModeData();
         sensorBatch.nightMode[0].isNight = enabled;
 
-        return new AapOutgoingMessage(Channel.AA_CH_SEN, MsgType.Sensor.EVENT, sensorBatch);
+        return new AapMessage(Channel.AA_CH_SEN, MsgType.Sensor.EVENT, sensorBatch);
     }
 
-    static AapOutgoingMessage createDrivingStatusEvent(int status) {
+    static AapMessage createDrivingStatusEvent(int status) {
         Protocol.SensorBatch sensorBatch = new Protocol.SensorBatch();
         sensorBatch.drivingStatus = new Protocol.SensorBatch.DrivingStatusData[1];
         sensorBatch.drivingStatus[0] = new Protocol.SensorBatch.DrivingStatusData();
         sensorBatch.drivingStatus[0].status = status;
 
-        return new AapOutgoingMessage(Channel.AA_CH_SEN, MsgType.Sensor.EVENT, sensorBatch);
+        return new AapMessage(Channel.AA_CH_SEN, MsgType.Sensor.EVENT, sensorBatch);
     }
 
     static byte[] VERSION_REQUEST = { 0, 1, 0, 1 };
-    static byte[] BYEBYE_REQUEST = { 0x00, 0x0f, 0x08, 0x00 };
-    static byte[] BYEBYE_RESPONSE = { 0x00, 16, 0x08, 0x00 };
 
-    static AapOutgoingMessage createServiceDiscoveryResponse(String btAddress) {
+    static AapMessage createServiceDiscoveryResponse(String btAddress) {
         Protocol.ServiceDiscoveryResponse carInfo = new Protocol.ServiceDiscoveryResponse();
         carInfo.make = "AACar";
         carInfo.model = "0001";
@@ -220,18 +210,18 @@ public class Messages {
 
         carInfo.services = services.toArray(new Service[0]);
 
-        return new AapOutgoingMessage(Channel.AA_CH_CTR, MsgType.Control.SERVICEDISCOVERYRESPONSE, carInfo);
+        return new AapMessage(Channel.AA_CH_CTR, MsgType.Control.SERVICEDISCOVERYRESPONSE, carInfo);
     }
 
 
-    private final Protocol.Ack mediaAck = new Protocol.Ack();
-    private final byte[] ackBuf = new byte[10];
+    private final static Protocol.Ack mediaAck = new Protocol.Ack();
+    private final static byte[] ackBuf = new byte[10];
 
-    static AapOutgoingMessage createMediaAck(int channel, int sessionId) {
+    static AapMessage createMediaAck(int channel, int sessionId) {
         mediaAck.clear();
         mediaAck.sessionId = sessionId;
         mediaAck.ack = 1;
 
-        return new AapOutgoingMessage(channel, MsgType.Media.ACK, mediaAck);
+        return new AapMessage(channel, MsgType.Media.ACK, mediaAck);
     }
 }

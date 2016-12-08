@@ -38,9 +38,9 @@ class AapAudio implements AudioManager.OnAudioFocusChangeListener {
         }
     }
 
-    public int process(AapIncomingMessage message) {
-        if (message.length >= 10) {
-            decode(message.channel, 10, message.data, message.length - 10);
+    public int process(AapMessage message) {
+        if (message.size >= 10) {
+            decode(message.channel, 10, message.data, message.size - 10);
         }
 
         return 0;

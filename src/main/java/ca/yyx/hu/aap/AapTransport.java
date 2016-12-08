@@ -8,10 +8,6 @@ import android.os.Process;
 import android.os.SystemClock;
 import android.util.SparseIntArray;
 
-import com.google.protobuf.nano.MessageNano;
-
-import java.util.Locale;
-
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
@@ -20,7 +16,6 @@ import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.utils.AppLog;
-import ca.yyx.hu.utils.ByteArray;
 import ca.yyx.hu.utils.Utils;
 
 public class AapTransport implements Handler.Callback, MicRecorder.Listener {
@@ -61,10 +56,9 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     public boolean handleMessage(Message msg) {
 
         if (msg.what == MSG_DATA) {
-            int chan = msg.arg1;
-            int len = msg.arg2;
+            int size = msg.arg2;
             byte[] data = (byte[]) msg.obj;
-            this.sendEncryptedMessage(chan, data, len);
+            this.sendEncryptedMessage(data, size);
             return true;
         }
 
@@ -85,35 +79,23 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         return true;
     }
 
-    private int sendEncryptedMessage(int chan, byte[] buf, int len) {
-        int flags = 0x0b;                                                   // Flags = First + Last + Encrypted
-        if (chan != Channel.AA_CH_CTR && buf[0] == 0) {                            // If not control channel and msg_type = 0 - 255 = control type message
-            flags = 0x0f;                                                     // Set Control Flag (On non-control channels, indicates generic/"control type" messages
-        }
-        if (chan == Channel.AA_CH_MIC && buf[0] == 0 && buf[1] == 0) {            // If Mic PCM Data
-            flags = 0x0b;                                                     // Flags = First + Last + Encrypted
-        }
-
-        String prefix = String.format(Locale.US, "SEND %d %s %01x", chan, Channel.name(chan), flags);
-        AapDump.logd(prefix, "HU", chan, flags, buf, len);
-
-        ByteArray ba = AapSsl.encrypt(4, len, buf);
+    private int sendEncryptedMessage(byte[] buf, int length) {
+        ByteArray ba = AapSsl.encrypt(4, length, buf);
         if (ba == null) {
             return -1;
         }
-        ByteArray msg = Messages.createMessage(chan, flags, -1, ba.data, ba.length);
-        int size = mConnection.send(msg.data, msg.length, 250);
+        int size = mConnection.send(buf, length, 250);
         AppLog.v("Sent size: %d", size);
 
         if (AppLog.LOG_VERBOSE) {
-            AapDump.logvHex("US", 0, msg.data, msg.length);
+            AapDump.logvHex("US", 0, buf, length);
         }
         return 0;
     }
 
     void quit() {
         if (mConnection != null) {
-            sendEncrypted(Channel.AA_CH_CTR, Messages.BYEBYE_REQUEST, Messages.BYEBYE_REQUEST.length);
+            send(new AapMessage(Channel.AA_CH_CTR, MsgType.Control.BYEYEREQUEST, new Protocol.ByeByeRequest()));
         }
         Utils.ms_sleep(100);
 
@@ -144,8 +126,9 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         byte[] buffer = new byte[Messages.DEF_BUFFER_LENGTH];
 
         // Version request
-        ByteArray version = Messages.createMessage(0, 3, 1, Messages.VERSION_REQUEST, Messages.VERSION_REQUEST.length); // Version Request
-        int ret = connection.send(version.data, version.length, 1000);
+
+        byte[] version = Messages.createRawMessage(0, 3, 1, Messages.VERSION_REQUEST, Messages.VERSION_REQUEST.length); // Version Request
+        int ret = connection.send(version, version.length, 1000);
         if (ret < 0) {
             AppLog.e("Version request sendEncrypted ret: " + ret);
             return false;
@@ -176,8 +159,8 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
                 return false;
             }
 
-            ByteArray bio = Messages.createMessage(Channel.AA_CH_CTR, 3, 3, ba.data, ba.length);
-            int size = connection.send(bio.data, bio.length, 1000);
+            byte[] bio = Messages.createRawMessage(Channel.AA_CH_CTR, 3, 3, ba.data, ba.length);
+            int size = connection.send(bio, bio.length, 1000);
             AppLog.i("SSL BIO sent: %d", size);
 
             size = connection.recv(buffer, buffer.length, 1000);
@@ -193,8 +176,8 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
         // Status = OK
         // byte ac_buf [] = {0, 3, 0, 4, 0, 4, 8, 0};
-        ByteArray status = Messages.createMessage(0, 3, 4, new byte[]{8, 0}, 2);
-        ret = connection.send(status.data, status.length, 1000);
+        byte[] status = Messages.createRawMessage(0, 3, 4, new byte[]{8, 0}, 2);
+        ret = connection.send(status, status.length, 1000);
         if (ret < 0) {
             AppLog.e("Status request sendEncrypted ret: " + ret);
             return false;
@@ -219,24 +202,13 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         send(Messages.createNightModeEvent(enabled));
     }
 
-    void send(AapOutgoingMessage outgoing) {
-        byte[] buf = new byte[outgoing.size];
-        send(outgoing, buf);
-    }
-
-    void send(AapOutgoingMessage outgoing, byte[] buf) {
+    void send(AapMessage message) {
         if (mHandler == null) {
             AppLog.e("Handler is null");
         } else {
-            outgoing.byteArray(buf);
-            Message msg = mHandler.obtainMessage(MSG_DATA, outgoing.channel, outgoing.size, buf);
+            Message msg = mHandler.obtainMessage(MSG_DATA, 0, message.size, message.data);
             mHandler.sendMessage(msg);
         }
-    }
-
-    int sendEncrypted(int chan, byte[] buf, int len) {
-
-        return 0;
     }
 
     void gainVideoFocus()
@@ -255,11 +227,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     }
 
     void sendMediaAck(int channel) {
-
         send(Messages.createMediaAck(channel, mSessionIds.get(channel)));
-
-        Messages.serializeByteArray(MsgType.Media.ACK, mediaAck, ackBuf);
-        sendEncrypted(channel, ackBuf, mediaAck.getSerializedSize() + MsgType.SIZE);
     }
 
     void setSessionId(int channel, int sessionId) {
@@ -269,11 +237,11 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     @Override
     public void onMicDataAvailable(byte[] mic_buf, int mic_audio_len) {
         if (mic_audio_len > 64) {  // If we read at least 64 bytes of audio data
-            ByteArray ba = new ByteArray(mic_audio_len + 10);
-            Utils.put_time(2, ba.data, SystemClock.elapsedRealtime());
-            ba.length = 10;
-            ba.put(0, mic_buf, mic_audio_len);
-            sendEncrypted(Channel.AA_CH_MIC, ba.data, ba.length);
+            int length = mic_audio_len + 10;
+            byte[] data = new byte[length];
+            Utils.put_time(2, data, SystemClock.elapsedRealtime());
+            System.arraycopy(mic_buf, 0, data, 10, mic_audio_len);
+            send(new AapMessage(Channel.AA_CH_MIC, 0x0b, length, data));
         }
     }
 

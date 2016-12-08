@@ -20,8 +20,8 @@ class AapVideo {
         mVideoDecoder = videoDecoder;
     }
 
-    public int process(AapIncomingMessage message) {
-        return process(message.type, message.flags, message.data, message.length);
+    public int process(AapMessage message) {
+        return process(message.type, message.flags, message.data, message.size);
     }
 
     private int process(int msg_type, int flags, byte[] buf, int len) {

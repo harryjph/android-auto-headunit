@@ -4510,7 +4510,7 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // optional .ca.yyx.hu.aap.protocol.ByeByeRequest.ByeByeReason reason = 1;
+    // required .ca.yyx.hu.aap.protocol.ByeByeRequest.ByeByeReason reason = 1;
     public int reason;
 
     public ByeByeRequest() {
@@ -4526,19 +4526,15 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.reason != ca.yyx.hu.aap.protocol.nano.Protocol.ByeByeRequest.REASON_QUIT) {
-        output.writeInt32(1, this.reason);
-      }
+      output.writeInt32(1, this.reason);
       super.writeTo(output);
     }
 
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.reason != ca.yyx.hu.aap.protocol.nano.Protocol.ByeByeRequest.REASON_QUIT) {
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeInt32Size(1, this.reason);
-      }
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+        .computeInt32Size(1, this.reason);
       return size;
     }
 
@@ -4579,6 +4575,63 @@ public interface Protocol {
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       return new ByeByeRequest().mergeFrom(input);
+    }
+  }
+
+  public static final class ByeByeResponse extends
+      com.google.protobuf.nano.MessageNano {
+
+    private static volatile ByeByeResponse[] _emptyArray;
+    public static ByeByeResponse[] emptyArray() {
+      // Lazily initializes the empty array
+      if (_emptyArray == null) {
+        synchronized (
+            com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+          if (_emptyArray == null) {
+            _emptyArray = new ByeByeResponse[0];
+          }
+        }
+      }
+      return _emptyArray;
+    }
+
+    public ByeByeResponse() {
+      clear();
+    }
+
+    public ByeByeResponse clear() {
+      cachedSize = -1;
+      return this;
+    }
+
+    @Override
+    public ByeByeResponse mergeFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      while (true) {
+        int tag = input.readTag();
+        switch (tag) {
+          case 0:
+            return this;
+          default: {
+            if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+              return this;
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    public static ByeByeResponse parseFrom(byte[] data)
+        throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new ByeByeResponse(), data);
+    }
+
+    public static ByeByeResponse parseFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      return new ByeByeResponse().mergeFrom(input);
     }
   }
 

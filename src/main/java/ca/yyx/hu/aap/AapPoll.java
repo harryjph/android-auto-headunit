@@ -5,6 +5,7 @@ import com.google.protobuf.nano.InvalidProtocolBufferNanoException;
 import java.util.Locale;
 
 import ca.yyx.hu.aap.protocol.Channel;
+import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.utils.AppLog;
@@ -141,10 +142,11 @@ class AapPoll {
         // Decrypt & Process 1 received encrypted message
 
         if ((header.flags & 0x08) != 0x08) {
-            AppLog.e("WRONG FLAG: have_len: %d  enc_len: %d  chan: %d %s  flags: 0x%02x  msg_type: %d", header.enc_len, header.chan, Channel.name(header.chan), header.flags, header.msg_type);
+            AppLog.e("WRONG FLAG: enc_len: %d  chan: %d %s flags: 0x%02x  msg_type: 0x%02x %s",
+                    header.enc_len, header.chan, Channel.name(header.chan), header.flags, header.msg_type, MsgType.name(header.msg_type, header.chan));
             return null;
         }
-        if (header.chan == Channel.AA_CH_VID && recv_header.flags == 9) {
+        if (header.chan == Channel.AA_CH_VID && header.flags == 9) {
             // If First fragment Video...
             // (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
             int total_size = Utils.bytesToInt(buf, offset, false);

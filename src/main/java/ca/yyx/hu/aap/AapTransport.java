@@ -6,7 +6,12 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.os.Process;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.util.SparseIntArray;
+
+import com.google.protobuf.nano.MessageNano;
+
+import net.hockeyapp.android.utils.Util;
 
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.MsgType;
@@ -79,26 +84,26 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         return true;
     }
 
-    private int sendEncryptedMessage(byte[] buf, int length) {
-        ByteArray ba = AapSsl.encrypt(4, length, buf);
+    private int sendEncryptedMessage(byte[] data, int length) {
+        ByteArray ba = AapSsl.encrypt(AapMessage.HEADER_SIZE, length - AapMessage.HEADER_SIZE, data);
         if (ba == null) {
             return -1;
         }
-        int size = mConnection.send(buf, length, 250);
-        AppLog.v("Sent size: %d", size);
+
+        ba.data[0] = data[0];
+        ba.data[1] = data[1];
+        Utils.intToBytes(ba.length - AapMessage.HEADER_SIZE, 2, ba.data);
+
+        int size = mConnection.send(ba.data, ba.length, 250);
 
         if (AppLog.LOG_VERBOSE) {
-            AapDump.logvHex("US", 0, buf, length);
+            AppLog.v("Sent size: %d", size);
+            AapDump.logvHex("US", 0, ba.data, ba.length);
         }
         return 0;
     }
 
     void quit() {
-        if (mConnection != null) {
-            send(new AapMessage(Channel.AA_CH_CTR, MsgType.Control.BYEYEREQUEST, new Protocol.ByeByeRequest()));
-        }
-        Utils.ms_sleep(100);
-
         mPollThread.quit();
         mHandler = null;
     }
@@ -106,8 +111,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     boolean connectAndStart(AccessoryConnection connection) {
         AppLog.i("Start Aap transport for " + connection);
 
-        if (!handshake(connection))
-        {
+        if (!handshake(connection)) {
             AppLog.e("Handshake failed");
             return false;
         }
@@ -206,6 +210,9 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         if (mHandler == null) {
             AppLog.e("Handler is null");
         } else {
+            if (AppLog.LOG_VERBOSE) {
+                AppLog.v(message.toString());
+            }
             Message msg = mHandler.obtainMessage(MSG_DATA, 0, message.size, message.data);
             mHandler.sendMessage(msg);
         }

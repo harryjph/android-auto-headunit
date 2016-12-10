@@ -37,7 +37,7 @@ public class Messages {
     public static final int BTN_PREV = 0x58;
     public static final int BTN_STOP = 127;
 
-    static byte[] createRawMessage(int chan, int flags, int type, byte[] data, int size) {
+    public static byte[] createRawMessage(int chan, int flags, int type, byte[] data, int size) {
 
         int total = 6 + size;
         byte[] buffer = new byte[total];
@@ -115,7 +115,7 @@ public class Messages {
 
     static byte[] VERSION_REQUEST = { 0, 1, 0, 1 };
 
-    static AapMessage createServiceDiscoveryResponse(String btAddress) {
+    public static AapMessage createServiceDiscoveryResponse(String btAddress) {
         Protocol.ServiceDiscoveryResponse carInfo = new Protocol.ServiceDiscoveryResponse();
         carInfo.make = "AACar";
         carInfo.model = "0001";

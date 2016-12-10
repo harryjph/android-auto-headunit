@@ -265,6 +265,7 @@ class AapControl {
 
         mTransport.send(new AapMessage(channel, MsgType.Control.BYEYERESPONSE, new Protocol.ByeByeResponse()));
         Utils.ms_sleep(100);
+        mTransport.quit();
         return -1;
     }
 

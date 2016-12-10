@@ -205,9 +205,9 @@ int hu_ssl_do_handshake()
     return 0;
 }
 
-int hu_ssl_bio_read(int res_max, byte *res_buf)
+int hu_ssl_bio_read(int offset, int res_max, byte *res_buf)
 {
-    int ret = BIO_read(hu_ssl_wm_bio, res_buf, res_max);
+    int ret = BIO_read(hu_ssl_wm_bio, &res_buf[offset], res_max);
     // Read from the BIO Client request: Hello/Key Exchange
     if (ret <= 0) {
         loge ("BIO_read read ret: %d", ret);
@@ -216,14 +216,14 @@ int hu_ssl_bio_read(int res_max, byte *res_buf)
     return ret;
 }
 
-int hu_ssl_bio_write(int start, int msg_len, byte *msg_buf)
+int hu_ssl_bio_write(int offset, int msg_len, byte *msg_buf)
 {
-    return BIO_write(hu_ssl_rm_bio, &msg_buf[start], msg_len);
+    return BIO_write(hu_ssl_rm_bio, &msg_buf[offset], msg_len);
 }
 
-int hu_ssl_read(int res_max, byte *res_buf)
+int hu_ssl_read(int offset, int res_max, byte *res_buf)
 {
-    int ret = SSL_read(hu_ssl_ssl, res_buf, res_max);
+    int ret = SSL_read(hu_ssl_ssl, &res_buf[offset], res_max);
     if (ret < 0)
     {
        loge ("SSL_read() result: %d", ret);
@@ -232,7 +232,7 @@ int hu_ssl_read(int res_max, byte *res_buf)
     return ret;
 }
 
-int hu_ssl_write(int msg_len, byte *msg_buf)
+int hu_ssl_write(int offset, int msg_len, byte *msg_buf)
 {
-    return SSL_write(hu_ssl_ssl, msg_buf, msg_len);
+    return SSL_write(hu_ssl_ssl, &msg_buf[offset], msg_len);
 }

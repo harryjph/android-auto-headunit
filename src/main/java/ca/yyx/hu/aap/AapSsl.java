@@ -15,10 +15,10 @@ class AapSsl {
 
     private static native int native_ssl_prepare();
     private static native int native_ssl_do_handshake();
-    private static native int native_ssl_bio_read(int res_len, byte[] res_buf);
-    private static native int native_ssl_bio_write(int start, int msg_len, byte[] msg_buf);
-    private static native int native_ssl_read(int res_len, byte[] res_buf);
-    private static native int native_ssl_write(int msg_len, byte[] msg_buf);
+    private static native int native_ssl_bio_read(int offset, int res_len, byte[] res_buf);
+    private static native int native_ssl_bio_write(int offset, int msg_len, byte[] msg_buf);
+    private static native int native_ssl_read(int offset, int res_len, byte[] res_buf);
+    private static native int native_ssl_write(int offset, int msg_len, byte[] msg_buf);
 
 
     private static final byte[] bio_read = new byte[Messages.DEF_BUFFER_LENGTH];
@@ -40,7 +40,7 @@ class AapSsl {
     }
 
     static ByteArray bioRead() {
-        int size = native_ssl_bio_read(Messages.DEF_BUFFER_LENGTH, bio_read);
+        int size = native_ssl_bio_read(0, Messages.DEF_BUFFER_LENGTH, bio_read);
         AppLog.i("SSL BIO read: %d", size);
         if (size <= 0) {
             AppLog.i("SSL BIO read error");
@@ -62,7 +62,7 @@ class AapSsl {
             return null;
         }
 
-        int bytes_read = native_ssl_read(Messages.DEF_BUFFER_LENGTH, dec_buf);
+        int bytes_read = native_ssl_read(0, Messages.DEF_BUFFER_LENGTH, dec_buf);
         // Read decrypted to decrypted rx buf
         if (bytes_read <= 0) {
             AppLog.e("SSL_read bytes_read: %d", bytes_read);
@@ -72,9 +72,9 @@ class AapSsl {
         return new ByteArray(dec_buf, bytes_read);
     }
 
-    static ByteArray encrypt(int start, int length, byte[] buffer) {
+    static ByteArray encrypt(int offset, int length, byte[] buffer) {
 
-        int bytes_written = native_ssl_write(length, buffer);
+        int bytes_written = native_ssl_write(offset, length, buffer);
         // Write plaintext to SSL
         if (bytes_written <= 0) {
             AppLog.e("SSL_write() bytes_written: %d", bytes_written);
@@ -87,7 +87,7 @@ class AapSsl {
 
         AppLog.v("SSL Write len: %d  bytes_written: %d", length, bytes_written);
 
-        int bytes_read = native_ssl_bio_read(Messages.DEF_BUFFER_LENGTH - start,enc_buf);
+        int bytes_read = native_ssl_bio_read(offset, Messages.DEF_BUFFER_LENGTH - offset, enc_buf);
         if (bytes_read <= 0) {
             AppLog.e("BIO read  bytes_read: %d", bytes_read);
             return null;
@@ -95,6 +95,6 @@ class AapSsl {
 
         AppLog.v("BIO read bytes_read: %d", bytes_read);
 
-        return new ByteArray(enc_buf, bytes_read);
+        return new ByteArray(enc_buf, bytes_read + offset);
     }
 }

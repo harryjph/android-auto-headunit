@@ -47,7 +47,8 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
         mPollThread = new HandlerThread("AapTransport:Handler", Process.THREAD_PRIORITY_AUDIO);
 
-        mMicRecorder = new MicRecorder(this);
+        mMicRecorder = new MicRecorder();
+        mMicRecorder.setListener(this);
         mAapAudio = new AapAudio(audioDecoder, audioManager);
         mAapVideo = new AapVideo(videoDecoder);
         mBtMacAddress = btMacAddress;
@@ -104,7 +105,9 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     }
 
     void quit() {
+        mMicRecorder.setListener(null);
         mPollThread.quit();
+        mAapPoll = null;
         mHandler = null;
     }
 
@@ -246,6 +249,8 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         if (mic_audio_len > 64) {  // If we read at least 64 bytes of audio data
             int length = mic_audio_len + 10;
             byte[] data = new byte[length];
+            data[0] = Channel.AA_CH_MIC;
+            data[1] = 0x0b;
             Utils.put_time(2, data, SystemClock.elapsedRealtime());
             System.arraycopy(mic_buf, 0, data, 10, mic_audio_len);
             send(new AapMessage(Channel.AA_CH_MIC, 0x0b, length, data));

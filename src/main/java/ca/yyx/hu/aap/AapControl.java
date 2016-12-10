@@ -3,6 +3,7 @@ package ca.yyx.hu.aap;
 import com.google.protobuf.nano.InvalidProtocolBufferNanoException;
 import com.google.protobuf.nano.MessageNano;
 
+import ca.yyx.hu.App;
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
@@ -180,7 +181,9 @@ class AapControl {
         configResponse.maxUnacked = 1;
         configResponse.configurationIndices = new int[] { 0 };
 
-        mTransport.send(new AapMessage(channel, MsgType.Media.CONFIGRESPONSE, configResponse));
+        AapMessage msg = new AapMessage(channel, MsgType.Media.CONFIGRESPONSE, configResponse);
+        AppLog.i(msg.toString());
+        mTransport.send(msg);
 
         if (channel == Channel.AA_CH_VID) {
             mTransport.gainVideoFocus();
@@ -201,13 +204,13 @@ class AapControl {
 
         // R 1 SEN b 00000000 08 01 10 00     Sen: 1, 10, 3, 8, 7
         // Yes: SENSOR_TYPE_COMPASS/LOCATION/RPM/DIAGNOSTICS/GEAR      No: SENSOR_TYPE_DRIVING_STATUS
-        mTransport.send(new AapMessage(channel, MsgType.Sensor.STARTRESPONSE, new Protocol.SensorResponse()));
+
+        AapMessage msg = new AapMessage(channel, MsgType.Sensor.STARTRESPONSE, new Protocol.SensorResponse());
+        AppLog.i(msg.toString());
+
+        mTransport.send(msg);
 
         if (request.type == 10) {
-            // If Sensor channel...
-            Utils.ms_sleep(2);
-            AppLog.i("Send driving status");
-            mTransport.send(Messages.createDrivingStatusEvent(0));
             Utils.ms_sleep(2);
             NightMode nm = new NightMode();
             AppLog.i("Send night mode");
@@ -225,15 +228,27 @@ class AapControl {
         Protocol.ChannelOpenResponse response = new Protocol.ChannelOpenResponse();
         response.status = Protocol.STATUS_OK;
 
-        mTransport.send(new AapMessage(channel, MsgType.Control.CHANNELOPENRESPONSE, response));
-        AppLog.i("Channel Open Response: %d", response.status);
+        AapMessage msg = new AapMessage(channel, MsgType.Control.CHANNELOPENRESPONSE, response);
+        AppLog.i(msg.toString());
+
+        mTransport.send(msg);
+
+        if (channel == Channel.AA_CH_SEN)
+        {
+            Utils.ms_sleep(2);
+            AppLog.i("Send driving status");
+            mTransport.send(Messages.createDrivingStatusEvent(Protocol.SensorBatch.DrivingStatusData.DRIVING_STATUS_PARKED));
+        }
         return 0;
     }
 
     private int service_discovery_request(Protocol.ServiceDiscoveryRequest request) throws InvalidProtocolBufferNanoException {                  // Service Discovery Request
         AppLog.i("Service Discovery Request: %s", request.phoneName);                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
-        mTransport.send(Messages.createServiceDiscoveryResponse(mBtMacAddress));
+        AapMessage msg = Messages.createServiceDiscoveryResponse(mBtMacAddress);
+        AppLog.i(msg.toString());
+
+        mTransport.send(msg);
         return 0;
     }
 
@@ -243,7 +258,11 @@ class AapControl {
         // Channel Open Response
         Protocol.PingResponse response = new Protocol.PingResponse();
         response.timestamp = System.nanoTime();
-        mTransport.send(new AapMessage(channel, MsgType.Control.PINGRESPONSE, response));
+
+        AapMessage msg = new AapMessage(channel, MsgType.Control.PINGRESPONSE, response);
+        AppLog.i(msg.toString());
+
+        mTransport.send(msg);
         return 0;
     }
 
@@ -253,7 +272,11 @@ class AapControl {
         // Send Navigation Focus Notification
         Protocol.NavFocusNotification response = new Protocol.NavFocusNotification();
         response.focusType = Protocol.NAV_FOCUS_2;
-        mTransport.send(new AapMessage(channel, MsgType.Control.NAVFOCUSRNOTIFICATION, response));
+
+        AapMessage msg = new AapMessage(channel, MsgType.Control.NAVFOCUSRNOTIFICATION, response);
+        AppLog.i(msg.toString());
+
+        mTransport.send(msg);
         return 0;
     }
 
@@ -263,7 +286,9 @@ class AapControl {
         else
             AppLog.e("Byebye Request reason: %d", request.reason);
 
-        mTransport.send(new AapMessage(channel, MsgType.Control.BYEYERESPONSE, new Protocol.ByeByeResponse()));
+        AapMessage msg = new AapMessage(channel, MsgType.Control.BYEYERESPONSE, new Protocol.ByeByeResponse());
+        AppLog.i(msg.toString());
+        mTransport.send(msg);
         Utils.ms_sleep(100);
         mTransport.quit();
         return -1;
@@ -302,7 +327,11 @@ class AapControl {
         } else {
             response.focusState = Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN;
         }
-        mTransport.send(new AapMessage(channel, MsgType.Control.AUDIOFOCUSNOTFICATION, response));
+
+        AapMessage msg = new AapMessage(channel, MsgType.Control.AUDIOFOCUSNOTFICATION, response);
+        AppLog.i(msg.toString());
+
+        mTransport.send(msg);
         return 0;
     }
 

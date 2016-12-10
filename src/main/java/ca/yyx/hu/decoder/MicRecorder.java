@@ -20,14 +20,16 @@ public class MicRecorder {
 
     boolean thread_mic_audio_active = false;
     private Thread thread_mic_audio = null;
-    private final Listener mListener;
+    private Listener mListener;
 
     public interface Listener
     {
         void onMicDataAvailable(byte[] mic_buf, int mic_audio_len);
     }
 
-    public MicRecorder(Listener listener) {
+    public MicRecorder() {}
+
+    public void setListener(Listener listener) {
         mListener = listener;
     }
 

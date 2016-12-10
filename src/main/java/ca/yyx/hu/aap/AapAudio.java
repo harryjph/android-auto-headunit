@@ -69,7 +69,23 @@ class AapAudio implements AudioManager.OnAudioFocusChangeListener {
 
     @Override
     public void onAudioFocusChange(int focusChange) {
-        AppLog.i("" + focusChange);
+
+        switch (focusChange)
+        {
+            case AudioManager.AUDIOFOCUS_LOSS:
+                AppLog.i("LOSS");
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                AppLog.i("LOSS TRANSIENT");
+                break;
+            case AudioManager.AUDIOFOCUS_GAIN:
+                AppLog.i("GAIN");
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                AppLog.i("LOSS TRANSIENT CAN DUCK");
+                break;
+        }
+
     }
 }
 

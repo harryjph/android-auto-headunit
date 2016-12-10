@@ -115,7 +115,7 @@ public class Messages {
 
     static byte[] VERSION_REQUEST = { 0, 1, 0, 1 };
 
-    public static AapMessage createServiceDiscoveryResponse(String btAddress) {
+    static AapMessage createServiceDiscoveryResponse(String btAddress) {
         Protocol.ServiceDiscoveryResponse carInfo = new Protocol.ServiceDiscoveryResponse();
         carInfo.make = "AACar";
         carInfo.model = "0001";
@@ -136,6 +136,7 @@ public class Messages {
         sensors.sensorSourceService.sensors[0].type = Protocol.SENSOR_TYPE_DRIVING_STATUS;
         sensors.sensorSourceService.sensors[1] = new SensorSourceService.Sensor();
         sensors.sensorSourceService.sensors[1].type = Protocol.SENSOR_TYPE_NIGHT_DATA;
+
         services.add(sensors);
 
         Service video = new Service();
@@ -222,6 +223,6 @@ public class Messages {
         mediaAck.sessionId = sessionId;
         mediaAck.ack = 1;
 
-        return new AapMessage(channel, MsgType.Media.ACK, mediaAck);
+        return new AapMessage(channel, MsgType.Media.ACK, mediaAck, ackBuf);
     }
 }

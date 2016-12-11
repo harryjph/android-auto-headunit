@@ -106,7 +106,7 @@ message SensorBatch
     }
     message ParkingBrakeData
     {
-        optional bool parking_brake = 1;
+        required bool parking_brake = 1;
     }
     message DrivingStatusData
     {
@@ -170,7 +170,7 @@ enum MediaCodecType
 
 message AudioConfiguration
 {
-    optional uint32 sample_rate = 1;
+    required uint32 sample_rate = 1;
     required uint32 number_of_bits = 2;
     required uint32 number_of_channels = 3;
 }
@@ -318,7 +318,7 @@ message PingRequest
 
 message PingResponse
 {
-    optional int64 timestamp = 1;
+    required int64 timestamp = 1;
 }
 
 message ByeByeRequest
@@ -360,8 +360,8 @@ message Start
 
 message Ack
 {
-    optional int32 session_id = 1;
-    optional uint32 ack = 2;
+    required int32 session_id = 1;
+    required uint32 ack = 2;
 }
 
 message MicrophoneRequest
@@ -374,8 +374,8 @@ message MicrophoneRequest
 
 message MicrophoneResponse
 {
-    optional int32 status = 1;
-    optional uint32 session_id = 2;
+    required int32 status = 1;
+    required uint32 session_id = 2;
 }
 
 enum VideoFocusMode
@@ -427,7 +427,7 @@ message NavFocusRequestNotification
 
 message NavFocusNotification
 {
-    optional NavFocusType focus_type = 1;
+    required NavFocusType focus_type = 1;
 }
 
 message VoiceSessionNotification
@@ -437,7 +437,7 @@ message VoiceSessionNotification
         VOICE_STATUS_START = 1;
         VOICE_STATUS_STOP = 2;
     }
-    optional VoiceSessionStatus status = 1;
+    required VoiceSessionStatus status = 1;
 }
 
 message AudioFocusRequestNotification
@@ -464,6 +464,6 @@ message AudioFocusNotification
         AUDIO_FOCUS_STATE_GAIN_MEDIA_ONLY = 6;
         AUDIO_FOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY = 7;
     }
-    optional AudioFocusStateType focus_state = 1;
+    required AudioFocusStateType focus_state = 1;
     optional bool unsolicited = 2;
 }

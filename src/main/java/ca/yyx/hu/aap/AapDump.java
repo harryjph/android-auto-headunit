@@ -183,7 +183,6 @@ class AapDump {
         return null;
     }
 
-
     static void logvHex(String prefix, int start, byte[] buf, int len) {
 
         if (!AppLog.LOG_VERBOSE)
@@ -191,12 +190,16 @@ class AapDump {
             return;
         }
 
+        Log.v(AppLog.TAG, logHex(prefix, start, buf, len, new StringBuilder()).toString() );
+    }
+
+    static StringBuilder logHex(String prefix, int start, byte[] buf, int len, StringBuilder sb) {
+
         if (len + start > MAX_HEX_DUMP)
             len = MAX_HEX_DUMP + start;
 
         int i, n;
 
-        StringBuilder sb = new StringBuilder();
         sb.append(prefix);
         String line = String.format(Locale.US, " %08d ", 0 );
         sb.append(line);
@@ -215,9 +218,9 @@ class AapDump {
                 sb.append(prefix);
                 line = String.format(Locale.US, "     %04d ", i + 1 );
                 sb.append(line);
-            } else if (i == len - 1) {                                           // Else if at last byte
-                Log.v(AppLog.TAG,sb.toString());                                    // Log line
             }
         }
+
+        return sb;
     }
 }

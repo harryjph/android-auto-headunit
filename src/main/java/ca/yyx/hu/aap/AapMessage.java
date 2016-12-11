@@ -49,10 +49,6 @@ public class AapMessage {
         this.dataOffset = dataOffset;
     }
 
-    AapMessage(int channel, int flags, int size, byte[] data) {
-        this(channel, (byte) flags, -1, HEADER_SIZE, size, data);
-    }
-
     public AapMessage(int channel, int type, MessageNano proto) {
         this(channel, type, proto, new byte[size(proto)]);
     }
@@ -85,11 +81,7 @@ public class AapMessage {
         sb.append(MsgType.name(type, channel));
         sb.append('\n');
 
-        for (int i = 0; i < Math.min(this.size, 64); i++) {
-            String hex = String.format(Locale.US, "%02X", data[i]);
-            sb.append(hex);
-            sb.append(' ');
-        }
+        AapDump.logHex("", 0, data, this.size, sb);
 
         return sb.toString();
     }

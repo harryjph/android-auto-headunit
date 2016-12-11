@@ -253,7 +253,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
             data[1] = 0x0b;
             Utils.put_time(2, data, SystemClock.elapsedRealtime());
             System.arraycopy(mic_buf, 0, data, 10, mic_audio_len);
-            send(new AapMessage(Channel.AA_CH_MIC, 0x0b, length, data));
+            send(new AapMessage(Channel.AA_CH_MIC, (byte)0x0b, -1, 2, length, data));
         }
     }
 

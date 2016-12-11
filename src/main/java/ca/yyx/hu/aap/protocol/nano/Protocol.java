@@ -1434,7 +1434,7 @@ public interface Protocol {
         return _emptyArray;
       }
 
-      // optional bool parking_brake = 1;
+      // required bool parking_brake = 1;
       public boolean parkingBrake;
 
       public ParkingBrakeData() {
@@ -1450,19 +1450,15 @@ public interface Protocol {
       @Override
       public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
           throws java.io.IOException {
-        if (this.parkingBrake != false) {
-          output.writeBool(1, this.parkingBrake);
-        }
+        output.writeBool(1, this.parkingBrake);
         super.writeTo(output);
       }
 
       @Override
       protected int computeSerializedSize() {
         int size = super.computeSerializedSize();
-        if (this.parkingBrake != false) {
-          size += com.google.protobuf.nano.CodedOutputByteBufferNano
-              .computeBoolSize(1, this.parkingBrake);
-        }
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeBoolSize(1, this.parkingBrake);
         return size;
       }
 
@@ -2157,7 +2153,7 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // optional uint32 sample_rate = 1;
+    // required uint32 sample_rate = 1;
     public int sampleRate;
 
     // required uint32 number_of_bits = 2;
@@ -2181,9 +2177,7 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.sampleRate != 0) {
-        output.writeUInt32(1, this.sampleRate);
-      }
+      output.writeUInt32(1, this.sampleRate);
       output.writeUInt32(2, this.numberOfBits);
       output.writeUInt32(3, this.numberOfChannels);
       super.writeTo(output);
@@ -2192,10 +2186,8 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.sampleRate != 0) {
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeUInt32Size(1, this.sampleRate);
-      }
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeUInt32Size(1, this.sampleRate);
       size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeUInt32Size(2, this.numberOfBits);
       size += com.google.protobuf.nano.CodedOutputByteBufferNano
@@ -4423,7 +4415,7 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // optional int64 timestamp = 1;
+    // required int64 timestamp = 1;
     public long timestamp;
 
     public PingResponse() {
@@ -4439,19 +4431,15 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.timestamp != 0L) {
-        output.writeInt64(1, this.timestamp);
-      }
+      output.writeInt64(1, this.timestamp);
       super.writeTo(output);
     }
 
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.timestamp != 0L) {
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeInt64Size(1, this.timestamp);
-      }
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeInt64Size(1, this.timestamp);
       return size;
     }
 
@@ -4995,10 +4983,10 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // optional int32 session_id = 1;
+    // required int32 session_id = 1;
     public int sessionId;
 
-    // optional uint32 ack = 2;
+    // required uint32 ack = 2;
     public int ack;
 
     public Ack() {
@@ -5015,26 +5003,18 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.sessionId != 0) {
-        output.writeInt32(1, this.sessionId);
-      }
-      if (this.ack != 0) {
-        output.writeUInt32(2, this.ack);
-      }
+      output.writeInt32(1, this.sessionId);
+      output.writeUInt32(2, this.ack);
       super.writeTo(output);
     }
 
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.sessionId != 0) {
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeInt32Size(1, this.sessionId);
-      }
-      if (this.ack != 0) {
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeUInt32Size(2, this.ack);
-      }
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeInt32Size(1, this.sessionId);
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeUInt32Size(2, this.ack);
       return size;
     }
 
@@ -5219,10 +5199,10 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // optional int32 status = 1;
+    // required int32 status = 1;
     public int status;
 
-    // optional uint32 session_id = 2;
+    // required uint32 session_id = 2;
     public int sessionId;
 
     public MicrophoneResponse() {
@@ -5239,26 +5219,18 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.status != 0) {
-        output.writeInt32(1, this.status);
-      }
-      if (this.sessionId != 0) {
-        output.writeUInt32(2, this.sessionId);
-      }
+      output.writeInt32(1, this.status);
+      output.writeUInt32(2, this.sessionId);
       super.writeTo(output);
     }
 
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.status != 0) {
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeInt32Size(1, this.status);
-      }
-      if (this.sessionId != 0) {
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-            .computeUInt32Size(2, this.sessionId);
-      }
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeInt32Size(1, this.status);
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeUInt32Size(2, this.sessionId);
       return size;
     }
 
@@ -5830,7 +5802,7 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // optional .ca.yyx.hu.aap.protocol.NavFocusType focus_type = 1;
+    // required .ca.yyx.hu.aap.protocol.NavFocusType focus_type = 1;
     public int focusType;
 
     public NavFocusNotification() {
@@ -5846,19 +5818,15 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.focusType != ca.yyx.hu.aap.protocol.nano.Protocol.NAV_FOCUS_1) {
-        output.writeInt32(1, this.focusType);
-      }
+      output.writeInt32(1, this.focusType);
       super.writeTo(output);
     }
 
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.focusType != ca.yyx.hu.aap.protocol.nano.Protocol.NAV_FOCUS_1) {
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeInt32Size(1, this.focusType);
-      }
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+        .computeInt32Size(1, this.focusType);
       return size;
     }
 
@@ -5924,7 +5892,7 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // optional .ca.yyx.hu.aap.protocol.VoiceSessionNotification.VoiceSessionStatus status = 1;
+    // required .ca.yyx.hu.aap.protocol.VoiceSessionNotification.VoiceSessionStatus status = 1;
     public int status;
 
     public VoiceSessionNotification() {
@@ -5940,19 +5908,15 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.status != ca.yyx.hu.aap.protocol.nano.Protocol.VoiceSessionNotification.VOICE_STATUS_START) {
-        output.writeInt32(1, this.status);
-      }
+      output.writeInt32(1, this.status);
       super.writeTo(output);
     }
 
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.status != ca.yyx.hu.aap.protocol.nano.Protocol.VoiceSessionNotification.VOICE_STATUS_START) {
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeInt32Size(1, this.status);
-      }
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+        .computeInt32Size(1, this.status);
       return size;
     }
 
@@ -6121,7 +6085,7 @@ public interface Protocol {
       return _emptyArray;
     }
 
-    // optional .ca.yyx.hu.aap.protocol.AudioFocusNotification.AudioFocusStateType focus_state = 1;
+    // required .ca.yyx.hu.aap.protocol.AudioFocusNotification.AudioFocusStateType focus_state = 1;
     public int focusState;
 
     // optional bool unsolicited = 2;
@@ -6141,9 +6105,7 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.focusState != ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN) {
-        output.writeInt32(1, this.focusState);
-      }
+      output.writeInt32(1, this.focusState);
       if (this.unsolicited != false) {
         output.writeBool(2, this.unsolicited);
       }
@@ -6153,10 +6115,8 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.focusState != ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN) {
-        size += com.google.protobuf.nano.CodedOutputByteBufferNano
-          .computeInt32Size(1, this.focusState);
-      }
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+        .computeInt32Size(1, this.focusState);
       if (this.unsolicited != false) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
             .computeBoolSize(2, this.unsolicited);

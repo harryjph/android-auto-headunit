@@ -68,7 +68,7 @@ class AapPoll {
 
         int size = mConnection.recv(recv_buffer, recv_buffer.length, 150);
         if (size <= 0) {
-            AppLog.v("recv %d", size);
+//            AppLog.v("recv %d", size);
             return 0;
         }
         try {
@@ -81,7 +81,7 @@ class AapPoll {
     }
 
     private int processSingle(Header header, int offset, byte[] buf) throws InvalidProtocolBufferNanoException {
-        AapMessage msg = iaap_recv_dec_process(header, offset, buf);
+        AapMessage msg = decryptMessage(header, offset, buf);
         // Decrypt & Process 1 received encrypted message
         if (msg == null) {
             // If error...
@@ -138,7 +138,7 @@ class AapPoll {
         return RecvProcessResult.Ok;
     }
 
-    private AapMessage iaap_recv_dec_process(Header header, int offset, byte[] buf) {
+    private AapMessage decryptMessage(Header header, int offset, byte[] buf) {
         // Decrypt & Process 1 received encrypted message
 
         if ((header.flags & 0x08) != 0x08) {
@@ -159,11 +159,14 @@ class AapPoll {
             return null;
         }
 
-        String prefix = String.format(Locale.US, "RECV %d %s %01x", header.chan, Channel.name(header.chan), header.flags);
-        AapDump.logd(prefix, "AA", header.chan, header.flags, ba.data, ba.length);
-
         int msg_type = Utils.bytesToInt(ba.data, 0, true);
-        return new AapMessage(header.chan, (byte) header.flags, msg_type, 2, ba.length, ba.data);
+        AapMessage msg = new AapMessage(header.chan, (byte) header.flags, msg_type, 2, ba.length, ba.data);
+
+        if (AppLog.LOG_VERBOSE)
+        {
+            AppLog.d("RECV: " ,msg.toString());
+        }
+         return msg;
     }
 
     private int iaap_msg_process(AapMessage message) throws InvalidProtocolBufferNanoException {
@@ -187,7 +190,7 @@ class AapPoll {
         return 0;
     }
 
-    static class Header
+    private static class Header
     {
         final static int SIZE = 6;
 

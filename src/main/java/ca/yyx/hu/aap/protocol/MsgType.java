@@ -106,23 +106,23 @@ public class MsgType {
             case Media.SETUPREQUEST:
                 return "Media Setup Request";                        // Video and Audio sinks receive this and send k3 3 / 32771
             case Media.STARTREQUEST:
-                if (channel == Channel.AA_CH_SEN) {
+                if (channel == Channel.ID_SEN) {
                     return "Sensor Start Request";
-                } else if (channel == Channel.AA_CH_TOU) {
+                } else if (channel == Channel.ID_INP) {
                     return "Input Event";
                 }
                 return "Media Start Request";
             case Media.STOPREQUEST:
-                if (channel == Channel.AA_CH_SEN) {
+                if (channel == Channel.ID_SEN) {
                     return "Sensor Start Response";
-                } else if (channel == Channel.AA_CH_TOU) {
+                } else if (channel == Channel.ID_INP) {
                     return "Input Binding Request";
                 }
                 return "Media Stop Request";
             case Media.CONFIGRESPONSE:
-                if (channel == Channel.AA_CH_SEN) {
+                if (channel == Channel.ID_SEN) {
                     return "Sensor Event";
-                } else if (channel == Channel.AA_CH_TOU) {
+                } else if (channel == Channel.ID_INP) {
                     return "Input Binding Response";
                 }
                 return "Media Config Response";

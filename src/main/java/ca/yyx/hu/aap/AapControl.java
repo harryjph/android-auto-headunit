@@ -3,7 +3,6 @@ package ca.yyx.hu.aap;
 import com.google.protobuf.nano.InvalidProtocolBufferNanoException;
 import com.google.protobuf.nano.MessageNano;
 
-import ca.yyx.hu.App;
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
@@ -40,17 +39,17 @@ class AapControl {
 
         switch (message.channel)
         {
-            case Channel.AA_CH_CTR:
+            case Channel.ID_CTR:
                 return executeControl(message);
-            case Channel.AA_CH_TOU:
+            case Channel.ID_INP:
                 return executeTouch(message);
-            case Channel.AA_CH_SEN:
+            case Channel.ID_SEN:
                 return executeSensor(message);
-            case Channel.AA_CH_VID:
-            case Channel.AA_CH_AUD:
-            case Channel.AA_CH_AU1:
-            case Channel.AA_CH_AU2:
-            case Channel.AA_CH_MIC:
+            case Channel.ID_VID:
+            case Channel.ID_AUD:
+            case Channel.ID_AU1:
+            case Channel.ID_AU2:
+            case Channel.ID_MIC:
                 return executeMedia(message);
         }
         return 0;
@@ -185,7 +184,7 @@ class AapControl {
         AppLog.i(msg.toString());
         mTransport.send(msg);
 
-        if (channel == Channel.AA_CH_VID) {
+        if (channel == Channel.ID_VID) {
             mTransport.gainVideoFocus();
         }
 
@@ -233,7 +232,7 @@ class AapControl {
 
         mTransport.send(msg);
 
-        if (channel == Channel.AA_CH_SEN)
+        if (channel == Channel.ID_SEN)
         {
             Utils.ms_sleep(2);
             AppLog.i("Send driving status");

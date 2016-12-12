@@ -30,7 +30,7 @@ class AapDump {
         int msg_type = ((((int) buf[0]) << 8) + ((int) buf[1])) & 0xFFFF;
 
         boolean is_media = false;
-        if (chan == Channel.AA_CH_VID || chan == Channel.AA_CH_MIC || Channel.isAudio(chan))
+        if (chan == Channel.ID_VID || chan == Channel.ID_MIC || Channel.isAudio(chan))
             is_media = true;
 
         if (is_media && (flags == 8 || flags == 0x0a || msg_type == 0)) // || msg_type ==1)    // Ignore Video/Audio Data

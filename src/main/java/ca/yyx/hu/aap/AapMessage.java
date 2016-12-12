@@ -3,10 +3,6 @@ package ca.yyx.hu.aap;
 
 import com.google.protobuf.nano.MessageNano;
 
-import net.hockeyapp.android.utils.Util;
-
-import java.util.Locale;
-
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.utils.Utils;
@@ -33,7 +29,7 @@ public class AapMessage {
     private static byte flags(int channel, int type)
     {
         byte flags = 0x0b;
-        if (channel != Channel.AA_CH_CTR && MsgType.isControl(type)) {
+        if (channel != Channel.ID_CTR && MsgType.isControl(type)) {
             // Set Control Flag (On non-control channels, indicates generic/"control type" messages
             flags = 0x0f;
         }
@@ -70,7 +66,7 @@ public class AapMessage {
     }
 
     public boolean isVideo() {
-        return this.channel == Channel.AA_CH_VID;
+        return this.channel == Channel.ID_VID;
     }
 
     @Override

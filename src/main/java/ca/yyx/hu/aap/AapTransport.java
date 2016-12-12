@@ -6,16 +6,9 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.os.Process;
 import android.os.SystemClock;
-import android.provider.Settings;
 import android.util.SparseIntArray;
 
-import com.google.protobuf.nano.MessageNano;
-
-import net.hockeyapp.android.utils.Util;
-
 import ca.yyx.hu.aap.protocol.Channel;
-import ca.yyx.hu.aap.protocol.MsgType;
-import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
@@ -166,7 +159,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
                 return false;
             }
 
-            byte[] bio = Messages.createRawMessage(Channel.AA_CH_CTR, 3, 3, ba.data, ba.length);
+            byte[] bio = Messages.createRawMessage(Channel.ID_CTR, 3, 3, ba.data, ba.length);
             int size = connection.send(bio, bio.length, 1000);
             AppLog.i("SSL BIO sent: %d", size);
 
@@ -249,11 +242,11 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         if (mic_audio_len > 64) {  // If we read at least 64 bytes of audio data
             int length = mic_audio_len + 10;
             byte[] data = new byte[length];
-            data[0] = Channel.AA_CH_MIC;
+            data[0] = Channel.ID_MIC;
             data[1] = 0x0b;
             Utils.put_time(2, data, SystemClock.elapsedRealtime());
             System.arraycopy(mic_buf, 0, data, 10, mic_audio_len);
-            send(new AapMessage(Channel.AA_CH_MIC, (byte)0x0b, -1, 2, length, data));
+            send(new AapMessage(Channel.ID_MIC, (byte)0x0b, -1, 2, length, data));
         }
     }
 

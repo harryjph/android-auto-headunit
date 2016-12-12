@@ -22,18 +22,18 @@ public class AudioConfigs {
         audioConfig0.sampleRate = AudioDecoder.SAMPLE_RATE_HZ_48;
         audioConfig0.numberOfBits = 16;
         audioConfig0.numberOfChannels = 2;
-        mAudioTracks.put(Channel.AA_CH_AUD, audioConfig0);
+        mAudioTracks.put(Channel.ID_AUD, audioConfig0);
 
         Protocol.AudioConfiguration audioConfig1 = new Protocol.AudioConfiguration();
         audioConfig1.sampleRate = AudioDecoder.SAMPLE_RATE_HZ_16;
         audioConfig1.numberOfBits = 16;
         audioConfig1.numberOfChannels = 1;
-        mAudioTracks.put(Channel.AA_CH_AU1, audioConfig1);
+        mAudioTracks.put(Channel.ID_AU1, audioConfig1);
 
         Protocol.AudioConfiguration audioConfig2 = new Protocol.AudioConfiguration();
         audioConfig2.sampleRate = AudioDecoder.SAMPLE_RATE_HZ_16;
         audioConfig2.numberOfBits = 16;
         audioConfig2.numberOfChannels = 1;
-        mAudioTracks.put(Channel.AA_CH_AU2, audioConfig2);
+        mAudioTracks.put(Channel.ID_AU2, audioConfig2);
     }
 }

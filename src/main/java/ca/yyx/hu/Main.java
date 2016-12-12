@@ -1,16 +1,13 @@
 package ca.yyx.hu;
 
 import com.google.protobuf.nano.InvalidProtocolBufferNanoException;
-import com.google.protobuf.nano.MessageNano;
 
 import java.util.Locale;
 
 import ca.yyx.hu.aap.AapMessage;
-import ca.yyx.hu.aap.Messages;
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
-import ca.yyx.hu.decoder.AudioDecoder;
 
 /**
  * @author algavris
@@ -24,13 +21,13 @@ public class Main {
         videoFocus.mode = 1;
         videoFocus.unsolicited = true;
 
-        AapMessage aap = new AapMessage(Channel.AA_CH_VID, MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
+        AapMessage aap = new AapMessage(Channel.ID_VID, MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
 
         printByteArray(aap.data);
 
         byte rsp2[] = {(byte) 0x80, 0x08, 0x08, 1, 0x10, 1};
         int flags = 0x0b;
-        ByteArray msg = createMessage(Channel.AA_CH_VID, flags, -1, rsp2, rsp2.length);
+        ByteArray msg = createMessage(Channel.ID_VID, flags, -1, rsp2, rsp2.length);
         printByteArray(msg.data);
 
     }

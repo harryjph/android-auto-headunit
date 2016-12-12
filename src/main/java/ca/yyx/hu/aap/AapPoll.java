@@ -2,8 +2,6 @@ package ca.yyx.hu.aap;
 
 import com.google.protobuf.nano.InvalidProtocolBufferNanoException;
 
-import java.util.Locale;
-
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.connection.AccessoryConnection;
@@ -106,7 +104,7 @@ class AapPoll {
             have_len -= 4;
             body_start +=4;
 
-            if (recv_header.chan == Channel.AA_CH_VID && recv_header.flags == 9) {
+            if (recv_header.chan == Channel.ID_VID && recv_header.flags == 9) {
                 have_len -= 4;
             }
 
@@ -146,7 +144,7 @@ class AapPoll {
                     header.enc_len, header.chan, Channel.name(header.chan), header.flags, header.msg_type, MsgType.name(header.msg_type, header.chan));
             return null;
         }
-        if (header.chan == Channel.AA_CH_VID && header.flags == 9) {
+        if (header.chan == Channel.ID_VID && header.flags == 9) {
             // If First fragment Video...
             // (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
             int total_size = Utils.bytesToInt(buf, offset, false);

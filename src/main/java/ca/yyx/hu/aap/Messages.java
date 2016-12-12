@@ -1,6 +1,7 @@
 package ca.yyx.hu.aap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import ca.yyx.hu.aap.protocol.AudioConfigs;
 import ca.yyx.hu.aap.protocol.Channel;
@@ -22,22 +23,24 @@ import ca.yyx.hu.utils.Utils;
 public class Messages {
     static final int DEF_BUFFER_LENGTH = 131080;
 
+    static final int BTN_MIC = 0x54;
+    static final int BTN_PHONE = 0x5;
+    static final int BTN_START = 126;
+    static final int BTN_SCROLLWHEEL = 65536;
+
     static final int BTN_UP = 0x13;
     static final int BTN_DOWN = 0x14;
     static final int BTN_LEFT = 0x15;
     static final int BTN_RIGHT = 0x16;
     static final int BTN_BACK = 0x04;
     static final int BTN_ENTER = 0x17;
-    static final int BTN_MIC = 0x54;
-    static final int BTN_PHONE = 0x5;
-    static final int BTN_START = 126;
 
     public static final int BTN_PLAYPAUSE = 0x55;
     public static final int BTN_NEXT = 0x57;
     public static final int BTN_PREV = 0x58;
     public static final int BTN_STOP = 127;
 
-    public static byte[] createRawMessage(int chan, int flags, int type, byte[] data, int size) {
+    static byte[] createRawMessage(int chan, int flags, int type, byte[] data, int size) {
 
         int total = 6 + size;
         byte[] buffer = new byte[total];
@@ -57,7 +60,7 @@ public class Messages {
         videoFocus.mode = mode;
         videoFocus.unsolicited = unsolicited;
 
-        return new AapMessage(Channel.AA_CH_VID, MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
+        return new AapMessage(Channel.ID_VID, MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
     }
 
     static AapMessage createButtonEvent(long timeStamp, int button, boolean isPress)
@@ -74,7 +77,7 @@ public class Messages {
         keyEvent.keys[0].keycode = button;
         keyEvent.keys[0].down = isPress;
 
-        return new AapMessage(Channel.AA_CH_TOU, MsgType.Input.EVENT, inputReport);
+        return new AapMessage(Channel.ID_INP, MsgType.Input.EVENT, inputReport);
     }
 
     static AapMessage createTouchEvent(long timeStamp, int action, int x, int y) {
@@ -92,7 +95,7 @@ public class Messages {
         touchEvent.actionIndex = 0;
         touchEvent.action = action;
 
-        return new AapMessage(Channel.AA_CH_TOU, MsgType.Input.EVENT, inputReport);
+        return new AapMessage(Channel.ID_INP, MsgType.Input.EVENT, inputReport);
     }
 
     static AapMessage createNightModeEvent(boolean enabled) {
@@ -101,7 +104,7 @@ public class Messages {
         sensorBatch.nightMode[0] = new Protocol.SensorBatch.NightModeData();
         sensorBatch.nightMode[0].isNight = enabled;
 
-        return new AapMessage(Channel.AA_CH_SEN, MsgType.Sensor.EVENT, sensorBatch);
+        return new AapMessage(Channel.ID_SEN, MsgType.Sensor.EVENT, sensorBatch);
     }
 
     static AapMessage createDrivingStatusEvent(int status) {
@@ -110,7 +113,7 @@ public class Messages {
         sensorBatch.drivingStatus[0] = new Protocol.SensorBatch.DrivingStatusData();
         sensorBatch.drivingStatus[0].status = status;
 
-        return new AapMessage(Channel.AA_CH_SEN, MsgType.Sensor.EVENT, sensorBatch);
+        return new AapMessage(Channel.ID_SEN, MsgType.Sensor.EVENT, sensorBatch);
     }
 
     static byte[] VERSION_REQUEST = { 0, 1, 0, 1 };
@@ -129,7 +132,7 @@ public class Messages {
         ArrayList<Service> services = new ArrayList<>();
 
         Service sensors = new Service();
-        sensors.id = Channel.AA_CH_SEN;
+        sensors.id = Channel.ID_SEN;
         sensors.sensorSourceService = new SensorSourceService();
         sensors.sensorSourceService.sensors = new SensorSourceService.Sensor[2];
         sensors.sensorSourceService.sensors[0] = new SensorSourceService.Sensor();
@@ -140,7 +143,7 @@ public class Messages {
         services.add(sensors);
 
         Service video = new Service();
-        video.id = Channel.AA_CH_VID;
+        video.id = Channel.ID_VID;
         video.mediaSinkService = new Service.MediaSinkService();
         video.mediaSinkService.availableType = Protocol.MEDIA_CODEC_VIDEO;
         video.mediaSinkService.availableWhileInCall = true;
@@ -153,42 +156,56 @@ public class Messages {
         services.add(video);
 
         Service touch = new Service();
-        touch.id = Channel.AA_CH_TOU;
+        touch.id = Channel.ID_INP;
         touch.inputSourceService = new Service.InputSourceService();
         touch.inputSourceService.touchscreen = new TouchConfig();
         touch.inputSourceService.touchscreen.width = 800;
         touch.inputSourceService.touchscreen.height = 480;
+        int[] keycodes = new int[12];
+        keycodes[0] = 0x01;
+        keycodes[1] = 0x02;
+        keycodes[2] = BTN_BACK;
+        keycodes[3] = BTN_UP;
+        keycodes[4] = BTN_DOWN;
+        keycodes[5] = BTN_LEFT;
+        keycodes[6] = BTN_RIGHT;
+        keycodes[7] = BTN_ENTER;
+        keycodes[8] = BTN_PLAYPAUSE;
+        keycodes[9] = BTN_NEXT;
+        keycodes[10] = BTN_PREV;
+        keycodes[11] = BTN_STOP;
+        touch.inputSourceService.keycodesSupported = keycodes;
         services.add(touch);
 
         Service audio1 = new Service();
-        audio1.id = Channel.AA_CH_AU1;
+        audio1.id = Channel.ID_AU1;
         audio1.mediaSinkService = new Service.MediaSinkService();
         audio1.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
         audio1.mediaSinkService.audioType = Protocol.CAR_STREAM_SYSTEM;
         audio1.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
-        audio1.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU1);
+        audio1.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.ID_AU1);
         services.add(audio1);
 
         Service audio2 = new Service();
-        audio2.id = Channel.AA_CH_AU2;
+        audio2.id = Channel.ID_AU2;
         audio2.mediaSinkService = new Service.MediaSinkService();
         audio2.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
         audio2.mediaSinkService.audioType = Protocol.CAR_STREAM_VOICE;
         audio2.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
-        audio2.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AU2);
+        audio2.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.ID_AU2);
         services.add(audio2);
 
         Service audio0 = new Service();
-        audio0.id = Channel.AA_CH_AUD;
+        audio0.id = Channel.ID_AUD;
         audio0.mediaSinkService = new Service.MediaSinkService();
         audio0.mediaSinkService.availableType = Protocol.MEDIA_CODEC_AUDIO;
         audio0.mediaSinkService.audioType = Protocol.CAR_STREAM_MEDIA;
         audio0.mediaSinkService.audioConfigs = new Protocol.AudioConfiguration[1];
-        audio0.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.AA_CH_AUD);
+        audio0.mediaSinkService.audioConfigs[0] = AudioConfigs.get(Channel.ID_AUD);
         services.add(audio0);
 
         Service mic = new Service();
-        mic.id = Channel.AA_CH_MIC;
+        mic.id = Channel.ID_MIC;
         mic.mediaSourceService = new Service.MediaSourceService();
         mic.mediaSourceService.type = Protocol.MEDIA_CODEC_AUDIO;
         Protocol.AudioConfiguration micConfig = new Protocol.AudioConfiguration();
@@ -200,7 +217,7 @@ public class Messages {
 
         if (btAddress != null) {
             Service bluetooth = new Service();
-            bluetooth.id = Channel.AA_CH_BTH;
+            bluetooth.id = Channel.ID_BTH;
             bluetooth.bluetoothService = new Service.BluetoothService();
             bluetooth.bluetoothService.carAddress = btAddress;
             bluetooth.bluetoothService.supportedPairingMethods = new int[] { 4 };
@@ -211,7 +228,7 @@ public class Messages {
 
         carInfo.services = services.toArray(new Service[0]);
 
-        return new AapMessage(Channel.AA_CH_CTR, MsgType.Control.SERVICEDISCOVERYRESPONSE, carInfo);
+        return new AapMessage(Channel.ID_CTR, MsgType.Control.SERVICEDISCOVERYRESPONSE, carInfo);
     }
 
 

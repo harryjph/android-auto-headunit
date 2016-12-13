@@ -1,8 +1,8 @@
 package ca.yyx.hu.aap;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
+import ca.yyx.hu.aap.AapMessage;
 import ca.yyx.hu.aap.protocol.AudioConfigs;
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.MsgType;
@@ -23,22 +23,6 @@ import ca.yyx.hu.utils.Utils;
 public class Messages {
     static final int DEF_BUFFER_LENGTH = 131080;
 
-    static final int BTN_MIC = 0x54;
-    static final int BTN_PHONE = 0x5;
-    static final int BTN_START = 126;
-    static final int BTN_SCROLLWHEEL = 65536;
-
-    static final int BTN_UP = 0x13;
-    static final int BTN_DOWN = 0x14;
-    static final int BTN_LEFT = 0x15;
-    static final int BTN_RIGHT = 0x16;
-    static final int BTN_BACK = 0x04;
-    static final int BTN_ENTER = 0x17;
-
-    public static final int BTN_PLAYPAUSE = 0x55;
-    public static final int BTN_NEXT = 0x57;
-    public static final int BTN_PREV = 0x58;
-    public static final int BTN_STOP = 127;
 
     static byte[] createRawMessage(int chan, int flags, int type, byte[] data, int size) {
 
@@ -91,7 +75,7 @@ public class Messages {
         relativeEvent.data = new Protocol.RelativeEvent_Rel[1];
         relativeEvent.data[0] = new Protocol.RelativeEvent_Rel();
         relativeEvent.data[0].delta = delta;
-        relativeEvent.data[0].keycode = BTN_SCROLLWHEEL;
+        relativeEvent.data[0].keycode = KeyCode.SCROLL_WHEEL;
         inputReport.relativeEvent = relativeEvent;
 
         return new AapMessage(Channel.ID_INP, MsgType.Input.EVENT, inputReport);
@@ -178,10 +162,7 @@ public class Messages {
         input.inputSourceService.touchscreen = new TouchConfig();
         input.inputSourceService.touchscreen.width = 800;
         input.inputSourceService.touchscreen.height = 480;
-        input.inputSourceService.keycodesSupported =  new int[] {
-            0x01, 0x02, BTN_BACK, BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_ENTER,
-            BTN_PLAYPAUSE, BTN_NEXT, BTN_PREV, BTN_STOP, BTN_SCROLLWHEEL
-        };
+        input.inputSourceService.keycodesSupported = KeyCode.supported();
         services.add(input);
 
         Service audio1 = new Service();

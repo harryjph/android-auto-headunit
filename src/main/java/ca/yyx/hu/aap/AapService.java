@@ -19,6 +19,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
 import ca.yyx.hu.App;
@@ -222,27 +223,27 @@ public class AapService extends Service implements UsbReceiver.Listener, Accesso
         public void onSkipToNext() {
             AppLog.i("onSkipToNext");
 
-            App.get(mContext).transport().sendButton(Messages.BTN_NEXT, true);
+            App.get(mContext).transport().sendButton(KeyEvent.KEYCODE_MEDIA_NEXT, true);
             Utils.ms_sleep(10);
-            App.get(mContext).transport().sendButton(Messages.BTN_NEXT, false);
+            App.get(mContext).transport().sendButton(KeyEvent.KEYCODE_MEDIA_NEXT, false);
         }
 
         @Override
         public void onSkipToPrevious() {
             AppLog.i("onSkipToPrevious");
 
-            App.get(mContext).transport().sendButton(Messages.BTN_PREV, true);
+            App.get(mContext).transport().sendButton(KeyEvent.KEYCODE_MEDIA_PREVIOUS, true);
             Utils.ms_sleep(10);
-            App.get(mContext).transport().sendButton(Messages.BTN_PREV, false);
+            App.get(mContext).transport().sendButton(KeyEvent.KEYCODE_MEDIA_PREVIOUS, false);
         }
 
         @Override
         public void onPlay() {
             AppLog.i("PLAY");
 
-            App.get(mContext).transport().sendButton(Messages.BTN_PLAYPAUSE, true);
+            App.get(mContext).transport().sendButton(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, true);
             Utils.ms_sleep(10);
-            App.get(mContext).transport().sendButton(Messages.BTN_PLAYPAUSE, false);
+            App.get(mContext).transport().sendButton(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, false);
         }
 
         @Override

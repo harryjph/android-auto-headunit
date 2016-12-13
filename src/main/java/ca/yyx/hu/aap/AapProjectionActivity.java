@@ -205,32 +205,6 @@ public class AapProjectionActivity extends SurfaceActivity implements SurfaceHol
 
     private void onKeyEvent(int keyCode,boolean isPress)
     {
-        switch (keyCode)
-        {
-            case KeyEvent.KEYCODE_DPAD_UP:
-                transport().sendButton(Messages.BTN_UP, isPress);
-                break;
-            case KeyEvent.KEYCODE_DPAD_DOWN:
-                transport().sendButton(Messages.BTN_DOWN, isPress);
-                break;
-            case KeyEvent.KEYCODE_DPAD_LEFT:
-                transport().sendButton(Messages.BTN_LEFT, isPress);
-                break;
-            case KeyEvent.KEYCODE_DPAD_RIGHT:
-                transport().sendButton(Messages.BTN_RIGHT, isPress);
-                break;
-            case KeyEvent.KEYCODE_DPAD_CENTER:
-            case KeyEvent.KEYCODE_ENTER:
-                transport().sendButton(Messages.BTN_ENTER, isPress);
-                break;
-            case KeyEvent.KEYCODE_BACK:
-                transport().sendButton(Messages.BTN_BACK, isPress);
-                break;
-//            case KeyEvent.KEYCODE_HEADSETHOOK:
-//                mTransport.sendButton(Protocol.BTN_PLAYPAUSE, isPress);
-//                break;
-            default:
-                AppLog.i("Ignored: " + keyCode);
-        }
+        transport().sendButton(keyCode, isPress);
     }
 }

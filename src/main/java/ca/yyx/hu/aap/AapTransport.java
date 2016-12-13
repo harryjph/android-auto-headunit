@@ -7,8 +7,10 @@ import android.os.Message;
 import android.os.Process;
 import android.os.SystemClock;
 import android.util.SparseIntArray;
+import android.view.KeyEvent;
 
 import ca.yyx.hu.aap.protocol.Channel;
+import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
@@ -196,11 +198,18 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     public void sendButton(int keyCode, boolean isPress) {
         long ts = SystemClock.elapsedRealtime();
 
-        if (keyCode == Messages.BTN_LEFT || keyCode == Messages.BTN_RIGHT)
+        int aapKeyCode = KeyCode.convert(keyCode);
+
+        if (aapKeyCode == KeyEvent.KEYCODE_UNKNOWN)
+        {
+            AppLog.i("Unknown: " + keyCode);
+        }
+
+        if (aapKeyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
         {
             if (isPress)
             {
-                int delta = (keyCode == Messages.BTN_LEFT) ? -1 : 1;
+                int delta = (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) ? -1 : 1;
                 send(Messages.createScrollEvent(ts, delta));
             }
             return;

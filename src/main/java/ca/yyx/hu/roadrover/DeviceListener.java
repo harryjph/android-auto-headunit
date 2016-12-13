@@ -39,31 +39,10 @@ public class DeviceListener extends BroadcastReceiver {
 
         if (ACTION_KEYEVENT.equals(intent.getAction())) {
             int keyCode = intent.getIntExtra("keyvalue", 0);
-            handleKeyEvent(keyCode, transport);
+            sendButton(keyCode, transport);
         } else if (ACTION_STARTMUSIC.equals(intent.getAction()))
         {
-            transport.sendButton(Messages.BTN_PLAYPAUSE, true);
-        }
-    }
-
-    private void handleKeyEvent(int keyCode, AapTransport transport) {
-        switch (keyCode)
-        {
-            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-            case KeyEvent.KEYCODE_HEADSETHOOK:
-                sendButton(Messages.BTN_PLAYPAUSE, transport);
-                break;
-            case KeyEvent.KEYCODE_MEDIA_STOP:
-                sendButton(Messages.BTN_STOP, transport);
-                break;
-            case KeyEvent.KEYCODE_MEDIA_NEXT:
-                sendButton(Messages.BTN_NEXT, transport);
-                break;
-            case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-                sendButton(Messages.BTN_PREV, transport);
-                break;
-            default:
-                AppLog.i("Unknown keyCode: "+keyCode);
+            sendButton(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, transport);
         }
     }
 

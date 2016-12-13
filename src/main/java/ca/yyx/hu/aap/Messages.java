@@ -63,19 +63,36 @@ public class Messages {
         return new AapMessage(Channel.ID_VID, MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
     }
 
-    static AapMessage createButtonEvent(long timeStamp, int button, boolean isPress)
+    static AapMessage createKeyEvent(long timeStamp, int keycode, boolean isPress)
     {
-        // Timestamp in nanoseconds = microseconds x 1,000,000
-
         Protocol.InputReport inputReport = new Protocol.InputReport();
         Protocol.KeyEvent keyEvent = new Protocol.KeyEvent();
+        // Timestamp in nanoseconds = microseconds x 1,000,000
         inputReport.timestamp = timeStamp * 1000000L;
         inputReport.keyEvent = keyEvent;
 
         keyEvent.keys = new Protocol.Key[1];
         keyEvent.keys[0] = new Protocol.Key();
-        keyEvent.keys[0].keycode = button;
+        keyEvent.keys[0].keycode = keycode;
         keyEvent.keys[0].down = isPress;
+
+        return new AapMessage(Channel.ID_INP, MsgType.Input.EVENT, inputReport);
+    }
+
+    static AapMessage createScrollEvent(long timeStamp, int delta)
+    {
+        Protocol.InputReport inputReport = new Protocol.InputReport();
+        Protocol.KeyEvent keyEvent = new Protocol.KeyEvent();
+        // Timestamp in nanoseconds = microseconds x 1,000,000
+        inputReport.timestamp = timeStamp * 1000000L;
+        inputReport.keyEvent = keyEvent;
+
+        Protocol.RelativeEvent relativeEvent = new Protocol.RelativeEvent();
+        relativeEvent.data = new Protocol.RelativeEvent_Rel[1];
+        relativeEvent.data[0] = new Protocol.RelativeEvent_Rel();
+        relativeEvent.data[0].delta = delta;
+        relativeEvent.data[0].keycode = BTN_SCROLLWHEEL;
+        inputReport.relativeEvent = relativeEvent;
 
         return new AapMessage(Channel.ID_INP, MsgType.Input.EVENT, inputReport);
     }
@@ -151,31 +168,21 @@ public class Messages {
         VideoConfiguration videoConfig = new VideoConfiguration();
         videoConfig.codecResolution = VideoConfiguration.VIDEO_RESOLUTION_800x480;
         videoConfig.frameRate = VideoConfiguration.VIDEO_FPS_60;
-        videoConfig.density = 160;
+        videoConfig.density = 140;
         video.mediaSinkService.videoConfigs[0] = videoConfig;
         services.add(video);
 
-        Service touch = new Service();
-        touch.id = Channel.ID_INP;
-        touch.inputSourceService = new Service.InputSourceService();
-        touch.inputSourceService.touchscreen = new TouchConfig();
-        touch.inputSourceService.touchscreen.width = 800;
-        touch.inputSourceService.touchscreen.height = 480;
-        int[] keycodes = new int[12];
-        keycodes[0] = 0x01;
-        keycodes[1] = 0x02;
-        keycodes[2] = BTN_BACK;
-        keycodes[3] = BTN_UP;
-        keycodes[4] = BTN_DOWN;
-        keycodes[5] = BTN_LEFT;
-        keycodes[6] = BTN_RIGHT;
-        keycodes[7] = BTN_ENTER;
-        keycodes[8] = BTN_PLAYPAUSE;
-        keycodes[9] = BTN_NEXT;
-        keycodes[10] = BTN_PREV;
-        keycodes[11] = BTN_STOP;
-        touch.inputSourceService.keycodesSupported = keycodes;
-        services.add(touch);
+        Service input = new Service();
+        input.id = Channel.ID_INP;
+        input.inputSourceService = new Service.InputSourceService();
+        input.inputSourceService.touchscreen = new TouchConfig();
+        input.inputSourceService.touchscreen.width = 800;
+        input.inputSourceService.touchscreen.height = 480;
+        input.inputSourceService.keycodesSupported =  new int[] {
+            0x01, 0x02, BTN_BACK, BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_ENTER,
+            BTN_PLAYPAUSE, BTN_NEXT, BTN_PREV, BTN_STOP, BTN_SCROLLWHEEL
+        };
+        services.add(input);
 
         Service audio1 = new Service();
         audio1.id = Channel.ID_AU1;

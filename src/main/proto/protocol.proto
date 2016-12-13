@@ -40,16 +40,37 @@ message TouchEvent
     optional PointerAction action = 3;
 }
 
+message RelativeEvent_Rel
+{
+    required uint32 keycode = 1;
+    required int32 delta = 2;
+}
+
+message RelativeEvent
+{
+    repeated RelativeEvent_Rel data = 1;
+}
+
+message AbsoluteEvent_Abs
+{
+    required uint32 keycode = 1;
+    required int32 value = 2;
+}
+
+message AbsoluteEvent
+{
+    repeated AbsoluteEvent_Abs data = 1;
+}
 
 message InputReport
 {
-    optional uint64 timestamp = 1;
-    optional int32 disp_channel_id = 2;
+    required uint64 timestamp = 1;
+    required int32 disp_channel_id = 2;
     optional TouchEvent touch_event = 3;
     optional KeyEvent key_event = 4;
-//    optional AbsoluteEvent absolute_event = 5;
-//    optional RelativeEvent relative_event = 6;
-//    optional TouchEvent touchpad_event = 7;
+    optional AbsoluteEvent absolute_event = 5;
+    optional RelativeEvent relative_event = 6;
+    optional TouchEvent touchpad_event = 7;
 }
 
 message KeyBindingRequest
@@ -64,7 +85,7 @@ message BindingResponse
 
 enum SensorType
 {
-    SENSOR_TYPE_DRIVING_STATUS = 11;
+    SENSOR_TYPE_DRIVING_STATUS = 13;
     SENSOR_TYPE_NIGHT_DATA = 10;
     SENSOR_TYPE_RPM = 3;
     SENSOR_TYPE_DIAGNOSTICS = 8;
@@ -228,8 +249,8 @@ message Service
             required uint32 height = 2;
         }
         repeated uint32 keycodes_supported = 1;
-        optional TouchConfig touchscreen = 2;
-        optional TouchConfig touchpad = 3;
+        required TouchConfig touchscreen = 2;
+        required TouchConfig touchpad = 3;
     }
 
     optional InputSourceService input_source_service = 4;

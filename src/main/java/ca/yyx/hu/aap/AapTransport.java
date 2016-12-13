@@ -195,7 +195,18 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
     public void sendButton(int keyCode, boolean isPress) {
         long ts = SystemClock.elapsedRealtime();
-        send(Messages.createButtonEvent(ts, keyCode, isPress));
+
+        if (keyCode == Messages.BTN_LEFT || keyCode == Messages.BTN_RIGHT)
+        {
+            if (isPress)
+            {
+                int delta = (keyCode == Messages.BTN_LEFT) ? -1 : 1;
+                send(Messages.createScrollEvent(ts, delta));
+            }
+            return;
+        }
+
+        send(Messages.createKeyEvent(ts, keyCode, isPress));
     }
 
     void sendNightMode(boolean enabled) {

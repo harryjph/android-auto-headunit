@@ -1,6 +1,7 @@
 package ca.yyx.hu;
 
 import com.google.protobuf.nano.InvalidProtocolBufferNanoException;
+import com.google.protobuf.nano.MessageNano;
 
 import java.util.Locale;
 
@@ -17,19 +18,28 @@ public class Main {
     public static void main(String[] args) throws InvalidProtocolBufferNanoException {
         System.out.println("Main");
 
-        Protocol.VideoFocusNotification videoFocus = new Protocol.VideoFocusNotification();
-        videoFocus.mode = 1;
-        videoFocus.unsolicited = true;
+        Protocol.Service input = new Protocol.Service();
+        input.id = 1;
+        input.inputSourceService = new Protocol.Service.InputSourceService();
+        input.inputSourceService.touchscreen = new Protocol.Service.InputSourceService.TouchConfig();
+        input.inputSourceService.touchscreen.width = 800;
+        input.inputSourceService.touchscreen.height = 480;
+//        input.inputSourceService.keycodesSupported = new int[] { 84 };
 
-        AapMessage aap = new AapMessage(Channel.ID_VID, MsgType.Media.VIDEOFOCUSNOTIFICATION, videoFocus);
+        printByteArray(MessageNano.toByteArray(input));
+        byte rsp2[] = {0x08, 0x01, 0x22, 0x0B, 0x0A, 0x01, 0x54, 0x12, 0x06, 0x08, (byte) 0xA0, 0x06, 0x10, (byte) 0xE0, 0x03};
+        printByteArray(rsp2);
 
-        printByteArray(aap.data);
+        Protocol.Service actual = new Protocol.Service();
+        MessageNano.mergeFrom(actual, rsp2);
+        printByteArray(MessageNano.toByteArray(actual));
 
-        byte rsp2[] = {(byte) 0x80, 0x08, 0x08, 1, 0x10, 1};
-        int flags = 0x0b;
-        ByteArray msg = createMessage(Channel.ID_VID, flags, -1, rsp2, rsp2.length);
-        printByteArray(msg.data);
+        byte rsp3[] = { 0x08, 0x01, 0x22, 2+6, 0x12,  6, 0x08, -96,   6,    0x10, -32, 3};
+        printByteArray(rsp3);
 
+        Protocol.Service actual1 = new Protocol.Service();
+        MessageNano.mergeFrom(actual1, rsp3);
+        printByteArray(MessageNano.toByteArray(actual1));
     }
 
 

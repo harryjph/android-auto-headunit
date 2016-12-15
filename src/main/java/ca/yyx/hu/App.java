@@ -40,7 +40,7 @@ public class App extends Application implements AapTransport.Listener {
         mVideoDecoder = new VideoDecoder();
         mSettings = new Settings(this);
         mGpsLocation = new GpsLocation(this);
-        mGpsLocation.start();
+        //mGpsLocation.start();
     }
 
     public AapTransport transport()

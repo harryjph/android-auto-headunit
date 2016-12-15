@@ -1,8 +1,12 @@
-box: gfx2015/android
+box: bitriseio/docker-android
 # Build definition
 build:
   # The steps that will be executed on build
   steps:
+    - script:
+        name: install android dependencies
+        code: |
+          echo y | android update sdk --no-ui --all --filter build-tools-24.0.3
     - script:
         name: show base information
         code: |

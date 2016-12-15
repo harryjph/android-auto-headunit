@@ -1,6 +1,7 @@
 package ca.yyx.hu.location;
 
 import android.content.Context;
+import android.location.Criteria;
 import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
@@ -21,11 +22,14 @@ public class GpsLocation implements GpsStatus.Listener, LocationListener {
         // Acquire a reference to the system Location Manager
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         mLocationManager.addGpsStatusListener(this);
+
     }
 
     public void start()
     {
-        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+        Criteria criteria = new Criteria();
+        criteria.setPowerRequirement(Criteria.POWER_HIGH);
+        mLocationManager.requestLocationUpdates(0, 0, criteria, this, null);
     }
 
     @Override

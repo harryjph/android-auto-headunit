@@ -18,28 +18,25 @@ public class Main {
     public static void main(String[] args) throws InvalidProtocolBufferNanoException {
         System.out.println("Main");
 
-        Protocol.Service input = new Protocol.Service();
-        input.id = 1;
-        input.inputSourceService = new Protocol.Service.InputSourceService();
-        input.inputSourceService.touchscreen = new Protocol.Service.InputSourceService.TouchConfig();
-        input.inputSourceService.touchscreen.width = 800;
-        input.inputSourceService.touchscreen.height = 480;
+        Protocol.Service sensors = new Protocol.Service();
+        sensors.id = 2;
+        sensors.sensorSourceService = new Protocol.Service.SensorSourceService();
+        sensors.sensorSourceService.sensors = new Protocol.Service.SensorSourceService.Sensor[2];
+        sensors.sensorSourceService.sensors[0] = new Protocol.Service.SensorSourceService.Sensor();
+        sensors.sensorSourceService.sensors[0].type = Protocol.SENSOR_TYPE_DRIVING_STATUS;
+        sensors.sensorSourceService.sensors[1] = new Protocol.Service.SensorSourceService.Sensor();
+        sensors.sensorSourceService.sensors[1].type = Protocol.SENSOR_TYPE_NIGHT_DATA;
 //        input.inputSourceService.keycodesSupported = new int[] { 84 };
 
-        printByteArray(MessageNano.toByteArray(input));
-        byte rsp2[] = {0x08, 0x01, 0x22, 0x0B, 0x0A, 0x01, 0x54, 0x12, 0x06, 0x08, (byte) 0xA0, 0x06, 0x10, (byte) 0xE0, 0x03};
+        printByteArray(MessageNano.toByteArray(sensors));
+        byte rsp2[] = {0x08, 0x02, 0x12, 0x0C, 0x0A, 0x02, 0x08, 0x01, 0x0A, 0x02, 0x08, 0x0A, 0x0A, 0x02, 0x08, 0x0D};
         printByteArray(rsp2);
 
         Protocol.Service actual = new Protocol.Service();
         MessageNano.mergeFrom(actual, rsp2);
         printByteArray(MessageNano.toByteArray(actual));
 
-        byte rsp3[] = { 0x08, 0x01, 0x22, 2+6, 0x12,  6, 0x08, -96,   6,    0x10, -32, 3};
-        printByteArray(rsp3);
-
-        Protocol.Service actual1 = new Protocol.Service();
-        MessageNano.mergeFrom(actual1, rsp3);
-        printByteArray(MessageNano.toByteArray(actual1));
+        System.out.print(actual.toString());
     }
 
 

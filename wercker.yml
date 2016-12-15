@@ -1,4 +1,4 @@
-box: bitriseio/docker-android
+box: gfx2015/android
 # Build definition
 build:
   # The steps that will be executed on build

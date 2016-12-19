@@ -18,6 +18,17 @@ build:
           echo $AWS_KEY
           android list target
     - script:
+        name: prepare gradle properties
+        code: |
+          echo $HEADUNIT_KEYSTORE | base64 --decode > keystore.jkc
+          echo $HEADUNIT_SCRIPT | base64 --decode > copyCert.sh
+          echo "" >> gradle.properties
+          echo "HEADUNIT_KEYSTORE_FILE=$WERCKER_SOURCE_DIR/keystore.jkc" >> gradle.properties
+          echo "HEADUNIT_KEYSTORE_PASSWORD=$HEADUNIT_KEYSTORE_PASSWORD" >> gradle.properties
+          echo "HEADUNIT_KEY_ALIAS=$HEADUNIT_KEY_ALIAS" >> gradle.properties
+          echo "HEADUNIT_KEY_PASSWORD=$HEADUNIT_KEY_PASSWORD" >> gradle.properties
+          echo "HEADUNIT_HOCKEYAPP_ID=$HEADUNIT_HOCKEYAPP_ID" >> gradle.properties
+    - script:
         name: run gradle
         code: |
           ./gradlew --full-stacktrace -q --project-cache-dir=$WERCKER_CACHE_DIR build
@@ -29,3 +40,11 @@ build:
         code: |
           ls -la headunit/build/outputs/apk/
           cp headunit/build/outputs/apk/*.apk $WERCKER_REPORT_ARTIFACTS_DIR
+
+deploy:
+    steps:
+        - s3sync:
+            key-id: $AWS_KEY
+            key-secret: $AWS_SECRET
+            bucket-url: s3://hdu/apk/$WERCKER_GIT_COMMIT/
+            opts: --acl-public

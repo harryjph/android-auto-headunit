@@ -17,7 +17,7 @@ public class GpsLocation implements GpsStatus.Listener, LocationListener {
     private final LocationManager mLocationManager;
     private GpsStatus mStatus = null;
 
-    public GpsLocation(Context context)
+    GpsLocation(Context context)
     {
         // Acquire a reference to the system Location Manager
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -68,5 +68,9 @@ public class GpsLocation implements GpsStatus.Listener, LocationListener {
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+    public void stop() {
+        mLocationManager.removeUpdates(this);
     }
 }

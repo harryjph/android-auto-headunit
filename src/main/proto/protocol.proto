@@ -85,13 +85,17 @@ message BindingResponse
 
 enum SensorType
 {
+    SENSOR_TYPE_LOCATION = 1;
+    SENSOR_TYPE_COMPASS = 2;
+    SENSOR_TYPE_CAR_SPEED = 3;
+    SENSOR_TYPE_RPM = 4;
+    SENSOR_TYPE_ODOMETER = 5;
+    SENSOR_TYPE_FUEL_LEVEL = 6;
+    SENSOR_TYPE_PARKING_BRAKE = 7;
+    SENSOR_TYPE_GEAR = 8;
+    SENSOR_TYPE_NIGHT = 10;
+    SENSOR_TYPE_ENVIRONMENT = 11;
     SENSOR_TYPE_DRIVING_STATUS = 13;
-    SENSOR_TYPE_NIGHT_DATA = 10;
-    SENSOR_TYPE_RPM = 3;
-    SENSOR_TYPE_DIAGNOSTICS = 8;
-    SENSOR_TYPE_GEAR = 7;
-    SENSOR_TYPE_COMPASS = 1;
-    SENSOR_TYPE_LOCATION = 9;
 }
 
 message SensorBatch
@@ -467,8 +471,9 @@ message AudioFocusRequestNotification
     {
         AUDIO_FOCUS_GAIN = 1;
         AUDIO_FOCUS_GAIN_TRANSIENT = 2;
-        AUDIO_FOCUS_UNKNOWN = 3;
+        AUDIO_FOCUS_GAIN_TRANSIENT_MAY_DUCK = 3;
         AUDIO_FOCUS_RELEASE = 4;
+        AUDIO_FOCUS_UNKNOWN = 0;
     }
     optional AudioFocusRequestType request = 1;
 }

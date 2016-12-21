@@ -139,7 +139,7 @@ public class Messages {
         sensors.sensorSourceService.sensors[0] = new SensorSourceService.Sensor();
         sensors.sensorSourceService.sensors[0].type = Protocol.SENSOR_TYPE_DRIVING_STATUS;
         sensors.sensorSourceService.sensors[1] = new SensorSourceService.Sensor();
-        sensors.sensorSourceService.sensors[1].type = Protocol.SENSOR_TYPE_NIGHT_DATA;
+        sensors.sensorSourceService.sensors[1].type = Protocol.SENSOR_TYPE_NIGHT;
 
         services.add(sensors);
 

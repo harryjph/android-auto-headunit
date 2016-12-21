@@ -9,13 +9,17 @@ public interface Protocol {
   public static final int STATUS_OK = 0;
 
   // enum SensorType
+  public static final int SENSOR_TYPE_LOCATION = 1;
+  public static final int SENSOR_TYPE_COMPASS = 2;
+  public static final int SENSOR_TYPE_CAR_SPEED = 3;
+  public static final int SENSOR_TYPE_RPM = 4;
+  public static final int SENSOR_TYPE_ODOMETER = 5;
+  public static final int SENSOR_TYPE_FUEL_LEVEL = 6;
+  public static final int SENSOR_TYPE_PARKING_BRAKE = 7;
+  public static final int SENSOR_TYPE_GEAR = 8;
+  public static final int SENSOR_TYPE_NIGHT = 10;
+  public static final int SENSOR_TYPE_ENVIRONMENT = 11;
   public static final int SENSOR_TYPE_DRIVING_STATUS = 13;
-  public static final int SENSOR_TYPE_NIGHT_DATA = 10;
-  public static final int SENSOR_TYPE_RPM = 3;
-  public static final int SENSOR_TYPE_DIAGNOSTICS = 8;
-  public static final int SENSOR_TYPE_GEAR = 7;
-  public static final int SENSOR_TYPE_COMPASS = 1;
-  public static final int SENSOR_TYPE_LOCATION = 9;
 
   // enum AudioStreamType
   public static final int CAR_STREAM_SYSTEM = 1;
@@ -2717,7 +2721,7 @@ public interface Protocol {
         }
 
         public Sensor clear() {
-          type = ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DRIVING_STATUS;
+          type = ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_LOCATION;
           cachedSize = -1;
           return this;
         }
@@ -2755,13 +2759,17 @@ public interface Protocol {
               case 8: {
                 int value = input.readInt32();
                 switch (value) {
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DRIVING_STATUS:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_NIGHT_DATA:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_RPM:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DIAGNOSTICS:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_GEAR:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_COMPASS:
                   case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_LOCATION:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_COMPASS:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_CAR_SPEED:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_RPM:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_ODOMETER:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_FUEL_LEVEL:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_PARKING_BRAKE:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_GEAR:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_NIGHT:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_ENVIRONMENT:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DRIVING_STATUS:
                     this.type = value;
                     break;
                 }
@@ -5976,7 +5984,7 @@ public interface Protocol {
     }
 
     public SensorRequest clear() {
-      type = ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DRIVING_STATUS;
+      type = ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_LOCATION;
       minUpdatePeriod = 0L;
       cachedSize = -1;
       return this;
@@ -5985,7 +5993,7 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.type != ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DRIVING_STATUS) {
+      if (this.type != ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_LOCATION) {
         output.writeInt32(1, this.type);
       }
       if (this.minUpdatePeriod != 0L) {
@@ -5997,7 +6005,7 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.type != ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DRIVING_STATUS) {
+      if (this.type != ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_LOCATION) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeInt32Size(1, this.type);
       }
@@ -6026,13 +6034,17 @@ public interface Protocol {
           case 8: {
             int value = input.readInt32();
             switch (value) {
-              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DRIVING_STATUS:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_NIGHT_DATA:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_RPM:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DIAGNOSTICS:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_GEAR:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_COMPASS:
               case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_LOCATION:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_COMPASS:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_CAR_SPEED:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_RPM:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_ODOMETER:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_FUEL_LEVEL:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_PARKING_BRAKE:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_GEAR:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_NIGHT:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_ENVIRONMENT:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.SENSOR_TYPE_DRIVING_STATUS:
                 this.type = value;
                 break;
             }
@@ -6415,8 +6427,9 @@ public interface Protocol {
     // enum AudioFocusRequestType
     public static final int AUDIO_FOCUS_GAIN = 1;
     public static final int AUDIO_FOCUS_GAIN_TRANSIENT = 2;
-    public static final int AUDIO_FOCUS_UNKNOWN = 3;
+    public static final int AUDIO_FOCUS_GAIN_TRANSIENT_MAY_DUCK = 3;
     public static final int AUDIO_FOCUS_RELEASE = 4;
+    public static final int AUDIO_FOCUS_UNKNOWN = 0;
 
     private static volatile AudioFocusRequestNotification[] _emptyArray;
     public static AudioFocusRequestNotification[] emptyArray() {
@@ -6484,8 +6497,9 @@ public interface Protocol {
             switch (value) {
               case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN:
               case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN_TRANSIENT:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_UNKNOWN:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN_TRANSIENT_MAY_DUCK:
               case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_UNKNOWN:
                 this.request = value;
                 break;
             }

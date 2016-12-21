@@ -1,5 +1,7 @@
 package ca.yyx.hu.utils;
 
+import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 
 import java.util.IllegalFormatException;
@@ -83,5 +85,12 @@ public final class AppLog {
         return String.format(Locale.US, "[%d] %s | %s", Thread.currentThread().getId(), string, formatted);
     }
 
+    public static void i(Intent intent) {
+        i(intent.toString());
+        Bundle ex = intent.getExtras();
+        if (ex != null) {
+            i(ex.toString());
+        }
+    }
 }
 

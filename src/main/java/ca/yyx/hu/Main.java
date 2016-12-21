@@ -25,7 +25,7 @@ public class Main {
         sensors.sensorSourceService.sensors[0] = new Protocol.Service.SensorSourceService.Sensor();
         sensors.sensorSourceService.sensors[0].type = Protocol.SENSOR_TYPE_DRIVING_STATUS;
         sensors.sensorSourceService.sensors[1] = new Protocol.Service.SensorSourceService.Sensor();
-        sensors.sensorSourceService.sensors[1].type = Protocol.SENSOR_TYPE_NIGHT_DATA;
+        sensors.sensorSourceService.sensors[1].type = Protocol.SENSOR_TYPE_NIGHT;
 //        input.inputSourceService.keycodesSupported = new int[] { 84 };
 
         printByteArray(MessageNano.toByteArray(sensors));

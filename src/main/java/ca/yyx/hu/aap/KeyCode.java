@@ -2,10 +2,11 @@ package ca.yyx.hu.aap;
 
 import android.view.KeyEvent;
 
-class KeyCode {
-    static final int SCROLL_WHEEL = 65536;
+import ca.yyx.hu.aap.protocol.messages.ScrollWheelEvent;
 
-    static int[] supported() {
+public class KeyCode {
+
+    public static int[] supported() {
         return new int[] {
             KeyEvent.KEYCODE_SOFT_LEFT,
             KeyEvent.KEYCODE_SOFT_RIGHT,
@@ -25,7 +26,7 @@ class KeyCode {
 
             KeyEvent.KEYCODE_SEARCH,
             KeyEvent.KEYCODE_CALL,
-            SCROLL_WHEEL
+            ScrollWheelEvent.KEYCODE_SCROLL_WHEEL
         };
     }
 

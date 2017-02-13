@@ -10,7 +10,15 @@ import android.util.SparseIntArray;
 import android.view.KeyEvent;
 
 import ca.yyx.hu.aap.protocol.Channel;
-import ca.yyx.hu.aap.protocol.nano.Protocol;
+import ca.yyx.hu.aap.protocol.messages.KeyCodeEvent;
+import ca.yyx.hu.aap.protocol.messages.MediaAck;
+import ca.yyx.hu.aap.protocol.messages.Messages;
+import ca.yyx.hu.aap.protocol.messages.NightModeEvent;
+import ca.yyx.hu.aap.protocol.messages.ScrollWheelEvent;
+import ca.yyx.hu.aap.protocol.messages.TouchEvent;
+
+
+import ca.yyx.hu.aap.protocol.messages.VideoFocusEvent;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
@@ -19,8 +27,8 @@ import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
 
 public class AapTransport implements Handler.Callback, MicRecorder.Listener {
-    private static final int POLL = 1;
-    private static final int MSG_DATA = 2;
+    private static final int MSG_POLL = 1;
+    private static final int MSG_SEND = 2;
 
     private final Listener mListener;
     private final AapAudio mAapAudio;
@@ -29,9 +37,10 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     private final MicRecorder mMicRecorder;
     private final String mBtMacAddress;
     private final SparseIntArray mSessionIds = new SparseIntArray(4);
+    private final AapSslNative mSsl = new AapSslNative();
 
     private AccessoryConnection mConnection;
-    private AapPoll mAapPoll;
+    private AapRead mAapRead;
     private Handler mHandler;
 
     public interface Listener {
@@ -56,20 +65,20 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
     public boolean handleMessage(Message msg) {
 
-        if (msg.what == MSG_DATA) {
+        if (msg.what == MSG_SEND) {
             int size = msg.arg2;
             byte[] data = (byte[]) msg.obj;
             this.sendEncryptedMessage(data, size);
             return true;
         }
 
-        if (msg.what == POLL) {
-            int ret = mAapPoll.poll();
+        if (msg.what == MSG_POLL) {
+            int ret = mAapRead.read();
             if (mHandler == null) {
                 return false;
             }
-            if (!mHandler.hasMessages(POLL)) {
-                mHandler.sendEmptyMessage(POLL);
+            if (!mHandler.hasMessages(MSG_POLL)) {
+                mHandler.sendEmptyMessage(MSG_POLL);
             }
 
             if (ret < 0) {
@@ -81,7 +90,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     }
 
     private int sendEncryptedMessage(byte[] data, int length) {
-        ByteArray ba = AapSsl.encrypt(AapMessage.HEADER_SIZE, length - AapMessage.HEADER_SIZE, data);
+        ByteArray ba = mSsl.encrypt(AapMessage.HEADER_SIZE, length - AapMessage.HEADER_SIZE, data);
         if (ba == null) {
             return -1;
         }
@@ -102,7 +111,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     void quit() {
         mMicRecorder.setListener(null);
         mPollThread.quit();
-        mAapPoll = null;
+        mAapRead = null;
         mHandler = null;
     }
 
@@ -116,10 +125,11 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
         mConnection = connection;
 
-        mAapPoll = new AapPoll(connection, this, mMicRecorder, mAapAudio, mAapVideo, mBtMacAddress);
+        mAapRead = AapRead.Factory.create(connection, this, mMicRecorder, mAapAudio, mAapVideo, mBtMacAddress);
+
         mPollThread.start();
         mHandler = new Handler(mPollThread.getLooper(), this);
-        mHandler.sendEmptyMessage(POLL);
+        mHandler.sendEmptyMessage(MSG_POLL);
         // Create and start Transport Thread
         return true;
     }
@@ -144,7 +154,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         AppLog.i("Version response recv ret: %d", ret);
 
         // SSL
-        ret = AapSsl.prepare();
+        ret = mSsl.prepare();
         if (ret < 0) {
             AppLog.e("SSL prepare failed: " + ret);
             return false;
@@ -155,8 +165,8 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
         while (hs_ctr++ < 2)
         {
-            AapSsl.handshake();
-            ByteArray ba = AapSsl.bioRead();
+            mSsl.handshake();
+            ByteArray ba = mSsl.bioRead();
             if (ba == null) {
                 return false;
             }
@@ -172,7 +182,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
                 return false;
             }
 
-            ret = AapSsl.bioWrite(6, size - 6, buffer);
+            ret = mSsl.bioWrite(6, size - 6, buffer);
             AppLog.i("SSL BIO write: %d", ret);
         }
 
@@ -192,7 +202,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
     void sendTouch(byte action, int x, int y) {
         long ts = SystemClock.elapsedRealtime();
-        send(Messages.createTouchEvent(ts, action, x, y));
+        send(new TouchEvent(ts, action, x, y));
     }
 
     public void sendButton(int keyCode, boolean isPress) {
@@ -210,16 +220,16 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
             if (isPress)
             {
                 int delta = (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) ? -1 : 1;
-                send(Messages.createScrollEvent(ts, delta));
+                send(new ScrollWheelEvent(ts, delta));
             }
             return;
         }
 
-        send(Messages.createKeyEvent(ts, keyCode, isPress));
+        send(new KeyCodeEvent(ts, keyCode, isPress));
     }
 
     void sendNightMode(boolean enabled) {
-        send(Messages.createNightModeEvent(enabled));
+        send(new NightModeEvent(enabled));
     }
 
     void send(AapMessage message) {
@@ -229,7 +239,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
             if (AppLog.LOG_VERBOSE) {
                 AppLog.v(message.toString());
             }
-            Message msg = mHandler.obtainMessage(MSG_DATA, 0, message.size, message.data);
+            Message msg = mHandler.obtainMessage(MSG_SEND, 0, message.size, message.data);
             mHandler.sendMessage(msg);
         }
     }
@@ -241,16 +251,16 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
     void sendVideoFocusGained(boolean unsolicited) {
         AppLog.i("Gain video focus notification");
-        send(Messages.createVideoFocus(1, unsolicited));
+        send(new VideoFocusEvent(1, unsolicited));
     }
 
     void sendVideoFocusLost() {
         AppLog.i("Lost video focus notification");
-        send(Messages.createVideoFocus(2, true));
+        send(new VideoFocusEvent(2, true));
     }
 
     void sendMediaAck(int channel) {
-        send(Messages.createMediaAck(channel, mSessionIds.get(channel)));
+        send(new MediaAck(channel, mSessionIds.get(channel)));
     }
 
     void setSessionId(int channel, int sessionId) {

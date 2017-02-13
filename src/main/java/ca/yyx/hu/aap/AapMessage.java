@@ -12,7 +12,7 @@ import ca.yyx.hu.utils.Utils;
  * @date 04/10/2016.
  */
 public class AapMessage {
-    public final static int HEADER_SIZE = 4;
+    final static int HEADER_SIZE = 4;
 
     public final byte[] data;
     final int size;
@@ -36,7 +36,7 @@ public class AapMessage {
         return flags;
     }
 
-    AapMessage(int channel, byte flags, int msg_type, int dataOffset, int size, byte[] data) {
+    public AapMessage(int channel, byte flags, int msg_type, int dataOffset, int size, byte[] data) {
         this.data = data;
         this.size = size;
         this.channel = channel;
@@ -49,7 +49,7 @@ public class AapMessage {
         this(channel, type, proto, new byte[size(proto)]);
     }
 
-    AapMessage(int channel, int type, MessageNano proto, byte[] buf) {
+    public AapMessage(int channel, int type, MessageNano proto, byte[] buf) {
         this(channel, flags(channel, type), type, HEADER_SIZE + MsgType.SIZE, size(proto), buf);
 
         int msgType = this.type;
@@ -80,5 +80,34 @@ public class AapMessage {
         AapDump.logHex("", 0, data, this.size, sb);
 
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        AapMessage msg = (AapMessage) obj;
+
+        if (msg.channel != this.channel) {
+            return false;
+        }
+        if (msg.flags != this.flags) {
+            return false;
+        }
+        if (msg.type != this.type) {
+            return false;
+        }
+        if (msg.size != this.size || msg.data.length < this.size) {
+            return false;
+        }
+        if (msg.dataOffset != this.dataOffset) {
+            return false;
+        }
+        for (int i = 0; i < this.size; i++)
+        {
+            if (msg.data[i] != this.data[i])
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }

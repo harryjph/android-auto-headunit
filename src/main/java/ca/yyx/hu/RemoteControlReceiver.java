@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.KeyEvent;
 
-import ca.yyx.hu.aap.AapTransport;
-import ca.yyx.hu.aap.Messages;
 import ca.yyx.hu.utils.AppLog;
 
 /**

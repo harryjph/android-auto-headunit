@@ -2,14 +2,36 @@ package ca.yyx.hu.utils;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.util.IllegalFormatException;
 import java.util.Locale;
 
-
 public final class AppLog {
 
+    public interface Logger
+    {
+        void println(int priority, String tag, String msg);
+
+        class Android implements Logger
+        {
+            @Override
+            public void println(int priority, String tag, String msg) {
+                Log.println(priority, TAG, msg);
+            }
+        }
+
+        class StdOut implements Logger
+        {
+            @Override
+            public void println(int priority, String tag, String msg) {
+                System.out.println("["+tag+":"+priority+"] " + msg);
+            }
+        }
+    }
+
+    public static Logger LOGGER = new Logger.Android();
     private static final int LOG_LEVEL = Log.INFO;
 
     public static final String TAG = "CAR.HU.J";
@@ -25,19 +47,20 @@ public final class AppLog {
     }
 
     public static void e(String msg) {
-        Log.e(TAG, format(msg));
+        loge(format(msg), null);
     }
 
     public static void e(String msg, Throwable tr) {
-        Log.e(TAG, format(msg), tr);
+        loge(format(msg), tr);
     }
 
     public static void e(Throwable tr) {
-        Log.e(TAG, tr.getMessage(), tr);
+        loge(tr.getMessage(), tr);
     }
 
+
     public static void e(String msg, final Object... params) {
-        Log.e(TAG, format(msg, params));
+        loge(format(msg, params), null);
     }
 
     public static void v(String msg, final Object... params) {
@@ -56,9 +79,14 @@ public final class AppLog {
     {
         if (priority >= LOG_LEVEL)
         {
-            Log.println(priority, TAG, msg);
+            LOGGER.println(priority, TAG, msg);
         }
     }
+
+    private static void loge(String message,@Nullable Throwable tr) {
+        LOGGER.println(Log.ERROR, TAG, message + '\n' + Log.getStackTraceString(tr));
+    }
+
 
     private static String format(final String msg, final Object... array) {
         String formatted;

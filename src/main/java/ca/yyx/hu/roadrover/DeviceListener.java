@@ -8,7 +8,6 @@ import android.view.KeyEvent;
 
 import ca.yyx.hu.App;
 import ca.yyx.hu.aap.AapTransport;
-import ca.yyx.hu.aap.Messages;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.Utils;
 

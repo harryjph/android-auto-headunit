@@ -3639,9 +3639,9 @@ public interface Protocol {
 
       // enum BluetoothPairingMethod
       public static final int BLUETOOTH_PARING_METHOD_1 = 1;
-      public static final int BLUETOOTH_PARING_METHOD_2 = 2;
+      public static final int BLUETOOTH_PARING_METHOD_A2DP = 2;
       public static final int BLUETOOTH_PARING_METHOD_3 = 3;
-      public static final int BLUETOOTH_PARING_METHOD_4 = 4;
+      public static final int BLUETOOTH_PARING_METHOD_HFP = 4;
 
       private static volatile BluetoothService[] _emptyArray;
       public static BluetoothService[] emptyArray() {
@@ -3735,9 +3735,9 @@ public interface Protocol {
                 int value = input.readInt32();
                 switch (value) {
                   case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_1:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_2:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_A2DP:
                   case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_3:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_4:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_HFP:
                     validValues[validCount++] = value;
                     break;
                 }
@@ -3766,9 +3766,9 @@ public interface Protocol {
               while (input.getBytesUntilLimit() > 0) {
                 switch (input.readInt32()) {
                   case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_1:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_2:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_A2DP:
                   case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_3:
-                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_4:
+                  case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_HFP:
                     arrayLength++;
                     break;
                 }
@@ -3784,9 +3784,9 @@ public interface Protocol {
                   int value = input.readInt32();
                   switch (value) {
                     case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_1:
-                    case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_2:
+                    case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_A2DP:
                     case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_3:
-                    case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_4:
+                    case ca.yyx.hu.aap.protocol.nano.Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_HFP:
                       newArray[i++] = value;
                       break;
                   }

@@ -5,6 +5,9 @@ import com.google.protobuf.nano.MessageNano;
 
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.MsgType;
+import ca.yyx.hu.aap.protocol.messages.DrivingStatusEvent;
+import ca.yyx.hu.aap.protocol.messages.Messages;
+import ca.yyx.hu.aap.protocol.messages.ServiceDiscoveryResponse;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.utils.AppLog;
@@ -236,7 +239,7 @@ class AapControl {
         {
             Utils.ms_sleep(2);
             AppLog.i("Send driving status");
-            mTransport.send(Messages.createDrivingStatusEvent(Protocol.SensorBatch.DrivingStatusData.DRIVING_STATUS_PARKED));
+            mTransport.send(new DrivingStatusEvent(Protocol.SensorBatch.DrivingStatusData.DRIVING_STATUS_PARKED));
         }
         return 0;
     }
@@ -244,7 +247,7 @@ class AapControl {
     private int service_discovery_request(Protocol.ServiceDiscoveryRequest request) throws InvalidProtocolBufferNanoException {                  // Service Discovery Request
         AppLog.i("Service Discovery Request: %s", request.phoneName);                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
-        AapMessage msg = Messages.createServiceDiscoveryResponse(mBtMacAddress);
+        AapMessage msg = new ServiceDiscoveryResponse(mBtMacAddress);
         AppLog.i(msg.toString());
 
         mTransport.send(msg);

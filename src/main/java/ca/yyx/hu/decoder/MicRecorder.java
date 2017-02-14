@@ -59,8 +59,6 @@ public class MicRecorder {
             // If no audio data...
             if (len == android.media.AudioRecord.ERROR_INVALID_OPERATION)   // -3
                 AppLog.e("get expected interruption error due to shutdown: " + len);
-            else
-                AppLog.e("get error: " + len);
             return (len);
         }
 

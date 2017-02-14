@@ -168,6 +168,7 @@ public class AapProjectionActivity extends SurfaceActivity implements SurfaceHol
         byte aa_action;
         int me_action = event.getActionMasked();
         switch (me_action) {
+            case MotionEvent.ACTION_POINTER_DOWN:
             case MotionEvent.ACTION_DOWN:
                 aa_action = MotionEvent.ACTION_DOWN;
                 break;
@@ -177,6 +178,7 @@ public class AapProjectionActivity extends SurfaceActivity implements SurfaceHol
             case MotionEvent.ACTION_CANCEL:
                 aa_action = MotionEvent.ACTION_UP;
                 break;
+            case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP:
                 aa_action = MotionEvent.ACTION_UP;
                 break;

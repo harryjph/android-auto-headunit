@@ -169,6 +169,8 @@ public class AapProjectionActivity extends SurfaceActivity implements SurfaceHol
         int me_action = event.getActionMasked();
         switch (me_action) {
             case MotionEvent.ACTION_POINTER_DOWN:
+                aa_action = MotionEvent.ACTION_POINTER_DOWN;
+                break;
             case MotionEvent.ACTION_DOWN:
                 aa_action = MotionEvent.ACTION_DOWN;
                 break;
@@ -179,6 +181,8 @@ public class AapProjectionActivity extends SurfaceActivity implements SurfaceHol
                 aa_action = MotionEvent.ACTION_UP;
                 break;
             case MotionEvent.ACTION_POINTER_UP:
+                aa_action = MotionEvent.ACTION_POINTER_UP;
+                break;
             case MotionEvent.ACTION_UP:
                 aa_action = MotionEvent.ACTION_UP;
                 break;

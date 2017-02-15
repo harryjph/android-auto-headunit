@@ -1,5 +1,7 @@
 package ca.yyx.hu.aap;
 
+import java.nio.ByteBuffer;
+
 import ca.yyx.hu.aap.protocol.messages.Messages;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.decoder.MicRecorder;
@@ -16,9 +18,6 @@ interface AapRead {
         final AccessoryConnection mConnection;
         final AapMessageHandler mHandler;
         final AapSsl mSsl;
-
-        protected byte[] recv_buffer = new byte[Messages.DEF_BUFFER_LENGTH];
-        protected final AapMessageIncoming.EncryptedHeader recv_header = new AapMessageIncoming.EncryptedHeader();
 
         Base(AccessoryConnection connection,AapSsl ssl, AapMessageHandler handler)
         {

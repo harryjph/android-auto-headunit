@@ -112,6 +112,7 @@ public class AapReadTest {
         conn.data = new byte[] {
             Channel.ID_CTR, 0x8, 0, 6, 0, MsgType.Control.PINGRESPONSE, 'M', 'S', 'G', '1',
             Channel.ID_VID, 0x9, 0, 7, 0, 0, 0, 1, 0, MsgType.Control.MEDIADATA, 'V', 'I', 'D', 'E', 'O',
+            Channel.ID_CTR, 0x8, 0, 6, 0, MsgType.Control.PINGRESPONSE, 'M',
         };
 
         int res = poll.read();
@@ -120,5 +121,23 @@ public class AapReadTest {
         assertEquals(handler.msg[0], new AapMessage(Channel.ID_CTR, (byte) 0x8, MsgType.Control.PINGRESPONSE, 2, 6, new byte[] { 0, MsgType.Control.PINGRESPONSE, 'M', 'S', 'G', '1' }));
         assertEquals(handler.msg[1], new AapMessage(Channel.ID_VID, (byte) 0x9, MsgType.Control.MEDIADATA, 2, 7, new byte[] { 0, MsgType.Control.MEDIADATA, 'V', 'I', 'D', 'E', 'O' }));
 
+        conn.data = new byte[] {
+                'S', 'G', '2',
+                Channel.ID_CTR, 0x8,
+        };
+
+        res = poll.read();
+        assertEquals(res, 0);
+        assertEquals(handler.idx, 3);
+        assertEquals(handler.msg[2], new AapMessage(Channel.ID_CTR, (byte) 0x8, MsgType.Control.PINGRESPONSE, 2, 6, new byte[] { 0, MsgType.Control.PINGRESPONSE, 'M', 'S', 'G', '2' }));
+
+        conn.data = new byte[] {
+                 0, 6, 0, MsgType.Control.PINGRESPONSE, 'M', 'S', 'G', '3',
+        };
+
+        res = poll.read();
+        assertEquals(res, 0);
+        assertEquals(handler.idx, 4);
+        assertEquals(handler.msg[3], new AapMessage(Channel.ID_CTR, (byte) 0x8, MsgType.Control.PINGRESPONSE, 2, 6, new byte[] { 0, MsgType.Control.PINGRESPONSE, 'M', 'S', 'G', '3' }));
     }
 }

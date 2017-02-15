@@ -1,6 +1,10 @@
 package ca.yyx.hu.aap;
 
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+
 import ca.yyx.hu.aap.protocol.Channel;
+import ca.yyx.hu.aap.protocol.messages.Messages;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.utils.AppLog;
 
@@ -10,6 +14,11 @@ import ca.yyx.hu.utils.AppLog;
  */
 
 class AapReadMultipleMessages extends AapRead.Base {
+
+    private final ByteBuffer fifo = ByteBuffer.allocate(Messages.DEF_BUFFER_LENGTH * 2);
+    private byte[] recv_buffer = new byte[Messages.DEF_BUFFER_LENGTH];
+    private final AapMessageIncoming.EncryptedHeader recv_header = new AapMessageIncoming.EncryptedHeader();
+    private byte[] msg_buffer = new byte[65535]; // unsigned short max
 
     AapReadMultipleMessages(AccessoryConnection connection, AapSsl ssl, AapMessageHandler handler) {
         super(connection, ssl, handler);
@@ -31,37 +40,39 @@ class AapReadMultipleMessages extends AapRead.Base {
         return 0;
     }
 
-    private void processBulk(int buf_len, byte[] buf) throws AapMessageHandler.HandleException {
+    private void processBulk(int size, byte[] buf) throws AapMessageHandler.HandleException {
 
-        int body_start = 0;
-        int have_len = buf_len;
+        fifo.put(buf, 0, size);
+        fifo.flip();
 
-        while (have_len > 0) {
-            int msg_start = body_start;
-            recv_header.decode(body_start, buf);
+        while (fifo.hasRemaining()) {
 
-            // Length starting at byte 4: Unencrypted Message Type or Encrypted data start
-            have_len -= 4;
-            body_start +=4;
 
-            if (recv_header.chan == Channel.ID_VID && recv_header.flags == 9) {
-                have_len -= 4;
+            // Parse the header
+            try {
+                fifo.get(recv_header.buf, 0, recv_header.buf.length);
+            } catch (BufferUnderflowException e) {
+                // we'll come back later for more data
+                AppLog.v("BufferUnderflowException whilst trying to read 4 bytes capacity = %d, position = %d", fifo.capacity(), fifo.position());
+                break;
+            }
+            recv_header.decode();
+
+            if (recv_header.chan == Channel.ID_VID && (recv_header.flags & 0x01) == 0x01) {
+                fifo.position(fifo.position() + 4);
             }
 
-            int need_len = recv_header.enc_len - have_len;
-            if (need_len > 0) {
-                AppLog.e("Need more - offset: %d, msg_start: %d, enc_len: %d. need_len: %d, buf_len: %d, buf_limit: %d",
-                        body_start + have_len, // 6436
-                        msg_start, // 4
-                        recv_header.enc_len, // 26816
-                        need_len, // 20384
-                        buf_len, // 6436
-                        buf.length); // 131080
-
-                return;
+            // Retrieve the entire message now we know the length
+            try {
+                fifo.get(msg_buffer, 0, recv_header.enc_len);
+            } catch (BufferUnderflowException e) {
+                // rewind so we process the header again next time
+                AppLog.v("BufferUnderflowException whilst trying to read %d bytes limit = %d, position = %d", recv_header.enc_len, fifo.limit(), fifo.position());
+                fifo.position(fifo.position() - 4);
+                break;
             }
 
-            AapMessage msg = AapMessageIncoming.decrypt(recv_header, body_start, recv_buffer, mSsl);
+            AapMessage msg = AapMessageIncoming.decrypt(recv_header, 0, msg_buffer, mSsl);
 
             // Decrypt & Process 1 received encrypted message
             if (msg == null) {
@@ -71,15 +82,10 @@ class AapReadMultipleMessages extends AapRead.Base {
             }
 
             mHandler.handle(msg);
-
-            have_len -= recv_header.enc_len;
-            body_start += recv_header.enc_len;
-            if (have_len != 0) {
-                AppLog.i("iaap_recv_dec_process() more than one message have_len: %d  enc_len: %d", have_len, recv_header.enc_len);
-            }
-
         }
 
+        // consume
+        fifo.compact();
     }
 
 }

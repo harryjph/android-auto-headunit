@@ -19,13 +19,6 @@ class AapMessageIncoming extends AapMessage {
                     header.enc_len, header.chan, Channel.name(header.chan), header.flags, header.msg_type, MsgType.name(header.msg_type, header.chan));
             return null;
         }
-        if (header.chan == Channel.ID_VID && header.flags == 9) {
-            // If First fragment Video...
-            // (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
-            int total_size = Utils.bytesToInt(buf, offset, false);
-            AppLog.v("First fragment total_size: %d", total_size);
-            offset += 4;
-        }
 
         ByteArray ba = ssl.decrypt(offset, header.enc_len, buf);
         if (ba == null) {
@@ -47,25 +40,23 @@ class AapMessageIncoming extends AapMessage {
 
     static class EncryptedHeader
     {
-        final static int SIZE = 6;
+        final static int SIZE = 4;
 
         int chan;
         int flags;
         int enc_len;
         int msg_type;
+        byte[] buf = new byte[SIZE];
 
         EncryptedHeader() {
         }
 
-        void decode(int offset, byte[] buf) {
-            this.chan = (int) buf[offset];
-            this.flags = buf[offset + 1];
+        void decode() {
+            this.chan = (int) buf[0];
+            this.flags = buf[1];
 
             // Encoded length of bytes to be decrypted (minus 4/8 byte headers)
-            this.enc_len = Utils.bytesToInt(buf, offset + 2, true);
-
-            // Message Type (or post handshake, mostly indicator of SSL encrypted data)
-            this.msg_type = Utils.bytesToInt(buf, offset + 4, true);
+            this.enc_len = Utils.bytesToInt(buf, 2, true);
         }
 
     }

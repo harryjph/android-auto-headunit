@@ -30,7 +30,6 @@ public class GpsLocationService extends Service {
 
         mGpsLocation.start();
 
-
         return START_STICKY;
     }
 

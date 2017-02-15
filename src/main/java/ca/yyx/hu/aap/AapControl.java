@@ -6,12 +6,13 @@ import com.google.protobuf.nano.MessageNano;
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.aap.protocol.messages.DrivingStatusEvent;
-import ca.yyx.hu.aap.protocol.messages.Messages;
+import ca.yyx.hu.aap.protocol.messages.NightModeEvent;
 import ca.yyx.hu.aap.protocol.messages.ServiceDiscoveryResponse;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.NightMode;
+import ca.yyx.hu.utils.Settings;
 import ca.yyx.hu.utils.Utils;
 
 /**
@@ -24,12 +25,14 @@ class AapControl {
     private final AapAudio mAapAudio;
     private final String mBtMacAddress;
     private final AapTransport mTransport;
+    private final Settings mSettings;
 
-    AapControl(AapTransport transport, MicRecorder recorder, AapAudio audio, String btMacAddress) {
+    AapControl(AapTransport transport, MicRecorder recorder, AapAudio audio, String btMacAddress, Settings settings) {
         mTransport = transport;
         mMicRecorder = recorder;
         mAapAudio = audio;
         mBtMacAddress = btMacAddress;
+        mSettings = settings;
     }
 
     int execute(AapMessage message) throws InvalidProtocolBufferNanoException {
@@ -216,9 +219,9 @@ class AapControl {
 
         if (request.type == 10) {
             Utils.ms_sleep(2);
-            NightMode nm = new NightMode();
+            NightMode nm = new NightMode(mSettings);
             AppLog.i("Send night mode");
-            mTransport.sendNightMode(nm.current());
+            mTransport.send(new NightModeEvent(nm.current()));
             AppLog.i(nm.toString());
         }
 

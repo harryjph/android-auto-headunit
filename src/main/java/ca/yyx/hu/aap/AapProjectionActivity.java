@@ -64,6 +64,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -72,6 +73,8 @@ import android.view.View;
 
 import ca.yyx.hu.App;
 import ca.yyx.hu.R;
+import ca.yyx.hu.aap.protocol.messages.TouchEvent;
+import ca.yyx.hu.aap.protocol.messages.VideoFocusEvent;
 import ca.yyx.hu.activities.SurfaceActivity;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.LocalIntent;
@@ -128,7 +131,7 @@ public class AapProjectionActivity extends SurfaceActivity implements SurfaceHol
     @Override
     protected void onResume() {
         super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, LocalIntent.DISCONNECT_FILTER);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, LocalIntent.FILTER_DISCONNECT);
     }
 
     private AapTransport transport() {
@@ -147,12 +150,12 @@ public class AapProjectionActivity extends SurfaceActivity implements SurfaceHol
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        transport().sendVideoFocusGained(true);
+        transport().send(new VideoFocusEvent(true, true));
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        transport().sendVideoFocusLost();
+        transport().send(new VideoFocusEvent(false, true));
     }
 
     void touch_send(MotionEvent event) {
@@ -190,7 +193,8 @@ public class AapProjectionActivity extends SurfaceActivity implements SurfaceHol
                 AppLog.e("event: " + event + " (Unknown: " + me_action + ")  x: " + x + "  y: " + y);
                 return;
         }
-        transport().sendTouch(aa_action, x, y);
+        long ts = SystemClock.elapsedRealtime();
+        transport().send(new TouchEvent(ts, aa_action, x, y));
     }
 
     @Override

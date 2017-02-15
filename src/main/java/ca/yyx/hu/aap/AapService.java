@@ -25,6 +25,7 @@ import android.widget.Toast;
 import ca.yyx.hu.App;
 import ca.yyx.hu.R;
 import ca.yyx.hu.RemoteControlReceiver;
+import ca.yyx.hu.aap.protocol.messages.NightModeEvent;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.connection.UsbAccessoryConnection;
 import ca.yyx.hu.connection.SocketAccessoryConnection;
@@ -34,6 +35,7 @@ import ca.yyx.hu.connection.UsbReceiver;
 import ca.yyx.hu.utils.LocalIntent;
 import ca.yyx.hu.utils.AppLog;
 import ca.yyx.hu.utils.NightMode;
+import ca.yyx.hu.utils.Settings;
 import ca.yyx.hu.utils.Utils;
 
 /**
@@ -169,7 +171,7 @@ public class AapService extends Service implements UsbReceiver.Listener, Accesso
         int connectionType = intent.getIntExtra(EXTRA_CONNECTION_TYPE, 0);
 
         if (connectionType == TYPE_USB) {
-            UsbDevice device = LocalIntent.deviceFromIntent(intent);
+            UsbDevice device = LocalIntent.extractDevice(intent);
             if (device == null) {
                 AppLog.e("No device in " + intent);
                 return null;
@@ -275,14 +277,12 @@ public class AapService extends Service implements UsbReceiver.Listener, Accesso
 
     private static class TimeTickReceiver extends BroadcastReceiver {
         private final UiModeManager mUiModeManager;
-        private final Context mContext;
         private final NightMode mNightMode;
         private boolean mLastNightMode = false;
 
-        public TimeTickReceiver(Context context, UiModeManager uiModeManager) {
-            mContext = context;
+        public TimeTickReceiver(Settings settings, UiModeManager uiModeManager) {
             mUiModeManager = uiModeManager;
-            mNightMode = new NightMode();
+            mNightMode = new NightMode(settings);
         }
 
         @Override
@@ -294,7 +294,7 @@ public class AapService extends Service implements UsbReceiver.Listener, Accesso
 
                 mUiModeManager.setNightMode(isCurrent ? UiModeManager.MODE_NIGHT_YES : UiModeManager.MODE_NIGHT_NO);
                 AppLog.i(mNightMode.toString());
-                App.get(mContext).transport().sendNightMode(isCurrent);
+                App.get(context).transport().send(new NightModeEvent(isCurrent));
             }
         }
     }

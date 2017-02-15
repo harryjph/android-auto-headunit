@@ -14,17 +14,17 @@ import ca.yyx.hu.aap.protocol.nano.Protocol;
 
 public class VideoFocusEvent extends AapMessage {
 
-    private static MessageNano makeProto(int mode, boolean unsolicited)
+    private static MessageNano makeProto(boolean gain, boolean unsolicited)
     {
         Protocol.VideoFocusNotification videoFocus = new Protocol.VideoFocusNotification();
-        videoFocus.mode = mode;
+        videoFocus.mode = gain ? 1 : 2;
         videoFocus.unsolicited = unsolicited;
 
         return videoFocus;
     }
 
-    public VideoFocusEvent(int mode, boolean unsolicited)
+    public VideoFocusEvent(boolean gain, boolean unsolicited)
     {
-        super(Channel.ID_VID, MsgType.Media.VIDEOFOCUSNOTIFICATION, makeProto(mode, unsolicited));
+        super(Channel.ID_VID, MsgType.Media.VIDEOFOCUSNOTIFICATION, makeProto(gain, unsolicited));
     }
 }

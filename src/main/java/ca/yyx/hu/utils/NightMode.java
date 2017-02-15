@@ -1,5 +1,7 @@
 package ca.yyx.hu.utils;
 
+import android.location.Location;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -12,22 +14,23 @@ import java.util.Locale;
 
 public class NightMode {
     private final TwilightCalculator twilightCalculator = new TwilightCalculator();
-    private Date time;
     private final SimpleDateFormat format = new SimpleDateFormat("HH:mm", Locale.US);
+    private final Settings mSettings;
+
+    public NightMode(Settings settings) {
+        mSettings = settings;
+    }
 
     public boolean current()
     {
-        time = Calendar.getInstance().getTime();
-        twilightCalculator.calculateTwilight(time.getTime(), 32.0864169,34.7557871);
+        Date time = Calendar.getInstance().getTime();
+        Location location = mSettings.getLastKnownLocation();
+        twilightCalculator.calculateTwilight(time.getTime(), location.getLatitude(), location.getLongitude());
         return twilightCalculator.mState == TwilightCalculator.NIGHT;
     }
 
     @Override
     public String toString() {
-        if (time == null) {
-            return "NightMode: Not Initialized";
-        }
-
         String sunrise = twilightCalculator.mSunrise > 0 ? format.format(new Date(twilightCalculator.mSunrise)) : "-1";
         String sunset = twilightCalculator.mSunset > 0 ? format.format(new Date(twilightCalculator.mSunset)) : "-1";
         String mode =  twilightCalculator.mState == TwilightCalculator.NIGHT ? "NIGHT" : "DAY";

@@ -35,11 +35,13 @@ public class ServiceDiscoveryResponse extends AapMessage {
         Protocol.Service sensors = new Protocol.Service();
         sensors.id = Channel.ID_SEN;
         sensors.sensorSourceService = new Protocol.Service.SensorSourceService();
-        sensors.sensorSourceService.sensors = new Protocol.Service.SensorSourceService.Sensor[2];
+        sensors.sensorSourceService.sensors = new Protocol.Service.SensorSourceService.Sensor[3];
         sensors.sensorSourceService.sensors[0] = new Protocol.Service.SensorSourceService.Sensor();
         sensors.sensorSourceService.sensors[0].type = Protocol.SENSOR_TYPE_DRIVING_STATUS;
         sensors.sensorSourceService.sensors[1] = new Protocol.Service.SensorSourceService.Sensor();
         sensors.sensorSourceService.sensors[1].type = Protocol.SENSOR_TYPE_NIGHT;
+        sensors.sensorSourceService.sensors[2] = new Protocol.Service.SensorSourceService.Sensor();
+        sensors.sensorSourceService.sensors[2].type = Protocol.SENSOR_TYPE_LOCATION;
 
         services.add(sensors);
 

@@ -13,9 +13,7 @@ import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.messages.KeyCodeEvent;
 import ca.yyx.hu.aap.protocol.messages.MediaAck;
 import ca.yyx.hu.aap.protocol.messages.Messages;
-import ca.yyx.hu.aap.protocol.messages.NightModeEvent;
 import ca.yyx.hu.aap.protocol.messages.ScrollWheelEvent;
-import ca.yyx.hu.aap.protocol.messages.TouchEvent;
 
 
 import ca.yyx.hu.aap.protocol.messages.VideoFocusEvent;
@@ -200,11 +198,6 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         return true;
     }
 
-    void sendTouch(byte action, int x, int y) {
-        long ts = SystemClock.elapsedRealtime();
-        send(new TouchEvent(ts, action, x, y));
-    }
-
     public void sendButton(int keyCode, boolean isPress) {
         long ts = SystemClock.elapsedRealtime();
 
@@ -228,11 +221,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         send(new KeyCodeEvent(ts, keyCode, isPress));
     }
 
-    void sendNightMode(boolean enabled) {
-        send(new NightModeEvent(enabled));
-    }
-
-    void send(AapMessage message) {
+    public void send(AapMessage message) {
         if (mHandler == null) {
             AppLog.e("Handler is null");
         } else {
@@ -247,16 +236,6 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     void gainVideoFocus()
     {
         mListener.gainVideoFocus();
-    }
-
-    void sendVideoFocusGained(boolean unsolicited) {
-        AppLog.i("Gain video focus notification");
-        send(new VideoFocusEvent(1, unsolicited));
-    }
-
-    void sendVideoFocusLost() {
-        AppLog.i("Lost video focus notification");
-        send(new VideoFocusEvent(2, true));
     }
 
     void sendMediaAck(int channel) {

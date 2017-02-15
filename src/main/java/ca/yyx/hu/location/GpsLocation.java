@@ -7,6 +7,9 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
+
+import ca.yyx.hu.utils.LocalIntent;
 
 /**
  * @author algavris
@@ -15,6 +18,7 @@ import android.os.Bundle;
 
 public class GpsLocation implements GpsStatus.Listener, LocationListener {
     private final LocationManager mLocationManager;
+    private final LocalBroadcastManager mBroadcastManager;
     private GpsStatus mStatus = null;
 
     GpsLocation(Context context)
@@ -22,14 +26,14 @@ public class GpsLocation implements GpsStatus.Listener, LocationListener {
         // Acquire a reference to the system Location Manager
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         mLocationManager.addGpsStatusListener(this);
-
+        mBroadcastManager = LocalBroadcastManager.getInstance(context);
     }
 
     public void start()
     {
         Criteria criteria = new Criteria();
         criteria.setPowerRequirement(Criteria.POWER_HIGH);
-        mLocationManager.requestLocationUpdates(0, 0, criteria, this, null);
+        mLocationManager.requestLocationUpdates(500, 0, criteria, this, null);
     }
 
     @Override
@@ -52,7 +56,7 @@ public class GpsLocation implements GpsStatus.Listener, LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-
+        mBroadcastManager.sendBroadcast(LocalIntent.createLocationUpdate(location));
     }
 
     @Override

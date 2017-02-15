@@ -28,7 +28,7 @@ public class UsbAttachedActivity extends Activity {
 
         AppLog.i("USB Intent: " + getIntent());
 
-        UsbDevice device = LocalIntent.deviceFromIntent(getIntent());
+        UsbDevice device = LocalIntent.extractDevice(getIntent());
         if (device == null) {
             AppLog.e("No USB device");
             finish();
@@ -73,7 +73,7 @@ public class UsbAttachedActivity extends Activity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        UsbDevice device = LocalIntent.deviceFromIntent(getIntent());
+        UsbDevice device = LocalIntent.extractDevice(getIntent());
         if (device == null) {
             AppLog.e("No USB device");
             finish();

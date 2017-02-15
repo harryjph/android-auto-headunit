@@ -7,6 +7,7 @@ import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.messages.Messages;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.utils.AppLog;
+import ca.yyx.hu.utils.Utils;
 
 /**
  * @author algavris
@@ -53,17 +54,18 @@ class AapReadMultipleMessages extends AapRead.Base {
                 fifo.get(recv_header.buf, 0, recv_header.buf.length);
             } catch (BufferUnderflowException e) {
                 // we'll come back later for more data
-                AppLog.v("BufferUnderflowException whilst trying to read 4 bytes capacity = %d, position = %d", fifo.capacity(), fifo.position());
+                AppLog.e("BufferUnderflowException whilst trying to read 4 bytes capacity = %d, position = %d", fifo.capacity(), fifo.position());
                 break;
             }
             recv_header.decode();
 
-            if (recv_header.chan == Channel.ID_VID && (recv_header.flags & 0x01) == 0x01) {
-                fifo.position(fifo.position() + 4);
+            if (recv_header.chan == Channel.ID_VID && recv_header.flags == 0x09) {
+                byte[] size_buf = new byte[4];
+                fifo.get(size_buf, 0, 4);
                 // If First fragment Video...
                 // (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
-                //int total_size = Utils.bytesToInt(buf, offset, false);
-                //AppLog.v("First fragment total_size: %d", total_size);
+                int total_size = Utils.bytesToInt(size_buf, 0, false);
+                AppLog.v("First fragment total_size: %d", total_size);
             }
 
             // Retrieve the entire message now we know the length
@@ -71,7 +73,7 @@ class AapReadMultipleMessages extends AapRead.Base {
                 fifo.get(msg_buffer, 0, recv_header.enc_len);
             } catch (BufferUnderflowException e) {
                 // rewind so we process the header again next time
-                AppLog.v("BufferUnderflowException whilst trying to read %d bytes limit = %d, position = %d", recv_header.enc_len, fifo.limit(), fifo.position());
+                AppLog.e("BufferUnderflowException whilst trying to read %d bytes limit = %d, position = %d", recv_header.enc_len, fifo.limit(), fifo.position());
                 fifo.position(fifo.position() - recv_header.buf.length);
                 break;
             }
@@ -82,7 +84,7 @@ class AapReadMultipleMessages extends AapRead.Base {
             if (msg == null) {
                 // If error...
                 AppLog.e("Error iaap_recv_dec_process: enc_len: %d chan: %d %s flags: %01x msg_type: %d", recv_header.enc_len, recv_header.chan, Channel.name(recv_header.chan), recv_header.flags, recv_header.msg_type);
-                continue;
+                break;
             }
 
             mHandler.handle(msg);

@@ -15,13 +15,12 @@ import ca.yyx.hu.aap.protocol.messages.MediaAck;
 import ca.yyx.hu.aap.protocol.messages.Messages;
 import ca.yyx.hu.aap.protocol.messages.ScrollWheelEvent;
 
-
-import ca.yyx.hu.aap.protocol.messages.VideoFocusEvent;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.utils.AppLog;
+import ca.yyx.hu.utils.Settings;
 import ca.yyx.hu.utils.Utils;
 
 public class AapTransport implements Handler.Callback, MicRecorder.Listener {
@@ -33,7 +32,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     private final AapVideo mAapVideo;
     private final HandlerThread mPollThread;
     private final MicRecorder mMicRecorder;
-    private final String mBtMacAddress;
+    private final Settings mSettings;
     private final SparseIntArray mSessionIds = new SparseIntArray(4);
     private final AapSslNative mSsl = new AapSslNative();
 
@@ -45,7 +44,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         void gainVideoFocus();
     }
 
-    public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder, AudioManager audioManager, String btMacAddress, Listener listener) {
+    public AapTransport(AudioDecoder audioDecoder, VideoDecoder videoDecoder, AudioManager audioManager, Settings settings, Listener listener) {
 
         mPollThread = new HandlerThread("AapTransport:Handler", Process.THREAD_PRIORITY_AUDIO);
 
@@ -53,7 +52,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         mMicRecorder.setListener(this);
         mAapAudio = new AapAudio(audioDecoder, audioManager);
         mAapVideo = new AapVideo(videoDecoder);
-        mBtMacAddress = btMacAddress;
+        mSettings = settings;
         mListener = listener;
     }
 
@@ -123,7 +122,7 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
 
         mConnection = connection;
 
-        mAapRead = AapRead.Factory.create(connection, this, mMicRecorder, mAapAudio, mAapVideo, mBtMacAddress);
+        mAapRead = AapRead.Factory.create(connection, this, mMicRecorder, mAapAudio, mAapVideo, mSettings);
 
         mPollThread.start();
         mHandler = new Handler(mPollThread.getLooper(), this);

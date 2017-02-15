@@ -4,6 +4,7 @@ import com.google.protobuf.nano.InvalidProtocolBufferNanoException;
 
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.utils.AppLog;
+import ca.yyx.hu.utils.Settings;
 
 /**
  * @author algavris
@@ -16,11 +17,11 @@ class AapMessageHandlerType implements AapMessageHandler {
     private final AapControl mAapControl;
     private final AapTransport mTransport;
 
-    AapMessageHandlerType(AapTransport transport, MicRecorder recorder, AapAudio aapAudio, AapVideo aapVideo, String btMacAddress) {
+    AapMessageHandlerType(AapTransport transport, MicRecorder recorder, AapAudio aapAudio, AapVideo aapVideo, Settings settings) {
         mAapAudio = aapAudio;
         mAapVideo = aapVideo;
         mTransport = transport;
-        mAapControl = new AapControl(transport, recorder, mAapAudio, btMacAddress);
+        mAapControl = new AapControl(transport, recorder, mAapAudio, settings);
     }
 
     public void handle(AapMessage message) throws HandleException {

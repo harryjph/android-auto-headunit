@@ -23,15 +23,13 @@ import ca.yyx.hu.utils.Utils;
 class AapControl {
     private final MicRecorder mMicRecorder;
     private final AapAudio mAapAudio;
-    private final String mBtMacAddress;
     private final AapTransport mTransport;
     private final Settings mSettings;
 
-    AapControl(AapTransport transport, MicRecorder recorder, AapAudio audio, String btMacAddress, Settings settings) {
+    AapControl(AapTransport transport, MicRecorder recorder, AapAudio audio, Settings settings) {
         mTransport = transport;
         mMicRecorder = recorder;
         mAapAudio = audio;
-        mBtMacAddress = btMacAddress;
         mSettings = settings;
     }
 
@@ -252,7 +250,7 @@ class AapControl {
     private int service_discovery_request(Protocol.ServiceDiscoveryRequest request) throws InvalidProtocolBufferNanoException {                  // Service Discovery Request
         AppLog.i("Service Discovery Request: %s", request.phoneName);                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
-        AapMessage msg = new ServiceDiscoveryResponse(mBtMacAddress);
+        AapMessage msg = new ServiceDiscoveryResponse(mSettings.getBluetoothAddress());
         AppLog.i(msg.toString());
 
         mTransport.send(msg);

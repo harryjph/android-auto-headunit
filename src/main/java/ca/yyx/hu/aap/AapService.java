@@ -92,7 +92,7 @@ public class AapService extends Service implements UsbReceiver.Listener, Accesso
         mMediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         mUsbReceiver = new UsbReceiver(this);
-        mTimeTickReceiver = new TimeTickReceiver(this, mUiModeManager);
+        mTimeTickReceiver = new TimeTickReceiver(new Settings(this), mUiModeManager);
 
         mDeviceListener = new DeviceListener();
         registerReceiver(mDeviceListener, DeviceListener.createIntentFilter());

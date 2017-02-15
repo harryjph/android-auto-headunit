@@ -6,6 +6,7 @@ import ca.yyx.hu.aap.protocol.messages.Messages;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.utils.AppLog;
+import ca.yyx.hu.utils.Settings;
 
 /**
  * @author algavris
@@ -39,8 +40,8 @@ interface AapRead {
     }
 
     class Factory {
-        public static AapRead create(AccessoryConnection connection, AapTransport transport, MicRecorder recorder, AapAudio aapAudio, AapVideo aapVideo, String btMacAddress) {
-            AapMessageHandler handler = new AapMessageHandlerType(transport, recorder, aapAudio, aapVideo, btMacAddress);
+        public static AapRead create(AccessoryConnection connection, AapTransport transport, MicRecorder recorder, AapAudio aapAudio, AapVideo aapVideo, Settings settings) {
+            AapMessageHandler handler = new AapMessageHandlerType(transport, recorder, aapAudio, aapVideo, settings);
 
             return connection.isSingleMessage() ?
                     new AapReadSingleMessage(connection, new AapSslNative(), handler) :

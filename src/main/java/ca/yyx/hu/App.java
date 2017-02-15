@@ -63,8 +63,7 @@ public class App extends Application implements AapTransport.Listener {
     public AapTransport transport()
     {
         if (mTransport == null) {
-            String btMacAddress = mSettings.getBluetoothAddress();
-            mTransport = new AapTransport(mAudioDecoder, mVideoDecoder, (AudioManager) getSystemService(AUDIO_SERVICE), btMacAddress, this);
+            mTransport = new AapTransport(mAudioDecoder, mVideoDecoder, (AudioManager) getSystemService(AUDIO_SERVICE), mSettings, this);
         }
         return mTransport;
     }

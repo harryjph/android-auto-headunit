@@ -5,6 +5,8 @@
 #include "libs/headers/openssl/bio.h"
 #include "libs/headers/openssl/ossl_typ.h"
 
+#define byte unsigned char
+
 extern SSL *hu_ssl_ssl;//  = NULL;
 extern BIO *hu_ssl_rm_bio;//  = NULL;
 extern BIO *hu_ssl_wm_bio;//  = NULL;

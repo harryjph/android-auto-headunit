@@ -1,6 +1,5 @@
 
 #define DEFBUF  131080
-#define byte unsigned char
 
 #ifdef __ANDROID_API__
 #include <android/log.h>

@@ -60,6 +60,10 @@ class AapReadMultipleMessages extends AapRead.Base {
 
             if (recv_header.chan == Channel.ID_VID && (recv_header.flags & 0x01) == 0x01) {
                 fifo.position(fifo.position() + 4);
+                // If First fragment Video...
+                // (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
+                //int total_size = Utils.bytesToInt(buf, offset, false);
+                //AppLog.v("First fragment total_size: %d", total_size);
             }
 
             // Retrieve the entire message now we know the length
@@ -68,7 +72,7 @@ class AapReadMultipleMessages extends AapRead.Base {
             } catch (BufferUnderflowException e) {
                 // rewind so we process the header again next time
                 AppLog.v("BufferUnderflowException whilst trying to read %d bytes limit = %d, position = %d", recv_header.enc_len, fifo.limit(), fifo.position());
-                fifo.position(fifo.position() - 4);
+                fifo.position(fifo.position() - recv_header.buf.length);
                 break;
             }
 

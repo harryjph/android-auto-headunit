@@ -84,7 +84,8 @@ public final class AppLog {
     }
 
     private static void loge(String message,@Nullable Throwable tr) {
-        LOGGER.println(Log.ERROR, TAG, message + '\n' + Log.getStackTraceString(tr));
+        String trace = LOGGER instanceof Logger.Android ? Log.getStackTraceString(tr) : "";
+        LOGGER.println(Log.ERROR, TAG, message + '\n' + trace);
     }
 
 

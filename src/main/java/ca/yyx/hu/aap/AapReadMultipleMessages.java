@@ -48,13 +48,14 @@ class AapReadMultipleMessages extends AapRead.Base {
 
         while (fifo.hasRemaining()) {
 
-
+            fifo.mark();
             // Parse the header
             try {
                 fifo.get(recv_header.buf, 0, recv_header.buf.length);
             } catch (BufferUnderflowException e) {
                 // we'll come back later for more data
                 AppLog.e("BufferUnderflowException whilst trying to read 4 bytes capacity = %d, position = %d", fifo.capacity(), fifo.position());
+                fifo.reset();
                 break;
             }
             recv_header.decode();
@@ -74,7 +75,7 @@ class AapReadMultipleMessages extends AapRead.Base {
             } catch (BufferUnderflowException e) {
                 // rewind so we process the header again next time
                 AppLog.e("BufferUnderflowException whilst trying to read %d bytes limit = %d, position = %d", recv_header.enc_len, fifo.limit(), fifo.position());
-                fifo.position(fifo.position() - recv_header.buf.length);
+                fifo.reset();
                 break;
             }
 

@@ -6,6 +6,7 @@ build:
     - script:
         name: install android dependencies
         code: |
+          echo y | android update sdk --no-ui --all --filter "extra-android-m2repository"
           echo y | android update sdk --no-ui --all --filter "extra-google-m2repository"
           echo y | android update sdk --no-ui --all --filter build-tools-24.0.3
     - script:

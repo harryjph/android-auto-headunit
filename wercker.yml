@@ -28,6 +28,8 @@ build:
           echo "HEADUNIT_KEY_ALIAS=$HEADUNIT_KEY_ALIAS" >> gradle.properties
           echo "HEADUNIT_KEY_PASSWORD=$HEADUNIT_KEY_PASSWORD" >> gradle.properties
           echo "HEADUNIT_HOCKEYAPP_ID=$HEADUNIT_HOCKEYAPP_ID" >> gradle.properties
+          echo "echo dummy" > $WERCKER_SOURCE_DIR/dummy.sh
+          echo "HEADUNIT_SCRIPT_FILE=$WERCKER_SOURCE_DIR/dummy.sh" >> gradle.properties
     - script:
         name: run gradle
         code: |

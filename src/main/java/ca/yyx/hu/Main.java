@@ -18,6 +18,14 @@ public class Main {
     public static void main(String[] args) throws InvalidProtocolBufferNanoException {
         System.out.println("Main");
 
+
+        Protocol.Ack mediaAck = new Protocol.Ack();
+        mediaAck.clear();
+        mediaAck.sessionId = Integer.MAX_VALUE;
+        mediaAck.ack = Integer.MAX_VALUE;
+
+        System.out.print(mediaAck.getSerializedSize());
+
         Protocol.Service sensors = new Protocol.Service();
         sensors.id = 2;
         sensors.sensorSourceService = new Protocol.Service.SensorSourceService();

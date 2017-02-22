@@ -14,7 +14,7 @@ import ca.yyx.hu.aap.protocol.nano.Protocol;
 public class MediaAck extends AapMessage {
 
     private final static Protocol.Ack mediaAck = new Protocol.Ack();
-    private final static byte[] ackBuf = new byte[10];
+    private final static byte[] ackBuf = new byte[20];
 
     private static MessageNano makeProto(int sessionId) {
         mediaAck.clear();

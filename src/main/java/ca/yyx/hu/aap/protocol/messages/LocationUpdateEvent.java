@@ -4,9 +4,6 @@ import android.location.Location;
 
 import com.google.protobuf.nano.MessageNano;
 
-import ca.yyx.hu.aap.AapMessage;
-import ca.yyx.hu.aap.protocol.Channel;
-import ca.yyx.hu.aap.protocol.MsgType;
 import ca.yyx.hu.aap.protocol.nano.Protocol;
 
 /**
@@ -14,7 +11,7 @@ import ca.yyx.hu.aap.protocol.nano.Protocol;
  * @date 15/02/2017.
  */
 
-public class LocationUpdateEvent extends AapMessage {
+public class LocationUpdateEvent extends SensorEvent {
 
     private static MessageNano makeProto(Location location)
     {
@@ -33,6 +30,6 @@ public class LocationUpdateEvent extends AapMessage {
     }
 
     public LocationUpdateEvent(Location location) {
-        super(Channel.ID_SEN, MsgType.Sensor.EVENT, makeProto(location));
+        super(Protocol.SENSOR_TYPE_LOCATION, makeProto(location));
     }
 }

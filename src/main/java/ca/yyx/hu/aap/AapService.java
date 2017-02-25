@@ -30,6 +30,7 @@ import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.connection.UsbAccessoryConnection;
 import ca.yyx.hu.connection.SocketAccessoryConnection;
 import ca.yyx.hu.decoder.AudioDecoder;
+import ca.yyx.hu.location.GpsLocationService;
 import ca.yyx.hu.roadrover.DeviceListener;
 import ca.yyx.hu.connection.UsbReceiver;
 import ca.yyx.hu.utils.LocalIntent;
@@ -137,6 +138,7 @@ public class AapService extends Service implements UsbReceiver.Listener, Accesso
                 .setPriority(Notification.PRIORITY_HIGH)
                 .build();
 
+        startService(GpsLocationService.intent(this));
 
         mMediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
                 .setState(PlaybackStateCompat.STATE_PAUSED, 0, 0)

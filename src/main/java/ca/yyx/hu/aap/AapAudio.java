@@ -10,6 +10,8 @@ import ca.yyx.hu.utils.AppLog;
 /**
  * @author algavris
  * @date 01/10/2016.
+ *
+ * @link https://github.com/google/ExoPlayer/blob/release-v2/library/src/main/java/com/google/android/exoplayer2/audio/AudioTrack.java
  */
 
 class AapAudio implements AudioManager.OnAudioFocusChangeListener {
@@ -85,7 +87,6 @@ class AapAudio implements AudioManager.OnAudioFocusChangeListener {
                 AppLog.i("LOSS TRANSIENT CAN DUCK");
                 break;
         }
-
     }
 }
 

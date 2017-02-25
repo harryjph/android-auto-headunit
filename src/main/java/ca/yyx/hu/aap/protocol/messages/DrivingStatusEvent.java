@@ -10,6 +10,8 @@ import ca.yyx.hu.aap.protocol.nano.Protocol;
 /**
  * @author algavris
  * @date 13/02/2017.
+ *
+ * Driving status doesn't receive sensor start request
  */
 
 public class DrivingStatusEvent extends AapMessage {

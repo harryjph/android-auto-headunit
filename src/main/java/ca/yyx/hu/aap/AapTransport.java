@@ -9,17 +9,23 @@ import android.os.SystemClock;
 import android.util.SparseIntArray;
 import android.view.KeyEvent;
 
+import java.util.ArrayList;
+
 import ca.yyx.hu.aap.protocol.Channel;
 import ca.yyx.hu.aap.protocol.messages.KeyCodeEvent;
 import ca.yyx.hu.aap.protocol.messages.MediaAck;
 import ca.yyx.hu.aap.protocol.messages.Messages;
+import ca.yyx.hu.aap.protocol.messages.NightModeEvent;
 import ca.yyx.hu.aap.protocol.messages.ScrollWheelEvent;
 
+import ca.yyx.hu.aap.protocol.messages.SensorEvent;
+import ca.yyx.hu.aap.protocol.nano.Protocol;
 import ca.yyx.hu.connection.AccessoryConnection;
 import ca.yyx.hu.decoder.AudioDecoder;
 import ca.yyx.hu.decoder.MicRecorder;
 import ca.yyx.hu.decoder.VideoDecoder;
 import ca.yyx.hu.utils.AppLog;
+import ca.yyx.hu.utils.NightMode;
 import ca.yyx.hu.utils.Settings;
 import ca.yyx.hu.utils.Utils;
 
@@ -34,11 +40,23 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
     private final MicRecorder mMicRecorder;
     private final Settings mSettings;
     private final SparseIntArray mSessionIds = new SparseIntArray(4);
+    private final ArrayList<Integer> mStartedSensors = new ArrayList<>(4);
     private final AapSslNative mSsl = new AapSslNative();
 
     private AccessoryConnection mConnection;
     private AapRead mAapRead;
     private Handler mHandler;
+
+    void startSensor(int type) {
+        mStartedSensors.add(type);
+        if (type == Protocol.SENSOR_TYPE_NIGHT) {
+            Utils.ms_sleep(2);
+            NightMode nm = new NightMode(mSettings);
+            AppLog.i("Send night mode");
+            send(new NightModeEvent(nm.current()));
+            AppLog.i(nm.toString());
+        }
+    }
 
     public interface Listener {
         void gainVideoFocus();
@@ -218,6 +236,15 @@ public class AapTransport implements Handler.Callback, MicRecorder.Listener {
         }
 
         send(new KeyCodeEvent(ts, keyCode, isPress));
+    }
+
+    public void send(SensorEvent sensor)
+    {
+        if (mStartedSensors.contains(sensor.type)) {
+            send((AapMessage)sensor);
+        } else {
+            AppLog.e("Sensor "+sensor.type+" is not started yet");
+        }
     }
 
     public void send(AapMessage message) {

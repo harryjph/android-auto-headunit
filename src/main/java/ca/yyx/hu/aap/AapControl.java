@@ -215,14 +215,7 @@ class AapControl {
 
         mTransport.send(msg);
 
-        if (request.type == 10) {
-            Utils.ms_sleep(2);
-            NightMode nm = new NightMode(mSettings);
-            AppLog.i("Send night mode");
-            mTransport.send(new NightModeEvent(nm.current()));
-            AppLog.i(nm.toString());
-        }
-
+        mTransport.startSensor(request.type);
         return 0;
     }
 

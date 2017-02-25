@@ -12,7 +12,7 @@ import ca.yyx.hu.aap.protocol.nano.Protocol;
  * @date 13/02/2017.
  */
 
-public class NightModeEvent extends AapMessage {
+public class NightModeEvent extends SensorEvent {
 
     private static MessageNano makeProto(boolean enabled)
     {
@@ -25,6 +25,6 @@ public class NightModeEvent extends AapMessage {
 
     public NightModeEvent(boolean enabled)
     {
-        super(Channel.ID_SEN, MsgType.Sensor.EVENT, makeProto(enabled));
+        super(Protocol.SENSOR_TYPE_NIGHT, makeProto(enabled));
     }
 }

@@ -73,6 +73,7 @@
         </activity>
 
         <service android:name=".aap.AapService" />
+        <service android:name=".location.GpsLocationService" />
 
         <receiver android:name=".RemoteControlReceiver">
             <intent-filter>

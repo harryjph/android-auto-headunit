@@ -9,8 +9,12 @@
         android:layout_height="64dp"
         android:background="@color/primary_dark"
         android:layout_gravity="bottom"
-        android:gravity="left"
+        android:gravity="center"
         android:orientation="horizontal">
+
+        <Space
+            android:layout_width="128dp"
+            android:layout_height="64dp" />
 
         <ImageButton
             android:id="@+id/video_button"

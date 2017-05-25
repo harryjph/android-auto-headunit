@@ -3,7 +3,13 @@ cmake_minimum_required(VERSION 3.6.0 FATAL_ERROR)
 include (CheckIncludeFiles)
 include (CheckLibraryExists)
 
-link_directories(src/main/jni/libs/arm)
+if("${ANDROID_ABI}" MATCHES "x86")
+    set(LIBS_PATH "src/main/jni/libs/x86")
+else()
+    set(LIBS_PATH "src/main/jni/libs/arm")
+endif()
+
+link_directories(${LIBS_PATH})
 
 add_library(hu_jni SHARED
  src/main/jni/hu_uti.c

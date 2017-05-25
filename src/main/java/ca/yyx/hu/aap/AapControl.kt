@@ -1,0 +1,329 @@
+package ca.yyx.hu.aap
+
+import com.google.protobuf.nano.InvalidProtocolBufferNanoException
+import com.google.protobuf.nano.MessageNano
+
+import ca.yyx.hu.aap.protocol.Channel
+import ca.yyx.hu.aap.protocol.MsgType
+import ca.yyx.hu.aap.protocol.messages.DrivingStatusEvent
+import ca.yyx.hu.aap.protocol.messages.NightModeEvent
+import ca.yyx.hu.aap.protocol.messages.ServiceDiscoveryResponse
+import ca.yyx.hu.aap.protocol.nano.Protocol
+import ca.yyx.hu.decoder.MicRecorder
+import ca.yyx.hu.utils.AppLog
+import ca.yyx.hu.utils.NightMode
+import ca.yyx.hu.utils.Settings
+import ca.yyx.hu.utils.Utils
+
+/**
+ * @author algavris
+ * *
+ * @date 01/10/2016.
+ */
+
+internal class AapControl(
+        private val mTransport: AapTransport,
+        private val mMicRecorder: MicRecorder,
+        private val mAapAudio: AapAudio,
+        private val mSettings: Settings) {
+
+    @Throws(InvalidProtocolBufferNanoException::class)
+    fun execute(message: AapMessage): Int {
+
+        if (message.type == 7) {
+            val request = parse(Protocol.ChannelOpenRequest(), message)
+            return channel_open_request(request, message.channel)
+        }
+
+        when (message.channel) {
+            Channel.ID_CTR -> return executeControl(message)
+            Channel.ID_INP -> return executeTouch(message)
+            Channel.ID_SEN -> return executeSensor(message)
+            Channel.ID_VID, Channel.ID_AUD, Channel.ID_AU1, Channel.ID_AU2, Channel.ID_MIC -> return executeMedia(message)
+        }
+        return 0
+    }
+
+    @Throws(InvalidProtocolBufferNanoException::class)
+    private fun executeMedia(message: AapMessage): Int {
+
+        when (message.type) {
+            MsgType.Media.SETUPREQUEST -> {
+                val setupRequest = parse(Protocol.MediaSetupRequest(), message)
+                return media_sink_setup_request(setupRequest, message.channel)
+            }
+            MsgType.Media.STARTREQUEST -> {
+                val startRequest = parse(Protocol.Start(), message)
+                return media_start_request(startRequest, message.channel)
+            }
+            MsgType.Media.STOPREQUEST -> return media_sink_stop_request(message.channel)
+            MsgType.Media.VIDEOFOCUSREQUESTNOTIFICATION -> {
+                val focusRequest = parse(Protocol.VideoFocusRequestNotification(), message)
+                AppLog.i("Video Focus Request - disp_id: %d, mode: %d, reason: %d", focusRequest.dispChannelId, focusRequest.mode, focusRequest.reason)
+                return 0
+            }
+            MsgType.Media.MICREQUEST -> {
+                val micRequest = parse(Protocol.MicrophoneRequest(), message)
+                return mic_request(micRequest)
+            }
+            MsgType.Media.ACK -> return 0
+            else -> AppLog.e("Unsupported")
+        }
+        return 0
+    }
+
+    private fun mic_request(micRequest: Protocol.MicrophoneRequest): Int {
+        AppLog.d("Mic request: %s", micRequest)
+
+        if (micRequest.open) {
+            mMicRecorder.start()
+        } else {
+            mMicRecorder.stop()
+        }
+        return 0
+    }
+
+    private fun media_sink_stop_request(channel: Int): Int {
+        AppLog.i("Media Sink Stop Request")
+        if (Channel.isAudio(channel)) {
+            mAapAudio.stopAudio(channel)
+        }
+        return 0
+    }
+
+    @Throws(InvalidProtocolBufferNanoException::class)
+    private fun executeTouch(message: AapMessage): Int {
+
+        when (message.type) {
+            MsgType.Input.BINDINGREQUEST -> {
+                val request = parse(Protocol.KeyBindingRequest(), message)
+                return input_binding(request, message.channel)
+            }
+            else -> AppLog.e("Unsupported")
+        }
+        return 0
+    }
+
+
+    @Throws(InvalidProtocolBufferNanoException::class)
+    private fun executeSensor(message: AapMessage): Int {
+        // 0 - 31, 32768-32799, 65504-65535
+        when (message.type) {
+            MsgType.Sensor.STARTREQUEST -> {
+                val request = parse(Protocol.SensorRequest(), message)
+                return sensor_start_request(request, message.channel)
+            }
+            else -> AppLog.e("Unsupported")
+        }
+        return 0
+    }
+
+    @Throws(InvalidProtocolBufferNanoException::class)
+    private fun executeControl(message: AapMessage): Int {
+
+        when (message.type) {
+            MsgType.Control.SERVICEDISCOVERYREQUEST -> {
+                val request = parse(Protocol.ServiceDiscoveryRequest(), message)
+                return service_discovery_request(request)
+            }
+            MsgType.Control.PINGREQUEST -> {
+                val pingRequest = parse(Protocol.PingRequest(), message)
+                return ping_request(pingRequest, message.channel)
+            }
+            MsgType.Control.NAVFOCUSREQUESTNOTIFICATION -> {
+                val navigationFocusRequest = parse(Protocol.NavFocusRequestNotification(), message)
+                return navigation_focus_request(navigationFocusRequest, message.channel)
+            }
+            MsgType.Control.BYEYEREQUEST -> {
+                val shutdownRequest = parse(Protocol.ByeByeRequest(), message)
+                return byebye_request(shutdownRequest, message.channel)
+            }
+            MsgType.Control.BYEYERESPONSE -> {
+                AppLog.i("Byebye Response")
+                return -1
+            }
+            MsgType.Control.VOICESESSIONNOTIFICATION -> {
+                val voiceRequest = parse(Protocol.VoiceSessionNotification(), message)
+                return voice_session_notification(voiceRequest)
+            }
+            MsgType.Control.AUDIOFOCUSREQUESTNOTFICATION -> {
+                val audioFocusRequest = parse(Protocol.AudioFocusRequestNotification(), message)
+                return audio_focus_request(audioFocusRequest, message.channel)
+            }
+            else -> AppLog.e("Unsupported")
+        }
+        return 0
+    }
+
+    @Throws(InvalidProtocolBufferNanoException::class)
+    private fun <T : MessageNano> parse(msg: T, message: AapMessage): T {
+        return MessageNano.mergeFrom(msg, message.data, message.dataOffset, message.size - message.dataOffset)
+    }
+
+    private fun media_start_request(request: Protocol.Start, channel: Int): Int {
+        AppLog.i("Media Start Request %s: %s", Channel.name(channel), request)
+
+        mTransport.setSessionId(channel, request.sessionId)
+        return 0
+    }
+
+    private fun media_sink_setup_request(request: Protocol.MediaSetupRequest, channel: Int): Int {
+
+        AppLog.i("Media Sink Setup Request: %d", request.type)
+        // R 2 VID b 00000000 08 03
+        // R 4 AUD b 00000000 08 01
+
+        val configResponse = Protocol.Config()
+        configResponse.status = Protocol.Config.CONFIG_STATUS_2
+        configResponse.maxUnacked = 1
+        configResponse.configurationIndices = intArrayOf(0)
+
+        val msg = AapMessage(channel, MsgType.Media.CONFIGRESPONSE, configResponse)
+        AppLog.i(msg.toString())
+        mTransport.send(msg)
+
+        if (channel == Channel.ID_VID) {
+            mTransport.gainVideoFocus()
+        }
+
+        return 0
+    }
+
+    private fun input_binding(request: Protocol.KeyBindingRequest, channel: Int): Int {
+        AppLog.i("Input binding request %s", request)
+
+        mTransport.send(AapMessage(channel, MsgType.Input.BINDINGRESPONSE, Protocol.BindingResponse()))
+        return 0
+    }
+
+    private fun sensor_start_request(request: Protocol.SensorRequest, channel: Int): Int {
+        AppLog.i("Sensor Start Request sensor: %d, minUpdatePeriod: %d", request.type, request.minUpdatePeriod)
+
+        // R 1 SEN b 00000000 08 01 10 00     Sen: 1, 10, 3, 8, 7
+        // Yes: SENSOR_TYPE_COMPASS/LOCATION/RPM/DIAGNOSTICS/GEAR      No: SENSOR_TYPE_DRIVING_STATUS
+
+        val msg = AapMessage(channel, MsgType.Sensor.STARTRESPONSE, Protocol.SensorResponse())
+        AppLog.i(msg.toString())
+
+        mTransport.send(msg)
+
+        mTransport.startSensor(request.type)
+        return 0
+    }
+
+    private fun channel_open_request(request: Protocol.ChannelOpenRequest, channel: Int): Int {
+        // Channel Open Request
+        AppLog.i("Channel Open Request - priority: %d  chan: %d %s", request.priority, request.serviceId, Channel.name(request.serviceId))
+
+        val response = Protocol.ChannelOpenResponse()
+        response.status = Protocol.STATUS_OK
+
+        val msg = AapMessage(channel, MsgType.Control.CHANNELOPENRESPONSE, response)
+        AppLog.i(msg.toString())
+
+        mTransport.send(msg)
+
+        if (channel == Channel.ID_SEN) {
+            Utils.ms_sleep(2)
+            AppLog.i("Send driving status")
+            mTransport.send(DrivingStatusEvent(Protocol.SensorBatch.DrivingStatusData.DRIVING_STATUS_PARKED))
+        }
+        return 0
+    }
+
+    @Throws(InvalidProtocolBufferNanoException::class)
+    private fun service_discovery_request(request: Protocol.ServiceDiscoveryRequest): Int {                  // Service Discovery Request
+        AppLog.i("Service Discovery Request: %s", request.phoneName)                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
+
+        val msg = ServiceDiscoveryResponse(mSettings.bluetoothAddress)
+        AppLog.i(msg.toString())
+
+        mTransport.send(msg)
+        return 0
+    }
+
+    private fun ping_request(request: Protocol.PingRequest, channel: Int): Int {
+        AppLog.i("Ping Request: %d", request.timestamp)
+
+        // Channel Open Response
+        val response = Protocol.PingResponse()
+        response.timestamp = System.nanoTime()
+
+        val msg = AapMessage(channel, MsgType.Control.PINGRESPONSE, response)
+        AppLog.i(msg.toString())
+
+        mTransport.send(msg)
+        return 0
+    }
+
+    private fun navigation_focus_request(request: Protocol.NavFocusRequestNotification, channel: Int): Int {
+        AppLog.i("Navigation Focus Request: %d", request.focusType)
+
+        // Send Navigation Focus Notification
+        val response = Protocol.NavFocusNotification()
+        response.focusType = Protocol.NAV_FOCUS_2
+
+        val msg = AapMessage(channel, MsgType.Control.NAVFOCUSRNOTIFICATION, response)
+        AppLog.i(msg.toString())
+
+        mTransport.send(msg)
+        return 0
+    }
+
+    private fun byebye_request(request: Protocol.ByeByeRequest, channel: Int): Int {
+        if (request.reason == 1)
+            AppLog.i("Byebye Request reason: 1 AA Exit Car Mode")
+        else
+            AppLog.e("Byebye Request reason: %d", request.reason)
+
+        val msg = AapMessage(channel, MsgType.Control.BYEYERESPONSE, Protocol.ByeByeResponse())
+        AppLog.i(msg.toString())
+        mTransport.send(msg)
+        Utils.ms_sleep(100)
+        mTransport.quit()
+        return -1
+    }
+
+    private fun voice_session_notification(request: Protocol.VoiceSessionNotification): Int {
+        // sr:  00000000 00 11 08 01      Microphone voice search usage     sr:  00000000 00 11 08 02
+        if (request.status == Protocol.VoiceSessionNotification.VOICE_STATUS_START)
+            AppLog.i("Voice Session Notification: 1 START")
+        else if (request.status == Protocol.VoiceSessionNotification.VOICE_STATUS_STOP)
+            AppLog.i("Voice Session Notification: 2 STOP")
+        else
+            AppLog.e("Voice Session Notification: %d", request.status)
+        return 0
+    }
+
+    @Throws(InvalidProtocolBufferNanoException::class)
+    private fun audio_focus_request(notification: Protocol.AudioFocusRequestNotification, channel: Int): Int {                  // Audio Focus Request
+        if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN)
+            AppLog.i("Audio Focus Request: 1 AUDIO_FOCUS_GAIN")
+        else if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN_TRANSIENT)
+            AppLog.i("Audio Focus Request: 2 AUDIO_FOCUS_GAIN_TRANSIENT")
+        else if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_UNKNOWN)
+            AppLog.i("Audio Focus Request: 3 gain/release ?")
+        else if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE)
+            AppLog.i("Audio Focus Request: 4 AUDIO_FOCUS_RELEASE")
+        else
+            AppLog.e("Audio Focus Request: %d", notification.request)
+
+        mAapAudio.requestFocusChange(notification.request)
+
+        val response = Protocol.AudioFocusNotification()
+        if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE) {
+            response.focusState = Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_LOSS
+        } else if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN_TRANSIENT) {
+            response.focusState = Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN
+        } else {
+            response.focusState = Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN
+        }
+
+        val msg = AapMessage(channel, MsgType.Control.AUDIOFOCUSNOTFICATION, response)
+        AppLog.i(msg.toString())
+
+        mTransport.send(msg)
+        return 0
+    }
+
+}

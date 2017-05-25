@@ -15,7 +15,7 @@
  */
 package ca.yyx.hu.utils;
 import android.text.format.DateUtils;
-/** @hide */
+
 public class TwilightCalculator {
     /** Value of {@link #mState} if it is currently day */
     public static final int DAY = 0;
@@ -49,10 +49,10 @@ public class TwilightCalculator {
      * calculates the civil twilight bases on time and geo-coordinates.
      *
      * @param time time in milliseconds.
-     * @param latiude latitude in degrees.
+     * @param latitude latitude in degrees.
      * @param longitude latitude in degrees.
      */
-    public void calculateTwilight(long time, double latiude, double longitude) {
+    public void calculateTwilight(long time, double latitude, double longitude) {
         final float daysSince2000 = (float) (time - UTC_2000) / DateUtils.DAY_IN_MILLIS;
         // mean anomaly
         final float meanAnomaly = 6.240059968f + daysSince2000 * 0.01720197f;
@@ -68,7 +68,7 @@ public class TwilightCalculator {
                 + -0.0069d * Math.sin(2 * solarLng);
         // declination of sun
         double solarDec = Math.asin(Math.sin(solarLng) * Math.sin(OBLIQUITY));
-        final double latRad = latiude * DEGREES_TO_RADIANS;
+        final double latRad = latitude * DEGREES_TO_RADIANS;
         double cosHourAngle = (Math.sin(ALTIDUTE_CORRECTION_CIVIL_TWILIGHT) - Math.sin(latRad)
                 * Math.sin(solarDec)) / (Math.cos(latRad) * Math.cos(solarDec));
         // The day or night never ends for the given date and location, if this value is out of

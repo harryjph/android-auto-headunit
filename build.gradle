@@ -1,14 +1,16 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
+    ext.kotlin_version = '1.1.2-4'
     repositories {
         jcenter()
-        mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.1'
+        classpath 'com.android.tools.build:gradle:3.0.0-alpha1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
     }
 }
-
 allprojects {
     repositories {
         jcenter()
@@ -16,6 +18,7 @@ allprojects {
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 dependencies {
     compile 'com.google.protobuf.nano:protobuf-javanano:3.1.0'
@@ -28,6 +31,9 @@ dependencies {
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.10.19'
+
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
 }
 
 android {
@@ -52,7 +58,7 @@ android {
             cmake {
                 cppFlags ""
                 arguments "-DANDROID_TOOLCHAIN=clang"
-                abiFilters "armeabi", "armeabi-v7a"
+                abiFilters "armeabi", "armeabi-v7a", "x86"
             }
         }
     }
@@ -103,5 +109,8 @@ android {
 
     preBuild.dependsOn genSource
 
+}
+repositories {
+    mavenCentral()
 }
 

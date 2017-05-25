@@ -1,5 +1,7 @@
 package ca.yyx.hu.utils;
 
+import android.os.Build;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +21,7 @@ public class Utils {
         } catch (InterruptedException e) {
             //Thread.currentThread().interrupt();
             e.printStackTrace();
-            AppLog.e("Exception e: " + e);
+            AppLog.INSTANCE.e("Exception e: " + e);
             return (0);
         }
     }
@@ -86,5 +88,10 @@ public class Utils {
             return ((buf[idx] & 0xFF) << 8) + (buf[idx + 1] & 0xFF);
         }
         return ((buf[idx] & 0xFF) << 24) + ((buf[idx + 1] & 0xFF) << 16) + ((buf[idx + 2] & 0xFF) << 8) + (buf[idx + 3] & 0xFF);
+    }
+
+    public static int getAccVersion(byte[] buffer)
+    {
+       return (buffer[1] << 8) | buffer[0];
     }
 }

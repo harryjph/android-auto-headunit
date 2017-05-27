@@ -109,6 +109,15 @@ android {
 
     preBuild.dependsOn genSource
 
+    // workaround for otlin tests
+    task copyTestClasses(type: Copy) {
+        from "build/tmp/kotlin-classes/debugUnitTest"
+        into "build/intermediates/classes/debug"
+    }
+    task copySdkClasses(type: Copy) {
+        from "build/tmp/kotlin-classes/debug"
+        into "build/intermediates/classes/debug"
+    }
 }
 repositories {
     mavenCentral()

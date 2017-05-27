@@ -11,6 +11,21 @@ import ca.yyx.hu.utils.AppLog
 
 internal class AapSslNative : AapSsl {
 
+    init {
+        System.loadLibrary("hu_jni")
+    }
+
+    private external fun native_ssl_prepare(): Int
+    private external fun native_ssl_do_handshake(): Int
+    private external fun native_ssl_bio_read(offset: Int, res_len: Int, res_buf: ByteArray): Int
+    private external fun native_ssl_bio_write(offset: Int, msg_len: Int, msg_buf: ByteArray): Int
+    private external fun native_ssl_read(offset: Int, res_len: Int, res_buf: ByteArray): Int
+    private external fun native_ssl_write(offset: Int, msg_len: Int, msg_buf: ByteArray): Int
+
+    private val bio_read = ByteArray(Messages.DEF_BUFFER_LENGTH)
+    private val enc_buf = ByteArray(Messages.DEF_BUFFER_LENGTH)
+    private val dec_buf = ByteArray(Messages.DEF_BUFFER_LENGTH)
+
     override fun prepare(): Int {
         val ret = native_ssl_prepare()
         if (ret < 0) {
@@ -81,21 +96,4 @@ internal class AapSslNative : AapSsl {
         return ByteArrayWithLimit(enc_buf, bytes_read + offset)
     }
 
-    companion object {
-
-        init {
-            System.loadLibrary("hu_jni")
-        }
-
-        private external fun native_ssl_prepare(): Int
-        private external fun native_ssl_do_handshake(): Int
-        private external fun native_ssl_bio_read(offset: Int, res_len: Int, res_buf: ByteArray): Int
-        private external fun native_ssl_bio_write(offset: Int, msg_len: Int, msg_buf: ByteArray): Int
-        private external fun native_ssl_read(offset: Int, res_len: Int, res_buf: ByteArray): Int
-        private external fun native_ssl_write(offset: Int, msg_len: Int, msg_buf: ByteArray): Int
-
-        private val bio_read = ByteArray(Messages.DEF_BUFFER_LENGTH)
-        private val enc_buf = ByteArray(Messages.DEF_BUFFER_LENGTH)
-        private val dec_buf = ByteArray(Messages.DEF_BUFFER_LENGTH)
-    }
 }

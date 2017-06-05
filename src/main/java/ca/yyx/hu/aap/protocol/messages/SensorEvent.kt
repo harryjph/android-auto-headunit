@@ -12,5 +12,5 @@ import ca.yyx.hu.aap.protocol.MsgType
  * @date 24/02/2017.
  */
 
-open class SensorEvent(val sensorType: Int, proto: MessageNano)
-    : AapMessage(Channel.ID_SEN, MsgType.Sensor.EVENT, proto)
+open class SensorEvent(sensorType: Int, proto: MessageNano)
+    : AapMessage(Channel.ID_SEN, sensorType, proto)

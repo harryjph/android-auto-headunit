@@ -28,6 +28,7 @@ import ca.yyx.hu.utils.AppLog
 import ca.yyx.hu.utils.NightMode
 import ca.yyx.hu.utils.Settings
 import ca.yyx.hu.utils.Utils
+import java.util.HashSet
 
 class AapTransport(
         audioDecoder: AudioDecoder,
@@ -42,7 +43,7 @@ class AapTransport(
     private val mPollThread: HandlerThread = HandlerThread("AapTransport:Handler", Process.THREAD_PRIORITY_AUDIO)
     private val mMicRecorder: MicRecorder = MicRecorder()
     private val mSessionIds = SparseIntArray(4)
-    private val mStartedSensors = ArrayList<Int>(4)
+    private val mStartedSensors = HashSet<Int>(4)
     private val mSsl = AapSslNative()
 
     private var mConnection: AccessoryConnection? = null
@@ -55,7 +56,7 @@ class AapTransport(
             Utils.ms_sleep(2)
             val nm = NightMode(mSettings)
             AppLog.i("Send night mode")
-            send(NightModeEvent(nm.current()))
+            send(NightModeEvent(nm.current))
             AppLog.i(nm.toString())
         }
     }
@@ -65,7 +66,6 @@ class AapTransport(
     }
 
     init {
-
         mMicRecorder.setListener(this)
         mAapAudio = AapAudio(audioDecoder, audioManager)
         mAapVideo = AapVideo(videoDecoder)
@@ -83,7 +83,7 @@ class AapTransport(
         }
 
         if (msg.what == MSG_POLL) {
-            val ret = mAapRead!!.read()
+            val ret = mAapRead?.read() ?: -1
             if (mHandler == null) {
                 return false
             }

@@ -219,11 +219,11 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
 
         override fun onReceive(context: Context, intent: Intent) {
 
-            val isCurrent = mNightMode.current()
+            val isCurrent = mNightMode.current
             if (mLastNightMode != isCurrent) {
                 mLastNightMode = isCurrent
 
-                mUiModeManager.setNightMode(if (isCurrent) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO)
+                mUiModeManager.nightMode = if (isCurrent) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO
                 AppLog.i(mNightMode.toString())
                 App.get(context).transport().send(NightModeEvent(isCurrent))
             }

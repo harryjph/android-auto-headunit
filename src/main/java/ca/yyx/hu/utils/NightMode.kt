@@ -1,7 +1,5 @@
 package ca.yyx.hu.utils
 
-import android.location.Location
-
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -17,12 +15,13 @@ class NightMode(private val mSettings: Settings) {
     private val twilightCalculator = TwilightCalculator()
     private val format = SimpleDateFormat("HH:mm", Locale.US)
 
-    fun current(): Boolean {
-        val time = Calendar.getInstance().getTime()
-        val location = mSettings.lastKnownLocation
-        twilightCalculator.calculateTwilight(time.getTime(), location.getLatitude(), location.getLongitude())
-        return twilightCalculator.mState == TwilightCalculator.NIGHT
-    }
+    var current: Boolean = false
+        get()  {
+            val time = Calendar.getInstance().time
+            val location = mSettings.lastKnownLocation
+            twilightCalculator.calculateTwilight(time.time, location.latitude, location.longitude)
+            return true//twilightCalculator.mState == TwilightCalculator.NIGHT
+        }
 
     override fun toString(): String {
         val sunrise = if (twilightCalculator.mSunrise > 0) format.format(Date(twilightCalculator.mSunrise)) else "-1"

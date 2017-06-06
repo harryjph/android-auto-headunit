@@ -224,7 +224,7 @@ class AapTransport(
     }
 
     fun send(sensor: SensorEvent) {
-        if (mStartedSensors.contains(sensor.type)) {
+        if (mStartedSensors.contains(sensor.sensorType)) {
             send(sensor as AapMessage)
         } else {
             AppLog.e("Sensor " + sensor.type + " is not started yet")

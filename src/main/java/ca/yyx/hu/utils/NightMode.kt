@@ -20,7 +20,7 @@ class NightMode(private val mSettings: Settings) {
             val time = Calendar.getInstance().time
             val location = mSettings.lastKnownLocation
             twilightCalculator.calculateTwilight(time.time, location.latitude, location.longitude)
-            return true//twilightCalculator.mState == TwilightCalculator.NIGHT
+            return twilightCalculator.mState == TwilightCalculator.NIGHT
         }
 
     override fun toString(): String {

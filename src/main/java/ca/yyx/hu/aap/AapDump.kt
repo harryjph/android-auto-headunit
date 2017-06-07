@@ -1,11 +1,9 @@
 package ca.yyx.hu.aap
 
 import android.util.Log
-
-import java.util.Locale
-
 import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.utils.AppLog
+import java.util.*
 
 internal object AapDump {
     private val MAX_HEX_DUMP = 64//32;

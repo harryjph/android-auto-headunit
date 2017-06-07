@@ -1,11 +1,10 @@
 package ca.yyx.hu.aap.protocol.messages
 
-import com.google.protobuf.nano.MessageNano
-
 import ca.yyx.hu.aap.AapMessage
 import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.aap.protocol.MsgType
 import ca.yyx.hu.aap.protocol.nano.Protocol
+import com.google.protobuf.nano.MessageNano
 
 /**
  * @author algavris

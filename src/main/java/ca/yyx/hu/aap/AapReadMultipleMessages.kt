@@ -1,13 +1,12 @@
 package ca.yyx.hu.aap
 
-import java.nio.BufferUnderflowException
-import java.nio.ByteBuffer
-
 import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.aap.protocol.messages.Messages
 import ca.yyx.hu.connection.AccessoryConnection
 import ca.yyx.hu.utils.AppLog
 import ca.yyx.hu.utils.Utils
+import java.nio.BufferUnderflowException
+import java.nio.ByteBuffer
 
 /**
  * @author algavris

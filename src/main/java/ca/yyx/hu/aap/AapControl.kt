@@ -1,19 +1,16 @@
 package ca.yyx.hu.aap
 
-import com.google.protobuf.nano.InvalidProtocolBufferNanoException
-import com.google.protobuf.nano.MessageNano
-
 import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.aap.protocol.MsgType
 import ca.yyx.hu.aap.protocol.messages.DrivingStatusEvent
-import ca.yyx.hu.aap.protocol.messages.NightModeEvent
 import ca.yyx.hu.aap.protocol.messages.ServiceDiscoveryResponse
 import ca.yyx.hu.aap.protocol.nano.Protocol
 import ca.yyx.hu.decoder.MicRecorder
 import ca.yyx.hu.utils.AppLog
-import ca.yyx.hu.utils.NightMode
 import ca.yyx.hu.utils.Settings
 import ca.yyx.hu.utils.Utils
+import com.google.protobuf.nano.InvalidProtocolBufferNanoException
+import com.google.protobuf.nano.MessageNano
 
 /**
  * @author algavris

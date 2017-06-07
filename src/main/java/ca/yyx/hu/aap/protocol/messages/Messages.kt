@@ -1,18 +1,5 @@
 package ca.yyx.hu.aap.protocol.messages
 
-import java.util.ArrayList
-
-import ca.yyx.hu.aap.AapMessage
-import ca.yyx.hu.aap.protocol.AudioConfigs
-import ca.yyx.hu.aap.protocol.Channel
-import ca.yyx.hu.aap.protocol.MsgType
-import ca.yyx.hu.utils.AppLog
-
-import ca.yyx.hu.aap.protocol.nano.Protocol
-import ca.yyx.hu.aap.protocol.nano.Protocol.Service
-import ca.yyx.hu.aap.protocol.nano.Protocol.Service.SensorSourceService
-import ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaSinkService.VideoConfiguration
-import ca.yyx.hu.aap.protocol.nano.Protocol.Service.InputSourceService.TouchConfig
 import ca.yyx.hu.utils.Utils
 
 /**

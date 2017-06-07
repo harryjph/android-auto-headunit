@@ -4,11 +4,7 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.app.UiModeManager
-import android.content.BroadcastReceiver
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Bundle
@@ -20,23 +16,18 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.KeyEvent
 import android.widget.Toast
-
 import ca.yyx.hu.App
 import ca.yyx.hu.R
 import ca.yyx.hu.RemoteControlReceiver
 import ca.yyx.hu.aap.protocol.messages.NightModeEvent
 import ca.yyx.hu.connection.AccessoryConnection
-import ca.yyx.hu.connection.UsbAccessoryConnection
 import ca.yyx.hu.connection.SocketAccessoryConnection
+import ca.yyx.hu.connection.UsbAccessoryConnection
+import ca.yyx.hu.connection.UsbReceiver
 import ca.yyx.hu.decoder.AudioDecoder
 import ca.yyx.hu.location.GpsLocationService
 import ca.yyx.hu.roadrover.DeviceListener
-import ca.yyx.hu.connection.UsbReceiver
-import ca.yyx.hu.utils.LocalIntent
-import ca.yyx.hu.utils.AppLog
-import ca.yyx.hu.utils.NightMode
-import ca.yyx.hu.utils.Settings
-import ca.yyx.hu.utils.Utils
+import ca.yyx.hu.utils.*
 
 /**
  * @author algavris

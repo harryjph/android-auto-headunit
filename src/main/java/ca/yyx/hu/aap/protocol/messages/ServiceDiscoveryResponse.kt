@@ -1,9 +1,5 @@
 package ca.yyx.hu.aap.protocol.messages
 
-import com.google.protobuf.nano.MessageNano
-
-import java.util.ArrayList
-
 import ca.yyx.hu.aap.AapMessage
 import ca.yyx.hu.aap.KeyCode
 import ca.yyx.hu.aap.protocol.AudioConfigs
@@ -11,6 +7,7 @@ import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.aap.protocol.MsgType
 import ca.yyx.hu.aap.protocol.nano.Protocol
 import ca.yyx.hu.utils.AppLog
+import com.google.protobuf.nano.MessageNano
 
 /**
  * @author algavris

@@ -1,10 +1,8 @@
 package ca.yyx.hu.aap.protocol.messages
 
 import android.location.Location
-
-import com.google.protobuf.nano.MessageNano
-
 import ca.yyx.hu.aap.protocol.nano.Protocol
+import com.google.protobuf.nano.MessageNano
 
 /**
  * @author algavris

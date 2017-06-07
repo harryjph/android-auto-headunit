@@ -1,24 +1,11 @@
 package ca.yyx.hu.aap
 
 import android.media.AudioManager
-import android.os.Handler
-import android.os.HandlerThread
-import android.os.Message
-import android.os.Process
-import android.os.SystemClock
+import android.os.*
 import android.util.SparseIntArray
 import android.view.KeyEvent
-
-import java.util.ArrayList
-
 import ca.yyx.hu.aap.protocol.Channel
-import ca.yyx.hu.aap.protocol.messages.KeyCodeEvent
-import ca.yyx.hu.aap.protocol.messages.MediaAck
-import ca.yyx.hu.aap.protocol.messages.Messages
-import ca.yyx.hu.aap.protocol.messages.NightModeEvent
-import ca.yyx.hu.aap.protocol.messages.ScrollWheelEvent
-
-import ca.yyx.hu.aap.protocol.messages.SensorEvent
+import ca.yyx.hu.aap.protocol.messages.*
 import ca.yyx.hu.aap.protocol.nano.Protocol
 import ca.yyx.hu.connection.AccessoryConnection
 import ca.yyx.hu.decoder.AudioDecoder
@@ -28,7 +15,7 @@ import ca.yyx.hu.utils.AppLog
 import ca.yyx.hu.utils.NightMode
 import ca.yyx.hu.utils.Settings
 import ca.yyx.hu.utils.Utils
-import java.util.HashSet
+import java.util.*
 
 class AapTransport(
         audioDecoder: AudioDecoder,
@@ -212,9 +199,9 @@ class AapTransport(
             AppLog.i("Unknown: " + keyCode)
         }
 
-        if (aapKeyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+        if (aapKeyCode == KeyEvent.KEYCODE_CTRL_LEFT || keyCode == KeyEvent.KEYCODE_CTRL_RIGHT) {
             if (isPress) {
-                val delta = if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) -1 else 1
+                val delta = if (keyCode == KeyEvent.KEYCODE_CTRL_LEFT) -1 else 1
                 send(ScrollWheelEvent(ts, delta))
             }
             return

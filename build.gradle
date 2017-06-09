@@ -48,7 +48,7 @@ android {
         manifestPlaceholders = [HOCKEYAPP_APP_ID: "$HEADUNIT_HOCKEYAPP_ID"]
 
         versionCode 22
-        versionName "2015_11_28"
+        versionName "0.9"
 
         ndk {
             moduleName "hu_jni"

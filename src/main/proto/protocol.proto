@@ -24,11 +24,16 @@ message TouchEvent
 {
     enum PointerAction
     {
-        TOUCH_ACTION_PRESS = 0;
-        TOUCH_ACTION_RELEASE = 1;
-        TOUCH_ACTION_DRAG = 2;
+        TOUCH_ACTION_DOWN = 0;
+        TOUCH_ACTION_UP = 1;
+        TOUCH_ACTION_MOVE = 2;
+        TOUCH_ACTION_CANCEL = 3;
+        TOUCH_ACTION_OUTSIDE  = 4;
+        TOUCH_ACTION_POINTER_DOWN  = 5;
+        TOUCH_ACTION_POINTER_UP   = 6;
         // 0x6
     }
+
     message Pointer
     {
         optional uint32 x = 1;

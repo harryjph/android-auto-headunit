@@ -18,7 +18,7 @@ import android.view.KeyEvent
 import android.widget.Toast
 import ca.yyx.hu.App
 import ca.yyx.hu.R
-import ca.yyx.hu.RemoteControlReceiver
+import ca.yyx.hu.app.RemoteControlReceiver
 import ca.yyx.hu.aap.protocol.messages.NightModeEvent
 import ca.yyx.hu.connection.AccessoryConnection
 import ca.yyx.hu.connection.SocketAccessoryConnection

@@ -1,4 +1,4 @@
-package ca.yyx.hu.activities
+package ca.yyx.hu.app
 
 import android.app.Activity
 import android.content.Context

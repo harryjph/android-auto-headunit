@@ -62,4 +62,8 @@ class ProjectionView : SurfaceView, SurfaceHolder.Callback {
         mVideoDecoder?.stop("surfaceDestroyed")
         mSurfaceCallback?.surfaceDestroyed(holder)
     }
+
+    override fun performClick(): Boolean {
+        return super.performClick()
+    }
 }

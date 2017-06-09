@@ -25,7 +25,7 @@ open class AapMessage(
         val msgType = this.type
         this.data[0] = channel.toByte()
         this.data[1] = flags
-        Utils.intToBytes(proto.getSerializedSize() + MsgType.SIZE, 2, this.data)
+        Utils.intToBytes(proto.serializedSize + MsgType.SIZE, 2, this.data)
         this.data[4] = (msgType shr 8).toByte()
         this.data[5] = (msgType and 0xFF).toByte()
         MessageNano.toByteArray(proto, this.data, HEADER_SIZE + MsgType.SIZE, proto.getSerializedSize())

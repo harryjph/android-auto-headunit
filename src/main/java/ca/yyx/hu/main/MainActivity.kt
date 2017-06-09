@@ -1,11 +1,11 @@
-package ca.yyx.hu.activities
+package ca.yyx.hu.main
 
 import android.app.Activity
-import android.app.AlertDialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.view.TextureView
 import android.view.View
+import android.widget.TextView
 
 import net.hockeyapp.android.CrashManager
 import net.hockeyapp.android.UpdateManager
@@ -13,10 +13,9 @@ import net.hockeyapp.android.UpdateManager
 import ca.yyx.hu.App
 import ca.yyx.hu.R
 import ca.yyx.hu.aap.AapProjectionActivity
-import ca.yyx.hu.aap.AapService
-import ca.yyx.hu.fragments.NetworkListFragment
-import ca.yyx.hu.fragments.UsbListFragment
+import ca.yyx.hu.utils.NetworkUtils
 import ca.yyx.hu.utils.SystemUI
+import java.io.IOException
 
 class MainActivity : Activity() {
     private lateinit var mVideoButton: View
@@ -38,6 +37,13 @@ class MainActivity : Activity() {
                     .replace(R.id.main_content, UsbListFragment())
                     .commit()
         }
+
+        try {
+            val currentIp = NetworkUtils.getWifiIpAddress(this)
+            val inet = NetworkUtils.intToInetAddress(currentIp)
+            val ipView = findViewById(R.id.ip_address) as TextView
+            ipView.text = inet?.hostAddress ?: ""
+        } catch (ignored: IOException) { }
 
         UpdateManager.register(this)
     }

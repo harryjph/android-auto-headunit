@@ -1,4 +1,4 @@
-package ca.yyx.hu.fragments
+package ca.yyx.hu.main
 
 import android.app.FragmentManager
 import android.content.Context
@@ -20,6 +20,7 @@ import java.util.Locale
 
 import ca.yyx.hu.R
 import ca.yyx.hu.aap.AapService
+import ca.yyx.hu.app.BaseFragment
 import ca.yyx.hu.utils.NetworkUtils
 import ca.yyx.hu.utils.Settings
 
@@ -47,7 +48,7 @@ class NetworkListFragment : BaseFragment() {
         super.onResume()
 
         try {
-            val currentIp = NetworkUtils.getWifiIpAddress(getActivity())
+            val currentIp = NetworkUtils.getWifiIpAddress(activity)
             val inet = NetworkUtils.intToInetAddress(currentIp)
             mAdapter.setCurrentAddress(inet)
         } catch (ignored: IOException) {
@@ -68,8 +69,8 @@ class NetworkListFragment : BaseFragment() {
 
     private class AddressAdapter
         internal constructor(
-            private val mContext: Context,
-            private val mFragmentManager: FragmentManager) : RecyclerView.Adapter<DeviceViewHolder>(), View.OnClickListener {
+                private val mContext: Context,
+                private val mFragmentManager: FragmentManager) : RecyclerView.Adapter<DeviceViewHolder>(), View.OnClickListener {
 
         private val mAddressList = ArrayList<String>()
         private var mCurrentAddress: InetAddress? = null
@@ -107,7 +108,7 @@ class NetworkListFragment : BaseFragment() {
         }
 
         override fun getItemCount(): Int {
-           return  mAddressList.size
+           return mAddressList.size
         }
 
         override fun onClick(v: View) {

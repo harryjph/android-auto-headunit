@@ -1,16 +1,10 @@
-package ca.yyx.hu.activities
+package ca.yyx.hu.app
 
 import android.app.Activity
 import android.os.Bundle
-import android.view.SurfaceHolder
-import android.view.SurfaceView
-import android.view.View
 
-import ca.yyx.hu.App
 import ca.yyx.hu.R
-import ca.yyx.hu.decoder.VideoDecoder
 import ca.yyx.hu.utils.SystemUI
-import ca.yyx.hu.utils.AppLog
 
 
 abstract class SurfaceActivity : Activity() {

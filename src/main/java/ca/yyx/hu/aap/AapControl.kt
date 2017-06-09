@@ -1,5 +1,6 @@
 package ca.yyx.hu.aap
 
+import ca.yyx.hu.aap.protocol.AudioConfigs
 import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.aap.protocol.MsgType
 import ca.yyx.hu.aap.protocol.messages.DrivingStatusEvent
@@ -81,7 +82,7 @@ internal class AapControl(
     }
 
     private fun media_sink_stop_request(channel: Int): Int {
-        AppLog.i("Media Sink Stop Request")
+        AppLog.i("Media Sink Stop Request: " + Channel.name(channel))
         if (Channel.isAudio(channel)) {
             mAapAudio.stopAudio(channel)
         }
@@ -305,7 +306,7 @@ internal class AapControl(
         else
             AppLog.e("Audio Focus Request: %d", notification.request)
 
-        mAapAudio.requestFocusChange(notification.request)
+        mAapAudio.requestFocusChange(AudioConfigs.stream(channel), notification.request)
 
         val response = Protocol.AudioFocusNotification()
         if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE) {

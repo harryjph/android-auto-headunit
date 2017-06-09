@@ -3,6 +3,7 @@ package ca.yyx.hu.aap
 import android.media.AudioManager
 
 import ca.yyx.hu.aap.protocol.AudioConfigs
+import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.aap.protocol.nano.Protocol
 import ca.yyx.hu.decoder.AudioDecoder
 import ca.yyx.hu.utils.AppLog
@@ -24,8 +25,7 @@ internal class AapAudio(
         mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
     }
 
-    fun requestFocusChange(focusRequest: Int) {
-        val stream = AudioManager.STREAM_MUSIC
+    fun requestFocusChange(stream: Int, focusRequest: Int) {
         if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE) {
             mAudioManager.abandonAudioFocus(this)
         } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN) {
@@ -61,9 +61,9 @@ internal class AapAudio(
         mAudioDecoder.decode(channel, buf, start, length)
     }
 
-    fun stopAudio(chan: Int) {
-        AppLog.i("Audio Stop: " + chan)
-        mAudioDecoder.stop(chan)
+    fun stopAudio(channel: Int) {
+        AppLog.i("Audio Stop: " + Channel.name(channel))
+        mAudioDecoder.stop(channel)
     }
 
     override fun onAudioFocusChange(focusChange: Int) {
@@ -77,7 +77,7 @@ internal class AapAudio(
     }
 
     companion object {
-        private val AUDIO_BUFS_SIZE = 65536 * 4      // Up to 256 Kbytes
+        private val AUDIO_BUFS_SIZE = 65536 * 4  // Up to 256 Kbytes
     }
 }
 

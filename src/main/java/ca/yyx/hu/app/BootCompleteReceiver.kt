@@ -1,9 +1,10 @@
-package ca.yyx.hu
+package ca.yyx.hu.app
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Handler
+import ca.yyx.hu.App
 
 import ca.yyx.hu.location.GpsLocationService
 

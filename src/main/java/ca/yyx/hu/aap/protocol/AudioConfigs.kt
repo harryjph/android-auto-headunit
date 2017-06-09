@@ -1,5 +1,6 @@
 package ca.yyx.hu.aap.protocol
 
+import android.media.AudioManager
 import android.util.SparseArray
 
 import ca.yyx.hu.aap.protocol.nano.Protocol
@@ -14,7 +15,17 @@ import ca.yyx.hu.decoder.AudioDecoder
 object AudioConfigs {
     private val mAudioTracks = SparseArray<Protocol.AudioConfiguration>(3)
 
-    operator fun get(channel: Int): Protocol.AudioConfiguration {
+    fun stream(channel: Int) : Int
+    {
+//        when(channel) {
+//            Channel.ID_AUD -> return AudioManager.STREAM_MUSIC
+//            Channel.ID_AU1 -> return AudioManager.STREAM_SYSTEM
+//            Channel.ID_AU2 -> return AudioManager.STREAM_VOICE_CALL
+//        }
+        return AudioManager.STREAM_MUSIC
+    }
+
+    fun get(channel: Int): Protocol.AudioConfiguration {
         return mAudioTracks.get(channel)
     }
 

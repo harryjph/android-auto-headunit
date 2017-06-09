@@ -46,7 +46,7 @@
             android:theme="@style/AppTheme" />
 
         <activity
-            android:name=".activities.UsbAttachedActivity"
+            android:name=".app.UsbAttachedActivity"
             android:launchMode="singleTop"
             android:theme="@style/AppTheme.Translucent">
             <intent-filter>
@@ -58,7 +58,7 @@
         </activity>
 
         <activity
-            android:name=".activities.MainActivity"
+            android:name=".main.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:launchMode="singleTask"
             android:screenOrientation="sensorLandscape"
@@ -75,13 +75,13 @@
         <service android:name=".aap.AapService" />
         <service android:name=".location.GpsLocationService" />
 
-        <receiver android:name=".RemoteControlReceiver">
+        <receiver android:name=".app.RemoteControlReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".BootCompleteReceiver" >
+        <receiver android:name=".app.BootCompleteReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>

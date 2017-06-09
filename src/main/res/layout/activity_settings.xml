@@ -30,7 +30,7 @@
             android:layout_height="64dp"
             android:src="@drawable/ic_usb_white_24dp"
             android:background="?android:attr/actionBarItemBackground"
-            android:contentDescription="@string/video" />
+            android:contentDescription="@string/usb" />
 
     </LinearLayout>
 
@@ -45,5 +45,14 @@
         android:layout_marginBottom="96dp"
         android:padding="8dp"
         />
+
+    <TextView
+        android:id="@+id/ip_address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|bottom"
+        android:layout_marginBottom="72dp"
+        android:layout_marginRight="8dp"
+        tools:text="192.168.1.1" />
 
 </FrameLayout>

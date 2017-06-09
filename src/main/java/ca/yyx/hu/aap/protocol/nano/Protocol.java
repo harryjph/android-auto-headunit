@@ -265,9 +265,13 @@ public interface Protocol {
       com.google.protobuf.nano.MessageNano {
 
     // enum PointerAction
-    public static final int TOUCH_ACTION_PRESS = 0;
-    public static final int TOUCH_ACTION_RELEASE = 1;
-    public static final int TOUCH_ACTION_DRAG = 2;
+    public static final int TOUCH_ACTION_DOWN = 0;
+    public static final int TOUCH_ACTION_UP = 1;
+    public static final int TOUCH_ACTION_MOVE = 2;
+    public static final int TOUCH_ACTION_CANCEL = 3;
+    public static final int TOUCH_ACTION_OUTSIDE = 4;
+    public static final int TOUCH_ACTION_POINTER_DOWN = 5;
+    public static final int TOUCH_ACTION_POINTER_UP = 6;
 
     public static final class Pointer extends
         com.google.protobuf.nano.MessageNano {
@@ -413,7 +417,7 @@ public interface Protocol {
     public TouchEvent clear() {
       pointerData = ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.Pointer.emptyArray();
       actionIndex = 0;
-      action = ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_PRESS;
+      action = ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_DOWN;
       cachedSize = -1;
       return this;
     }
@@ -432,7 +436,7 @@ public interface Protocol {
       if (this.actionIndex != 0) {
         output.writeUInt32(2, this.actionIndex);
       }
-      if (this.action != ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_PRESS) {
+      if (this.action != ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_DOWN) {
         output.writeInt32(3, this.action);
       }
       super.writeTo(output);
@@ -454,7 +458,7 @@ public interface Protocol {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
             .computeUInt32Size(2, this.actionIndex);
       }
-      if (this.action != ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_PRESS) {
+      if (this.action != ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_DOWN) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeInt32Size(3, this.action);
       }
@@ -503,9 +507,13 @@ public interface Protocol {
           case 24: {
             int value = input.readInt32();
             switch (value) {
-              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_PRESS:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_RELEASE:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_DRAG:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_DOWN:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_UP:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_MOVE:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_CANCEL:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_OUTSIDE:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_POINTER_DOWN:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.TouchEvent.TOUCH_ACTION_POINTER_UP:
                 this.action = value;
                 break;
             }

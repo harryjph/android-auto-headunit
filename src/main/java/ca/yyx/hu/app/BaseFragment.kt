@@ -1,4 +1,4 @@
-package ca.yyx.hu.fragments
+package ca.yyx.hu.app
 
 import android.app.Fragment
 import android.content.BroadcastReceiver

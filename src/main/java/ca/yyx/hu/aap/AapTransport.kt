@@ -74,8 +74,11 @@ class AapTransport(
             if (mHandler == null) {
                 return false
             }
-            if (!mHandler!!.hasMessages(MSG_POLL)) {
-                mHandler!!.sendEmptyMessage(MSG_POLL)
+            mHandler?.let {
+                if (!it.hasMessages(MSG_POLL))
+                {
+                    it.sendEmptyMessage(MSG_POLL)
+                }
             }
 
             if (ret < 0) {

@@ -14,7 +14,6 @@ abstract class SurfaceActivity : Activity() {
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)   // !! Keep Screen on !!
         setContentView(R.layout.activity_headunit)
         window.decorView.setOnSystemUiVisibilityChangeListener { SystemUI.hide(window.decorView) }
-
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

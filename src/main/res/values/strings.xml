@@ -13,5 +13,11 @@
     <string name="title">Headunit</string>
     <string name="remove">Remove</string>
     <string name="usb">Usb</string>
+    <string name="mic_sample_rate">"Mic sample rate: %dkHz"</string>
+    <string name="keymap">Keymap</string>
+    <string name="night_mode">Night mode: %s</string>
+    <string name="bluetooth_address_s">Bluetooth address: %s</string>
+    <string name="enter_bluetooth_mac">Enter bluetooth MAC</string>
+    <string name="reset">Reset</string>
 </resources>
 

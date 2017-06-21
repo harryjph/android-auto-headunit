@@ -23,9 +23,16 @@ import ca.yyx.hu.view.ProjectionView
 class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
     private lateinit var mProjectionView: ProjectionView
 
-    private val mBroadcastReceiver = object : BroadcastReceiver() {
+    private val disconnectReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             finish()
+        }
+    }
+
+    private val keyCodeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val event = intent.getParcelableExtra<KeyEvent>(LocalIntent.EXTRA_EVENT)
+            onKeyEvent(event.keyCode, event.action == KeyEvent.ACTION_DOWN)
         }
     }
 
@@ -44,12 +51,14 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
     override fun onPause() {
         super.onPause()
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(disconnectReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(keyCodeReceiver)
     }
 
     override fun onResume() {
         super.onResume()
-        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, LocalIntent.FILTER_DISCONNECT)
+        LocalBroadcastManager.getInstance(this).registerReceiver(disconnectReceiver, LocalIntent.FILTER_DISCONNECT)
+        LocalBroadcastManager.getInstance(this).registerReceiver(keyCodeReceiver, LocalIntent.FILTER_KEY_EVENT)
     }
 
     private fun transport(): AapTransport {

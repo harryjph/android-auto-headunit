@@ -12,9 +12,13 @@
         android:gravity="center"
         android:orientation="horizontal">
 
-        <Space
+        <ImageButton
+            android:id="@+id/settings"
             android:layout_width="128dp"
-            android:layout_height="64dp" />
+            android:layout_height="64dp"
+            android:src="@drawable/ic_settings_white_24dp"
+            android:background="?android:attr/actionBarItemBackground"
+            android:contentDescription="@string/settings" />
 
         <ImageButton
             android:id="@+id/video_button"

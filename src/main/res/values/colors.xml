@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="material_blue_grey_500">#607D8B</color>
-    <color name="material_blue_grey_700">#455A64</color>
-    <color name="material_blue_grey_800">#37474F</color>
-    <color name="material_blue_grey_900">#263238</color>
+    <color name="material_grey_500">#9E9E9E</color>
+    <color name="material_grey_700">#616161</color>
+    <color name="material_grey_900">#212121</color>
 
-    <color name="primary_dark">@color/material_blue_grey_800</color>
+    <color name="primary_dark">@color/material_grey_900</color>
     <color name="primary_light">#fffbff</color>
     <color name="material_orange_700">#f57c00</color>
     <color name="material_green_700">#388e3c</color>

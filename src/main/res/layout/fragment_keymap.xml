@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp">
+
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        >
+
+        <Button
+            android:id="@+id/keycode_dpad_up"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginLeft="64dp"
+            android:text="&#8593;" />
+
+        <Button
+            android:id="@+id/keycode_soft_left"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:text="SL" />
+
+        <Button
+            android:id="@+id/keycode_dpad_left"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginTop="64dp"
+            android:text="&#8592;" />
+
+        <Button
+            android:id="@+id/keycode_dpad_center"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginLeft="64dp"
+            android:layout_marginTop="64dp"
+            android:text="OK" />
+
+        <Button
+            android:id="@+id/keycode_soft_right"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginLeft="128dp"
+            android:text="SR" />
+
+        <Button
+            android:id="@+id/keycode_dpad_right"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginLeft="128dp"
+            android:layout_marginTop="64dp"
+            android:text="&#8594;" />
+
+        <Button
+            android:id="@+id/keycode_dpad_down"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginLeft="64dp"
+            android:layout_marginTop="128dp"
+            android:text="&#8595;" />
+
+
+        <Button
+            android:id="@+id/keycode_search"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginTop="128dp"
+            android:text="G" />
+
+        <Button
+            android:id="@+id/keycode_call"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginLeft="128dp"
+            android:layout_marginTop="128dp"
+            android:text="C" />
+    </FrameLayout>
+
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="200dp">
+
+        <Button
+            android:id="@+id/keycode_media_previous"
+            android:layout_width="80dp"
+            android:layout_height="64dp"
+            android:text="&#9664;&#9664;" />
+
+        <Button
+            android:id="@+id/keycode_media_play"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginLeft="80dp"
+            android:text="&#9654;" />
+
+        <Button
+            android:id="@+id/keycode_media_play_pause"
+            android:layout_width="80dp"
+            android:layout_height="64dp"
+            android:layout_marginTop="64dp"
+            android:text="&#9654;/&#10073;&#10073;" />
+
+        <Button
+            android:id="@+id/keycode_media_pause"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginLeft="80dp"
+            android:layout_marginTop="64dp"
+            android:text="&#10073;&#10073;" />
+
+        <Button
+            android:id="@+id/keycode_media_next"
+            android:layout_width="80dp"
+            android:layout_height="64dp"
+            android:layout_marginTop="126dp"
+            android:text="&#9654;&#9654;" />
+
+    </FrameLayout>
+
+    <Button
+        android:id="@+id/reset_codes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:text="@string/reset" />
+
+</FrameLayout>

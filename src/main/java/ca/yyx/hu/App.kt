@@ -12,6 +12,7 @@ import ca.yyx.hu.aap.AapTransport
 import ca.yyx.hu.aap.protocol.messages.LocationUpdateEvent
 import ca.yyx.hu.decoder.AudioDecoder
 import ca.yyx.hu.decoder.VideoDecoder
+import ca.yyx.hu.roadrover.DeviceListener
 import ca.yyx.hu.utils.LocalIntent
 import ca.yyx.hu.utils.LocalIntent.extractLocation
 import ca.yyx.hu.utils.Settings
@@ -40,12 +41,17 @@ class App : Application(), AapTransport.Listener {
         }
     }
 
+    private val mDeviceListener = DeviceListener()
+
     override fun onCreate() {
         super.onCreate()
 
         mAudioDecoder = AudioDecoder()
         mVideoDecoder = VideoDecoder()
         mSettings = Settings(this)
+
+        registerReceiver(mDeviceListener, DeviceListener.createIntentFilter())
+
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocationUpdatesReceiver, LocalIntent.FILTER_LOCATION_UPDATE)
 
     }

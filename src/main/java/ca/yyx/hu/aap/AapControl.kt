@@ -233,7 +233,7 @@ internal class AapControl(
     private fun service_discovery_request(request: Protocol.ServiceDiscoveryRequest): Int {                  // Service Discovery Request
         AppLog.i("Service Discovery Request: %s", request.phoneName)                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
-        val msg = ServiceDiscoveryResponse(mSettings.bluetoothAddress)
+        val msg = ServiceDiscoveryResponse(mSettings)
         AppLog.i(msg.toString())
 
         mTransport.send(msg)

@@ -7,19 +7,19 @@ import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.aap.protocol.MsgType
 import ca.yyx.hu.aap.protocol.nano.Protocol
 import ca.yyx.hu.utils.AppLog
+import ca.yyx.hu.utils.Settings
 import com.google.protobuf.nano.MessageNano
 
 /**
- * @author algavris
- * *
+ * @author alex gavrishev
+ *
  * @date 13/02/2017.
  */
-
-class ServiceDiscoveryResponse(btAddress: String)
-    : AapMessage(Channel.ID_CTR, MsgType.Control.SERVICEDISCOVERYRESPONSE, ServiceDiscoveryResponse.makeProto(btAddress)) {
+class ServiceDiscoveryResponse(settings: Settings)
+    : AapMessage(Channel.ID_CTR, MsgType.Control.SERVICEDISCOVERYRESPONSE, ServiceDiscoveryResponse.makeProto(settings)) {
 
     companion object {
-        private fun makeProto(btAddress: String?): MessageNano {
+        private fun makeProto(settings: Settings): MessageNano {
             val carInfo = Protocol.ServiceDiscoveryResponse()
             carInfo.make = "AACar"
             carInfo.model = "0001"
@@ -35,13 +35,15 @@ class ServiceDiscoveryResponse(btAddress: String)
             val sensors = Protocol.Service()
             sensors.id = Channel.ID_SEN
             sensors.sensorSourceService = Protocol.Service.SensorSourceService()
-            sensors.sensorSourceService.sensors = arrayOfNulls<Protocol.Service.SensorSourceService.Sensor>(3)
-            sensors.sensorSourceService.sensors[0] = Protocol.Service.SensorSourceService.Sensor()
-            sensors.sensorSourceService.sensors[0].type = Protocol.SENSOR_TYPE_DRIVING_STATUS
-            sensors.sensorSourceService.sensors[1] = Protocol.Service.SensorSourceService.Sensor()
-            sensors.sensorSourceService.sensors[1].type = Protocol.SENSOR_TYPE_NIGHT
-            sensors.sensorSourceService.sensors[2] = Protocol.Service.SensorSourceService.Sensor()
-            sensors.sensorSourceService.sensors[2].type = Protocol.SENSOR_TYPE_LOCATION
+
+            val sensorTypes = mutableListOf<Protocol.Service.SensorSourceService.Sensor>()
+            sensorTypes.add(makeSensorType(Protocol.SENSOR_TYPE_DRIVING_STATUS))
+            sensorTypes.add(makeSensorType(Protocol.SENSOR_TYPE_LOCATION))
+            if (settings.nightMode != Settings.NightMode.NONE){
+                sensorTypes.add(makeSensorType(Protocol.SENSOR_TYPE_NIGHT))
+            }
+
+            sensors.sensorSourceService.sensors = sensorTypes.toTypedArray()
 
             services.add(sensors)
 
@@ -99,17 +101,17 @@ class ServiceDiscoveryResponse(btAddress: String)
             mic.mediaSourceService = Protocol.Service.MediaSourceService()
             mic.mediaSourceService.type = Protocol.MEDIA_CODEC_AUDIO
             val micConfig = Protocol.AudioConfiguration()
-            micConfig.sampleRate = 16000
+            micConfig.sampleRate = settings.micSampleRate
             micConfig.numberOfBits = 16
             micConfig.numberOfChannels = 1
             mic.mediaSourceService.audioConfig = micConfig
             services.add(mic)
 
-            if (btAddress != null) {
+            if (settings.bluetoothAddress.isNotEmpty()) {
                 val bluetooth = Protocol.Service()
                 bluetooth.id = Channel.ID_BTH
                 bluetooth.bluetoothService = Protocol.Service.BluetoothService()
-                bluetooth.bluetoothService.carAddress = btAddress
+                bluetooth.bluetoothService.carAddress = settings.bluetoothAddress
                 bluetooth.bluetoothService.supportedPairingMethods = intArrayOf(Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_HFP)
                 services.add(bluetooth)
             } else {
@@ -117,9 +119,14 @@ class ServiceDiscoveryResponse(btAddress: String)
             }
 
             carInfo.services = services.toTypedArray()
-//                    toArray(arrayOfNulls<Protocol.Service>(0))
 
             return carInfo
+        }
+
+        private fun makeSensorType(type: Int): Protocol.Service.SensorSourceService.Sensor {
+            val sensor = Protocol.Service.SensorSourceService.Sensor()
+            sensor.type = type
+            return sensor
         }
     }
 }

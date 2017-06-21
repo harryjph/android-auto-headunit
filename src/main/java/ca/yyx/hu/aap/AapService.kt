@@ -43,8 +43,6 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     private var mAccessoryConnection: AccessoryConnection? = null
     private lateinit var mUsbReceiver: UsbReceiver
     private lateinit var mTimeTickReceiver: BroadcastReceiver
-    private lateinit var mDeviceListener: DeviceListener
-
 
     override fun onBind(intent: Intent): IBinder? {
         return null
@@ -65,8 +63,6 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
         mUsbReceiver = UsbReceiver(this)
         mTimeTickReceiver = TimeTickReceiver(Settings(this), mUiModeManager)
 
-        mDeviceListener = DeviceListener()
-        registerReceiver(mDeviceListener, DeviceListener.createIntentFilter())
         registerReceiver(mTimeTickReceiver, IntentFilter(Intent.ACTION_TIME_TICK))
         registerReceiver(mUsbReceiver, UsbReceiver.createFilter())
     }
@@ -74,7 +70,6 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     override fun onDestroy() {
         super.onDestroy()
         onDisconnect()
-        unregisterReceiver(mDeviceListener)
         unregisterReceiver(mTimeTickReceiver)
         unregisterReceiver(mUsbReceiver)
         mUiModeManager.disableCarMode(0)

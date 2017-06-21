@@ -10,13 +10,14 @@ import ca.yyx.hu.utils.AppLog
  * *
  * @date 12/05/2016.
  */
-class MicRecorder {
+class MicRecorder(val micSampleRate: Int) {
 
     private var mMicAudioRecord: AudioRecord? = null
 
-    internal var mic_audio_buf = ByteArray(MIC_BUFFER_SIZE)
+    private val micBufferSize = AudioRecord.getMinBufferSize(micSampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
+    private var micAudioBuf = ByteArray(micBufferSize)
 
-    internal var thread_mic_audio_active = false
+    private var thread_mic_audio_active = false
     private var thread_mic_audio: Thread? = null
     private var mListener: Listener? = null
 
@@ -64,13 +65,13 @@ class MicRecorder {
 
     fun start(): Int {
         try {
-            mMicAudioRecord = AudioRecord(MediaRecorder.AudioSource.DEFAULT, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, MIC_BUFFER_SIZE)
+            mMicAudioRecord = AudioRecord(MediaRecorder.AudioSource.DEFAULT, micSampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, micBufferSize)
             mMicAudioRecord!!.startRecording()
             // Start input
 
             thread_mic_audio = Thread(Runnable {
                 while (thread_mic_audio_active) {
-                    mic_audio_read(mic_audio_buf, MIC_BUFFER_SIZE)
+                    mic_audio_read(micAudioBuf, micBufferSize)
                 }
             }, "mic_audio")
 
@@ -85,8 +86,4 @@ class MicRecorder {
 
     }
 
-    companion object {
-        private val SAMPLE_RATE_IN_HZ = 16000 // 8000 TODO: Settings
-        internal val MIC_BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
-    }
 }

@@ -6,6 +6,8 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.location.Location
 import android.location.LocationManager
+import android.support.v4.view.KeyEventCompat
+import android.view.KeyEvent
 
 /**
  * @author algavris
@@ -18,6 +20,15 @@ object LocalIntent {
     val ACTION_DISCONNECT = Intent("ca.yyx.hu.ACTION_DISCONNECT")
     val FILTER_DISCONNECT = IntentFilter("ca.yyx.hu.ACTION_DISCONNECT")
     val FILTER_LOCATION_UPDATE = IntentFilter("ca.yyx.hu.LOCATION_UPDATE")
+    val FILTER_KEY_EVENT = IntentFilter("ca.yyx.hu.ACTION_KEYPRESS")
+
+    val EXTRA_EVENT = "event"
+
+    fun createKeyEvent(event: KeyEvent): Intent {
+        val intent = Intent("ca.yyx.hu.ACTION_KEYPRESS")
+        intent.putExtra(EXTRA_EVENT, event)
+        return intent
+    }
 
     fun createLocationUpdate(location: Location): Intent {
         val intent = Intent("ca.yyx.hu.LOCATION_UPDATED")

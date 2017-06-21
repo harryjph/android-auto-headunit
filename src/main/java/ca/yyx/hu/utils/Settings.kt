@@ -36,8 +36,9 @@ class Settings(context: Context) {
             mPrefs.edit().putStringSet("network-addresses", addrs).apply()
         }
 
-    val bluetoothAddress: String
+    var bluetoothAddress: String
         get() = mPrefs.getString("bt-address", "40:EF:4C:A3:CB:A5")
+        set(value) = mPrefs.edit().putString("bt-address", value).apply()
 
     var lastKnownLocation: Location
         get() {
@@ -56,8 +57,68 @@ class Settings(context: Context) {
                 .apply()
         }
 
+    var micSampleRate: Int
+        get() = mPrefs.getInt("mic-sample-rate", 8000)
+        set(sampleRate) {
+            mPrefs.edit().putInt("mic-sample-rate", sampleRate).apply()
+        }
+
+    var nightMode: NightMode
+        get() {
+            val value = mPrefs.getInt("night-mode", 0)
+            val mode = NightMode.fromInt(value)
+            return mode!!
+        }
+        set(nightMode) {
+            mPrefs.edit().putInt("night-mode", nightMode.value).apply()
+        }
+
+    var keyCodes: MutableMap<Int, Int>
+        get() {
+            val set = mPrefs.getStringSet("key-codes", mutableSetOf())
+            val map = mutableMapOf<Int, Int>()
+            set.forEach({
+                val codes = it.split("-")
+                map.put(codes[0].toInt(), codes[1].toInt())
+            })
+            return map
+        }
+        set(codesMap) {
+            val list: List<String> = codesMap.map { "${it.key}-${it.value}" }
+            mPrefs.edit().putStringSet("key-codes", list.toSet()).apply()
+        }
+
     @SuppressLint("ApplySharedPref")
     fun commit() {
         mPrefs.edit().commit()
     }
+
+    enum class NightMode(val value: Int) {
+        AUTO(0),
+        DAY(1),
+        NIGHT(2),
+        AUTO_WAIT_GPS(3),
+        NONE(4);
+
+        companion object {
+            private val map = NightMode.values().associateBy(NightMode::value)
+            fun fromInt(value: Int) = map[value]
+        }
+    }
+
+    companion object {
+        val MicSampleRates = hashMapOf(
+            8000 to 16000,
+            16000 to 8000
+        )
+
+        val NightModes = hashMapOf(
+            0 to 1,
+            1 to 2,
+            2 to 3,
+            3 to 4,
+            4 to 0
+        )
+    }
+
 }

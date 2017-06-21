@@ -28,7 +28,7 @@ class AapTransport(
     private val mAapAudio: AapAudio
     private val mAapVideo: AapVideo
     private val mPollThread: HandlerThread = HandlerThread("AapTransport:Handler", Process.THREAD_PRIORITY_AUDIO)
-    private val mMicRecorder: MicRecorder = MicRecorder()
+    private val mMicRecorder: MicRecorder = MicRecorder(mSettings.micSampleRate)
     private val mSessionIds = SparseIntArray(4)
     private val mStartedSensors = HashSet<Int>(4)
     private val mSsl = AapSslNative()

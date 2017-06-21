@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <Button
+        android:id="@+id/keymap"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:text="@string/keymap"
+        android:background="@drawable/button_selectable_background"/>
+
+    <Button
+        android:id="@+id/night_mode"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:text="@string/night_mode"
+        android:background="@drawable/button_selectable_background"/>
+
+    <Button
+        android:id="@+id/mic_sample_rate"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:text="@string/mic_sample_rate"
+        android:background="@drawable/button_selectable_background" />
+
+    <Button
+        android:id="@+id/bt_address"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:text="@string/bluetooth_address_s"
+        android:background="@drawable/button_selectable_background" />
+</LinearLayout>

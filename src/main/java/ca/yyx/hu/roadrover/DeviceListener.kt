@@ -4,11 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.support.v4.content.LocalBroadcastManager
 import android.view.KeyEvent
 
-import ca.yyx.hu.App
-import ca.yyx.hu.aap.AapTransport
 import ca.yyx.hu.utils.AppLog
+import ca.yyx.hu.utils.LocalIntent
 import ca.yyx.hu.utils.Utils
 
 /**
@@ -22,25 +22,26 @@ class DeviceListener : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         AppLog.i(intent)
 
-        val transport = App.get(context).transport()
-
         if (ACTION_KEYEVENT == intent.action) {
             val keyCode = intent.getIntExtra("keyvalue", 0)
-            sendButton(keyCode, transport)
+            sendButton(keyCode, context)
         } else if (ACTION_CAR_KEY == intent.action) {
             val keyCode = intent.getStringExtra("keyvalue")
             if (keyCode != null) {
-                sendButton(Integer.valueOf(keyCode), transport)
+                sendButton(Integer.valueOf(keyCode), context)
             }
         } else if (ACTION_STARTMUSIC == intent.action) {
-            sendButton(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, transport)
+            sendButton(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, context)
         }
     }
 
-    private fun sendButton(btnCode: Int, transport: AapTransport) {
-        transport.sendButton(btnCode, true)
+    private fun sendButton(btnCode: Int, context: Context) {
+        val manager  = LocalBroadcastManager.getInstance(context)
+        val down = KeyEvent(KeyEvent.ACTION_DOWN, btnCode)
+        manager.sendBroadcast(LocalIntent.createKeyEvent(down))
         Utils.ms_sleep(100)
-        transport.sendButton(btnCode, false)
+        val up = KeyEvent(KeyEvent.ACTION_UP, btnCode)
+        manager.sendBroadcast(LocalIntent.createKeyEvent(up))
     }
 
     companion object {

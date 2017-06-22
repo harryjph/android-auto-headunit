@@ -16,6 +16,7 @@ import ca.yyx.hu.utils.NightMode
 import ca.yyx.hu.utils.Settings
 import ca.yyx.hu.utils.Utils
 import java.util.*
+import kotlin.collections.HashMap
 
 class AapTransport(
         audioDecoder: AudioDecoder,
@@ -32,6 +33,9 @@ class AapTransport(
     private val mSessionIds = SparseIntArray(4)
     private val mStartedSensors = HashSet<Int>(4)
     private val mSsl = AapSslNative()
+    private val keyCodes = mSettings.keyCodes.entries.associateTo(mutableMapOf<Int,Int>(), {
+        it.value to it.key
+    })
 
     private var mConnection: AccessoryConnection? = null
     private var mAapRead: AapRead? = null
@@ -196,21 +200,22 @@ class AapTransport(
     fun sendButton(keyCode: Int, isPress: Boolean) {
         val ts = SystemClock.elapsedRealtime()
 
-        val aapKeyCode = KeyCode.convert(keyCode)
+        val mapped = keyCodes[keyCode] ?: keyCode
+        val aapKeyCode = KeyCode.convert(mapped)
 
         if (aapKeyCode == KeyEvent.KEYCODE_UNKNOWN) {
             AppLog.i("Unknown: " + keyCode)
         }
 
-        if (aapKeyCode == KeyEvent.KEYCODE_CTRL_LEFT || keyCode == KeyEvent.KEYCODE_CTRL_RIGHT) {
+        if (aapKeyCode == KeyEvent.KEYCODE_SOFT_LEFT|| aapKeyCode == KeyEvent.KEYCODE_SOFT_RIGHT) {
             if (isPress) {
-                val delta = if (keyCode == KeyEvent.KEYCODE_CTRL_LEFT) -1 else 1
+                val delta = if (aapKeyCode == KeyEvent.KEYCODE_SOFT_LEFT) -1 else 1
                 send(ScrollWheelEvent(ts, delta))
             }
             return
         }
 
-        send(KeyCodeEvent(ts, keyCode, isPress))
+        send(KeyCodeEvent(ts, aapKeyCode, isPress))
     }
 
     fun send(sensor: SensorEvent) {

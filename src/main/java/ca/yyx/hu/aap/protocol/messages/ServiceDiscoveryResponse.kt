@@ -101,7 +101,7 @@ class ServiceDiscoveryResponse(settings: Settings)
             mic.mediaSourceService = Protocol.Service.MediaSourceService()
             mic.mediaSourceService.type = Protocol.MEDIA_CODEC_AUDIO
             val micConfig = Protocol.AudioConfiguration()
-            micConfig.sampleRate = settings.micSampleRate
+            micConfig.sampleRate = 16000
             micConfig.numberOfBits = 16
             micConfig.numberOfChannels = 1
             mic.mediaSourceService.audioConfig = micConfig

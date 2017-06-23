@@ -37,7 +37,7 @@ class ProjectionView : SurfaceView, SurfaceHolder.Callback {
     }
 
     private fun init() {
-        mVideoDecoder = App.get(context).videoDecoder()
+        mVideoDecoder = App.provide(context).videoDecoder
         holder.addCallback(this)
     }
 

@@ -61,20 +61,19 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
         LocalBroadcastManager.getInstance(this).registerReceiver(keyCodeReceiver, LocalIntent.FILTER_KEY_EVENT)
     }
 
-    private fun transport(): AapTransport {
-        return App.get(this).transport()
-    }
+    val transport: AapTransport
+        get() = App.provide(this).transport
 
     override fun surfaceCreated(holder: SurfaceHolder) {
 
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-        transport().send(VideoFocusEvent(true, true))
+        transport.send(VideoFocusEvent(true, true))
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
-        transport().send(VideoFocusEvent(false, true))
+        transport.send(VideoFocusEvent(false, true))
     }
 
     private fun sendTouchEvent(event: MotionEvent) {
@@ -93,7 +92,7 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
             return
         }
         val ts = SystemClock.elapsedRealtime()
-        transport().send(TouchEvent(ts, action, x.toInt(), y.toInt()))
+        transport.send(TouchEvent(ts, action, x.toInt(), y.toInt()))
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -111,13 +110,13 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
     }
 
     private fun onKeyEvent(keyCode: Int, isPress: Boolean) {
-        transport().sendButton(keyCode, isPress)
+        transport.sendButton(keyCode, isPress)
     }
 
     companion object {
-        val EXTRA_FOCUS = "focus"
-        private val VIDEO_WIDTH = 800.0
-        private val VIDEO_HEIGHT = 480.0
+        const val EXTRA_FOCUS = "focus"
+        private const val VIDEO_WIDTH = 800.0
+        private const val VIDEO_HEIGHT = 480.0
 
         fun start(context: Context) {
             val aapIntent = Intent(context, AapProjectionActivity::class.java)

@@ -15,7 +15,7 @@ import com.google.protobuf.nano.MessageNano
 class ScrollWheelEvent(timeStamp: Long, delta: Int)
     : AapMessage(Channel.ID_INP, MsgType.Input.EVENT, ScrollWheelEvent.makeProto(timeStamp, delta)) {
     companion object {
-        val KEYCODE_SCROLL_WHEEL = 65536
+        const val KEYCODE_SCROLL_WHEEL = 65536
 
         private fun makeProto(timeStamp: Long, delta: Int): MessageNano {
             val inputReport = Protocol.InputReport()

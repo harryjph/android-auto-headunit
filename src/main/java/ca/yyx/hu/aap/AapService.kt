@@ -26,7 +26,6 @@ import ca.yyx.hu.connection.UsbAccessoryConnection
 import ca.yyx.hu.connection.UsbReceiver
 import ca.yyx.hu.decoder.AudioDecoder
 import ca.yyx.hu.location.GpsLocationService
-import ca.yyx.hu.roadrover.DeviceListener
 import ca.yyx.hu.utils.*
 
 /**
@@ -42,7 +41,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     private lateinit var mUiModeManager: UiModeManager
     private var mAccessoryConnection: AccessoryConnection? = null
     private lateinit var mUsbReceiver: UsbReceiver
-    private lateinit var mTimeTickReceiver: BroadcastReceiver
+    private lateinit var nightModeReceiver: BroadcastReceiver
 
     override fun onBind(intent: Intent): IBinder? {
         return null
@@ -54,23 +53,26 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
         mUiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
         mUiModeManager.nightMode = UiModeManager.MODE_NIGHT_AUTO
 
-        mAudioDecoder = App.get(this).audioDecoder()
+        mAudioDecoder = App.provide(this).audioDecoder
 
         mMediaSession = MediaSessionCompat(this, "MediaSession", ComponentName(this, RemoteControlReceiver::class.java), null)
         mMediaSession.setCallback(MediaSessionCallback(this))
         mMediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
 
         mUsbReceiver = UsbReceiver(this)
-        mTimeTickReceiver = TimeTickReceiver(Settings(this), mUiModeManager)
+        nightModeReceiver = NightModeReceiver(Settings(this), mUiModeManager)
 
-        registerReceiver(mTimeTickReceiver, IntentFilter(Intent.ACTION_TIME_TICK))
+        val nightModeFilter = IntentFilter()
+        nightModeFilter.addAction(Intent.ACTION_TIME_TICK)
+        nightModeFilter.addAction(LocalIntent.FILTER_LOCATION_UPDATE.getAction(0))
+        registerReceiver(nightModeReceiver, nightModeFilter)
         registerReceiver(mUsbReceiver, UsbReceiver.createFilter())
     }
 
     override fun onDestroy() {
         super.onDestroy()
         onDisconnect()
-        unregisterReceiver(mTimeTickReceiver)
+        unregisterReceiver(nightModeReceiver)
         unregisterReceiver(mUsbReceiver)
         mUiModeManager.disableCarMode(0)
     }
@@ -120,7 +122,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     override fun onConnectionResult(success: Boolean) {
         if (success) {
             reset()
-            App.get(this).transport().connectAndStart(mAccessoryConnection!!)
+            App.provide(this).transport.connectAndStart(mAccessoryConnection!!)
         } else {
             AppLog.e("Cannot connect to device")
             Toast.makeText(this, "Cannot connect to the device", Toast.LENGTH_SHORT).show()
@@ -129,17 +131,16 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     }
 
     private fun onDisconnect() {
-        LocalBroadcastManager.getInstance(this).sendBroadcast(LocalIntent.ACTION_DISCONNECT)
+        LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(LocalIntent.ACTION_DISCONNECT))
         reset()
         mAccessoryConnection!!.disconnect()
         mAccessoryConnection = null
     }
 
     private fun reset() {
-        App.get(this).transport().quit()
+        App.provide(this).resetTransport()
         mAudioDecoder.stop()
-        App.get(this).videoDecoder().stop("AapService::reset")
-        App.get(this).reset()
+        App.provide(this).videoDecoder.stop("AapService::reset")
     }
 
 
@@ -156,25 +157,25 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
         override fun onSkipToNext() {
             AppLog.i("onSkipToNext")
 
-            App.get(mContext).transport().sendButton(KeyEvent.KEYCODE_MEDIA_NEXT, true)
+            App.provide(mContext).transport.sendButton(KeyEvent.KEYCODE_MEDIA_NEXT, true)
             Utils.ms_sleep(10)
-            App.get(mContext).transport().sendButton(KeyEvent.KEYCODE_MEDIA_NEXT, false)
+            App.provide(mContext).transport.sendButton(KeyEvent.KEYCODE_MEDIA_NEXT, false)
         }
 
         override fun onSkipToPrevious() {
             AppLog.i("onSkipToPrevious")
 
-            App.get(mContext).transport().sendButton(KeyEvent.KEYCODE_MEDIA_PREVIOUS, true)
+            App.provide(mContext).transport.sendButton(KeyEvent.KEYCODE_MEDIA_PREVIOUS, true)
             Utils.ms_sleep(10)
-            App.get(mContext).transport().sendButton(KeyEvent.KEYCODE_MEDIA_PREVIOUS, false)
+            App.provide(mContext).transport.sendButton(KeyEvent.KEYCODE_MEDIA_PREVIOUS, false)
         }
 
         override fun onPlay() {
             AppLog.i("PLAY")
 
-            App.get(mContext).transport().sendButton(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, true)
+            App.provide(mContext).transport.sendButton(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, true)
             Utils.ms_sleep(10)
-            App.get(mContext).transport().sendButton(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, false)
+            App.provide(mContext).transport.sendButton(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, false)
         }
 
         override fun onMediaButtonEvent(mediaButtonEvent: Intent): Boolean {
@@ -199,28 +200,36 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
 
     }
 
-    private class TimeTickReceiver(settings: Settings, private val mUiModeManager: UiModeManager) : BroadcastReceiver() {
-        private val mNightMode: NightMode = NightMode(settings)
-        private var mLastNightMode = false
+    private class NightModeReceiver(private val settings: Settings, private val mUiModeManager: UiModeManager) : BroadcastReceiver() {
+        private var nightMode = NightMode(settings, false)
+        private var initialized = false
+        private var lastValue = false
 
         override fun onReceive(context: Context, intent: Intent) {
 
-            val isCurrent = mNightMode.current
-            if (mLastNightMode != isCurrent) {
-                mLastNightMode = isCurrent
+            if (!nightMode.hasGPSLocation && intent.action == LocalIntent.ACTION_LOCATION_UPDATE)
+            {
+                nightMode = NightMode(settings, true)
+            }
 
-                mUiModeManager.nightMode = if (isCurrent) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO
-                AppLog.i(mNightMode.toString())
-                App.get(context).transport().send(NightModeEvent(isCurrent))
+            val isCurrent = nightMode.current
+            if (!initialized || lastValue != isCurrent) {
+                lastValue = isCurrent
+                AppLog.i(nightMode.toString())
+                initialized = App.provide(context).transport.send(NightModeEvent(isCurrent))
+                if (initialized)
+                {
+                    mUiModeManager.nightMode = if (isCurrent) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO
+                }
             }
         }
     }
 
     companion object {
-        private val TYPE_USB = 1
-        private val TYPE_WIFI = 2
-        val EXTRA_CONNECTION_TYPE = "extra_connection_type"
-        val EXTRA_IP = "extra_ip"
+        private const val TYPE_USB = 1
+        private const val TYPE_WIFI = 2
+        const val EXTRA_CONNECTION_TYPE = "extra_connection_type"
+        const val EXTRA_IP = "extra_ip"
 
         fun createIntent(device: UsbDevice, context: Context): Intent {
             val intent = Intent(context, AapService::class.java)

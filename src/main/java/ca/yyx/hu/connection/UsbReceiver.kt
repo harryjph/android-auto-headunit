@@ -36,8 +36,8 @@ class UsbReceiver(private val mListener: UsbReceiver.Listener)          // USB B
     }
 
     companion object {
-        var ACTION_USB_DEVICE_PERMISSION = "ca.yyx.hu.ACTION_USB_DEVICE_PERMISSION"
-        val EXTRA_CONNECT = "EXTRA_CONNECT"
+        const val ACTION_USB_DEVICE_PERMISSION = "ca.yyx.hu.ACTION_USB_DEVICE_PERMISSION"
+        const val EXTRA_CONNECT = "EXTRA_CONNECT"
 
         fun createFilter(): IntentFilter {
             val filter = IntentFilter()

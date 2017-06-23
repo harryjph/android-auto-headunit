@@ -86,9 +86,9 @@ class UsbModeSwitch(private val mUsbMgr: UsbManager) {
 
     companion object {
 
-        private val USB_TIMEOUT_IN_MS = 100
-        private val MANUFACTURER = "Android"//"Mike";                    // Manufacturer
-        private val MODEL = "Android Auto"//"Android Open Automotive Protocol"  // Model
+        private const val USB_TIMEOUT_IN_MS = 100
+        private const val MANUFACTURER = "Android"//"Mike";                    // Manufacturer
+        private const val MODEL = "Android Auto"//"Android Open Automotive Protocol"  // Model
         //    private static String str_DES = "Head Unit";                           // Description
         //    private static String str_VER = "1.0";                                 // Version
         //    private static String str_URI = "http://www.android.com/";             // URI
@@ -98,16 +98,16 @@ class UsbModeSwitch(private val mUsbMgr: UsbManager) {
         // "Android", "Android Auto", "Description", "VersionName", "https://developer.android.com/auto/index.html", "62skidoo"
 
         // Indexes for strings sent by the host via ACC_REQ_SEND_STRING:
-        private val ACC_IDX_MAN = 0
-        private val ACC_IDX_MOD = 1
+        private const val ACC_IDX_MAN = 0
+        private const val ACC_IDX_MOD = 1
         //private static final int ACC_IDX_DES = 2;
         //private static final int ACC_IDX_VER = 3;
         //private static final int ACC_IDX_URI = 4;
         //private static final int ACC_IDX_SER = 5;
         // OAP Control requests:
-        private val ACC_REQ_GET_PROTOCOL = 51
-        private val ACC_REQ_SEND_STRING = 52
-        private val ACC_REQ_START = 53
+        private const val ACC_REQ_GET_PROTOCOL = 51
+        private const val ACC_REQ_SEND_STRING = 52
+        private const val ACC_REQ_START = 53
     }
 
 }

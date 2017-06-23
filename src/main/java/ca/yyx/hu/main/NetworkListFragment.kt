@@ -176,6 +176,6 @@ class NetworkListFragment : BaseFragment() {
     }
 
     companion object {
-        val TAG = "NetworkListFragment"
+        const val TAG = "NetworkListFragment"
     }
 }

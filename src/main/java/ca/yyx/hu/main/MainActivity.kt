@@ -71,7 +71,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        mVideoButton.isEnabled = App.get(this).transport().isAlive
+        mVideoButton.isEnabled = App.provide(this).transport.isAlive
         CrashManager.register(this)
     }
 

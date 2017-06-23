@@ -34,7 +34,7 @@ class UsbAttachedActivity : Activity() {
             return
         }
 
-        if (App.get(this).transport().isAlive) {
+        if (App.provide(this).transport.isAlive) {
             AppLog.e("Thread already running")
             finish()
             return
@@ -80,7 +80,7 @@ class UsbAttachedActivity : Activity() {
 
         AppLog.i(UsbDeviceCompat.getUniqueName(device))
 
-        if (!App.get(this).transport().isAlive) {
+        if (!App.provide(this).transport.isAlive) {
             if (UsbDeviceCompat.isInAccessoryMode(device)) {
                 AppLog.e("Usb in accessory mode")
                 startService(AapService.createIntent(device, this))

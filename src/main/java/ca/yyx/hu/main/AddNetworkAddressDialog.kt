@@ -52,17 +52,13 @@ class AddNetworkAddressDialog : android.app.DialogFragment() {
     companion object {
 
         fun create(ip: java.net.InetAddress?): ca.yyx.hu.main.AddNetworkAddressDialog {
-
             val dialog = ca.yyx.hu.main.AddNetworkAddressDialog()
-
             val args = android.os.Bundle()
             if (ip != null) {
                 args.putSerializable("ip", ip)
             }
             dialog.arguments = args
-
             return dialog
-
         }
 
         internal fun strToByte(str: String): Byte {

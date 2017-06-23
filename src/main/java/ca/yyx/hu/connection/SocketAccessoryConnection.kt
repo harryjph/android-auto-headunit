@@ -82,6 +82,6 @@ class SocketAccessoryConnection(internal val mIp: String) : AccessoryConnection 
     }
 
     companion object {
-        private val DEF_BUFFER_LENGTH = 131080
+        private const val DEF_BUFFER_LENGTH = 131080
     }
 }

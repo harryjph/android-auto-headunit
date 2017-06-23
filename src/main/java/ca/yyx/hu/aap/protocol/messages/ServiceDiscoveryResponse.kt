@@ -115,7 +115,7 @@ class ServiceDiscoveryResponse(settings: Settings)
                 bluetooth.bluetoothService.supportedPairingMethods = intArrayOf(Protocol.Service.BluetoothService.BLUETOOTH_PARING_METHOD_HFP)
                 services.add(bluetooth)
             } else {
-                AppLog.i("BT MAC Address is null. Skip bluetooth service")
+                AppLog.i("BT MAC Address is empty. Skip bluetooth service")
             }
 
             carInfo.services = services.toTypedArray()

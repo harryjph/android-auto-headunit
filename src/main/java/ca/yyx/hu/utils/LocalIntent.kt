@@ -17,12 +17,14 @@ import android.view.KeyEvent
 
 object LocalIntent {
 
-    val ACTION_DISCONNECT = Intent("ca.yyx.hu.ACTION_DISCONNECT")
+    const val ACTION_DISCONNECT = "ca.yyx.hu.ACTION_DISCONNECT"
+    const val ACTION_LOCATION_UPDATE = "ca.yyx.hu.LOCATION_UPDATE"
+
     val FILTER_DISCONNECT = IntentFilter("ca.yyx.hu.ACTION_DISCONNECT")
     val FILTER_LOCATION_UPDATE = IntentFilter("ca.yyx.hu.LOCATION_UPDATE")
     val FILTER_KEY_EVENT = IntentFilter("ca.yyx.hu.ACTION_KEYPRESS")
 
-    val EXTRA_EVENT = "event"
+    const val EXTRA_EVENT = "event"
 
     fun createKeyEvent(event: KeyEvent): Intent {
         val intent = Intent("ca.yyx.hu.ACTION_KEYPRESS")

@@ -38,7 +38,7 @@ class AudioDecoder {
     }
 
     companion object {
-        val SAMPLE_RATE_HZ_48 = 48000
-        val SAMPLE_RATE_HZ_16 = 16000
+        const val SAMPLE_RATE_HZ_48 = 48000
+        const val SAMPLE_RATE_HZ_16 = 16000
     }
 }

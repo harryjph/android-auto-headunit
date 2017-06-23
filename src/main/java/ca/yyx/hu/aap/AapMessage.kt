@@ -86,10 +86,10 @@ open class AapMessage(
     }
 
     companion object {
-        internal val HEADER_SIZE = 4
+        const val HEADER_SIZE = 4
 
         private fun size(proto: MessageNano): Int {
-            return proto.getSerializedSize() + MsgType.SIZE + HEADER_SIZE
+            return proto.serializedSize + MsgType.SIZE + HEADER_SIZE
         }
 
         private fun flags(channel: Int, type: Int): Byte {

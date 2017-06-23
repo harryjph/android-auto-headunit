@@ -6,17 +6,12 @@ import android.util.SparseIntArray
 import android.view.KeyEvent
 import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.aap.protocol.messages.*
-import ca.yyx.hu.aap.protocol.nano.Protocol
 import ca.yyx.hu.connection.AccessoryConnection
 import ca.yyx.hu.decoder.AudioDecoder
 import ca.yyx.hu.decoder.MicRecorder
 import ca.yyx.hu.decoder.VideoDecoder
-import ca.yyx.hu.utils.AppLog
-import ca.yyx.hu.utils.NightMode
-import ca.yyx.hu.utils.Settings
-import ca.yyx.hu.utils.Utils
+import ca.yyx.hu.utils.*
 import java.util.*
-import kotlin.collections.HashMap
 
 class AapTransport(
         audioDecoder: AudioDecoder,
@@ -43,13 +38,6 @@ class AapTransport(
 
     internal fun startSensor(type: Int) {
         mStartedSensors.add(type)
-        if (type == Protocol.SENSOR_TYPE_NIGHT) {
-            Utils.ms_sleep(2)
-            val nm = NightMode(mSettings)
-            AppLog.i("Send night mode")
-            send(NightModeEvent(nm.current))
-            AppLog.i(nm.toString())
-        }
     }
 
     interface Listener {
@@ -218,11 +206,13 @@ class AapTransport(
         send(KeyCodeEvent(ts, aapKeyCode, isPress))
     }
 
-    fun send(sensor: SensorEvent) {
+    fun send(sensor: SensorEvent): Boolean {
         if (mStartedSensors.contains(sensor.sensorType)) {
             send(sensor as AapMessage)
+            return true
         } else {
             AppLog.e("Sensor " + sensor.type + " is not started yet")
+            return false
         }
     }
 
@@ -263,8 +253,8 @@ class AapTransport(
     }
 
     companion object {
-        private val MSG_POLL = 1
-        private val MSG_SEND = 2
+        private const val MSG_POLL = 1
+        private const val MSG_SEND = 2
     }
 
 }

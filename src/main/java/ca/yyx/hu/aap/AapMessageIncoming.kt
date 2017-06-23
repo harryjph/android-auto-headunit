@@ -31,7 +31,7 @@ internal class AapMessageIncoming(header: AapMessageIncoming.EncryptedHeader, ba
         }
 
         companion object {
-            val SIZE = 4
+            const val SIZE = 4
         }
 
     }

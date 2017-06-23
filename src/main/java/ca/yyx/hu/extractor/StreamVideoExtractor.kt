@@ -121,6 +121,6 @@ class StreamVideoExtractor : MediaExtractorInterface {
     }
 
     companion object {
-        private val SPS_BIT: Byte = 0x67
+        private const val SPS_BIT: Byte = 0x67
     }
 }

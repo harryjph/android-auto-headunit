@@ -1,6 +1,8 @@
 package ca.yyx.hu.main
 
+import android.R
 import android.hardware.usb.UsbManager
+import android.widget.Button
 
 import ca.yyx.hu.connection.UsbDeviceCompat
 
@@ -59,8 +61,8 @@ class UsbListFragment : ca.yyx.hu.app.BaseFragment(), ca.yyx.hu.connection.UsbRe
     }
 
     private class DeviceViewHolder internal constructor(itemView: android.view.View) : android.support.v7.widget.RecyclerView.ViewHolder(itemView) {
-        internal val allowButton: android.widget.Button = itemView.findViewById(android.R.id.button1) as android.widget.Button
-        internal val startButton: android.widget.Button = itemView.findViewById(android.R.id.button2) as android.widget.Button
+        internal val allowButton = itemView.findViewById<Button>(R.id.button1)
+        internal val startButton = itemView.findViewById<Button>(android.R.id.button2)
     }
 
     private class DeviceAdapter internal constructor(private val mContext: android.content.Context, private val mSettings: ca.yyx.hu.utils.Settings) : android.support.v7.widget.RecyclerView.Adapter<DeviceViewHolder>(), android.view.View.OnClickListener {

@@ -64,7 +64,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
 
         val nightModeFilter = IntentFilter()
         nightModeFilter.addAction(Intent.ACTION_TIME_TICK)
-        nightModeFilter.addAction(LocalIntent.FILTER_LOCATION_UPDATE.getAction(0))
+        nightModeFilter.addAction(LocalIntent.ACTION_LOCATION_UPDATE)
         registerReceiver(nightModeReceiver, nightModeFilter)
         registerReceiver(mUsbReceiver, UsbReceiver.createFilter())
     }

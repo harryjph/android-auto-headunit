@@ -63,8 +63,8 @@ class NetworkListFragment : BaseFragment() {
     }
 
     private class DeviceViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        internal val allowButton: Button = itemView.findViewById(android.R.id.button1) as Button
-        internal val startButton: Button = itemView.findViewById(android.R.id.button2) as Button
+        internal val allowButton = itemView.findViewById<Button>(android.R.id.button1)
+        internal val startButton = itemView.findViewById<Button>(android.R.id.button2)
     }
 
     private class AddressAdapter

@@ -1,5 +1,7 @@
 package ca.yyx.hu.main
 
+import android.widget.EditText
+
 /**
  * @author algavris
  * *
@@ -13,10 +15,10 @@ class AddNetworkAddressDialog : android.app.DialogFragment() {
         val content = android.view.LayoutInflater.from(activity).inflate(ca.yyx.hu.R.layout.fragment_add_network_address, null, false)
 
 
-        val first = content.findViewById(ca.yyx.hu.R.id.first) as android.widget.EditText
-        val second = content.findViewById(ca.yyx.hu.R.id.second) as android.widget.EditText
-        val third = content.findViewById(ca.yyx.hu.R.id.third) as android.widget.EditText
-        val fourth = content.findViewById(ca.yyx.hu.R.id.fourth) as android.widget.EditText
+        val first = content.findViewById<EditText>(ca.yyx.hu.R.id.first)
+        val second = content.findViewById<EditText>(ca.yyx.hu.R.id.second)
+        val third = content.findViewById<EditText>(ca.yyx.hu.R.id.third)
+        val fourth = content.findViewById<EditText>(ca.yyx.hu.R.id.fourth)
 
         val ip = arguments.getSerializable("ip") as java.net.InetAddress
         val addr = ip.address

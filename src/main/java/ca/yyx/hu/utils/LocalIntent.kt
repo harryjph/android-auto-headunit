@@ -21,7 +21,7 @@ object LocalIntent {
     const val ACTION_LOCATION_UPDATE = "ca.yyx.hu.LOCATION_UPDATE"
 
     val FILTER_DISCONNECT = IntentFilter("ca.yyx.hu.ACTION_DISCONNECT")
-    val FILTER_LOCATION_UPDATE = IntentFilter("ca.yyx.hu.LOCATION_UPDATE")
+    val FILTER_LOCATION_UPDATE = IntentFilter(ACTION_LOCATION_UPDATE)
     val FILTER_KEY_EVENT = IntentFilter("ca.yyx.hu.ACTION_KEYPRESS")
 
     const val EXTRA_EVENT = "event"
@@ -33,7 +33,7 @@ object LocalIntent {
     }
 
     fun createLocationUpdate(location: Location): Intent {
-        val intent = Intent("ca.yyx.hu.LOCATION_UPDATED")
+        val intent = Intent(ACTION_LOCATION_UPDATE)
         intent.putExtra(LocationManager.KEY_LOCATION_CHANGED, location)
         return intent
     }

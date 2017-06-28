@@ -18,7 +18,7 @@ class SettingsFragment : ca.yyx.hu.app.BaseFragment() {
     override fun onCreateView(inflater: android.view.LayoutInflater, container: android.view.ViewGroup, savedInstanceState: android.os.Bundle?): android.view.View {
         val view = inflater.inflate(ca.yyx.hu.R.layout.fragment_settings, container, false)
 
-        (view.findViewById(R.id.keymap) as Button).setOnClickListener {
+        view.findViewById<Button>(R.id.keymap).setOnClickListener {
             fragmentManager
                     .beginTransaction()
                     .replace(R.id.main_content, KeymapFragment())
@@ -27,7 +27,7 @@ class SettingsFragment : ca.yyx.hu.app.BaseFragment() {
 
         settings = Settings(activity)
 
-        val sampleRateButton = view.findViewById(R.id.mic_sample_rate) as Button
+        val sampleRateButton = view.findViewById<Button>(R.id.mic_sample_rate)
         val sampleRate = settings.micSampleRate
         sampleRateButton.text = getString(R.string.mic_sample_rate, sampleRate/1000)
         sampleRateButton.tag = sampleRate
@@ -46,7 +46,7 @@ class SettingsFragment : ca.yyx.hu.app.BaseFragment() {
         }
 
 
-        val nightModeButton = view.findViewById(R.id.night_mode) as Button
+        val nightModeButton = view.findViewById<Button>(R.id.night_mode)
         val nightMode = settings.nightMode
         val nightModeTitles = resources.getStringArray(R.array.night_mode);
         nightModeButton.text = getString(R.string.night_mode, nightModeTitles[nightMode.value])
@@ -59,7 +59,7 @@ class SettingsFragment : ca.yyx.hu.app.BaseFragment() {
             settings.nightMode = newMode
         }
 
-        val btAddressButton = view.findViewById(R.id.bt_address) as Button
+        val btAddressButton = view.findViewById<Button>(R.id.bt_address)
         btAddressButton.text = getString(R.string.bluetooth_address_s, settings.bluetoothAddress)
         btAddressButton.setOnClickListener {
             val editView = EditText(activity)

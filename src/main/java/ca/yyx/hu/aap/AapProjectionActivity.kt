@@ -41,7 +41,7 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
         AppLog.i("Headunit for Android Auto (tm) - Copyright 2011-2015 Michael A. Reid. All Rights Reserved...")
 
-        mProjectionView = findViewById(R.id.surface) as ProjectionView
+        mProjectionView = findViewById<ProjectionView>(R.id.surface)
         mProjectionView.setSurfaceCallback(this)
         mProjectionView.setOnTouchListener { _, event ->
             sendTouchEvent(event)

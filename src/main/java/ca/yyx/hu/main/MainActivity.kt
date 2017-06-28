@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
+import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 
 import net.hockeyapp.android.CrashManager
@@ -40,14 +42,14 @@ class MainActivity : Activity() {
             startActivity(aapIntent)
         }
 
-        findViewById(R.id.usb).setOnClickListener {
+        findViewById<ImageButton>(R.id.usb).setOnClickListener {
             fragmentManager
                     .beginTransaction()
                     .replace(R.id.main_content, UsbListFragment())
                     .commit()
         }
 
-        findViewById(R.id.settings).setOnClickListener {
+        findViewById<ImageButton>(R.id.settings).setOnClickListener {
             fragmentManager
                     .beginTransaction()
                     .replace(R.id.main_content, SettingsFragment())
@@ -57,7 +59,7 @@ class MainActivity : Activity() {
         try {
             val currentIp = NetworkUtils.getWifiIpAddress(this)
             val inet = NetworkUtils.intToInetAddress(currentIp)
-            val ipView = findViewById(R.id.ip_address) as TextView
+            val ipView = findViewById<TextView>(R.id.ip_address)
             ipView.text = inet?.hostAddress ?: ""
         } catch (ignored: IOException) { }
 

@@ -98,7 +98,6 @@ internal object AapDump {
                     return "Codec Data"         // First Video packet, respond with Media Ack
                 else
                     return "1 !"
-                return "Version Response"                            // short:major  short:minor   short:status
             }
             2 -> return "Version Response"
             3 -> return "SSL Handshake Data"                          // First/Request from HU, Second/Response from AA
@@ -132,19 +131,6 @@ internal object AapDump {
                     return "Sensor/Media Start Request"
                 else
                     return "32769 !"            // src AA also Media Start Request ????
-                if (src == 'H')
-                    return "Sensor Start Response"
-                else if (src == 'A')
-                    return "Touch/Input/Audio Start/Stop Request"
-                else
-                    return "32770 !"            // src AA also Media Stop Request ?
-                if (len == 6)
-                    return "Media Setup Response"
-                else if (len == 2)
-                    return "Key Binding Response"
-                else
-                    return "Sensor Notification"
-                return "Codec/Media Data Ack"
             }
             MSG_TYPE_32 + 2 -> {
                 if (src == 'H')
@@ -153,13 +139,6 @@ internal object AapDump {
                     return "Touch/Input/Audio Start/Stop Request"
                 else
                     return "32770 !"
-                if (len == 6)
-                    return "Media Setup Response"
-                else if (len == 2)
-                    return "Key Binding Response"
-                else
-                    return "Sensor Notification"
-                return "Codec/Media Data Ack"
             }
             MSG_TYPE_32 + 3 -> {
                 if (len == 6)
@@ -168,7 +147,6 @@ internal object AapDump {
                     return "Key Binding Response"
                 else
                     return "Sensor Notification"
-                return "Codec/Media Data Ack"
             }
             MSG_TYPE_32 + 4 -> return "Codec/Media Data Ack"
             MSG_TYPE_32 + 5 -> return "Mic Start/Stop Request"
@@ -201,20 +179,19 @@ internal object AapDump {
         Log.v(AppLog.TAG, logHex(prefix, start, buf, len, StringBuilder()).toString())
     }
 
-    fun logHex(prefix: String, start: Int, buf: ByteArray, len: Int, sb: StringBuilder): StringBuilder {
-        var len = len
+    fun logHex(prefix: String, start: Int, buf: ByteArray, length: Int, sb: StringBuilder): StringBuilder {
+        var len = length
 
         if (len + start > MAX_HEX_DUMP)
             len = MAX_HEX_DUMP + start
 
-        var i: Int
+        var i: Int = start
         var n: Int
 
         sb.append(prefix)
         var line = String.format(Locale.US, " %08d ", 0)
         sb.append(line)
 
-        i = start
         n = 1
         while (i < len) {                           // i keeps incrementing, n gets reset to 0 each line
 

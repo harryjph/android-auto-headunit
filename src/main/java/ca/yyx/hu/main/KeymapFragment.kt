@@ -70,12 +70,12 @@ class KeymapFragment : ca.yyx.hu.app.BaseFragment(), MainActivity.KeyListener, V
 
         idToCode.forEach({
             (resId, keyCode) ->
-            val button = view.findViewById(resId) as Button
+            val button = view.findViewById<Button>(resId)
             button.tag = keyCode
             button.setOnClickListener(this)
         })
 
-        view.findViewById(R.id.reset_codes).setOnClickListener {
+        view.findViewById<Button>(R.id.reset_codes).setOnClickListener {
             codesMap = mutableMapOf()
             settings.keyCodes = codesMap
         }
@@ -155,6 +155,6 @@ class KeymapFragment : ca.yyx.hu.app.BaseFragment(), MainActivity.KeyListener, V
             it.value == keyCode
         })?.key ?: keyCode
         val resId = codeToId[mappedCode] ?: return null
-        return view.findViewById(resId) as? Button
+        return view.findViewById<Button>(resId)
     }
 }

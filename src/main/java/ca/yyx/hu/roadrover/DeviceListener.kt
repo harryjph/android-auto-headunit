@@ -3,9 +3,12 @@ package ca.yyx.hu.roadrover
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.IntentFilter
 import android.support.v4.content.LocalBroadcastManager
 import android.view.KeyEvent
+import ca.yyx.hu.App
+import ca.yyx.hu.aap.AapProjectionActivity
 
 import ca.yyx.hu.utils.AppLog
 import ca.yyx.hu.utils.LocalIntent
@@ -32,6 +35,13 @@ class DeviceListener : BroadcastReceiver() {
             }
         } else if (ACTION_STARTMUSIC == intent.action) {
             sendButton(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, context)
+        } else if (CALL_INCOME == intent.action || CALL_PHONE == intent.action) {
+            if (App.provide(context).transport.isAlive) {
+                val aapIntent = Intent(context, AapProjectionActivity::class.java)
+                aapIntent.putExtra(AapProjectionActivity.EXTRA_FOCUS, true)
+                aapIntent.flags = FLAG_ACTIVITY_NEW_TASK
+                context.startActivity(aapIntent)
+            }
         }
     }
 
@@ -68,6 +78,14 @@ class DeviceListener : BroadcastReceiver() {
         const val CAR_ODD_DATA = "com.roadrover.odddata"
         const val CAR_SET_DATA = "com.roadrover.carsetdata.changed"
 
+        const val BLUETOOTH_CALL = "com.iflytek.testbluetoothcall"
+        const val CALL_INCOME = "com.roadrover.incomecall"
+        const val CALL_WAIT = "com.roadrover.waitcall"
+        const val CALL_PHONE = "com.roadrover.phone"
+        const val CALL_DEVICE_LINK = "com.roadrover.devicelinkupdate"
+        const val CALL_AUDIO = "com.roadrover.AUDIO"
+        const val CALL_PHONE_NUMBER = "CZY_PHONE_NUMBER"
+
         fun createIntentFilter(): IntentFilter {
             val filter = IntentFilter()
             filter.addAction(ACTION_AUDIO)
@@ -92,6 +110,14 @@ class DeviceListener : BroadcastReceiver() {
             filter.addAction(RADAR_DATA_CHANGED)
             filter.addAction(CAR_ODD_DATA)
             filter.addAction(CAR_SET_DATA)
+
+            filter.addAction(BLUETOOTH_CALL)
+            filter.addAction(CALL_INCOME)
+            filter.addAction(CALL_WAIT)
+            filter.addAction(CALL_PHONE)
+            filter.addAction(CALL_DEVICE_LINK)
+            filter.addAction(CALL_AUDIO)
+            filter.addAction(CALL_PHONE_NUMBER)
             return filter
         }
     }

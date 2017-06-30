@@ -1,5 +1,6 @@
 package ca.yyx.hu.aap
 
+import android.media.AudioManager
 import ca.yyx.hu.aap.protocol.AudioConfigs
 import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.aap.protocol.MsgType
@@ -20,9 +21,9 @@ import com.google.protobuf.nano.MessageNano
  */
 
 internal class AapControl(
-        private val mTransport: AapTransport,
+        private val aapTransport: AapTransport,
         private val mMicRecorder: MicRecorder,
-        private val mAapAudio: AapAudio,
+        private val aapAudio: AapAudio,
         private val mSettings: Settings) {
 
     @Throws(InvalidProtocolBufferNanoException::class)
@@ -84,7 +85,7 @@ internal class AapControl(
     private fun media_sink_stop_request(channel: Int): Int {
         AppLog.i("Media Sink Stop Request: " + Channel.name(channel))
         if (Channel.isAudio(channel)) {
-            mAapAudio.stopAudio(channel)
+            aapAudio.stopAudio(channel)
         }
         return 0
     }
@@ -161,7 +162,7 @@ internal class AapControl(
     private fun media_start_request(request: Protocol.Start, channel: Int): Int {
         AppLog.i("Media Start Request %s: %s", Channel.name(channel), request)
 
-        mTransport.setSessionId(channel, request.sessionId)
+        aapTransport.setSessionId(channel, request.sessionId)
         return 0
     }
 
@@ -178,10 +179,10 @@ internal class AapControl(
 
         val msg = AapMessage(channel, MsgType.Media.CONFIGRESPONSE, configResponse)
         AppLog.i(msg.toString())
-        mTransport.send(msg)
+        aapTransport.send(msg)
 
         if (channel == Channel.ID_VID) {
-            mTransport.gainVideoFocus()
+            aapTransport.gainVideoFocus()
         }
 
         return 0
@@ -190,7 +191,7 @@ internal class AapControl(
     private fun input_binding(request: Protocol.KeyBindingRequest, channel: Int): Int {
         AppLog.i("Input binding request %s", request)
 
-        mTransport.send(AapMessage(channel, MsgType.Input.BINDINGRESPONSE, Protocol.BindingResponse()))
+        aapTransport.send(AapMessage(channel, MsgType.Input.BINDINGRESPONSE, Protocol.BindingResponse()))
         return 0
     }
 
@@ -203,9 +204,9 @@ internal class AapControl(
         val msg = AapMessage(channel, MsgType.Sensor.STARTRESPONSE, Protocol.SensorResponse())
         AppLog.i(msg.toString())
 
-        mTransport.send(msg)
+        aapTransport.send(msg)
 
-        mTransport.startSensor(request.type)
+        aapTransport.startSensor(request.type)
         return 0
     }
 
@@ -219,12 +220,12 @@ internal class AapControl(
         val msg = AapMessage(channel, MsgType.Control.CHANNELOPENRESPONSE, response)
         AppLog.i(msg.toString())
 
-        mTransport.send(msg)
+        aapTransport.send(msg)
 
         if (channel == Channel.ID_SEN) {
             Utils.ms_sleep(2)
             AppLog.i("Send driving status")
-            mTransport.send(DrivingStatusEvent(Protocol.SensorBatch.DrivingStatusData.DRIVING_STATUS_PARKED))
+            aapTransport.send(DrivingStatusEvent(Protocol.SensorBatch.DrivingStatusData.DRIVING_STATUS_PARKED))
         }
         return 0
     }
@@ -236,7 +237,7 @@ internal class AapControl(
         val msg = ServiceDiscoveryResponse(mSettings)
         AppLog.i(msg.toString())
 
-        mTransport.send(msg)
+        aapTransport.send(msg)
         return 0
     }
 
@@ -250,7 +251,7 @@ internal class AapControl(
         val msg = AapMessage(channel, MsgType.Control.PINGRESPONSE, response)
         AppLog.i(msg.toString())
 
-        mTransport.send(msg)
+        aapTransport.send(msg)
         return 0
     }
 
@@ -264,7 +265,7 @@ internal class AapControl(
         val msg = AapMessage(channel, MsgType.Control.NAVFOCUSRNOTIFICATION, response)
         AppLog.i(msg.toString())
 
-        mTransport.send(msg)
+        aapTransport.send(msg)
         return 0
     }
 
@@ -276,9 +277,9 @@ internal class AapControl(
 
         val msg = AapMessage(channel, MsgType.Control.BYEYERESPONSE, Protocol.ByeByeResponse())
         AppLog.i(msg.toString())
-        mTransport.send(msg)
+        aapTransport.send(msg)
         Utils.ms_sleep(100)
-        mTransport.quit()
+        aapTransport.quit()
         return -1
     }
 
@@ -295,33 +296,52 @@ internal class AapControl(
 
     @Throws(InvalidProtocolBufferNanoException::class)
     private fun audio_focus_request(notification: Protocol.AudioFocusRequestNotification, channel: Int): Int {                  // Audio Focus Request
-        if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN)
-            AppLog.i("Audio Focus Request: 1 AUDIO_FOCUS_GAIN")
-        else if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN_TRANSIENT)
-            AppLog.i("Audio Focus Request: 2 AUDIO_FOCUS_GAIN_TRANSIENT")
-        else if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_UNKNOWN)
-            AppLog.i("Audio Focus Request: 3 gain/release ?")
-        else if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE)
-            AppLog.i("Audio Focus Request: 4 AUDIO_FOCUS_RELEASE")
-        else
-            AppLog.e("Audio Focus Request: %d", notification.request)
+        AppLog.i("Audio Focus Request: ${notification.request} ${focusName[notification.request]}")
 
-        mAapAudio.requestFocusChange(AudioConfigs.stream(channel), notification.request)
+        aapAudio.requestFocusChange(AudioConfigs.stream(channel), notification.request, AudioManager.OnAudioFocusChangeListener {
+            val response = Protocol.AudioFocusNotification()
 
-        val response = Protocol.AudioFocusNotification()
-        if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE) {
-            response.focusState = Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_LOSS
-        } else if (notification.request == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN_TRANSIENT) {
-            response.focusState = Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN
-        } else {
-            response.focusState = Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN
-        }
+            focusResponse[notification.request]?.let { newSate ->
+                AppLog.i("Audio Focus Change: $it ${focusName[it]}")
+                response.focusState = newSate
+                AppLog.i("Audio Focus State: $newSate ${stateName[newSate]}")
 
-        val msg = AapMessage(channel, MsgType.Control.AUDIOFOCUSNOTFICATION, response)
-        AppLog.i(msg.toString())
+                val msg = AapMessage(channel, MsgType.Control.AUDIOFOCUSNOTFICATION, response)
+                AppLog.i(msg.toString())
+                aapTransport.send(msg)
+            }
+        })
 
-        mTransport.send(msg)
         return 0
+    }
+
+    companion object {
+        private val focusName = mapOf(
+            AudioManager.AUDIOFOCUS_GAIN to "AUDIOFOCUS_GAIN",
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT to "AUDIOFOCUS_GAIN_TRANSIENT",
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE to "AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE",
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK to "AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK",
+            AudioManager.AUDIOFOCUS_LOSS to "AUDIOFOCUS_LOSS",
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT to "AUDIOFOCUS_LOSS_TRANSIENT",
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK to "AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK",
+            AudioManager.AUDIOFOCUS_NONE to "AUDIOFOCUS_NONE"
+        )
+
+        private val focusResponse = mapOf(
+            AudioManager.AUDIOFOCUS_LOSS to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN,
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN_TRANSIENT,
+            AudioManager.AUDIOFOCUS_GAIN to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS,
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS_TRANSIENT,
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS_TRANSIENT_CAN_DUCK
+        )
+
+        private val stateName = mapOf(
+            Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN to "AUDIOFOCUS_STATE_GAIN",
+            Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN_TRANSIENT to "AUDIOFOCUS_STATE_GAIN_TRANSIENT",
+            Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS to "AUDIOFOCUS_STATE_LOSS",
+            Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS_TRANSIENT to "AUDIOFOCUS_STATE_LOSS_TRANSIENT",
+            Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS_TRANSIENT_CAN_DUCK to "AUDIOFOCUS_STATE_LOSS_TRANSIENT_CAN_DUCK"
+        )
     }
 
 }

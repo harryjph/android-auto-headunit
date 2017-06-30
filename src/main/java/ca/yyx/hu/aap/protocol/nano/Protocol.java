@@ -6433,11 +6433,11 @@ public interface Protocol {
       com.google.protobuf.nano.MessageNano {
 
     // enum AudioFocusRequestType
-    public static final int AUDIO_FOCUS_GAIN = 1;
-    public static final int AUDIO_FOCUS_GAIN_TRANSIENT = 2;
-    public static final int AUDIO_FOCUS_GAIN_TRANSIENT_MAY_DUCK = 3;
-    public static final int AUDIO_FOCUS_RELEASE = 4;
-    public static final int AUDIO_FOCUS_UNKNOWN = 0;
+    public static final int AUDIOFOCUS_GAIN = 1;
+    public static final int AUDIOFOCUS_GAIN_TRANSIENT = 2;
+    public static final int AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK = 3;
+    public static final int AUDIOFOCUS_RELEASE = 4;
+    public static final int AUDIOFOCUS_NONE = 0;
 
     private static volatile AudioFocusRequestNotification[] _emptyArray;
     public static AudioFocusRequestNotification[] emptyArray() {
@@ -6461,7 +6461,7 @@ public interface Protocol {
     }
 
     public AudioFocusRequestNotification clear() {
-      request = ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN;
+      request = ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIOFOCUS_GAIN;
       cachedSize = -1;
       return this;
     }
@@ -6469,7 +6469,7 @@ public interface Protocol {
     @Override
     public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
         throws java.io.IOException {
-      if (this.request != ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN) {
+      if (this.request != ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIOFOCUS_GAIN) {
         output.writeInt32(1, this.request);
       }
       super.writeTo(output);
@@ -6478,7 +6478,7 @@ public interface Protocol {
     @Override
     protected int computeSerializedSize() {
       int size = super.computeSerializedSize();
-      if (this.request != ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN) {
+      if (this.request != ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIOFOCUS_GAIN) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeInt32Size(1, this.request);
       }
@@ -6503,11 +6503,11 @@ public interface Protocol {
           case 8: {
             int value = input.readInt32();
             switch (value) {
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN_TRANSIENT:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN_TRANSIENT_MAY_DUCK:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_UNKNOWN:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIOFOCUS_GAIN:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIOFOCUS_RELEASE:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusRequestNotification.AUDIOFOCUS_NONE:
                 this.request = value;
                 break;
             }
@@ -6533,13 +6533,13 @@ public interface Protocol {
       com.google.protobuf.nano.MessageNano {
 
     // enum AudioFocusStateType
-    public static final int AUDIO_FOCUS_STATE_GAIN = 1;
-    public static final int AUDIO_FOCUS_STATE_GAIN_TRANSIENT = 2;
-    public static final int AUDIO_FOCUS_STATE_LOSS = 3;
-    public static final int AUDIO_FOCUS_STATE_LOSS_TRANSIENT_CAN_DUCK = 4;
-    public static final int AUDIO_FOCUS_STATE_LOSS_TRANSIENT = 5;
-    public static final int AUDIO_FOCUS_STATE_GAIN_MEDIA_ONLY = 6;
-    public static final int AUDIO_FOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY = 7;
+    public static final int AUDIOFOCUS_STATE_GAIN = 1;
+    public static final int AUDIOFOCUS_STATE_GAIN_TRANSIENT = 2;
+    public static final int AUDIOFOCUS_STATE_LOSS = 3;
+    public static final int AUDIOFOCUS_STATE_LOSS_TRANSIENT_CAN_DUCK = 4;
+    public static final int AUDIOFOCUS_STATE_LOSS_TRANSIENT = 5;
+    public static final int AUDIOFOCUS_STATE_GAIN_MEDIA_ONLY = 6;
+    public static final int AUDIOFOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY = 7;
 
     private static volatile AudioFocusNotification[] _emptyArray;
     public static AudioFocusNotification[] emptyArray() {
@@ -6566,7 +6566,7 @@ public interface Protocol {
     }
 
     public AudioFocusNotification clear() {
-      focusState = ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN;
+      focusState = ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN;
       unsolicited = false;
       cachedSize = -1;
       return this;
@@ -6612,13 +6612,13 @@ public interface Protocol {
           case 8: {
             int value = input.readInt32();
             switch (value) {
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN_TRANSIENT:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_LOSS:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_LOSS_TRANSIENT_CAN_DUCK:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_LOSS_TRANSIENT:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN_MEDIA_ONLY:
-              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIO_FOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN_TRANSIENT:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS_TRANSIENT_CAN_DUCK:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS_TRANSIENT:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN_MEDIA_ONLY:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY:
                 this.focusState = value;
                 break;
             }

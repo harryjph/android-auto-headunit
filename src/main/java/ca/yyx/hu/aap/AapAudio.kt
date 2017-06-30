@@ -18,22 +18,18 @@ import ca.yyx.hu.utils.AppLog
  */
 
 internal class AapAudio(
-        private val mAudioDecoder: AudioDecoder,
-        private val mAudioManager: AudioManager) : AudioManager.OnAudioFocusChangeListener {
+        private val audioDecoder: AudioDecoder,
+        private val audioManager: AudioManager) {
 
-    init {
-        mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
-    }
-
-    fun requestFocusChange(stream: Int, focusRequest: Int) {
-        if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_RELEASE) {
-            mAudioManager.abandonAudioFocus(this)
-        } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN) {
-            mAudioManager.requestAudioFocus(this, stream, AudioManager.AUDIOFOCUS_GAIN)
-        } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_GAIN_TRANSIENT) {
-            mAudioManager.requestAudioFocus(this, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-        } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIO_FOCUS_UNKNOWN) {
-            mAudioManager.requestAudioFocus(this, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+    fun requestFocusChange(stream: Int, focusRequest: Int, callback: AudioManager.OnAudioFocusChangeListener) {
+        if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIOFOCUS_RELEASE) {
+            audioManager.abandonAudioFocus(callback)
+        } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIOFOCUS_GAIN) {
+            audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN)
+        } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT) {
+            audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+        } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK) {
+            audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
         }
     }
 
@@ -52,32 +48,22 @@ internal class AapAudio(
             length = AUDIO_BUFS_SIZE
         }
 
-        if (mAudioDecoder.getTrack(channel) == null) {
+        if (audioDecoder.getTrack(channel) == null) {
             val config = AudioConfigs.get(channel)
             val stream = AudioManager.STREAM_MUSIC
-            mAudioDecoder.start(channel, stream, config.sampleRate, config.numberOfBits, config.numberOfChannels)
+            audioDecoder.start(channel, stream, config.sampleRate, config.numberOfBits, config.numberOfChannels)
         }
 
-        mAudioDecoder.decode(channel, buf, start, length)
+        audioDecoder.decode(channel, buf, start, length)
     }
 
     fun stopAudio(channel: Int) {
         AppLog.i("Audio Stop: " + Channel.name(channel))
-        mAudioDecoder.stop(channel)
-    }
-
-    override fun onAudioFocusChange(focusChange: Int) {
-
-        when (focusChange) {
-            AudioManager.AUDIOFOCUS_LOSS -> AppLog.i("LOSS")
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> AppLog.i("LOSS TRANSIENT")
-            AudioManager.AUDIOFOCUS_GAIN -> AppLog.i("GAIN")
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> AppLog.i("LOSS TRANSIENT CAN DUCK")
-        }
+        audioDecoder.stop(channel)
     }
 
     companion object {
-        private val AUDIO_BUFS_SIZE = 65536 * 4  // Up to 256 Kbytes
+        private const val AUDIO_BUFS_SIZE = 65536 * 4  // Up to 256 Kbytes
     }
 }
 

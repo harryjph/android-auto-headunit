@@ -474,11 +474,11 @@ message AudioFocusRequestNotification
 {
     enum AudioFocusRequestType
     {
-        AUDIO_FOCUS_GAIN = 1;
-        AUDIO_FOCUS_GAIN_TRANSIENT = 2;
-        AUDIO_FOCUS_GAIN_TRANSIENT_MAY_DUCK = 3;
-        AUDIO_FOCUS_RELEASE = 4;
-        AUDIO_FOCUS_UNKNOWN = 0;
+        AUDIOFOCUS_GAIN = 1;
+        AUDIOFOCUS_GAIN_TRANSIENT = 2;
+        AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK = 3;
+        AUDIOFOCUS_RELEASE = 4;
+        AUDIOFOCUS_NONE = 0;
     }
     optional AudioFocusRequestType request = 1;
 }
@@ -487,13 +487,13 @@ message AudioFocusNotification
 {
     enum AudioFocusStateType
     {
-        AUDIO_FOCUS_STATE_GAIN = 1;
-        AUDIO_FOCUS_STATE_GAIN_TRANSIENT = 2;
-        AUDIO_FOCUS_STATE_LOSS = 3;
-        AUDIO_FOCUS_STATE_LOSS_TRANSIENT_CAN_DUCK = 4;
-        AUDIO_FOCUS_STATE_LOSS_TRANSIENT = 5;
-        AUDIO_FOCUS_STATE_GAIN_MEDIA_ONLY = 6;
-        AUDIO_FOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY = 7;
+        AUDIOFOCUS_STATE_GAIN = 1;
+        AUDIOFOCUS_STATE_GAIN_TRANSIENT = 2;
+        AUDIOFOCUS_STATE_LOSS = 3;
+        AUDIOFOCUS_STATE_LOSS_TRANSIENT_CAN_DUCK = 4;
+        AUDIOFOCUS_STATE_LOSS_TRANSIENT = 5;
+        AUDIOFOCUS_STATE_GAIN_MEDIA_ONLY = 6;
+        AUDIOFOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY = 7;
     }
     required AudioFocusStateType focus_state = 1;
     optional bool unsolicited = 2;

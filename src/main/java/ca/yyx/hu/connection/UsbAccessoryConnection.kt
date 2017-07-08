@@ -80,7 +80,7 @@ class UsbAccessoryConnection(private val mUsbMgr: UsbManager, private val mDevic
         AppLog.i("Established connection: " + mUsbDeviceConnection!!)
 
         try {
-            val iface_cnt = device.getInterfaceCount()
+            val iface_cnt = device.interfaceCount
             if (iface_cnt <= 0) {
                 AppLog.e("iface_cnt: " + iface_cnt)
                 throw UsbOpenException("No usb interfaces")

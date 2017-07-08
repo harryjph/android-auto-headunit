@@ -2,17 +2,16 @@ package ca.yyx.hu.aap.protocol
 
 object Channel {
 
-    val ID_CTR = 0                               // Sync with AapTransport.java, hu_aap.h and hu_aap.c:aa_type_array[]
-    val ID_SEN = 1
-    val ID_VID = 2
-    val ID_INP = 3
-    val ID_AUD = 6
-    val ID_AU1 = 4
-    val ID_AU2 = 5
-    val ID_MIC = 7
-    val ID_BTH = 8
-
-    internal val MAX = 8
+    const val ID_CTR = 0
+    const val ID_SEN = 1
+    const val ID_VID = 2
+    const val ID_INP = 3
+    const val ID_AUD = 6
+    const val ID_AU1 = 4
+    const val ID_AU2 = 5
+    const val ID_MIC = 7
+    const val ID_BTH = 8
+    const val ID_MPB = 9
 
     fun name(channel: Int): String {
         when (channel) {
@@ -25,6 +24,7 @@ object Channel {
             ID_AU1 -> return "AU1"
             ID_AU2 -> return "AU2"
             ID_BTH -> return "BTH"
+            ID_MPB -> return "MPB"
         }
         return "UNK"
     }

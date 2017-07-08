@@ -77,7 +77,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
         mUiModeManager.disableCarMode(0)
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         mAccessoryConnection = createConnection(intent, this)
         if (mAccessoryConnection == null) {
@@ -133,7 +133,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     private fun onDisconnect() {
         LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(LocalIntent.ACTION_DISCONNECT))
         reset()
-        mAccessoryConnection!!.disconnect()
+        mAccessoryConnection?.disconnect()
         mAccessoryConnection = null
     }
 
@@ -245,9 +245,9 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
             return intent
         }
 
-        private fun createConnection(intent: Intent, context: Context): AccessoryConnection? {
+        private fun createConnection(intent: Intent?, context: Context): AccessoryConnection? {
 
-            val connectionType = intent.getIntExtra(EXTRA_CONNECTION_TYPE, 0)
+            val connectionType = intent?.getIntExtra(EXTRA_CONNECTION_TYPE, 0) ?: 0
 
             if (connectionType == TYPE_USB) {
                 val device = LocalIntent.extractDevice(intent)
@@ -258,7 +258,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
                 val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
                 return UsbAccessoryConnection(usbManager, device)
             } else if (connectionType == TYPE_WIFI) {
-                val ip = intent.getStringExtra(EXTRA_IP)
+                val ip = intent?.getStringExtra(EXTRA_IP) ?: ""
                 return SocketAccessoryConnection(ip)
             }
 

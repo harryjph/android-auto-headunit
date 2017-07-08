@@ -16,7 +16,7 @@ class GpsLocationService : Service() {
         super.onCreate()
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (mGpsLocation == null) {
             mGpsLocation = GpsLocation(this)
         }

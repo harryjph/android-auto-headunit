@@ -39,7 +39,7 @@ internal class AapVideo(private val mVideoDecoder: VideoDecoder) {
             iaap_video_decode(assy, 0, assy_size)
             // Decode H264 video fully re-assembled
         } else {
-            AppLog.e("Video error msg_type: %d  flags: 0x%x  buf: %p  len: %d", msg_type, flags, buf, len)
+            AppLog.e("Video error msg_type: %d flags: 0x%x len: %d", msg_type, flags, len)
         }
 
         return 0

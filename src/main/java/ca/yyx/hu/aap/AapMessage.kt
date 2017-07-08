@@ -4,6 +4,7 @@ package ca.yyx.hu.aap
 import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.aap.protocol.MsgType
 import ca.yyx.hu.utils.Utils
+import com.google.protobuf.nano.InvalidProtocolBufferNanoException
 import com.google.protobuf.nano.MessageNano
 
 /**
@@ -28,7 +29,7 @@ open class AapMessage(
         Utils.intToBytes(proto.serializedSize + MsgType.SIZE, 2, this.data)
         this.data[4] = (msgType shr 8).toByte()
         this.data[5] = (msgType and 0xFF).toByte()
-        MessageNano.toByteArray(proto, this.data, HEADER_SIZE + MsgType.SIZE, proto.getSerializedSize())
+        MessageNano.toByteArray(proto, this.data, HEADER_SIZE + MsgType.SIZE, proto.serializedSize)
     }
 
     val isAudio: Boolean
@@ -42,9 +43,17 @@ open class AapMessage(
         sb.append(Channel.name(channel))
         sb.append(' ')
         sb.append(MsgType.name(type, channel))
-        sb.append('\n')
+        sb.append(" type: ")
+        sb.append(type)
+        sb.append(" flags: ")
+        sb.append(flags)
+        sb.append(" size: ")
+        sb.append(size)
+        sb.append(" dataOffset: ")
+        sb.append(dataOffset)
 
-        AapDump.logHex("", 0, data, this.size, sb)
+//        sb.append('\n')
+//        AapDump.logHex("", 0, data, this.size, sb)
 
         return sb.toString()
     }
@@ -83,6 +92,12 @@ open class AapMessage(
         result = 31 * result + size
  //       result = 31 * result + Arrays.hashCode(data)
         return result
+    }
+
+
+    @Throws(InvalidProtocolBufferNanoException::class)
+    internal fun <T : MessageNano> parse(msg: T): T {
+        return MessageNano.mergeFrom(msg, this.data, this.dataOffset, this.size - this.dataOffset)
     }
 
     companion object {

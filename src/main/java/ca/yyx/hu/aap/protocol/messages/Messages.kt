@@ -9,7 +9,7 @@ import ca.yyx.hu.utils.Utils
  */
 
 object Messages {
-    val DEF_BUFFER_LENGTH = 131080
+    const val DEF_BUFFER_LENGTH = 131080
     var VERSION_REQUEST = byteArrayOf(0, 1, 0, 1)
 
     fun createRawMessage(chan: Int, flags: Int, type: Int, data: ByteArray, size: Int): ByteArray {

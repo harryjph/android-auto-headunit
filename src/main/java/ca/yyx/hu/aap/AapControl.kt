@@ -12,7 +12,6 @@ import ca.yyx.hu.utils.AppLog
 import ca.yyx.hu.utils.Settings
 import ca.yyx.hu.utils.Utils
 import com.google.protobuf.nano.InvalidProtocolBufferNanoException
-import com.google.protobuf.nano.MessageNano
 
 /**
  * @author algavris
@@ -30,7 +29,7 @@ internal class AapControl(
     fun execute(message: AapMessage): Int {
 
         if (message.type == 7) {
-            val request = parse(Protocol.ChannelOpenRequest(), message)
+            val request = message.parse(Protocol.ChannelOpenRequest())
             return channel_open_request(request, message.channel)
         }
 
@@ -48,21 +47,21 @@ internal class AapControl(
 
         when (message.type) {
             MsgType.Media.SETUPREQUEST -> {
-                val setupRequest = parse(Protocol.MediaSetupRequest(), message)
+                val setupRequest = message.parse(Protocol.MediaSetupRequest())
                 return media_sink_setup_request(setupRequest, message.channel)
             }
             MsgType.Media.STARTREQUEST -> {
-                val startRequest = parse(Protocol.Start(), message)
+                val startRequest = message.parse(Protocol.Start())
                 return media_start_request(startRequest, message.channel)
             }
             MsgType.Media.STOPREQUEST -> return media_sink_stop_request(message.channel)
             MsgType.Media.VIDEOFOCUSREQUESTNOTIFICATION -> {
-                val focusRequest = parse(Protocol.VideoFocusRequestNotification(), message)
+                val focusRequest = message.parse(Protocol.VideoFocusRequestNotification())
                 AppLog.i("Video Focus Request - disp_id: %d, mode: %d, reason: %d", focusRequest.dispChannelId, focusRequest.mode, focusRequest.reason)
                 return 0
             }
             MsgType.Media.MICREQUEST -> {
-                val micRequest = parse(Protocol.MicrophoneRequest(), message)
+                val micRequest = message.parse(Protocol.MicrophoneRequest())
                 return mic_request(micRequest)
             }
             MsgType.Media.ACK -> return 0
@@ -95,7 +94,7 @@ internal class AapControl(
 
         when (message.type) {
             MsgType.Input.BINDINGREQUEST -> {
-                val request = parse(Protocol.KeyBindingRequest(), message)
+                val request = message.parse(Protocol.KeyBindingRequest())
                 return input_binding(request, message.channel)
             }
             else -> AppLog.e("Unsupported")
@@ -109,7 +108,7 @@ internal class AapControl(
         // 0 - 31, 32768-32799, 65504-65535
         when (message.type) {
             MsgType.Sensor.STARTREQUEST -> {
-                val request = parse(Protocol.SensorRequest(), message)
+                val request = message.parse(Protocol.SensorRequest())
                 return sensor_start_request(request, message.channel)
             }
             else -> AppLog.e("Unsupported")
@@ -122,19 +121,19 @@ internal class AapControl(
 
         when (message.type) {
             MsgType.Control.SERVICEDISCOVERYREQUEST -> {
-                val request = parse(Protocol.ServiceDiscoveryRequest(), message)
+                val request = message.parse(Protocol.ServiceDiscoveryRequest())
                 return service_discovery_request(request)
             }
             MsgType.Control.PINGREQUEST -> {
-                val pingRequest = parse(Protocol.PingRequest(), message)
+                val pingRequest = message.parse(Protocol.PingRequest())
                 return ping_request(pingRequest, message.channel)
             }
             MsgType.Control.NAVFOCUSREQUESTNOTIFICATION -> {
-                val navigationFocusRequest = parse(Protocol.NavFocusRequestNotification(), message)
+                val navigationFocusRequest = message.parse(Protocol.NavFocusRequestNotification())
                 return navigation_focus_request(navigationFocusRequest, message.channel)
             }
             MsgType.Control.BYEYEREQUEST -> {
-                val shutdownRequest = parse(Protocol.ByeByeRequest(), message)
+                val shutdownRequest = message.parse(Protocol.ByeByeRequest())
                 return byebye_request(shutdownRequest, message.channel)
             }
             MsgType.Control.BYEYERESPONSE -> {
@@ -142,21 +141,16 @@ internal class AapControl(
                 return -1
             }
             MsgType.Control.VOICESESSIONNOTIFICATION -> {
-                val voiceRequest = parse(Protocol.VoiceSessionNotification(), message)
+                val voiceRequest = message.parse(Protocol.VoiceSessionNotification())
                 return voice_session_notification(voiceRequest)
             }
             MsgType.Control.AUDIOFOCUSREQUESTNOTFICATION -> {
-                val audioFocusRequest = parse(Protocol.AudioFocusRequestNotification(), message)
+                val audioFocusRequest = message.parse(Protocol.AudioFocusRequestNotification())
                 return audio_focus_request(audioFocusRequest, message.channel)
             }
             else -> AppLog.e("Unsupported")
         }
         return 0
-    }
-
-    @Throws(InvalidProtocolBufferNanoException::class)
-    private fun <T : MessageNano> parse(msg: T, message: AapMessage): T {
-        return MessageNano.mergeFrom(msg, message.data, message.dataOffset, message.size - message.dataOffset)
     }
 
     private fun media_start_request(request: Protocol.Start, channel: Int): Int {

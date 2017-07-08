@@ -286,7 +286,8 @@ message Service
     }
     optional BluetoothService bluetooth_service = 6;
 
-    message NavigationStatusService {
+    message NavigationStatusService
+    {
         message ImageOptions
         {
             required int32 width = 1;
@@ -300,8 +301,12 @@ message Service
     }
     optional NavigationStatusService navigation_status_service = 8;
 
+    message MediaPlaybackStatusService
+    {
+    }
+    optional MediaPlaybackStatusService media_playback_service = 9;
+
     //radio_service = 7
-    //media_playback_service == 9
     //phone_status_service = 10
     //media_browser_service=11
     //vendor_extension_service==12
@@ -497,4 +502,32 @@ message AudioFocusNotification
     }
     required AudioFocusStateType focus_state = 1;
     optional bool unsolicited = 2;
+}
+
+message MediaPlaybackStatus
+{
+    enum State
+    {
+        MEDIA_SERVICE_STATE_PAUSE = 0;
+        MEDIA_SERVICE_STATE_STOPPED = 1;
+        MEDIA_SERVICE_STATE_PLAYING = 3;
+    }
+
+    optional State state = 1;
+    optional string source = 2;
+    optional uint32 seconds = 3;
+    optional bool shuffle = 4;
+    optional bool repeat = 5;
+    optional bool repeat_one = 6;
+}
+
+message MediaMetaData
+{
+    optional string song = 1;
+    optional string artist = 2;
+    optional string album = 3;
+    optional bytes albumart = 4;
+    optional string playlist = 5;
+    optional uint32 duration = 6;
+    optional uint32 rating = 7;
 }

@@ -8,56 +8,61 @@ package ca.yyx.hu.aap.protocol
 
 object MsgType {
 
-    val SIZE = 2
+    const val SIZE = 2
 
     fun isControl(type: Int): Boolean {
         return type >= Control.MEDIADATA && type <= Control.AUDIOFOCUSNOTFICATION
     }
 
     object Control {
-        val MEDIADATA = 0x00
-        val CODECDATA = 0x01
-        val VERSIONRESPONSE = 0x02
-        val HANDSHAKE = 0x03
-        val SERVICEDISCOVERYREQUEST = 0x05
-        val SERVICEDISCOVERYRESPONSE = 0x06
-        val CHANNELOPENREQUEST = 0x07
-        val CHANNELOPENRESPONSE = 0x08
-        val PINGREQUEST = 0x0B
-        val PINGRESPONSE = 0x0C
-        val NAVFOCUSREQUESTNOTIFICATION = 0x0D
-        val NAVFOCUSRNOTIFICATION = 0x0E
-        val BYEYEREQUEST = 0x0F
-        val BYEYERESPONSE = 0x10
-        val VOICESESSIONNOTIFICATION = 0x11
-        val AUDIOFOCUSREQUESTNOTFICATION = 0x12
-        val AUDIOFOCUSNOTFICATION = 0x13
+        const val MEDIADATA = 0x00
+        const val CODECDATA = 0x01
+        const val VERSIONRESPONSE = 0x02
+        const val HANDSHAKE = 0x03
+        const val SERVICEDISCOVERYREQUEST = 0x05
+        const val SERVICEDISCOVERYRESPONSE = 0x06
+        const val CHANNELOPENREQUEST = 0x07
+        const val CHANNELOPENRESPONSE = 0x08
+        const val PINGREQUEST = 0x0B
+        const val PINGRESPONSE = 0x0C
+        const val NAVFOCUSREQUESTNOTIFICATION = 0x0D
+        const val NAVFOCUSRNOTIFICATION = 0x0E
+        const val BYEYEREQUEST = 0x0F
+        const val BYEYERESPONSE = 0x10
+        const val VOICESESSIONNOTIFICATION = 0x11
+        const val AUDIOFOCUSREQUESTNOTFICATION = 0x12
+        const val AUDIOFOCUSNOTFICATION = 0x13
     }
 
     object Media {
-        val SETUPREQUEST = 0x8000
-        val STARTREQUEST = 0x8001
-        val STOPREQUEST = 0x8002
-        val CONFIGRESPONSE = 0x8003
-        val ACK = 0x8004
-        val MICREQUEST = 0x8005
-        val MICRESPONSE = 0x8006
-        val VIDEOFOCUSREQUESTNOTIFICATION = 0x8007
-        val VIDEOFOCUSNOTIFICATION = 0x8008
+        const val SETUPREQUEST = 0x8000
+        const val STARTREQUEST = 0x8001
+        const val STOPREQUEST = 0x8002
+        const val CONFIGRESPONSE = 0x8003
+        const val ACK = 0x8004
+        const val MICREQUEST = 0x8005
+        const val MICRESPONSE = 0x8006
+        const val VIDEOFOCUSREQUESTNOTIFICATION = 0x8007
+        const val VIDEOFOCUSNOTIFICATION = 0x8008
     }
 
     object Sensor {
-        val STARTREQUEST = 0x8001
-        val STARTRESPONSE = 0x8002
-        val EVENT = 0x8003
+        const val STARTREQUEST = 0x8001
+        const val STARTRESPONSE = 0x8002
+        const val EVENT = 0x8003
     }
 
     object Input {
-        val EVENT = 0x8001
-        val BINDINGREQUEST = 0x8002
-        val BINDINGRESPONSE = 0x8003
+        const val EVENT = 0x8001
+        const val BINDINGREQUEST = 0x8002
+        const val BINDINGRESPONSE = 0x8003
     }
 
+    object Playback {
+        const val METADATA = 0x8001
+        const val STARTRESPONSE = 0x8002
+        const val METADATASTART = 0x8003
+    }
 
     fun name(type: Int, channel: Int): String {
 
@@ -91,6 +96,8 @@ object MsgType {
                     return "Sensor Start Request"
                 } else if (channel == Channel.ID_INP) {
                     return "Input Event"
+                } else if (channel == Channel.ID_MPB) {
+                    return "Media Playback Status"
                 }
                 return "Media Start Request"
             }
@@ -99,6 +106,8 @@ object MsgType {
                     return "Sensor Start Response"
                 } else if (channel == Channel.ID_INP) {
                     return "Input Binding Request"
+                } else if (channel == Channel.ID_MPB) {
+                    return "Media Playback Status"
                 }
                 return "Media Stop Request"
             }
@@ -107,6 +116,8 @@ object MsgType {
                     return "Sensor Event"
                 } else if (channel == Channel.ID_INP) {
                     return "Input Binding Response"
+                } else if (channel == Channel.ID_MPB) {
+                    return "Media Playback Status"
                 }
                 return "Media Config Response"
             }

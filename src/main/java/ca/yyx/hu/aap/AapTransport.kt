@@ -211,7 +211,7 @@ class AapTransport(
             send(sensor as AapMessage)
             return true
         } else {
-            AppLog.e("Sensor " + sensor.type + " is not started yet")
+            AppLog.e("Sensor " + sensor.sensorType + " is not started yet")
             return false
         }
     }

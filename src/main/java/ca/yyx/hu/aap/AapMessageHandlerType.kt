@@ -1,9 +1,15 @@
 package ca.yyx.hu.aap
 
+import ca.yyx.hu.aap.protocol.Channel
+import ca.yyx.hu.aap.protocol.MsgType
+import ca.yyx.hu.aap.protocol.messages.Messages
+import ca.yyx.hu.aap.protocol.nano.Protocol
 import ca.yyx.hu.decoder.MicRecorder
 import ca.yyx.hu.utils.AppLog
 import ca.yyx.hu.utils.Settings
 import com.google.protobuf.nano.InvalidProtocolBufferNanoException
+import com.google.protobuf.nano.MessageNano
+import java.nio.ByteBuffer
 
 /**
  * @author algavris
@@ -12,13 +18,14 @@ import com.google.protobuf.nano.InvalidProtocolBufferNanoException
  */
 
 internal class AapMessageHandlerType(
-        private val mTransport: AapTransport,
+        private val transport: AapTransport,
         recorder: MicRecorder,
-        private val mAapAudio: AapAudio,
-        private val mAapVideo: AapVideo,
+        private val aapAudio: AapAudio,
+        private val aapVideo: AapVideo,
         settings: Settings) : AapMessageHandler {
 
-    private val mAapControl: AapControl = AapControl(mTransport, recorder, mAapAudio, settings)
+    private val aapControl: AapControl = AapControl(transport, recorder, aapAudio, settings)
+    private val mediaPlayback = AapMediaPlayback(transport)
 
     @Throws(AapMessageHandler.HandleException::class)
     override fun handle(message: AapMessage) {
@@ -27,21 +34,23 @@ internal class AapMessageHandlerType(
         val flags = message.flags
 
         if (message.isAudio && (msg_type == 0 || msg_type == 1)) {
-            mTransport.sendMediaAck(message.channel)
-            mAapAudio.process(message)
+            transport.sendMediaAck(message.channel)
+            aapAudio.process(message)
             // 300 ms @ 48000/sec   samples = 14400     stereo 16 bit results in bytes = 57600
-        } else if (message.isVideo && msg_type == 0 || msg_type == 1 || flags.toInt() == 8 || flags.toInt() == 9 || flags.toInt() == 10) {
-            mTransport.sendMediaAck(message.channel)
-            mAapVideo.process(message)
-        } else if (msg_type >= 0 && msg_type <= 31 || msg_type >= 32768 && msg_type <= 32799 || msg_type >= 65504 && msg_type <= 65535) {
+        } else if (message.isVideo && (msg_type == 0 || msg_type == 1 || flags.toInt() == 8 || flags.toInt() == 9 || flags.toInt() == 10)) {
+            transport.sendMediaAck(message.channel)
+            aapVideo.process(message)
+        } else if (message.channel == Channel.ID_MPB && msg_type > 31) {
+            mediaPlayback.process(message)
+        } else if (msg_type in 0..31 || msg_type in 32768..32799 || msg_type in 65504..65535) {
             try {
-                mAapControl.execute(message)
+                aapControl.execute(message)
             } catch (e: InvalidProtocolBufferNanoException) {
                 AppLog.e(e)
                 throw AapMessageHandler.HandleException(e)
             }
         } else {
-            AppLog.e("Unknown msg_type: %d", msg_type)
+            AppLog.e("Unknown msg_type: %d, flags: %d", msg_type, flags)
         }
 
     }

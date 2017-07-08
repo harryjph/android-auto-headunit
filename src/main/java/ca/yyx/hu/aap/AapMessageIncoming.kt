@@ -12,7 +12,7 @@ import ca.yyx.hu.utils.Utils
  */
 
 internal class AapMessageIncoming(header: AapMessageIncoming.EncryptedHeader, ba: ByteArrayWithLimit)
-    : AapMessage(header.chan, header.flags.toByte(), Utils.bytesToInt(ba.data, 0, true), 2, ba.limit, ba.data) {
+    : AapMessage(header.chan, header.flags.toByte(), Utils.bytesToInt(ba.data, 0, true), calcOffset(header), ba.limit, ba.data) {
 
     internal class EncryptedHeader {
 
@@ -54,6 +54,9 @@ internal class AapMessageIncoming(header: AapMessageIncoming.EncryptedHeader, ba
             }
             return msg
         }
-    }
 
+        fun calcOffset(header: AapMessageIncoming.EncryptedHeader): Int {
+            return 2
+        }
+    }
 }

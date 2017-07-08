@@ -4031,6 +4031,63 @@ public interface Protocol {
       }
     }
 
+    public static final class MediaPlaybackStatusService extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile MediaPlaybackStatusService[] _emptyArray;
+      public static MediaPlaybackStatusService[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new MediaPlaybackStatusService[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      public MediaPlaybackStatusService() {
+        clear();
+      }
+
+      public MediaPlaybackStatusService clear() {
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public MediaPlaybackStatusService mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+          }
+        }
+      }
+
+      public static MediaPlaybackStatusService parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new MediaPlaybackStatusService(), data);
+      }
+
+      public static MediaPlaybackStatusService parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new MediaPlaybackStatusService().mergeFrom(input);
+      }
+    }
+
     private static volatile Service[] _emptyArray;
     public static Service[] emptyArray() {
       // Lazily initializes the empty array
@@ -4066,6 +4123,9 @@ public interface Protocol {
     // optional .ca.yyx.hu.aap.protocol.Service.NavigationStatusService navigation_status_service = 8;
     public ca.yyx.hu.aap.protocol.nano.Protocol.Service.NavigationStatusService navigationStatusService;
 
+    // optional .ca.yyx.hu.aap.protocol.Service.MediaPlaybackStatusService media_playback_service = 9;
+    public ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaPlaybackStatusService mediaPlaybackService;
+
     public Service() {
       clear();
     }
@@ -4078,6 +4138,7 @@ public interface Protocol {
       mediaSourceService = null;
       bluetoothService = null;
       navigationStatusService = null;
+      mediaPlaybackService = null;
       cachedSize = -1;
       return this;
     }
@@ -4105,6 +4166,9 @@ public interface Protocol {
       }
       if (this.navigationStatusService != null) {
         output.writeMessage(8, this.navigationStatusService);
+      }
+      if (this.mediaPlaybackService != null) {
+        output.writeMessage(9, this.mediaPlaybackService);
       }
       super.writeTo(output);
     }
@@ -4139,6 +4203,10 @@ public interface Protocol {
       if (this.navigationStatusService != null) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeMessageSize(8, this.navigationStatusService);
+      }
+      if (this.mediaPlaybackService != null) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeMessageSize(9, this.mediaPlaybackService);
       }
       return size;
     }
@@ -4202,6 +4270,13 @@ public interface Protocol {
               this.navigationStatusService = new ca.yyx.hu.aap.protocol.nano.Protocol.Service.NavigationStatusService();
             }
             input.readMessage(this.navigationStatusService);
+            break;
+          }
+          case 74: {
+            if (this.mediaPlaybackService == null) {
+              this.mediaPlaybackService = new ca.yyx.hu.aap.protocol.nano.Protocol.Service.MediaPlaybackStatusService();
+            }
+            input.readMessage(this.mediaPlaybackService);
             break;
           }
         }
@@ -6641,6 +6716,351 @@ public interface Protocol {
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       return new AudioFocusNotification().mergeFrom(input);
+    }
+  }
+
+  public static final class MediaPlaybackStatus extends
+      com.google.protobuf.nano.MessageNano {
+
+    // enum State
+    public static final int MEDIA_SERVICE_STATE_PAUSE = 0;
+    public static final int MEDIA_SERVICE_STATE_STOPPED = 1;
+    public static final int MEDIA_SERVICE_STATE_PLAYING = 3;
+
+    private static volatile MediaPlaybackStatus[] _emptyArray;
+    public static MediaPlaybackStatus[] emptyArray() {
+      // Lazily initializes the empty array
+      if (_emptyArray == null) {
+        synchronized (
+            com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+          if (_emptyArray == null) {
+            _emptyArray = new MediaPlaybackStatus[0];
+          }
+        }
+      }
+      return _emptyArray;
+    }
+
+    // optional .ca.yyx.hu.aap.protocol.MediaPlaybackStatus.State state = 1;
+    public int state;
+
+    // optional string source = 2;
+    public java.lang.String source;
+
+    // optional uint32 seconds = 3;
+    public int seconds;
+
+    // optional bool shuffle = 4;
+    public boolean shuffle;
+
+    // optional bool repeat = 5;
+    public boolean repeat;
+
+    // optional bool repeat_one = 6;
+    public boolean repeatOne;
+
+    public MediaPlaybackStatus() {
+      clear();
+    }
+
+    public MediaPlaybackStatus clear() {
+      state = ca.yyx.hu.aap.protocol.nano.Protocol.MediaPlaybackStatus.MEDIA_SERVICE_STATE_PAUSE;
+      source = "";
+      seconds = 0;
+      shuffle = false;
+      repeat = false;
+      repeatOne = false;
+      cachedSize = -1;
+      return this;
+    }
+
+    @Override
+    public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+        throws java.io.IOException {
+      if (this.state != ca.yyx.hu.aap.protocol.nano.Protocol.MediaPlaybackStatus.MEDIA_SERVICE_STATE_PAUSE) {
+        output.writeInt32(1, this.state);
+      }
+      if (!this.source.equals("")) {
+        output.writeString(2, this.source);
+      }
+      if (this.seconds != 0) {
+        output.writeUInt32(3, this.seconds);
+      }
+      if (this.shuffle != false) {
+        output.writeBool(4, this.shuffle);
+      }
+      if (this.repeat != false) {
+        output.writeBool(5, this.repeat);
+      }
+      if (this.repeatOne != false) {
+        output.writeBool(6, this.repeatOne);
+      }
+      super.writeTo(output);
+    }
+
+    @Override
+    protected int computeSerializedSize() {
+      int size = super.computeSerializedSize();
+      if (this.state != ca.yyx.hu.aap.protocol.nano.Protocol.MediaPlaybackStatus.MEDIA_SERVICE_STATE_PAUSE) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeInt32Size(1, this.state);
+      }
+      if (!this.source.equals("")) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeStringSize(2, this.source);
+      }
+      if (this.seconds != 0) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeUInt32Size(3, this.seconds);
+      }
+      if (this.shuffle != false) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeBoolSize(4, this.shuffle);
+      }
+      if (this.repeat != false) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeBoolSize(5, this.repeat);
+      }
+      if (this.repeatOne != false) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeBoolSize(6, this.repeatOne);
+      }
+      return size;
+    }
+
+    @Override
+    public MediaPlaybackStatus mergeFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      while (true) {
+        int tag = input.readTag();
+        switch (tag) {
+          case 0:
+            return this;
+          default: {
+            if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+              return this;
+            }
+            break;
+          }
+          case 8: {
+            int value = input.readInt32();
+            switch (value) {
+              case ca.yyx.hu.aap.protocol.nano.Protocol.MediaPlaybackStatus.MEDIA_SERVICE_STATE_PAUSE:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.MediaPlaybackStatus.MEDIA_SERVICE_STATE_STOPPED:
+              case ca.yyx.hu.aap.protocol.nano.Protocol.MediaPlaybackStatus.MEDIA_SERVICE_STATE_PLAYING:
+                this.state = value;
+                break;
+            }
+            break;
+          }
+          case 18: {
+            this.source = input.readString();
+            break;
+          }
+          case 24: {
+            this.seconds = input.readUInt32();
+            break;
+          }
+          case 32: {
+            this.shuffle = input.readBool();
+            break;
+          }
+          case 40: {
+            this.repeat = input.readBool();
+            break;
+          }
+          case 48: {
+            this.repeatOne = input.readBool();
+            break;
+          }
+        }
+      }
+    }
+
+    public static MediaPlaybackStatus parseFrom(byte[] data)
+        throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new MediaPlaybackStatus(), data);
+    }
+
+    public static MediaPlaybackStatus parseFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      return new MediaPlaybackStatus().mergeFrom(input);
+    }
+  }
+
+  public static final class MediaMetaData extends
+      com.google.protobuf.nano.MessageNano {
+
+    private static volatile MediaMetaData[] _emptyArray;
+    public static MediaMetaData[] emptyArray() {
+      // Lazily initializes the empty array
+      if (_emptyArray == null) {
+        synchronized (
+            com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+          if (_emptyArray == null) {
+            _emptyArray = new MediaMetaData[0];
+          }
+        }
+      }
+      return _emptyArray;
+    }
+
+    // optional string song = 1;
+    public java.lang.String song;
+
+    // optional string artist = 2;
+    public java.lang.String artist;
+
+    // optional string album = 3;
+    public java.lang.String album;
+
+    // optional bytes albumart = 4;
+    public byte[] albumart;
+
+    // optional string playlist = 5;
+    public java.lang.String playlist;
+
+    // optional uint32 duration = 6;
+    public int duration;
+
+    // optional uint32 rating = 7;
+    public int rating;
+
+    public MediaMetaData() {
+      clear();
+    }
+
+    public MediaMetaData clear() {
+      song = "";
+      artist = "";
+      album = "";
+      albumart = com.google.protobuf.nano.WireFormatNano.EMPTY_BYTES;
+      playlist = "";
+      duration = 0;
+      rating = 0;
+      cachedSize = -1;
+      return this;
+    }
+
+    @Override
+    public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+        throws java.io.IOException {
+      if (!this.song.equals("")) {
+        output.writeString(1, this.song);
+      }
+      if (!this.artist.equals("")) {
+        output.writeString(2, this.artist);
+      }
+      if (!this.album.equals("")) {
+        output.writeString(3, this.album);
+      }
+      if (!java.util.Arrays.equals(this.albumart, com.google.protobuf.nano.WireFormatNano.EMPTY_BYTES)) {
+        output.writeBytes(4, this.albumart);
+      }
+      if (!this.playlist.equals("")) {
+        output.writeString(5, this.playlist);
+      }
+      if (this.duration != 0) {
+        output.writeUInt32(6, this.duration);
+      }
+      if (this.rating != 0) {
+        output.writeUInt32(7, this.rating);
+      }
+      super.writeTo(output);
+    }
+
+    @Override
+    protected int computeSerializedSize() {
+      int size = super.computeSerializedSize();
+      if (!this.song.equals("")) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeStringSize(1, this.song);
+      }
+      if (!this.artist.equals("")) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeStringSize(2, this.artist);
+      }
+      if (!this.album.equals("")) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeStringSize(3, this.album);
+      }
+      if (!java.util.Arrays.equals(this.albumart, com.google.protobuf.nano.WireFormatNano.EMPTY_BYTES)) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeBytesSize(4, this.albumart);
+      }
+      if (!this.playlist.equals("")) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeStringSize(5, this.playlist);
+      }
+      if (this.duration != 0) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeUInt32Size(6, this.duration);
+      }
+      if (this.rating != 0) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeUInt32Size(7, this.rating);
+      }
+      return size;
+    }
+
+    @Override
+    public MediaMetaData mergeFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      while (true) {
+        int tag = input.readTag();
+        switch (tag) {
+          case 0:
+            return this;
+          default: {
+            if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+              return this;
+            }
+            break;
+          }
+          case 10: {
+            this.song = input.readString();
+            break;
+          }
+          case 18: {
+            this.artist = input.readString();
+            break;
+          }
+          case 26: {
+            this.album = input.readString();
+            break;
+          }
+          case 34: {
+            this.albumart = input.readBytes();
+            break;
+          }
+          case 42: {
+            this.playlist = input.readString();
+            break;
+          }
+          case 48: {
+            this.duration = input.readUInt32();
+            break;
+          }
+          case 56: {
+            this.rating = input.readUInt32();
+            break;
+          }
+        }
+      }
+    }
+
+    public static MediaMetaData parseFrom(byte[] data)
+        throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new MediaMetaData(), data);
+    }
+
+    public static MediaMetaData parseFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      return new MediaMetaData().mergeFrom(input);
     }
   }
 }

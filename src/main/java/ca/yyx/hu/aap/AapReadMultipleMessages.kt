@@ -62,8 +62,11 @@ internal class AapReadMultipleMessages(
 
             recv_header.decode()
 
-            if (recv_header.chan == Channel.ID_VID && recv_header.flags == 0x09) {
+            if (recv_header.flags == 0x09) {
                 val size_buf = ByteArray(4)
+                if (recv_header.chan == Channel.ID_MPB) {
+                    AppLog.v("Hello")
+                }
                 fifo.get(size_buf, 0, 4)
                 // If First fragment Video...
                 // (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
@@ -86,7 +89,7 @@ internal class AapReadMultipleMessages(
             // Decrypt & Process 1 received encrypted message
             if (msg == null) {
                 // If error...
-                AppLog.e("Error iaap_recv_dec_process: enc_len: %d chan: %d %s flags: %01x msg_type: %d", recv_header.enc_len, recv_header.chan, Channel.name(recv_header.chan), recv_header.flags, recv_header.msg_type)
+                AppLog.e("enc_len: %d chan: %d %s flags: %01x msg_type: %d", recv_header.enc_len, recv_header.chan, Channel.name(recv_header.chan), recv_header.flags, recv_header.msg_type)
                 break
             }
 

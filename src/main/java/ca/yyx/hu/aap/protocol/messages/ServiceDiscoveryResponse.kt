@@ -118,10 +118,10 @@ class ServiceDiscoveryResponse(settings: Settings)
                 AppLog.i("BT MAC Address is empty. Skip bluetooth service")
             }
 
-            val mediaPlaybackStatus = Protocol.Service()
-            mediaPlaybackStatus.id = Channel.ID_MPB
-            mediaPlaybackStatus.mediaPlaybackService = Protocol.Service.MediaPlaybackStatusService()
-            services.add(mediaPlaybackStatus)
+//            val mediaPlaybackStatus = Protocol.Service()
+//            mediaPlaybackStatus.id = Channel.ID_MPB
+//            mediaPlaybackStatus.mediaPlaybackService = Protocol.Service.MediaPlaybackStatusService()
+//            services.add(mediaPlaybackStatus)
 
             carInfo.services = services.toTypedArray()
 

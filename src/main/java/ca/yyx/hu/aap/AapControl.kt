@@ -322,11 +322,11 @@ internal class AapControl(
         )
 
         private val focusResponse = mapOf(
-            AudioManager.AUDIOFOCUS_LOSS to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN,
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN_TRANSIENT,
-            AudioManager.AUDIOFOCUS_GAIN to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS,
-            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS_TRANSIENT,
-            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS_TRANSIENT_CAN_DUCK
+            AudioManager.AUDIOFOCUS_LOSS to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS,
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS_TRANSIENT,
+            AudioManager.AUDIOFOCUS_GAIN to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN,
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN_TRANSIENT,
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK to Protocol.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY
         )
 
         private val stateName = mapOf(

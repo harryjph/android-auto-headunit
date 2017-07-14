@@ -40,8 +40,7 @@ class AudioTrackWrapper(stream: Int, sampleRateInHz: Int, bitDepth: Int, channel
     }
 
     fun stop() {
-        val playState = audioTrack.getPlayState()
-        if (playState == android.media.AudioTrack.PLAYSTATE_PLAYING) {
+        if (audioTrack.playState == android.media.AudioTrack.PLAYSTATE_PLAYING) {
             audioTrack.pause()
         }
         val toRelease = audioTrack

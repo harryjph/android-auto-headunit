@@ -64,9 +64,6 @@ internal class AapReadMultipleMessages(
 
             if (recv_header.flags == 0x09) {
                 val size_buf = ByteArray(4)
-                if (recv_header.chan == Channel.ID_MPB) {
-                    AppLog.v("Hello")
-                }
                 fifo.get(size_buf, 0, 4)
                 // If First fragment Video...
                 // (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)

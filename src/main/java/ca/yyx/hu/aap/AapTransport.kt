@@ -38,6 +38,9 @@ class AapTransport(
 
     internal fun startSensor(type: Int) {
         mStartedSensors.add(type)
+        if (type == 10) {
+            send(NightModeEvent(true))
+        }
     }
 
     interface Listener {

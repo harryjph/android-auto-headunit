@@ -1,6 +1,6 @@
 package ca.yyx.hu.aap.protocol.messages
 
-import ca.yyx.hu.aap.protocol.nano.Protocol
+import ca.yyx.hu.aap.protocol.nano.Sensors
 import com.google.protobuf.nano.MessageNano
 
 /**
@@ -10,13 +10,13 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class NightModeEvent(enabled: Boolean)
-    : SensorEvent(Protocol.SENSOR_TYPE_NIGHT, NightModeEvent.makeProto(enabled)) {
+    : SensorEvent(Sensors.SENSOR_TYPE_NIGHT, NightModeEvent.makeProto(enabled)) {
 
     companion object {
         private fun makeProto(enabled: Boolean): MessageNano {
-            val sensorBatch = Protocol.SensorBatch()
-            sensorBatch.nightMode = arrayOfNulls<Protocol.SensorBatch.NightModeData>(1)
-            sensorBatch.nightMode[0] = Protocol.SensorBatch.NightModeData()
+            val sensorBatch = Sensors.SensorBatch()
+            sensorBatch.nightMode = arrayOfNulls<Sensors.SensorBatch.NightModeData>(1)
+            sensorBatch.nightMode[0] = Sensors.SensorBatch.NightModeData()
             sensorBatch.nightMode[0].isNight = enabled
             return sensorBatch
         }

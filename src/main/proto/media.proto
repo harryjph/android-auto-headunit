@@ -1,0 +1,105 @@
+syntax = "proto2";
+
+package ca.yyx.hu.aap.protocol;
+option java_outer_classname = "Media";
+
+enum MsgType
+{
+    MSG_MEDIA_SETUPREQUEST = 0x8000;
+    MSG_MEDIA_STARTREQUEST = 0x8001;
+    MSG_MEDIA_STOPREQUEST = 0x8002;
+    MSG_MEDIA_CONFIGRESPONSE = 0x8003;
+    MSG_MEDIA_ACK = 0x8004;
+    MSG_MEDIA_MICREQUEST = 0x8005;
+    MSG_MEDIA_MICRESPONSE = 0x8006;
+    MSG_MEDIA_VIDEOFOCUSREQUESTNOTIFICATION = 0x8007;
+    MSG_MEDIA_VIDEOFOCUSNOTIFICATION = 0x8008;
+}
+
+enum MediaCodecType
+{
+    MEDIA_CODEC_AUDIO = 1;
+    MEDIA_CODEC_VIDEO = 3;
+}
+
+enum AudioStreamType
+{
+    CAR_STREAM_SYSTEM = 1;
+    CAR_STREAM_VOICE = 2;
+    CAR_STREAM_MEDIA = 3;
+}
+
+message AudioConfiguration
+{
+    required uint32 sample_rate = 1;
+    required uint32 number_of_bits = 2;
+    required uint32 number_of_channels = 3;
+}
+
+message Start
+{
+    optional int32 session_id = 1;
+    optional uint32 configuration_index = 2;
+}
+
+message Ack
+{
+    required int32 session_id = 1;
+    required uint32 ack = 2;
+}
+
+message MicrophoneRequest
+{
+    required bool open = 1;
+    optional bool anc_enabled = 2;
+    optional bool ec_enabled = 3;
+    optional int32 max_unacked = 4;
+}
+
+message MicrophoneResponse
+{
+    required int32 status = 1;
+    required uint32 session_id = 2;
+}
+
+enum VideoFocusMode
+{
+    VIDEO_FOCUS_MODE_1 = 1;
+    VIDEO_FOCUS_MODE_2 = 2;
+}
+
+message VideoFocusRequestNotification
+{
+    enum VideoFocusReason
+    {
+        VIDEO_FOCUS_REASON_1 = 1;
+        VIDEO_FOCUS_REASON_2 = 2;
+    }
+
+    optional int32 disp_channel_id = 1;
+    required VideoFocusMode mode = 2; //Enum?
+    optional VideoFocusReason reason = 3; //Enum?
+}
+
+message VideoFocusNotification
+{
+    required VideoFocusMode mode = 1;
+    optional bool unsolicited = 2;
+}
+
+message MediaSetupRequest
+{
+    optional uint32 type = 1; //Enum?
+}
+
+message Config
+{
+    enum ConfigStatus
+    {
+        CONFIG_STATUS_DEVICE = 1;
+        CONFIG_STATUS_HEADUNIT = 2;
+    }
+    required ConfigStatus status = 1;
+    required uint32 max_unacked = 2;
+    repeated uint32 configuration_indices = 3;
+}

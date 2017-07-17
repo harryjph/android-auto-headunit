@@ -25,6 +25,4 @@ object Messages {
         System.arraycopy(data, 0, buffer, 6, size)
         return buffer
     }
-
-
 }

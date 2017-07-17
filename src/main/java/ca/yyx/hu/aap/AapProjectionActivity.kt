@@ -21,7 +21,7 @@ import ca.yyx.hu.utils.Utils
 import ca.yyx.hu.view.ProjectionView
 
 class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
-    private lateinit var mProjectionView: ProjectionView
+    private lateinit var projectionView: ProjectionView
 
     private val disconnectReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -41,9 +41,9 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
         AppLog.i("Headunit for Android Auto (tm) - Copyright 2011-2015 Michael A. Reid. All Rights Reserved...")
 
-        mProjectionView = findViewById<ProjectionView>(R.id.surface)
-        mProjectionView.setSurfaceCallback(this)
-        mProjectionView.setOnTouchListener { _, event ->
+        projectionView = findViewById<ProjectionView>(R.id.surface)
+        projectionView.setSurfaceCallback(this)
+        projectionView.setOnTouchListener { _, event ->
             sendTouchEvent(event)
             true
         }
@@ -51,12 +51,14 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
     override fun onPause() {
         super.onPause()
+        App.provide(this).hasVideoFocus = false
         LocalBroadcastManager.getInstance(this).unregisterReceiver(disconnectReceiver)
         LocalBroadcastManager.getInstance(this).unregisterReceiver(keyCodeReceiver)
     }
 
     override fun onResume() {
         super.onResume()
+        App.provide(this).hasVideoFocus = true
         LocalBroadcastManager.getInstance(this).registerReceiver(disconnectReceiver, LocalIntent.FILTER_DISCONNECT)
         LocalBroadcastManager.getInstance(this).registerReceiver(keyCodeReceiver, LocalIntent.FILTER_KEY_EVENT)
     }
@@ -78,8 +80,8 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
     private fun sendTouchEvent(event: MotionEvent) {
 
-        val x = event.getX(0) / (mProjectionView.width / VIDEO_WIDTH)
-        val y = event.getY(0) / (mProjectionView.height / VIDEO_HEIGHT)
+        val x = event.getX(0) / (projectionView.width / VIDEO_WIDTH)
+        val y = event.getY(0) / (projectionView.height / VIDEO_HEIGHT)
 
         if (x < 0 || y < 0 || x >= 65535 || y >= 65535) {   // Infinity if vid_wid_get() or vid_hei_get() return 0
             AppLog.e("Invalid x: $x  y: $y")
@@ -118,10 +120,10 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
         private const val VIDEO_WIDTH = 800.0
         private const val VIDEO_HEIGHT = 480.0
 
-        fun start(context: Context) {
+        fun intent(context: Context): Intent {
             val aapIntent = Intent(context, AapProjectionActivity::class.java)
             aapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(aapIntent)
+            return aapIntent
         }
     }
 }

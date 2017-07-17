@@ -1,0 +1,120 @@
+syntax = "proto2";
+
+package ca.yyx.hu.aap.protocol;
+option java_outer_classname = "Sensors";
+
+import "common.proto";
+
+enum SensorsMsgType {
+    MSG_SENSORS_STARTREQUEST = 0x8001;
+    MSG_SENSORS_STARTRESPONSE = 0x8002;
+    MSG_SENSORS_EVENT = 0x8003;
+}
+
+enum SensorType
+{
+    SENSOR_TYPE_LOCATION = 1;
+    SENSOR_TYPE_COMPASS = 2;
+    SENSOR_TYPE_CAR_SPEED = 3;
+    SENSOR_TYPE_RPM = 4;
+    SENSOR_TYPE_ODOMETER = 5;
+    SENSOR_TYPE_FUEL_LEVEL = 6;
+    SENSOR_TYPE_PARKING_BRAKE = 7;
+    SENSOR_TYPE_GEAR = 8;
+    SENSOR_TYPE_NIGHT = 10;
+    SENSOR_TYPE_ENVIRONMENT = 11;
+    SENSOR_TYPE_DRIVING_STATUS = 13;
+}
+
+message SensorBatch
+{
+    message LocationData
+    {
+        optional uint64 timestamp = 1;
+        optional int32 latitude = 2;
+        optional int32 longitude = 3;
+        optional uint32 accuracy = 4;
+        optional int32 altitude = 5;
+        optional int32 speed = 6;
+        optional int32 bearing = 7;
+    }
+    message RPM
+    {
+        required int32 rpm = 1;
+    }
+    message FuelLevel
+    {
+        required int32 fuellevel = 1;
+        optional int32 range = 2;
+        optional bool lowfuel = 3;
+    }
+    message DeadReckoning
+    {
+        optional int32 steering_angel = 1;
+        optional int32 wheel_speed = 2;
+    }
+    message NightModeData
+    {
+        required bool is_night = 1;
+    }
+    message ParkingBrakeData
+    {
+        required bool parking_brake = 1;
+    }
+    message DrivingStatusData
+    {
+        enum Status
+        {
+            DRIVING_STATUS_PARKED = 0;
+            DRIVING_STATUS_MOOVING = 1;
+        }
+        required int32 status = 1;
+    }
+    message GpsSatelliteData
+    {
+        message GpsSatellite
+        {
+            optional int32 prn = 1;
+            optional int32 snr_e3 = 2;
+            optional bool used_in_fix = 3;
+            optional int32 azimuth_e3 = 4;
+            optional int32 elevation_e3 = 5;
+        }
+        optional int32 number_in_use = 1;
+        optional int32 number_in_view = 2;
+        repeated GpsSatellite satellites = 3;
+    }
+
+    repeated LocationData location_data = 1;
+    //repeated CompassData compass_data = 2;
+    //repeated SpeedData speed_data = 3;
+    //repeated RpmData rpm_data = 4;
+    //repeated OdometerData odometer_data = 5;
+    //repeated FuelData fuel_data = 6;
+    repeated ParkingBrakeData parking_break_data = 7;
+    //repeated GearData gear_data = 8;
+    //repeated DiagnosticsData diagnostics_data = 9;
+    repeated NightModeData night_mode = 10;
+    //repeated EnvironmentData environment_data = 11;
+    //repeated HvacData hvac_data = 12;
+    repeated DrivingStatusData driving_status = 13;
+    //repeated DeadReckoningData dead_reckoning_data = 14;
+    //repeated PassengerData passenger_data = 15;
+    //repeated DoorData door_data = 16;
+    //repeated LightData light_data = 17;
+    //repeated TirePressureData tire_pressure_data = 18;
+    //repeated AccelerometerData accelerometer_data = 19;
+    //repeated GyroscopeData gyroscope_data = 20;
+    repeated GpsSatelliteData gps_satellite_data = 21;
+}
+
+message SensorRequest
+{
+    optional SensorType type = 1;
+    optional int64 min_update_period = 2;
+}
+
+message SensorResponse
+{
+    required MessageStatus status = 1;
+}

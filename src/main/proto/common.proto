@@ -1,0 +1,9 @@
+syntax = "proto2";
+
+package ca.yyx.hu.aap.protocol;
+
+enum MessageStatus
+{
+    STATUS_OK = 0;
+}
+

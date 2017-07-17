@@ -10,6 +10,7 @@ import ca.yyx.hu.connection.AccessoryConnection
 import ca.yyx.hu.decoder.AudioDecoder
 import ca.yyx.hu.decoder.MicRecorder
 import ca.yyx.hu.decoder.VideoDecoder
+import ca.yyx.hu.main.BackgroundNotification
 import ca.yyx.hu.utils.*
 import java.util.*
 
@@ -17,44 +18,46 @@ class AapTransport(
         audioDecoder: AudioDecoder,
         videoDecoder: VideoDecoder,
         audioManager: AudioManager,
-        private val mSettings: Settings,
-        private val mListener: AapTransport.Listener)
+        private val settings: Settings,
+        private val notification: BackgroundNotification,
+        private val listener: AapTransport.Listener)
     : Handler.Callback, MicRecorder.Listener {
 
-    private val mAapAudio: AapAudio
-    private val mAapVideo: AapVideo
-    private val mPollThread: HandlerThread = HandlerThread("AapTransport:Handler", Process.THREAD_PRIORITY_AUDIO)
-    private val mMicRecorder: MicRecorder = MicRecorder(mSettings.micSampleRate)
-    private val mSessionIds = SparseIntArray(4)
-    private val mStartedSensors = HashSet<Int>(4)
-    private val mSsl = AapSslNative()
-    private val keyCodes = mSettings.keyCodes.entries.associateTo(mutableMapOf<Int,Int>(), {
-        it.value to it.key
-    })
-
-    private var mConnection: AccessoryConnection? = null
-    private var mAapRead: AapRead? = null
-    private var mHandler: Handler? = null
-
-    internal fun startSensor(type: Int) {
-        mStartedSensors.add(type)
-        if (type == 10) {
-            send(NightModeEvent(true))
-        }
-    }
 
     interface Listener {
         fun gainVideoFocus()
     }
 
-    init {
-        mMicRecorder.setListener(this)
-        mAapAudio = AapAudio(audioDecoder, audioManager)
-        mAapVideo = AapVideo(videoDecoder)
-    }
+    private val aapAudio: AapAudio
+    private val aapVideo: AapVideo
+    private val pollThread: HandlerThread = HandlerThread("AapTransport:Handler", Process.THREAD_PRIORITY_AUDIO)
+    private val micRecorder: MicRecorder = MicRecorder(settings.micSampleRate)
+    private val sessionIds = SparseIntArray(4)
+    private val startedSensors = HashSet<Int>(4)
+    private val ssl = AapSslNative()
+    private val keyCodes = settings.keyCodes.entries.associateTo(mutableMapOf<Int,Int>(), {
+        it.value to it.key
+    })
+
+    private var connection: AccessoryConnection? = null
+    private var aapRead: AapRead? = null
+    private var handler: Handler? = null
 
     val isAlive: Boolean
-        get() = mPollThread.isAlive
+        get() = pollThread.isAlive
+
+    init {
+        micRecorder.setListener(this)
+        aapAudio = AapAudio(audioDecoder, audioManager)
+        aapVideo = AapVideo(videoDecoder)
+    }
+
+    internal fun startSensor(type: Int) {
+        startedSensors.add(type)
+        if (type == 10) {
+            send(NightModeEvent(true))
+        }
+    }
 
     override fun handleMessage(msg: Message): Boolean {
 
@@ -65,11 +68,11 @@ class AapTransport(
         }
 
         if (msg.what == MSG_POLL) {
-            val ret = mAapRead?.read() ?: -1
-            if (mHandler == null) {
+            val ret = aapRead?.read() ?: -1
+            if (handler == null) {
                 return false
             }
-            mHandler?.let {
+            handler?.let {
                 if (!it.hasMessages(MSG_POLL))
                 {
                     it.sendEmptyMessage(MSG_POLL)
@@ -85,13 +88,13 @@ class AapTransport(
     }
 
     private fun sendEncryptedMessage(data: ByteArray, length: Int): Int {
-        val ba = mSsl.encrypt(AapMessage.HEADER_SIZE, length - AapMessage.HEADER_SIZE, data) ?: return -1
+        val ba = ssl.encrypt(AapMessage.HEADER_SIZE, length - AapMessage.HEADER_SIZE, data) ?: return -1
 
         ba.data[0] = data[0]
         ba.data[1] = data[1]
         Utils.intToBytes(ba.limit - AapMessage.HEADER_SIZE, 2, ba.data)
 
-        val size = mConnection!!.send(ba.data, ba.limit, 250)
+        val size = connection!!.send(ba.data, ba.limit, 250)
 
         if (AppLog.LOG_VERBOSE) {
             AppLog.v("Sent size: %d", size)
@@ -101,10 +104,10 @@ class AapTransport(
     }
 
     internal fun quit() {
-        mMicRecorder.setListener(null)
-        mPollThread.quit()
-        mAapRead = null
-        mHandler = null
+        micRecorder.setListener(null)
+        pollThread.quit()
+        aapRead = null
+        handler = null
     }
 
     internal fun connectAndStart(connection: AccessoryConnection): Boolean {
@@ -115,13 +118,13 @@ class AapTransport(
             return false
         }
 
-        mConnection = connection
+        this.connection = connection
 
-        mAapRead = AapRead.Factory.create(connection, this, mMicRecorder, mAapAudio, mAapVideo, mSettings)
+        aapRead = AapRead.Factory.create(connection, this, micRecorder, aapAudio, aapVideo, settings, notification)
 
-        mPollThread.start()
-        mHandler = Handler(mPollThread.looper, this)
-        mHandler!!.sendEmptyMessage(MSG_POLL)
+        pollThread.start()
+        handler = Handler(pollThread.looper, this)
+        handler!!.sendEmptyMessage(MSG_POLL)
         // Create and start Transport Thread
         return true
     }
@@ -146,7 +149,7 @@ class AapTransport(
         AppLog.i("Version response recv ret: %d", ret)
 
         // SSL
-        ret = mSsl.prepare()
+        ret = ssl.prepare()
         if (ret < 0) {
             AppLog.e("SSL prepare failed: " + ret)
             return false
@@ -156,8 +159,8 @@ class AapTransport(
         // SSL_is_init_finished (hu_ssl_ssl)
 
         while (hs_ctr++ < 2) {
-            mSsl.handshake()
-            val ba = mSsl.bioRead() ?: return false
+            ssl.handshake()
+            val ba = ssl.bioRead() ?: return false
 
             val bio = Messages.createRawMessage(Channel.ID_CTR, 3, 3, ba.data, ba.limit)
             var size = connection.send(bio, bio.size, 1000)
@@ -170,7 +173,7 @@ class AapTransport(
                 return false
             }
 
-            ret = mSsl.bioWrite(6, size - 6, buffer)
+            ret = ssl.bioWrite(6, size - 6, buffer)
             AppLog.i("SSL BIO write: %d", ret)
         }
 
@@ -210,7 +213,7 @@ class AapTransport(
     }
 
     fun send(sensor: SensorEvent): Boolean {
-        if (mStartedSensors.contains(sensor.sensorType)) {
+        if (startedSensors.contains(sensor.sensorType)) {
             send(sensor as AapMessage)
             return true
         } else {
@@ -220,27 +223,27 @@ class AapTransport(
     }
 
     fun send(message: AapMessage) {
-        if (mHandler == null) {
+        if (handler == null) {
             AppLog.e("Handler is null")
         } else {
             if (AppLog.LOG_VERBOSE) {
                 AppLog.v(message.toString())
             }
-            val msg = mHandler!!.obtainMessage(MSG_SEND, 0, message.size, message.data)
-            mHandler!!.sendMessage(msg)
+            val msg = handler!!.obtainMessage(MSG_SEND, 0, message.size, message.data)
+            handler!!.sendMessage(msg)
         }
     }
 
     internal fun gainVideoFocus() {
-        mListener.gainVideoFocus()
+        listener.gainVideoFocus()
     }
 
     internal fun sendMediaAck(channel: Int) {
-        send(MediaAck(channel, mSessionIds.get(channel)))
+        send(MediaAck(channel, sessionIds.get(channel)))
     }
 
     internal fun setSessionId(channel: Int, sessionId: Int) {
-        mSessionIds.put(channel, sessionId)
+        sessionIds.put(channel, sessionId)
     }
 
     override fun onMicDataAvailable(mic_buf: ByteArray, mic_audio_len: Int) {

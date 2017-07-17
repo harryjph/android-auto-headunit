@@ -1,15 +1,11 @@
 package ca.yyx.hu.aap
 
 import ca.yyx.hu.aap.protocol.Channel
-import ca.yyx.hu.aap.protocol.MsgType
-import ca.yyx.hu.aap.protocol.messages.Messages
-import ca.yyx.hu.aap.protocol.nano.Protocol
 import ca.yyx.hu.decoder.MicRecorder
+import ca.yyx.hu.main.BackgroundNotification
 import ca.yyx.hu.utils.AppLog
 import ca.yyx.hu.utils.Settings
 import com.google.protobuf.nano.InvalidProtocolBufferNanoException
-import com.google.protobuf.nano.MessageNano
-import java.nio.ByteBuffer
 
 /**
  * @author algavris
@@ -22,10 +18,11 @@ internal class AapMessageHandlerType(
         recorder: MicRecorder,
         private val aapAudio: AapAudio,
         private val aapVideo: AapVideo,
-        settings: Settings) : AapMessageHandler {
+        settings: Settings,
+        backgroundNotification: BackgroundNotification) : AapMessageHandler {
 
     private val aapControl: AapControl = AapControl(transport, recorder, aapAudio, settings)
-    private val mediaPlayback = AapMediaPlayback(transport)
+    private val mediaPlayback = AapMediaPlayback(backgroundNotification)
 
     @Throws(AapMessageHandler.HandleException::class)
     override fun handle(message: AapMessage) {

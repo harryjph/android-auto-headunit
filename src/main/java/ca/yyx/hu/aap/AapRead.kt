@@ -2,6 +2,7 @@ package ca.yyx.hu.aap
 
 import ca.yyx.hu.connection.AccessoryConnection
 import ca.yyx.hu.decoder.MicRecorder
+import ca.yyx.hu.main.BackgroundNotification
 import ca.yyx.hu.utils.AppLog
 import ca.yyx.hu.utils.Settings
 
@@ -31,8 +32,8 @@ internal interface AapRead {
     }
 
     object Factory {
-        fun create(connection: AccessoryConnection, transport: AapTransport, recorder: MicRecorder, aapAudio: AapAudio, aapVideo: AapVideo, settings: Settings): AapRead {
-            val handler = AapMessageHandlerType(transport, recorder, aapAudio, aapVideo, settings)
+        fun create(connection: AccessoryConnection, transport: AapTransport, recorder: MicRecorder, aapAudio: AapAudio, aapVideo: AapVideo, settings: Settings, notification: BackgroundNotification): AapRead {
+            val handler = AapMessageHandlerType(transport, recorder, aapAudio, aapVideo, settings, notification)
 
             return if (connection.isSingleMessage)
                 AapReadSingleMessage(connection, AapSslNative(), handler)

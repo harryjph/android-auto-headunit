@@ -4,7 +4,7 @@ import android.media.AudioManager
 
 import ca.yyx.hu.aap.protocol.AudioConfigs
 import ca.yyx.hu.aap.protocol.Channel
-import ca.yyx.hu.aap.protocol.nano.Protocol
+import ca.yyx.hu.aap.protocol.nano.Control
 import ca.yyx.hu.decoder.AudioDecoder
 import ca.yyx.hu.utils.AppLog
 
@@ -22,13 +22,13 @@ internal class AapAudio(
         private val audioManager: AudioManager) {
 
     fun requestFocusChange(stream: Int, focusRequest: Int, callback: AudioManager.OnAudioFocusChangeListener) {
-        if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIOFOCUS_RELEASE) {
+        if (focusRequest == Control.AudioFocusRequestNotification.AUDIOFOCUS_RELEASE) {
             audioManager.abandonAudioFocus(callback)
-        } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIOFOCUS_GAIN) {
+        } else if (focusRequest == Control.AudioFocusRequestNotification.AUDIOFOCUS_GAIN) {
             audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN)
-        } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT) {
+        } else if (focusRequest == Control.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT) {
             audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-        } else if (focusRequest == Protocol.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK) {
+        } else if (focusRequest == Control.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK) {
             audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
         }
     }

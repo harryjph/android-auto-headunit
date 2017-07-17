@@ -12,19 +12,21 @@ object Channel {
     const val ID_MIC = 7
     const val ID_BTH = 8
     const val ID_MPB = 9
+    const val ID_NAV = 10
 
     fun name(channel: Int): String {
         when (channel) {
-            ID_CTR -> return "CTR"
-            ID_VID -> return "VID"
-            ID_INP -> return "INP"
-            ID_SEN -> return "SEN"
+            ID_CTR -> return "CONTROL"
+            ID_VID -> return "VIDEO"
+            ID_INP -> return "INPUT"
+            ID_SEN -> return "SENSOR"
             ID_MIC -> return "MIC"
-            ID_AUD -> return "AUD"
-            ID_AU1 -> return "AU1"
-            ID_AU2 -> return "AU2"
-            ID_BTH -> return "BTH"
-            ID_MPB -> return "MPB"
+            ID_AUD -> return "AUDIO"
+            ID_AU1 -> return "AUDIO1"
+            ID_AU2 -> return "AUDIO2"
+            ID_BTH -> return "BLUETOOTH"
+            ID_MPB -> return "MUSIC_PLAYBACK"
+            ID_NAV -> return "NAVIGATION_DIRECTIONS"
         }
         return "UNK"
     }

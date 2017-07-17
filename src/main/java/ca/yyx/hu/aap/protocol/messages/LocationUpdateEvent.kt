@@ -1,7 +1,7 @@
 package ca.yyx.hu.aap.protocol.messages
 
 import android.location.Location
-import ca.yyx.hu.aap.protocol.nano.Protocol
+import ca.yyx.hu.aap.protocol.nano.Sensors
 import com.google.protobuf.nano.MessageNano
 
 /**
@@ -11,13 +11,13 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class LocationUpdateEvent(location: Location)
-    : SensorEvent(Protocol.SENSOR_TYPE_LOCATION, LocationUpdateEvent.makeProto(location)) {
+    : SensorEvent(Sensors.SENSOR_TYPE_LOCATION, LocationUpdateEvent.makeProto(location)) {
 
     companion object {
         private fun makeProto(location: Location): MessageNano {
-            val sensorBatch = Protocol.SensorBatch()
-            sensorBatch.locationData = arrayOfNulls<Protocol.SensorBatch.LocationData>(1)
-            sensorBatch.locationData[0] = Protocol.SensorBatch.LocationData()
+            val sensorBatch = Sensors.SensorBatch()
+            sensorBatch.locationData = arrayOfNulls<Sensors.SensorBatch.LocationData>(1)
+            sensorBatch.locationData[0] = Sensors.SensorBatch.LocationData()
             sensorBatch.locationData[0].timestamp = location.time
             sensorBatch.locationData[0].latitude = (location.latitude * 1E7).toInt()
             sensorBatch.locationData[0].longitude = (location.longitude * 1E7).toInt()

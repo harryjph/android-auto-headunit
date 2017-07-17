@@ -2,7 +2,7 @@ package ca.yyx.hu.aap.protocol.messages
 
 import ca.yyx.hu.aap.AapMessage
 import ca.yyx.hu.aap.protocol.MsgType
-import ca.yyx.hu.aap.protocol.nano.Protocol
+import ca.yyx.hu.aap.protocol.nano.Media
 import com.google.protobuf.nano.MessageNano
 
 /**
@@ -12,10 +12,10 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class MediaAck(channel: Int, sessionId: Int)
-    : AapMessage(channel, MsgType.Media.ACK, MediaAck.makeProto(sessionId), MediaAck.ackBuf) {
+    : AapMessage(channel, Media.MSG_MEDIA_ACK, MediaAck.makeProto(sessionId), MediaAck.ackBuf) {
     companion object {
 
-        private val mediaAck = Protocol.Ack()
+        private val mediaAck = Media.Ack()
         private val ackBuf = ByteArray(20)
 
         private fun makeProto(sessionId: Int): MessageNano {

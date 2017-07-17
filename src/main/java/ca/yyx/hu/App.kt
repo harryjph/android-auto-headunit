@@ -44,7 +44,7 @@ class App : Application(), AapTransport.Listener {
     }
 
     override fun gainVideoFocus() {
-        AapProjectionActivity.start(this)
+        startActivity(AapProjectionActivity.intent(this))
     }
 
     companion object {

@@ -3,7 +3,7 @@ package ca.yyx.hu.aap.protocol.messages
 import ca.yyx.hu.aap.AapMessage
 import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.aap.protocol.MsgType
-import ca.yyx.hu.aap.protocol.nano.Protocol
+import ca.yyx.hu.aap.protocol.nano.Sensors
 import com.google.protobuf.nano.MessageNano
 
 /**
@@ -15,13 +15,13 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class DrivingStatusEvent(status: Int)
-    : AapMessage(Channel.ID_SEN, MsgType.Sensor.EVENT, DrivingStatusEvent.makeProto(status)) {
+    : AapMessage(Channel.ID_SEN, Sensors.MSG_SENSORS_EVENT, DrivingStatusEvent.makeProto(status)) {
 
     companion object {
         private fun makeProto(status: Int): MessageNano {
-            val sensorBatch = Protocol.SensorBatch()
-            sensorBatch.drivingStatus = arrayOfNulls<Protocol.SensorBatch.DrivingStatusData>(1)
-            sensorBatch.drivingStatus[0] = Protocol.SensorBatch.DrivingStatusData()
+            val sensorBatch = Sensors.SensorBatch()
+            sensorBatch.drivingStatus = arrayOfNulls<Sensors.SensorBatch.DrivingStatusData>(1)
+            sensorBatch.drivingStatus[0] = Sensors.SensorBatch.DrivingStatusData()
             sensorBatch.drivingStatus[0].status = status
             return sensorBatch
         }

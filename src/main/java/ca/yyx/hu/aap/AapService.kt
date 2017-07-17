@@ -13,18 +13,15 @@ import android.os.ResultReceiver
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import android.view.KeyEvent
 import android.widget.Toast
 import ca.yyx.hu.App
 import ca.yyx.hu.R
-import ca.yyx.hu.app.RemoteControlReceiver
 import ca.yyx.hu.aap.protocol.messages.NightModeEvent
 import ca.yyx.hu.connection.AccessoryConnection
 import ca.yyx.hu.connection.SocketAccessoryConnection
 import ca.yyx.hu.connection.UsbAccessoryConnection
 import ca.yyx.hu.connection.UsbReceiver
-import ca.yyx.hu.decoder.AudioDecoder
 import ca.yyx.hu.location.GpsLocationService
 import ca.yyx.hu.utils.*
 
@@ -36,11 +33,9 @@ import ca.yyx.hu.utils.*
 
 class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener {
 
-    private lateinit var mMediaSession: MediaSessionCompat
-    private lateinit var mAudioDecoder: AudioDecoder
-    private lateinit var mUiModeManager: UiModeManager
-    private var mAccessoryConnection: AccessoryConnection? = null
-    private lateinit var mUsbReceiver: UsbReceiver
+    private lateinit var uiModeManager: UiModeManager
+    private var accessoryConnection: AccessoryConnection? = null
+    private lateinit var usbReceiver: UsbReceiver
     private lateinit var nightModeReceiver: BroadcastReceiver
 
     override fun onBind(intent: Intent): IBinder? {
@@ -50,46 +45,37 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     override fun onCreate() {
         super.onCreate()
 
-        mUiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
-        mUiModeManager.nightMode = UiModeManager.MODE_NIGHT_AUTO
+        uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
+        uiModeManager.nightMode = UiModeManager.MODE_NIGHT_AUTO
 
-        mAudioDecoder = App.provide(this).audioDecoder
-
-        mMediaSession = MediaSessionCompat(this, "MediaSession", ComponentName(this, RemoteControlReceiver::class.java), null)
-        mMediaSession.setCallback(MediaSessionCallback(this))
-        mMediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
-
-        mUsbReceiver = UsbReceiver(this)
-        nightModeReceiver = NightModeReceiver(Settings(this), mUiModeManager)
+        usbReceiver = UsbReceiver(this)
+        nightModeReceiver = NightModeReceiver(Settings(this), uiModeManager)
 
         val nightModeFilter = IntentFilter()
         nightModeFilter.addAction(Intent.ACTION_TIME_TICK)
         nightModeFilter.addAction(LocalIntent.ACTION_LOCATION_UPDATE)
         registerReceiver(nightModeReceiver, nightModeFilter)
-        registerReceiver(mUsbReceiver, UsbReceiver.createFilter())
+        registerReceiver(usbReceiver, UsbReceiver.createFilter())
     }
 
     override fun onDestroy() {
         super.onDestroy()
         onDisconnect()
         unregisterReceiver(nightModeReceiver)
-        unregisterReceiver(mUsbReceiver)
-        mUiModeManager.disableCarMode(0)
+        unregisterReceiver(usbReceiver)
+        uiModeManager.disableCarMode(0)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        mAccessoryConnection = createConnection(intent, this)
-        if (mAccessoryConnection == null) {
+        accessoryConnection = createConnection(intent, this)
+        if (accessoryConnection == null) {
             AppLog.e("Cannot create connection " + intent)
             stopSelf()
             return START_NOT_STICKY
         }
 
-        mUiModeManager.enableCarMode(0)
-
-        val aapIntent = Intent(this, AapProjectionActivity::class.java)
-        aapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        uiModeManager.enableCarMode(0)
 
         val noty = NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_stat_aa)
@@ -99,22 +85,15 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
                 .setContentText("...")
                 .setAutoCancel(false)
                 .setOngoing(true)
-                .setContentIntent(PendingIntent.getActivity(this, 0, aapIntent, PendingIntent.FLAG_UPDATE_CURRENT))
+                .setContentIntent(PendingIntent.getActivity(this, 0, AapProjectionActivity.intent(this), PendingIntent.FLAG_UPDATE_CURRENT))
                 .setPriority(Notification.PRIORITY_HIGH)
                 .build()
 
         startService(GpsLocationService.intent(this))
 
-        mMediaSession.setPlaybackState(PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PAUSED, 0, 0F)
-                .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
-                .build())
-
-        mMediaSession.isActive = true
-
         startForeground(1, noty)
 
-        mAccessoryConnection!!.connect(this)
+        accessoryConnection!!.connect(this)
 
         return START_STICKY
     }
@@ -122,7 +101,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     override fun onConnectionResult(success: Boolean) {
         if (success) {
             reset()
-            App.provide(this).transport.connectAndStart(mAccessoryConnection!!)
+            App.provide(this).transport.connectAndStart(accessoryConnection!!)
         } else {
             AppLog.e("Cannot connect to device")
             Toast.makeText(this, "Cannot connect to the device", Toast.LENGTH_SHORT).show()
@@ -133,13 +112,13 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     private fun onDisconnect() {
         LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(LocalIntent.ACTION_DISCONNECT))
         reset()
-        mAccessoryConnection?.disconnect()
-        mAccessoryConnection = null
+        accessoryConnection?.disconnect()
+        accessoryConnection = null
     }
 
     private fun reset() {
         App.provide(this).resetTransport()
-        mAudioDecoder.stop()
+        App.provide(this).audioDecoder.stop()
         App.provide(this).videoDecoder.stop("AapService::reset")
     }
 
@@ -185,8 +164,8 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     }
 
     override fun onUsbDetach(device: UsbDevice) {
-        if (mAccessoryConnection is UsbAccessoryConnection) {
-            if ((mAccessoryConnection as UsbAccessoryConnection).isDeviceRunning(device)) {
+        if (accessoryConnection is UsbAccessoryConnection) {
+            if ((accessoryConnection as UsbAccessoryConnection).isDeviceRunning(device)) {
                 stopSelf()
             }
         }

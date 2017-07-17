@@ -1,19 +1,19 @@
 package ca.yyx.hu.aap
 
-import ca.yyx.hu.aap.protocol.MsgType
 import ca.yyx.hu.aap.protocol.messages.Messages
-import ca.yyx.hu.aap.protocol.nano.Protocol
+import ca.yyx.hu.aap.protocol.nano.MediaPlayback
 import ca.yyx.hu.utils.AppLog
 import com.google.protobuf.nano.InvalidProtocolBufferNanoException
 import com.google.protobuf.nano.MessageNano
 import java.nio.ByteBuffer
+import ca.yyx.hu.main.BackgroundNotification
 
 /**
  * @author algavris
  * @date 08/07/2017
  */
 
-class AapMediaPlayback(transport: AapTransport) {
+class AapMediaPlayback(private val notification: BackgroundNotification) {
     private val media_playback_message = ByteBuffer.allocate(Messages.DEF_BUFFER_LENGTH * 2)
     private var started = false
 
@@ -23,11 +23,11 @@ class AapMediaPlayback(transport: AapTransport) {
 
         AppLog.i(message.toString())
         when (message.type) {
-            MsgType.Playback.METADATA -> {
-                val request = message.parse(Protocol.MediaMetaData())
-                AppLog.i(request.toString())
+            MediaPlayback.MSG_PLAYBACK_METADATA -> {
+                val request = message.parse(MediaPlayback.MediaMetaData())
+                notifyRequest(request)
             }
-            MsgType.Playback.METADATASTART -> {
+            MediaPlayback.MSG_PLAYBACK_METADATASTART -> {
                 if (flags == 0x09) {
                     media_playback_message.put(message.data, message.dataOffset, message.size - message.dataOffset)
                     this.started = true
@@ -43,8 +43,8 @@ class AapMediaPlayback(transport: AapTransport) {
                         media_playback_message.put(message.data, 0 , message.size)
                         media_playback_message.flip()
                         try {
-                            val request = MessageNano.mergeFrom(Protocol.MediaMetaData(), media_playback_message.array(), 0, media_playback_message.limit())
-                            AppLog.i(request.toString())
+                            val request = MessageNano.mergeFrom(MediaPlayback.MediaMetaData(), media_playback_message.array(), 0, media_playback_message.limit())
+                            notifyRequest(request)
                         } catch (e: InvalidProtocolBufferNanoException) {
                             AppLog.e(e)
                         }
@@ -57,6 +57,10 @@ class AapMediaPlayback(transport: AapTransport) {
                 AppLog.e("Unsupported %s", message.toString())
             }
         }
+    }
+
+    private fun notifyRequest(request: MediaPlayback.MediaMetaData) {
+        notification.notify(request)
     }
 
 }

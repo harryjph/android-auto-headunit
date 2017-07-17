@@ -121,8 +121,8 @@ class UsbListFragment : ca.yyx.hu.app.BaseFragment(), ca.yyx.hu.connection.UsbRe
                 if (device.isInAccessoryMode) {
                     mContext.startService(ca.yyx.hu.aap.AapService.Companion.createIntent(device.wrappedDevice, mContext))
                 } else {
-                    val usbMode = ca.yyx.hu.connection.UsbModeSwitch(mContext.getSystemService(android.content.Context.USB_SERVICE) as UsbManager)
-                    if (usbMode.switchMode(device.wrappedDevice)) {
+                    val usbMode = ca.yyx.hu.connection.UsbAccessoryMode(mContext.getSystemService(android.content.Context.USB_SERVICE) as UsbManager)
+                    if (usbMode.connectAndSwitch(device.wrappedDevice)) {
                         android.widget.Toast.makeText(mContext, "Success", android.widget.Toast.LENGTH_SHORT).show()
                     } else {
                         android.widget.Toast.makeText(mContext, "Failed", android.widget.Toast.LENGTH_SHORT).show()

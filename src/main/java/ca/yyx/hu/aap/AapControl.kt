@@ -21,9 +21,9 @@ import com.google.protobuf.nano.InvalidProtocolBufferNanoException
 
 internal class AapControl(
         private val aapTransport: AapTransport,
-        private val mMicRecorder: MicRecorder,
+        private val micRecorder: MicRecorder,
         private val aapAudio: AapAudio,
-        private val mSettings: Settings) {
+        private val settings: Settings) {
 
     @Throws(InvalidProtocolBufferNanoException::class)
     fun execute(message: AapMessage): Int {
@@ -74,9 +74,9 @@ internal class AapControl(
         AppLog.d("Mic request: %s", micRequest)
 
         if (micRequest.open) {
-            mMicRecorder.start()
+            micRecorder.start()
         } else {
-            mMicRecorder.stop()
+            micRecorder.stop()
         }
         return 0
     }
@@ -170,9 +170,9 @@ internal class AapControl(
         configResponse.status = Protocol.Config.CONFIG_STATUS_2
         configResponse.maxUnacked = 1
         configResponse.configurationIndices = intArrayOf(0)
-
+        AppLog.i("Config response: %s", configResponse)
         val msg = AapMessage(channel, MsgType.Media.CONFIGRESPONSE, configResponse)
-        AppLog.i(msg.toString())
+        AppLog.i(AapDump.logHex(msg))
         aapTransport.send(msg)
 
         if (channel == Channel.ID_VID) {
@@ -228,7 +228,7 @@ internal class AapControl(
     private fun service_discovery_request(request: Protocol.ServiceDiscoveryRequest): Int {                  // Service Discovery Request
         AppLog.i("Service Discovery Request: %s", request.phoneName)                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
-        val msg = ServiceDiscoveryResponse(mSettings)
+        val msg = ServiceDiscoveryResponse(settings)
         AppLog.i(msg.toString())
 
         aapTransport.send(msg)

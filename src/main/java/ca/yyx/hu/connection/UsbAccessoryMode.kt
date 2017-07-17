@@ -13,19 +13,12 @@ import ca.yyx.hu.utils.Utils
  * *
  * @date 29/05/2016.
  */
+class UsbAccessoryMode(private val usbMgr: UsbManager) {
 
-//  private static final int ACC_REQ_REGISTER_HID       = 54;
-//  private static final int ACC_REQ_UNREGISTER_HID     = 55;
-//  private static final int ACC_REQ_SET_HID_REPORT_DESC= 56;
-//  private static final int ACC_REQ_SEND_HID_EVENT     = 57;
-//  private static final int ACC_REQ_AUDIO              = 58;
-
-class UsbModeSwitch(private val mUsbMgr: UsbManager) {
-
-    fun switchMode(device: UsbDevice): Boolean {
+    fun connectAndSwitch(device: UsbDevice): Boolean {
         val connection: UsbDeviceConnection?
         try {
-            connection = mUsbMgr.openDevice(device)                 // Open device for connection
+            connection = usbMgr.openDevice(device)                 // Open device for connection
         } catch (e: Throwable) {
             AppLog.e(e)
             return false
@@ -36,14 +29,14 @@ class UsbModeSwitch(private val mUsbMgr: UsbManager) {
             return false
         }
 
-        val result = switchMode(connection)
+        val result = switch(connection)
         connection.close()
 
         AppLog.i("Result: " + result)
         return result
     }
 
-    private fun switchMode(connection: UsbDeviceConnection): Boolean {
+    private fun switch(connection: UsbDeviceConnection): Boolean {
         // Do accessory negotiation and attempt to switch to accessory mode. Called only by usb_connect()
         val buffer = ByteArray(2)
         var len = connection.controlTransfer(UsbConstants.USB_DIR_IN or UsbConstants.USB_TYPE_VENDOR, ACC_REQ_GET_PROTOCOL, 0, 0, buffer, 2, USB_TIMEOUT_IN_MS)
@@ -64,10 +57,10 @@ class UsbModeSwitch(private val mUsbMgr: UsbManager) {
         // Send all accessory identification strings
         initStringControlTransfer(connection, ACC_IDX_MAN, MANUFACTURER)
         initStringControlTransfer(connection, ACC_IDX_MOD, MODEL)
-        //initStringControlTransfer (conn, ACC_IDX_DES, AppLog.str_DES);
-        //initStringControlTransfer (conn, ACC_IDX_VER, AppLog.str_VER);
-        //initStringControlTransfer (conn, ACC_IDX_URI, AppLog.str_URI);
-        //initStringControlTransfer (conn, ACC_IDX_SER, AppLog.str_SER);
+        initStringControlTransfer(connection, ACC_IDX_DES, DESCRIPTION)
+        initStringControlTransfer(connection, ACC_IDX_VER, VERSION)
+        initStringControlTransfer(connection, ACC_IDX_URI, URI)
+        initStringControlTransfer(connection, ACC_IDX_SER, SERIAL)
 
         AppLog.i("Sending acc start")
         // Send accessory start request. Device should re-enumerate as an accessory.
@@ -85,29 +78,25 @@ class UsbModeSwitch(private val mUsbMgr: UsbManager) {
     }
 
     companion object {
-
         private const val USB_TIMEOUT_IN_MS = 100
-        private const val MANUFACTURER = "Android"//"Mike";                    // Manufacturer
-        private const val MODEL = "Android Auto"//"Android Open Automotive Protocol"  // Model
-        //    private static String str_DES = "Head Unit";                           // Description
-        //    private static String str_VER = "1.0";                                 // Version
-        //    private static String str_URI = "http://www.android.com/";             // URI
-        //    private static String str_SER = "0";//000000012345678";                // Serial #
-
-        // "Android", "Android Open Automotive Protocol", "Description", "VersionName", "https://developer.android.com/auto/index.html", "62skidoo"
-        // "Android", "Android Auto", "Description", "VersionName", "https://developer.android.com/auto/index.html", "62skidoo"
+        private const val MANUFACTURER = "Android"
+        private const val MODEL = "Android Auto"
+        private const val DESCRIPTION = "Android Auto"//"Android Open Automotive Protocol"
+        private const val VERSION = "2.0.1"
+        private const val URI = "https://developer.android.com/auto/index.html"
+        private const val SERIAL = "HU-AAAAAA001"
 
         // Indexes for strings sent by the host via ACC_REQ_SEND_STRING:
         private const val ACC_IDX_MAN = 0
         private const val ACC_IDX_MOD = 1
-        //private static final int ACC_IDX_DES = 2;
-        //private static final int ACC_IDX_VER = 3;
-        //private static final int ACC_IDX_URI = 4;
-        //private static final int ACC_IDX_SER = 5;
+        private const val ACC_IDX_DES = 2
+        private const val ACC_IDX_VER = 3
+        private const val ACC_IDX_URI = 4
+        private const val ACC_IDX_SER = 5
+
         // OAP Control requests:
         private const val ACC_REQ_GET_PROTOCOL = 51
         private const val ACC_REQ_SEND_STRING = 52
         private const val ACC_REQ_START = 53
     }
-
 }

@@ -179,6 +179,10 @@ internal object AapDump {
         Log.v(AppLog.TAG, logHex(prefix, start, buf, len, StringBuilder()).toString())
     }
 
+    fun logHex(message: AapMessage): String {
+        return AapDump.logHex("", 0, message.data, message.size, StringBuilder()).toString()
+    }
+
     fun logHex(prefix: String, start: Int, buf: ByteArray, length: Int, sb: StringBuilder): StringBuilder {
         var len = length
 

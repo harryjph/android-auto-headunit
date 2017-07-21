@@ -21,7 +21,6 @@ class AapMediaPlayback(private val notification: BackgroundNotification) {
 
         val flags = message.flags.toInt()
 
-        AppLog.i(message.toString())
         when (message.type) {
             MediaPlayback.MSG_PLAYBACK_METADATA -> {
                 val request = message.parse(MediaPlayback.MediaMetaData())

@@ -12,6 +12,7 @@ import android.view.SurfaceHolder
 
 import ca.yyx.hu.App
 import ca.yyx.hu.R
+import ca.yyx.hu.aap.protocol.Screen
 import ca.yyx.hu.aap.protocol.messages.TouchEvent
 import ca.yyx.hu.aap.protocol.messages.VideoFocusEvent
 import ca.yyx.hu.app.SurfaceActivity
@@ -80,10 +81,10 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
     private fun sendTouchEvent(event: MotionEvent) {
 
-        val x = event.getX(0) / (projectionView.width / VIDEO_WIDTH)
-        val y = event.getY(0) / (projectionView.height / VIDEO_HEIGHT)
+        val x = event.getX(0) / (projectionView.width / Screen.width.toFloat())
+        val y = event.getY(0) / (projectionView.height / Screen.height.toFloat())
 
-        if (x < 0 || y < 0 || x >= 65535 || y >= 65535) {   // Infinity if vid_wid_get() or vid_hei_get() return 0
+        if (x < 0 || y < 0 || x >= 65535 || y >= 65535) {
             AppLog.e("Invalid x: $x  y: $y")
             return
         }
@@ -99,13 +100,22 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         AppLog.i("KeyCode: %d", keyCode)
+        // PRes navigation on the screen
+        if (keyCode == KeyEvent.KEYCODE_GUIDE) {
+            val ts = SystemClock.uptimeMillis()
+            val event = MotionEvent.obtain(ts - 199, ts, MotionEvent.ACTION_DOWN, 40.0f, projectionView.height - 40.0f, 1)
+            sendTouchEvent(event)
+            return true
+        }
         onKeyEvent(keyCode, true)
-
         return super.onKeyDown(keyCode, event)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
         AppLog.i("KeyCode: %d", keyCode)
+        if (keyCode == KeyEvent.KEYCODE_GUIDE) {
+            return true
+        }
         Utils.ms_sleep(100)
         onKeyEvent(keyCode, false)
         return super.onKeyUp(keyCode, event)
@@ -117,8 +127,6 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
     companion object {
         const val EXTRA_FOCUS = "focus"
-        private const val VIDEO_WIDTH = 800.0
-        private const val VIDEO_HEIGHT = 480.0
 
         fun intent(context: Context): Intent {
             val aapIntent = Intent(context, AapProjectionActivity::class.java)

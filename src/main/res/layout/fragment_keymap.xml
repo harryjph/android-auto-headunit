@@ -63,21 +63,6 @@
             android:layout_marginTop="128dp"
             android:text="&#8595;" />
 
-
-        <Button
-            android:id="@+id/keycode_search"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginTop="128dp"
-            android:text="G" />
-
-        <Button
-            android:id="@+id/keycode_call"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginLeft="128dp"
-            android:layout_marginTop="128dp"
-            android:text="C" />
     </FrameLayout>
 
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -119,6 +104,44 @@
             android:layout_height="64dp"
             android:layout_marginTop="126dp"
             android:text="&#9654;&#9654;" />
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="200dp"
+        >
+
+        <Button
+            android:id="@+id/keycode_nav"
+            android:layout_width="90dp"
+            android:layout_height="64dp"
+            android:layout_marginLeft="0dp"
+            android:text="NAV" />
+
+        <Button
+            android:id="@+id/keycode_call"
+            android:layout_width="90dp"
+            android:layout_height="64dp"
+            android:layout_marginLeft="90dp"
+            android:text="CALL" />
+
+        <Button
+            android:id="@+id/keycode_music"
+            android:layout_width="90dp"
+            android:layout_height="64dp"
+            android:layout_marginLeft="180dp"
+            android:text="MUSIC" />
+
+        <Button
+            android:id="@+id/keycode_search"
+            android:layout_width="90dp"
+            android:layout_height="64dp"
+            android:layout_marginLeft="270dp"
+            android:text="MIC" />
+
+
 
     </FrameLayout>
 

@@ -1,9 +1,11 @@
 package ca.yyx.hu.aap.protocol.messages
 
+import android.view.KeyEvent
 import ca.yyx.hu.aap.AapMessage
 import ca.yyx.hu.aap.KeyCode
 import ca.yyx.hu.aap.protocol.AudioConfigs
 import ca.yyx.hu.aap.protocol.Channel
+import ca.yyx.hu.aap.protocol.Screen
 import ca.yyx.hu.aap.protocol.nano.Control
 import ca.yyx.hu.aap.protocol.nano.Media
 import ca.yyx.hu.aap.protocol.nano.Sensors
@@ -57,7 +59,7 @@ class ServiceDiscoveryResponse(settings: Settings)
             val videoConfig = Control.Service.MediaSinkService.VideoConfiguration()
             videoConfig.codecResolution = Control.Service.MediaSinkService.VideoConfiguration.VIDEO_RESOLUTION_800x480
             videoConfig.frameRate = Control.Service.MediaSinkService.VideoConfiguration.VIDEO_FPS_60
-            videoConfig.density = 140
+            videoConfig.density = Screen.density
             video.mediaSinkService.videoConfigs[0] = videoConfig
             services.add(video)
 
@@ -65,9 +67,9 @@ class ServiceDiscoveryResponse(settings: Settings)
             input.id = Channel.ID_INP
             input.inputSourceService = Control.Service.InputSourceService()
             input.inputSourceService.touchscreen = Control.Service.InputSourceService.TouchConfig()
-            input.inputSourceService.touchscreen.width = 800
-            input.inputSourceService.touchscreen.height = 480
-            input.inputSourceService.keycodesSupported = KeyCode.supported()
+            input.inputSourceService.touchscreen.width = Screen.width
+            input.inputSourceService.touchscreen.height = Screen.height
+            input.inputSourceService.keycodesSupported = KeyCode.supported
             services.add(input)
 
             val audio1 = Control.Service()

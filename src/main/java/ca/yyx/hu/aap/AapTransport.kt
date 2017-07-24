@@ -6,6 +6,7 @@ import android.util.SparseIntArray
 import android.view.KeyEvent
 import ca.yyx.hu.aap.protocol.Channel
 import ca.yyx.hu.aap.protocol.messages.*
+import ca.yyx.hu.aap.protocol.nano.Input
 import ca.yyx.hu.connection.AccessoryConnection
 import ca.yyx.hu.decoder.AudioDecoder
 import ca.yyx.hu.decoder.MicRecorder
@@ -192,15 +193,21 @@ class AapTransport(
     }
 
     fun sendButton(keyCode: Int, isPress: Boolean) {
-        val ts = SystemClock.elapsedRealtime()
-
         val mapped = keyCodes[keyCode] ?: keyCode
         val aapKeyCode = KeyCode.convert(mapped)
+
+        if (mapped == KeyEvent.KEYCODE_GUIDE) {
+            // Hack for navigation button to simulate touch
+            val action = if (isPress) Input.TouchEvent.TOUCH_ACTION_DOWN else Input.TouchEvent.TOUCH_ACTION_UP
+            this.send(TouchEvent(SystemClock.elapsedRealtime(), action, 99, 444))
+            return
+        }
 
         if (aapKeyCode == KeyEvent.KEYCODE_UNKNOWN) {
             AppLog.i("Unknown: " + keyCode)
         }
 
+        val ts = SystemClock.elapsedRealtime()
         if (aapKeyCode == KeyEvent.KEYCODE_SOFT_LEFT|| aapKeyCode == KeyEvent.KEYCODE_SOFT_RIGHT) {
             if (isPress) {
                 val delta = if (aapKeyCode == KeyEvent.KEYCODE_SOFT_LEFT) -1 else 1

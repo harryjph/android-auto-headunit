@@ -101,22 +101,12 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         AppLog.i("KeyCode: %d", keyCode)
         // PRes navigation on the screen
-        if (keyCode == KeyEvent.KEYCODE_GUIDE) {
-            val ts = SystemClock.uptimeMillis()
-            val event = MotionEvent.obtain(ts - 199, ts, MotionEvent.ACTION_DOWN, 40.0f, projectionView.height - 40.0f, 1)
-            sendTouchEvent(event)
-            return true
-        }
         onKeyEvent(keyCode, true)
         return super.onKeyDown(keyCode, event)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
         AppLog.i("KeyCode: %d", keyCode)
-        if (keyCode == KeyEvent.KEYCODE_GUIDE) {
-            return true
-        }
-        Utils.ms_sleep(100)
         onKeyEvent(keyCode, false)
         return super.onKeyUp(keyCode, event)
     }

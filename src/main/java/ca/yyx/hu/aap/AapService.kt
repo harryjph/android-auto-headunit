@@ -7,13 +7,9 @@ import android.app.UiModeManager
 import android.content.*
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
-import android.os.Bundle
 import android.os.IBinder
-import android.os.ResultReceiver
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.LocalBroadcastManager
-import android.support.v4.media.session.MediaSessionCompat
-import android.view.KeyEvent
 import android.widget.Toast
 import ca.yyx.hu.App
 import ca.yyx.hu.R
@@ -79,7 +75,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
 
         uiModeManager.enableCarMode(0)
 
-        val noty = NotificationCompat.Builder(this)
+        val noty = NotificationCompat.Builder(this, "default")
                 .setSmallIcon(R.drawable.ic_stat_aa)
                 .setTicker("Headunit is running")
                 .setWhen(System.currentTimeMillis())
@@ -122,47 +118,6 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
         App.provide(this).resetTransport()
         App.provide(this).audioDecoder.stop()
         App.provide(this).videoDecoder.stop("AapService::reset")
-    }
-
-
-    private class MediaSessionCallback internal constructor(private val mContext: Context) : MediaSessionCompat.Callback() {
-
-        override fun onCommand(command: String, extras: Bundle, cb: ResultReceiver) {
-            AppLog.i(command)
-        }
-
-        override fun onCustomAction(action: String, extras: Bundle) {
-            AppLog.i(action)
-        }
-
-        override fun onSkipToNext() {
-            AppLog.i("onSkipToNext")
-
-            App.provide(mContext).transport.sendButton(KeyEvent.KEYCODE_MEDIA_NEXT, true)
-            Utils.ms_sleep(10)
-            App.provide(mContext).transport.sendButton(KeyEvent.KEYCODE_MEDIA_NEXT, false)
-        }
-
-        override fun onSkipToPrevious() {
-            AppLog.i("onSkipToPrevious")
-
-            App.provide(mContext).transport.sendButton(KeyEvent.KEYCODE_MEDIA_PREVIOUS, true)
-            Utils.ms_sleep(10)
-            App.provide(mContext).transport.sendButton(KeyEvent.KEYCODE_MEDIA_PREVIOUS, false)
-        }
-
-        override fun onPlay() {
-            AppLog.i("PLAY")
-
-            App.provide(mContext).transport.sendButton(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, true)
-            Utils.ms_sleep(10)
-            App.provide(mContext).transport.sendButton(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, false)
-        }
-
-        override fun onMediaButtonEvent(mediaButtonEvent: Intent): Boolean {
-            AppLog.i(mediaButtonEvent.toString())
-            return super.onMediaButtonEvent(mediaButtonEvent)
-        }
     }
 
     override fun onUsbDetach(device: UsbDevice) {
@@ -209,8 +164,8 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     companion object {
         private const val TYPE_USB = 1
         private const val TYPE_WIFI = 2
-        const val EXTRA_CONNECTION_TYPE = "extra_connection_type"
-        const val EXTRA_IP = "extra_ip"
+        private const val EXTRA_CONNECTION_TYPE = "extra_connection_type"
+        private const val EXTRA_IP = "extra_ip"
 
         fun createIntent(device: UsbDevice, context: Context): Intent {
             val intent = Intent(context, AapService::class.java)

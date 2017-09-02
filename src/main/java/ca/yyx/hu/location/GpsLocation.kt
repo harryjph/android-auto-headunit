@@ -18,16 +18,10 @@ import ca.yyx.hu.utils.LocalIntent
  * @date 06/12/2016.
  */
 
-class GpsLocation internal constructor(context: Context) : GpsStatus.Listener, LocationListener {
+class GpsLocation internal constructor(context: Context): LocationListener {
     private val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     private val broadcastManager = LocalBroadcastManager.getInstance(context)
-    private var gpsStatus: GpsStatus? = null
     private var requested: Boolean = false
-
-    init {
-        // Acquire a reference to the system Location Manager
-        locationManager.addGpsStatusListener(this)
-    }
 
     fun start() {
         if (requested) {
@@ -38,27 +32,6 @@ class GpsLocation internal constructor(context: Context) : GpsStatus.Listener, L
         val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
         AppLog.i("Last known location:" + location.toString())
         requested = true
-    }
-
-    override fun onGpsStatusChanged(event: Int) {
-        gpsStatus = locationManager.getGpsStatus(gpsStatus)
-        when (event) {
-            GpsStatus.GPS_EVENT_STARTED -> {
-                AppLog.i("Started")
-            }
-
-            GpsStatus.GPS_EVENT_STOPPED -> {
-                AppLog.i("Started")
-            }
-
-            GpsStatus.GPS_EVENT_FIRST_FIX -> {
-                AppLog.i("First fix")
-            }
-
-            GpsStatus.GPS_EVENT_SATELLITE_STATUS -> {
-                AppLog.i("Satellite status")
-            }
-        }
     }
 
     override fun onLocationChanged(location: Location) {

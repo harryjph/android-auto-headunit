@@ -11,7 +11,6 @@ import android.support.v4.content.LocalBroadcastManager
 
 import ca.yyx.hu.utils.AppLog
 import ca.yyx.hu.utils.LocalIntent
-import ca.yyx.hu.utils.Utils
 
 /**
  * @author algavris
@@ -20,47 +19,50 @@ import ca.yyx.hu.utils.Utils
  */
 
 class GpsLocation internal constructor(context: Context) : GpsStatus.Listener, LocationListener {
-    private val mLocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    private val mBroadcastManager = LocalBroadcastManager.getInstance(context)
-    private var mStatus: GpsStatus? = null
-    private var mRequested: Boolean = false
+    private val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    private val broadcastManager = LocalBroadcastManager.getInstance(context)
+    private var gpsStatus: GpsStatus? = null
+    private var requested: Boolean = false
 
     init {
         // Acquire a reference to the system Location Manager
-        mLocationManager.addGpsStatusListener(this)
+        locationManager.addGpsStatusListener(this)
     }
 
     fun start() {
-        if (mRequested) {
+        if (requested) {
             return
         }
         AppLog.i("Request location updates")
-        val criteria = Criteria()
-        criteria.setPowerRequirement(Criteria.POWER_HIGH)
-        mLocationManager.requestLocationUpdates(500, 0.0f, criteria, this, null)
-        mRequested = true
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 0.0f, this)
+        val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+        AppLog.i("Last known location:" + location.toString())
+        requested = true
     }
 
     override fun onGpsStatusChanged(event: Int) {
-        mStatus = mLocationManager.getGpsStatus(mStatus)
-        AppLog.i(":" + mStatus!!)
+        gpsStatus = locationManager.getGpsStatus(gpsStatus)
         when (event) {
             GpsStatus.GPS_EVENT_STARTED -> {
+                AppLog.i("Started")
             }
 
             GpsStatus.GPS_EVENT_STOPPED -> {
+                AppLog.i("Started")
             }
 
             GpsStatus.GPS_EVENT_FIRST_FIX -> {
+                AppLog.i("First fix")
             }
 
             GpsStatus.GPS_EVENT_SATELLITE_STATUS -> {
+                AppLog.i("Satellite status")
             }
         }
     }
 
     override fun onLocationChanged(location: Location) {
-        mBroadcastManager.sendBroadcast(LocalIntent.createLocationUpdate(location))
+        broadcastManager.sendBroadcast(LocalIntent.createLocationUpdate(location))
     }
 
     override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
@@ -77,7 +79,7 @@ class GpsLocation internal constructor(context: Context) : GpsStatus.Listener, L
 
     fun stop() {
         AppLog.i("Remove location updates")
-        mRequested = false
-        mLocationManager.removeUpdates(this)
+        requested = false
+        locationManager.removeUpdates(this)
     }
 }

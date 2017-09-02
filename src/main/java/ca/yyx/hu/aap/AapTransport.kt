@@ -56,7 +56,7 @@ class AapTransport(
     internal fun startSensor(type: Int) {
         startedSensors.add(type)
         if (type == 10) {
-            send(NightModeEvent(true))
+            send(NightModeEvent(false))
         }
     }
 
@@ -220,12 +220,12 @@ class AapTransport(
     }
 
     fun send(sensor: SensorEvent): Boolean {
-        if (startedSensors.contains(sensor.sensorType)) {
+        return if (startedSensors.contains(sensor.sensorType)) {
             send(sensor as AapMessage)
-            return true
+            true
         } else {
             AppLog.e("Sensor " + sensor.sensorType + " is not started yet")
-            return false
+            false
         }
     }
 

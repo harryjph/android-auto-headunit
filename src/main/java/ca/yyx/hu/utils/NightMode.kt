@@ -1,4 +1,4 @@
-package ca.yyx.hu.utils
+ package ca.yyx.hu.utils
 
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -16,26 +16,26 @@ class NightMode(private val settings: Settings, val hasGPSLocation: Boolean) {
 
     var current: Boolean = false
         get()  {
-            when (settings.nightMode){
-                Settings.NightMode.AUTO -> return calculator.current
-                Settings.NightMode.DAY -> return false
-                Settings.NightMode.NIGHT -> return true
+            return when (settings.nightMode){
+                Settings.NightMode.AUTO -> calculator.current
+                Settings.NightMode.DAY -> false
+                Settings.NightMode.NIGHT -> true
                 Settings.NightMode.AUTO_WAIT_GPS -> {
-                    return if (hasGPSLocation) calculator.current else false
+                    if (hasGPSLocation) calculator.current else false
                 }
-                Settings.NightMode.NONE -> return false
+                Settings.NightMode.NONE -> false
             }
         }
 
     override fun toString(): String {
-        when (settings.nightMode){
-            Settings.NightMode.AUTO -> return "NightMode: ${calculator.current}"
-            Settings.NightMode.DAY -> return "NightMode: DAY"
-            Settings.NightMode.NIGHT -> return "NightMode: NIGHT"
+        return when (settings.nightMode){
+            Settings.NightMode.AUTO -> "NightMode: ${calculator.current}"
+            Settings.NightMode.DAY -> "NightMode: DAY"
+            Settings.NightMode.NIGHT -> "NightMode: NIGHT"
             Settings.NightMode.AUTO_WAIT_GPS -> {
-                return if (hasGPSLocation)"NightMode: ${calculator.current}" else "NightMode: DAY"
+                if (hasGPSLocation)"NightMode: ${calculator.current}" else "NightMode: DAY"
             }
-            Settings.NightMode.NONE -> return "NightMode: NONE"
+            Settings.NightMode.NONE -> "NightMode: NONE"
         }
     }
 }

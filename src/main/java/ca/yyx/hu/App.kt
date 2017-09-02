@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.support.v4.content.LocalBroadcastManager
+import android.view.KeyEvent
 import ca.yyx.hu.aap.AapProjectionActivity
 import ca.yyx.hu.aap.AapTransport
 import ca.yyx.hu.aap.protocol.messages.LocationUpdateEvent
@@ -33,6 +34,13 @@ class App : Application(), AapTransport.Listener {
         }
     }
 
+    private val mediaKeyCodeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val event = intent.getParcelableExtra<KeyEvent>(LocalIntent.EXTRA_EVENT)
+            App.provide(context).transport.sendButton(event.keyCode, event.action == KeyEvent.ACTION_DOWN)
+        }
+    }
+
     private val deviceListener = DeviceListener()
 
     override fun onCreate() {
@@ -40,6 +48,7 @@ class App : Application(), AapTransport.Listener {
 
         component = AppComponent(this)
         registerReceiver(deviceListener, DeviceListener.createIntentFilter())
+        LocalBroadcastManager.getInstance(this).registerReceiver(mediaKeyCodeReceiver, LocalIntent.FILTER_MEDIA_KEY_EVENT)
         LocalBroadcastManager.getInstance(this).registerReceiver(locationUpdatesReceiver, LocalIntent.FILTER_LOCATION_UPDATE)
     }
 

@@ -54,6 +54,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
         val nightModeFilter = IntentFilter()
         nightModeFilter.addAction(Intent.ACTION_TIME_TICK)
         nightModeFilter.addAction(LocalIntent.ACTION_LOCATION_UPDATE)
+        LocalBroadcastManager.getInstance(this).registerReceiver(nightModeReceiver, nightModeFilter)
         registerReceiver(nightModeReceiver, nightModeFilter)
         registerReceiver(usbReceiver, UsbReceiver.createFilter())
     }
@@ -62,6 +63,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
         super.onDestroy()
         onDisconnect()
         unregisterReceiver(nightModeReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(nightModeReceiver)
         unregisterReceiver(usbReceiver)
         uiModeManager.disableCarMode(0)
     }

@@ -6,7 +6,6 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.location.Location
 import android.location.LocationManager
-import android.support.v4.view.KeyEventCompat
 import android.view.KeyEvent
 
 /**
@@ -23,11 +22,18 @@ object LocalIntent {
     val FILTER_DISCONNECT = IntentFilter("ca.yyx.hu.ACTION_DISCONNECT")
     val FILTER_LOCATION_UPDATE = IntentFilter(ACTION_LOCATION_UPDATE)
     val FILTER_KEY_EVENT = IntentFilter("ca.yyx.hu.ACTION_KEYPRESS")
+    val FILTER_MEDIA_KEY_EVENT = IntentFilter("ca.yyx.hu.ACTION_MEDIA_KEYPRESS")
 
     const val EXTRA_EVENT = "event"
 
     fun createKeyEvent(event: KeyEvent): Intent {
         val intent = Intent("ca.yyx.hu.ACTION_KEYPRESS")
+        intent.putExtra(EXTRA_EVENT, event)
+        return intent
+    }
+
+    fun createMediaKeyEvent(event: KeyEvent): Intent {
+        val intent = Intent("ca.yyx.hu.ACTION_MEDIA_KEYPRESS")
         intent.putExtra(EXTRA_EVENT, event)
         return intent
     }
@@ -39,14 +45,14 @@ object LocalIntent {
     }
 
     fun extractLocation(intent: Intent): Location {
-        return intent.getParcelableExtra<Location>(LocationManager.KEY_LOCATION_CHANGED)
+        return intent.getParcelableExtra(LocationManager.KEY_LOCATION_CHANGED)
     }
 
     fun extractDevice(intent: Intent?): UsbDevice? {
         if (intent == null) {
             return null
         }
-        return intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
+        return intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
     }
 
 }

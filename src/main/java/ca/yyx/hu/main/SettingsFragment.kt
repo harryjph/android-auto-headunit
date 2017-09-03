@@ -48,7 +48,7 @@ class SettingsFragment : ca.yyx.hu.app.BaseFragment() {
 
         val nightModeButton = view.findViewById<Button>(R.id.night_mode)
         val nightMode = settings.nightMode
-        val nightModeTitles = resources.getStringArray(R.array.night_mode);
+        val nightModeTitles = resources.getStringArray(R.array.night_mode)
         nightModeButton.text = getString(R.string.night_mode, nightModeTitles[nightMode.value])
         nightModeButton.tag = nightMode.value
         nightModeButton.setOnClickListener {

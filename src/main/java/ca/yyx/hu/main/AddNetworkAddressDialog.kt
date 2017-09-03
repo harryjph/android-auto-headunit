@@ -1,6 +1,9 @@
 package ca.yyx.hu.main
 
+import android.app.AlertDialog
+import android.view.LayoutInflater
 import android.widget.EditText
+import ca.yyx.hu.R
 
 /**
  * @author algavris
@@ -11,9 +14,9 @@ import android.widget.EditText
 class AddNetworkAddressDialog : android.app.DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: android.os.Bundle?): android.app.Dialog {
-        val builder = android.app.AlertDialog.Builder(activity)
-        val content = android.view.LayoutInflater.from(activity).inflate(ca.yyx.hu.R.layout.fragment_add_network_address, null, false)
-
+        val builder = AlertDialog.Builder(activity)
+        val content = LayoutInflater.from(activity)
+                .inflate(R.layout.fragment_add_network_address, null, false)
 
         val first = content.findViewById<EditText>(ca.yyx.hu.R.id.first)
         val second = content.findViewById<EditText>(ca.yyx.hu.R.id.second)

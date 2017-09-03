@@ -30,7 +30,7 @@ class GpsLocation internal constructor(context: Context): LocationListener {
         AppLog.i("Request location updates")
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 0.0f, this)
         val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-        AppLog.i("Last known location:" + location.toString())
+        AppLog.i("Last known location:  ${location?.toString() ?: "Unknown"}")
         requested = true
     }
 

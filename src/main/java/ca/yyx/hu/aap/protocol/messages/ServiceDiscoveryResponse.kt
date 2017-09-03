@@ -1,6 +1,5 @@
 package ca.yyx.hu.aap.protocol.messages
 
-import android.view.KeyEvent
 import ca.yyx.hu.aap.AapMessage
 import ca.yyx.hu.aap.KeyCode
 import ca.yyx.hu.aap.protocol.AudioConfigs

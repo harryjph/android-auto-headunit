@@ -4,9 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.View
-import android.widget.Button
-import android.widget.ImageButton
 import android.widget.TextView
 
 import net.hockeyapp.android.CrashManager
@@ -18,11 +15,10 @@ import ca.yyx.hu.aap.AapProjectionActivity
 import ca.yyx.hu.utils.AppLog
 import ca.yyx.hu.utils.NetworkUtils
 import ca.yyx.hu.utils.SystemUI
-import ca.yyx.hu.utils.Utils
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.IOException
 
 class MainActivity : Activity() {
-    private lateinit var mVideoButton: View
 
     var keyListener: KeyListener? = null
 
@@ -35,21 +31,20 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        mVideoButton = findViewById(R.id.video_button)
-        mVideoButton.setOnClickListener {
+        video_button.setOnClickListener {
             val aapIntent = Intent(this@MainActivity, AapProjectionActivity::class.java)
             aapIntent.putExtra(AapProjectionActivity.EXTRA_FOCUS, true)
             startActivity(aapIntent)
         }
 
-        findViewById<ImageButton>(R.id.usb).setOnClickListener {
+        usb.setOnClickListener {
             fragmentManager
                     .beginTransaction()
                     .replace(R.id.main_content, UsbListFragment())
                     .commit()
         }
 
-        findViewById<ImageButton>(R.id.settings).setOnClickListener {
+        settings.setOnClickListener {
             fragmentManager
                     .beginTransaction()
                     .replace(R.id.main_content, SettingsFragment())
@@ -73,7 +68,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        mVideoButton.isEnabled = App.provide(this).transport.isAlive
+        video_button.isEnabled = App.provide(this).transport.isAlive
         CrashManager.register(this)
     }
 

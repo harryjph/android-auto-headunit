@@ -26,7 +26,9 @@ class App : Application(), AapTransport.Listener {
     private val locationUpdatesReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val location = extractLocation(intent)
-            App.provide(context).transport.send(LocationUpdateEvent(location))
+            if (component.settings.useGpsForNavigation) {
+                App.provide(context).transport.send(LocationUpdateEvent(location))
+            }
 
             if (location.latitude != 0.0 && location.longitude != 0.0) {
                 component.settings.lastKnownLocation = location

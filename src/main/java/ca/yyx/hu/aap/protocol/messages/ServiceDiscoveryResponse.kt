@@ -40,7 +40,9 @@ class ServiceDiscoveryResponse(settings: Settings)
 
             val sensorTypes = mutableListOf<Control.Service.SensorSourceService.Sensor>()
             sensorTypes.add(makeSensorType(Sensors.SENSOR_TYPE_DRIVING_STATUS))
-            sensorTypes.add(makeSensorType(Sensors.SENSOR_TYPE_LOCATION))
+            if (settings.useGpsForNavigation) {
+                sensorTypes.add(makeSensorType(Sensors.SENSOR_TYPE_LOCATION))
+            }
             if (settings.nightMode != Settings.NightMode.NONE){
                 sensorTypes.add(makeSensorType(Sensors.SENSOR_TYPE_NIGHT))
             }

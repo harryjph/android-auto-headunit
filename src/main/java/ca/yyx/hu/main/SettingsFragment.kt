@@ -1,13 +1,15 @@
 package ca.yyx.hu.main
 
 import android.app.AlertDialog
-import android.content.DialogInterface
+import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import ca.yyx.hu.R
 import ca.yyx.hu.decoder.MicRecorder
 import ca.yyx.hu.utils.Settings
+import kotlinx.android.synthetic.main.fragment_settings.*
 
 /**
  * @author algavris
@@ -16,9 +18,11 @@ import ca.yyx.hu.utils.Settings
 class SettingsFragment : ca.yyx.hu.app.BaseFragment() {
     lateinit var settings: Settings
     override fun onCreateView(inflater: android.view.LayoutInflater, container: android.view.ViewGroup, savedInstanceState: android.os.Bundle?): android.view.View {
-        val view = inflater.inflate(ca.yyx.hu.R.layout.fragment_settings, container, false)
+        return inflater.inflate(ca.yyx.hu.R.layout.fragment_settings, container, false)
+    }
 
-        view.findViewById<Button>(R.id.keymap).setOnClickListener {
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        keymapButton.setOnClickListener {
             fragmentManager
                     .beginTransaction()
                     .replace(R.id.main_content, KeymapFragment())
@@ -27,11 +31,19 @@ class SettingsFragment : ca.yyx.hu.app.BaseFragment() {
 
         settings = Settings(activity)
 
-        val sampleRateButton = view.findViewById<Button>(R.id.mic_sample_rate)
+        gpsNavigationButton.text = getString(R.string.gps_for_navigation, if (settings.useGpsForNavigation) getString(R.string.enabled) else getString(R.string.disabled) )
+        gpsNavigationButton.tag = settings.useGpsForNavigation
+        gpsNavigationButton.setOnClickListener {
+            val newValue = it.tag != true
+            it.tag = newValue
+            settings.useGpsForNavigation = newValue
+            (it as Button).text = getString(R.string.gps_for_navigation, if (newValue) getString(R.string.enabled) else getString(R.string.disabled) )
+        }
+
         val sampleRate = settings.micSampleRate
-        sampleRateButton.text = getString(R.string.mic_sample_rate, sampleRate/1000)
-        sampleRateButton.tag = sampleRate
-        sampleRateButton.setOnClickListener {
+        micSampleRateButton.text = getString(R.string.mic_sample_rate, sampleRate/1000)
+        micSampleRateButton.tag = sampleRate
+        micSampleRateButton.setOnClickListener {
             val newValue = Settings.MicSampleRates[it.tag]!!
 
             val recorder: MicRecorder? = try { MicRecorder(newValue) } catch (e: Exception) { null }
@@ -46,7 +58,6 @@ class SettingsFragment : ca.yyx.hu.app.BaseFragment() {
         }
 
 
-        val nightModeButton = view.findViewById<Button>(R.id.night_mode)
         val nightMode = settings.nightMode
         val nightModeTitles = resources.getStringArray(R.array.night_mode)
         nightModeButton.text = getString(R.string.night_mode, nightModeTitles[nightMode.value])
@@ -59,7 +70,6 @@ class SettingsFragment : ca.yyx.hu.app.BaseFragment() {
             settings.nightMode = newMode
         }
 
-        val btAddressButton = view.findViewById<Button>(R.id.bt_address)
         btAddressButton.text = getString(R.string.bluetooth_address_s, settings.bluetoothAddress)
         btAddressButton.setOnClickListener {
             val editView = EditText(activity)
@@ -72,6 +82,5 @@ class SettingsFragment : ca.yyx.hu.app.BaseFragment() {
                     dialog.dismiss()
                 }).show()
         }
-        return view
     }
 }

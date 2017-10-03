@@ -19,5 +19,8 @@
     <string name="bluetooth_address_s">Bluetooth address: %s</string>
     <string name="enter_bluetooth_mac">Enter bluetooth MAC</string>
     <string name="reset">Reset</string>
+    <string name="gps_for_navigation">Gps for navigation: %s</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
 </resources>
 

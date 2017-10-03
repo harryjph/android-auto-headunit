@@ -17,33 +17,33 @@ import ca.yyx.hu.connection.UsbDeviceCompat
 
 class Settings(context: Context) {
 
-    private val mPrefs: SharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
     fun isConnectingDevice(deviceCompat: UsbDeviceCompat): Boolean {
-        val allowDevices = mPrefs.getStringSet("allow-devices", null) ?: return false
+        val allowDevices = prefs.getStringSet("allow-devices", null) ?: return false
         return allowDevices.contains(deviceCompat.uniqueName)
     }
 
     var allowedDevices: Set<String>
-        get() = mPrefs.getStringSet("allow-devices", HashSet<String>())
+        get() = prefs.getStringSet("allow-devices", HashSet<String>())
         set(devices) {
-            mPrefs.edit().putStringSet("allow-devices", devices).apply()
+            prefs.edit().putStringSet("allow-devices", devices).apply()
         }
 
     var networkAddresses: Set<String>
-        get() = mPrefs.getStringSet("network-addresses", HashSet<String>())
+        get() = prefs.getStringSet("network-addresses", HashSet<String>())
         set(addrs) {
-            mPrefs.edit().putStringSet("network-addresses", addrs).apply()
+            prefs.edit().putStringSet("network-addresses", addrs).apply()
         }
 
     var bluetoothAddress: String
-        get() = mPrefs.getString("bt-address", "40:EF:4C:A3:CB:A5")
-        set(value) = mPrefs.edit().putString("bt-address", value).apply()
+        get() = prefs.getString("bt-address", "40:EF:4C:A3:CB:A5")
+        set(value) = prefs.edit().putString("bt-address", value).apply()
 
     var lastKnownLocation: Location
         get() {
-            val latitude = mPrefs.getLong("last-loc-latitude", (32.0864169).toLong())
-            val longitude = mPrefs.getLong("last-loc-longitude", (34.7557871).toLong())
+            val latitude = prefs.getLong("last-loc-latitude", (32.0864169).toLong())
+            val longitude = prefs.getLong("last-loc-longitude", (34.7557871).toLong())
 
             val location = Location("")
             location.latitude = latitude.toDouble()
@@ -51,31 +51,37 @@ class Settings(context: Context) {
             return location
         }
         set(location) {
-            mPrefs.edit()
+            prefs.edit()
                 .putLong("last-loc-latitude", location.latitude.toLong())
                 .putLong("last-loc-longitude", location.longitude.toLong())
                 .apply()
         }
 
     var micSampleRate: Int
-        get() = mPrefs.getInt("mic-sample-rate", 8000)
+        get() = prefs.getInt("mic-sample-rate", 8000)
         set(sampleRate) {
-            mPrefs.edit().putInt("mic-sample-rate", sampleRate).apply()
+            prefs.edit().putInt("mic-sample-rate", sampleRate).apply()
+        }
+
+    var useGpsForNavigation: Boolean
+        get() = prefs.getBoolean("gps-navigation", true)
+        set(value) {
+            prefs.edit().putBoolean("gps-navigation", value).apply()
         }
 
     var nightMode: NightMode
         get() {
-            val value = mPrefs.getInt("night-mode", 0)
+            val value = prefs.getInt("night-mode", 0)
             val mode = NightMode.fromInt(value)
             return mode!!
         }
         set(nightMode) {
-            mPrefs.edit().putInt("night-mode", nightMode.value).apply()
+            prefs.edit().putInt("night-mode", nightMode.value).apply()
         }
 
     var keyCodes: MutableMap<Int, Int>
         get() {
-            val set = mPrefs.getStringSet("key-codes", mutableSetOf())
+            val set = prefs.getStringSet("key-codes", mutableSetOf())
             val map = mutableMapOf<Int, Int>()
             set.forEach({
                 val codes = it.split("-")
@@ -85,12 +91,12 @@ class Settings(context: Context) {
         }
         set(codesMap) {
             val list: List<String> = codesMap.map { "${it.key}-${it.value}" }
-            mPrefs.edit().putStringSet("key-codes", list.toSet()).apply()
+            prefs.edit().putStringSet("key-codes", list.toSet()).apply()
         }
 
     @SuppressLint("ApplySharedPref")
     fun commit() {
-        mPrefs.edit().commit()
+        prefs.edit().commit()
     }
 
     enum class NightMode(val value: Int) {

@@ -6,28 +6,35 @@
     >
 
     <Button
-        android:id="@+id/keymap"
+        android:id="@+id/keymapButton"
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:text="@string/keymap"
         android:background="@drawable/button_selectable_background"/>
 
     <Button
-        android:id="@+id/night_mode"
+        android:id="@+id/gpsNavigationButton"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:text="@string/gps_for_navigation"
+        android:background="@drawable/button_selectable_background"/>
+
+    <Button
+        android:id="@+id/nightModeButton"
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:text="@string/night_mode"
         android:background="@drawable/button_selectable_background"/>
 
     <Button
-        android:id="@+id/mic_sample_rate"
+        android:id="@+id/micSampleRateButton"
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:text="@string/mic_sample_rate"
         android:background="@drawable/button_selectable_background" />
 
     <Button
-        android:id="@+id/bt_address"
+        android:id="@+id/btAddressButton"
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:text="@string/bluetooth_address_s"

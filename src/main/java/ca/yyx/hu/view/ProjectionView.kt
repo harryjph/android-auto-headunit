@@ -16,8 +16,8 @@ import ca.yyx.hu.utils.AppLog
  */
 
 class ProjectionView : SurfaceView, SurfaceHolder.Callback {
-    private var mVideoDecoder: VideoDecoder? = null
-    private var mSurfaceCallback: SurfaceHolder.Callback? = null
+    private var videoDecoder: VideoDecoder? = null
+    private var surfaceCallback: SurfaceHolder.Callback? = null
 
 
     constructor(context: Context) : super(context) {
@@ -33,34 +33,34 @@ class ProjectionView : SurfaceView, SurfaceHolder.Callback {
     }
 
     fun setSurfaceCallback(surfaceCallback: SurfaceHolder.Callback) {
-        mSurfaceCallback = surfaceCallback
+        this.surfaceCallback = surfaceCallback
     }
 
     private fun init() {
-        mVideoDecoder = App.provide(context).videoDecoder
+        videoDecoder = App.provide(context).videoDecoder
         holder.addCallback(this)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        mVideoDecoder?.stop("onDetachedFromWindow")
+        videoDecoder?.stop("onDetachedFromWindow")
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         AppLog.i("holder " + holder)
-        mSurfaceCallback?.surfaceCreated(holder)
+        surfaceCallback?.surfaceCreated(holder)
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         AppLog.i("holder %s, format: %d, width: %d, height: %d", holder, format, width, height)
-        mVideoDecoder?.onSurfaceHolderAvailable(holder, width, height)
-        mSurfaceCallback?.surfaceChanged(holder, format, width, height)
+        videoDecoder?.onSurfaceHolderAvailable(holder, width, height)
+        surfaceCallback?.surfaceChanged(holder, format, width, height)
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         AppLog.i("holder " + holder)
-        mVideoDecoder?.stop("surfaceDestroyed")
-        mSurfaceCallback?.surfaceDestroyed(holder)
+        videoDecoder?.stop("surfaceDestroyed")
+        surfaceCallback?.surfaceDestroyed(holder)
     }
 
     override fun performClick(): Boolean {

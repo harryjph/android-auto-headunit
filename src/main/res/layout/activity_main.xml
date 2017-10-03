@@ -43,10 +43,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="top|center"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="4dp"
         android:layout_marginLeft="96dp"
         android:layout_marginRight="96dp"
-        android:layout_marginBottom="96dp"
+        android:layout_marginBottom="68dp"
         android:padding="8dp"
         />
 

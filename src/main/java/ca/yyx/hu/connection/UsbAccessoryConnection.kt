@@ -7,10 +7,6 @@ import android.hardware.usb.UsbEndpoint
 import android.hardware.usb.UsbInterface
 import android.hardware.usb.UsbManager
 
-import junit.framework.Assert
-
-import java.io.IOException
-
 import ca.yyx.hu.utils.AppLog
 
 /**
@@ -18,24 +14,23 @@ import ca.yyx.hu.utils.AppLog
  * *
  * @date 29/05/2016.
  */
-
-class UsbAccessoryConnection(private val mUsbMgr: UsbManager, private val mDevice: UsbDevice) : AccessoryConnection {
-    private var mUsbDeviceConnected: UsbDeviceCompat? = null
-    private var mUsbDeviceConnection: UsbDeviceConnection? = null                   // USB Device connection
-    private var mUsbInterface: UsbInterface? = null                   // USB Interface
-    private var mEndpointIn: UsbEndpoint? = null                   // USB Input  endpoint
-    private var mEndpointOut: UsbEndpoint? = null                   // USB Output endpoint
+class UsbAccessoryConnection(private val usbMgr: UsbManager, private val device: UsbDevice) : AccessoryConnection {
+    private var usbDeviceConnected: UsbDeviceCompat? = null
+    private var usbDeviceConnection: UsbDeviceConnection? = null                   // USB Device connection
+    private var usbInterface: UsbInterface? = null                   // USB Interface
+    private var endpointIn: UsbEndpoint? = null                   // USB Input  endpoint
+    private var endpointOut: UsbEndpoint? = null                   // USB Output endpoint
 
     fun isDeviceRunning(device: UsbDevice): Boolean {
         synchronized(sLock) {
-            val connected = mUsbDeviceConnected ?: return false
+            val connected = usbDeviceConnected ?: return false
             return UsbDeviceCompat.getUniqueName(device) == connected.uniqueName
         }
     }
 
     override fun connect(listener: AccessoryConnection.Listener) {
         try {
-            val result = connect(mDevice)
+            val result = connect(device)
             listener.onConnectionResult(result)
         } catch (e: UsbOpenException) {
             AppLog.e(e)
@@ -45,50 +40,54 @@ class UsbAccessoryConnection(private val mUsbMgr: UsbManager, private val mDevic
 
 
     @Throws(UsbOpenException::class)
-    private fun connect(device: UsbDevice): Boolean {                         // Attempt to connect. Called only by usb_attach_handler() & presets_select()
-        if (mUsbDeviceConnection != null) {
+    private fun connect(device: UsbDevice): Boolean {
+        if (usbDeviceConnection != null) {
             disconnect()
         }
         synchronized(sLock) {
             try {
-                usb_open(device)                                        // Open USB device & claim interface
+                usbOpen(device)                                        // Open USB device & claim interface
             } catch (e: UsbOpenException) {
                 disconnect()                                                // Ensure state is disconnected
                 throw e
             }
 
-            val ret = acc_mode_endpoints_set()                                  // Set Accessory mode Endpoints
+            val ret = initEndpoint()                                  // Set Accessory mode Endpoints
             if (ret < 0) {                                                    // If error...
                 disconnect()                                              // Ensure state is disconnected
                 return false
             }
 
-            mUsbDeviceConnected = UsbDeviceCompat(device)
+            usbDeviceConnected = UsbDeviceCompat(device)
             return true
         }
     }
 
     @Throws(UsbOpenException::class)
-    private fun usb_open(device: UsbDevice) {                             // Open USB device connection & claim interface. Called only by usb_connect()
+    private fun usbOpen(device: UsbDevice) {
         try {
-            mUsbDeviceConnection = mUsbMgr.openDevice(device)                 // Open device for connection
+            usbDeviceConnection = usbMgr.openDevice(device)
         } catch (e: Throwable) {
-            AppLog.e(e)                                  // java.lang.IllegalArgumentException: device /dev/bus/usb/001/019 does not exist or is restricted
+            AppLog.e(e)
             throw UsbOpenException(e)
         }
 
-        AppLog.i("Established connection: " + mUsbDeviceConnection!!)
+        if (usbDeviceConnection == null) {
+            throw UsbOpenException("openDevice: connection is null")
+        }
+
+        AppLog.i("Established connection: " + usbDeviceConnection!!)
 
         try {
-            val iface_cnt = device.interfaceCount
-            if (iface_cnt <= 0) {
-                AppLog.e("iface_cnt: " + iface_cnt)
+            val interfaceCount = device.interfaceCount
+            if (interfaceCount <= 0) {
+                AppLog.e("interfaceCount: " + interfaceCount)
                 throw UsbOpenException("No usb interfaces")
             }
-            AppLog.i("iface_cnt: " + iface_cnt)
-            mUsbInterface = device.getInterface(0)                            // java.lang.ArrayIndexOutOfBoundsException: length=0; index=0
+            AppLog.i("interfaceCount: " + interfaceCount)
+            usbInterface = device.getInterface(0)                            // java.lang.ArrayIndexOutOfBoundsException: length=0; index=0
 
-            if (!mUsbDeviceConnection!!.claimInterface(mUsbInterface, true)) {        // Claim interface, if error...   true = take from kernel
+            if (!usbDeviceConnection!!.claimInterface(usbInterface, true)) {        // Claim interface, if error...   true = take from kernel
                 throw UsbOpenException("Error claiming interface")
             }
         } catch (e: Throwable) {
@@ -98,25 +97,25 @@ class UsbAccessoryConnection(private val mUsbMgr: UsbManager, private val mDevic
 
     }
 
-    private fun acc_mode_endpoints_set(): Int {                               // Set Accessory mode Endpoints. Called only by usb_connect()
+    private fun initEndpoint(): Int {                               // Set Accessory mode Endpoints. Called only by usb_connect()
         AppLog.i("Check accessory endpoints")
-        mEndpointIn = null                                               // Setup bulk endpoints.
-        mEndpointOut = null
+        endpointIn = null                                               // Setup bulk endpoints.
+        endpointOut = null
 
 
-        for (i in 0..mUsbInterface!!.endpointCount - 1) {        // For all USB endpoints...
-            val ep = mUsbInterface!!.getEndpoint(i)
+        for (i in 0 until usbInterface!!.endpointCount) {        // For all USB endpoints...
+            val ep = usbInterface!!.getEndpoint(i)
             if (ep.direction == UsbConstants.USB_DIR_IN) {              // If IN
-                if (mEndpointIn == null) {                                      // If Bulk In not set yet...
-                    mEndpointIn = ep                                             // Set Bulk In
+                if (endpointIn == null) {                                      // If Bulk In not set yet...
+                    endpointIn = ep                                             // Set Bulk In
                 }
             } else {                                                            // Else if OUT...
-                if (mEndpointOut == null) {                                     // If Bulk Out not set yet...
-                    mEndpointOut = ep                                            // Set Bulk Out
+                if (endpointOut == null) {                                     // If Bulk Out not set yet...
+                    endpointOut = ep                                            // Set Bulk Out
                 }
             }
         }
-        if (mEndpointIn == null || mEndpointOut == null) {
+        if (endpointIn == null || endpointOut == null) {
             AppLog.e("Unable to find bulk endpoints")
             return -1                                                      // Done error
         }
@@ -127,16 +126,16 @@ class UsbAccessoryConnection(private val mUsbMgr: UsbManager, private val mDevic
 
     override fun disconnect() {                                           // Release interface and close USB device connection. Called only by usb_disconnect()
         synchronized(sLock) {
-            if (mUsbDeviceConnected != null) {
-                AppLog.i(mUsbDeviceConnected!!.toString())
+            if (usbDeviceConnected != null) {
+                AppLog.i(usbDeviceConnected!!.toString())
             }
-            mEndpointIn = null                                               // Input  EP
-            mEndpointOut = null                                               // Output EP
+            endpointIn = null                                               // Input  EP
+            endpointOut = null                                               // Output EP
 
-            if (mUsbDeviceConnection != null) {
+            if (usbDeviceConnection != null) {
                 var bret = false
-                if (mUsbInterface != null) {
-                    bret = mUsbDeviceConnection!!.releaseInterface(mUsbInterface)
+                if (usbInterface != null) {
+                    bret = usbDeviceConnection!!.releaseInterface(usbInterface)
                 }
                 if (bret) {
                     AppLog.i("OK releaseInterface()")
@@ -144,16 +143,16 @@ class UsbAccessoryConnection(private val mUsbMgr: UsbManager, private val mDevic
                     AppLog.e("Error releaseInterface()")
                 }
 
-                mUsbDeviceConnection!!.close()                                        //
+                usbDeviceConnection!!.close()                                        //
             }
-            mUsbDeviceConnection = null
-            mUsbInterface = null
-            mUsbDeviceConnected = null
+            usbDeviceConnection = null
+            usbInterface = null
+            usbDeviceConnected = null
         }
     }
 
     override val isConnected: Boolean
-        get() = mUsbDeviceConnected != null
+        get() = usbDeviceConnected != null
 
     override val isSingleMessage: Boolean
         get() = false
@@ -164,12 +163,12 @@ class UsbAccessoryConnection(private val mUsbMgr: UsbManager, private val mDevic
      */
     override fun send(buf: ByteArray, length: Int, timeout: Int): Int {
         synchronized(sLock) {
-            if (mUsbDeviceConnected == null) {
+            if (usbDeviceConnected == null) {
                 AppLog.e("Not connected")
                 return -1
             }
             try {
-                return mUsbDeviceConnection!!.bulkTransfer(mEndpointOut, buf, length, timeout)
+                return usbDeviceConnection!!.bulkTransfer(endpointOut, buf, length, timeout)
             } catch (e: NullPointerException) {
                 disconnect()
                 AppLog.e(e)
@@ -181,12 +180,12 @@ class UsbAccessoryConnection(private val mUsbMgr: UsbManager, private val mDevic
 
     override fun recv(buf: ByteArray, length: Int, timeout: Int): Int {
         synchronized(sLock) {
-            if (mUsbDeviceConnected == null) {
+            if (usbDeviceConnected == null) {
                 AppLog.e("Not connected")
                 return -1
             }
             try {
-                return mUsbDeviceConnection!!.bulkTransfer(mEndpointIn, buf, buf.size, timeout)
+                return usbDeviceConnection!!.bulkTransfer(endpointIn, buf, buf.size, timeout)
             } catch (e: NullPointerException) {
                 disconnect()
                 AppLog.e(e)

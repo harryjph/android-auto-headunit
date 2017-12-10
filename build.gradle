@@ -5,7 +5,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0-beta6'
+        classpath 'com.android.tools.build:gradle:3.1.0-alpha05'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -26,9 +26,9 @@ apply plugin: 'kotlin-android-extensions'
 dependencies {
     compile 'com.google.protobuf.nano:protobuf-javanano:3.1.0'
 
-    compile 'com.android.support:support-core-utils:26.1.0'
-    compile 'com.android.support:support-media-compat:26.1.0'
-    compile 'com.android.support:recyclerview-v7:26.1.0'
+    compile 'com.android.support:support-core-utils:27.0.1'
+    compile 'com.android.support:support-media-compat:27.0.1'
+    compile 'com.android.support:recyclerview-v7:27.0.1'
 
     compile 'net.hockeyapp.android:HockeySDK:5.0.2'
 
@@ -41,7 +41,7 @@ dependencies {
 
 android {
     compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    buildToolsVersion '27.0.1'
 
     defaultConfig {
         applicationId "ca.yyx.hu"

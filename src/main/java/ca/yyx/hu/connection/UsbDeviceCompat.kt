@@ -65,8 +65,8 @@ class UsbDeviceCompat(val wrappedDevice: UsbDevice) {
         )
 
         fun getUniqueName(device: UsbDevice): String {
-            val dev_vend_id = device.vendorId  // mVendorId=2996               HTC
-            val dev_prod_id = device.productId  // mProductId=1562              OneM8
+            val vendorId = device.vendorId  // mVendorId=2996               HTC
+            val productId = device.productId  // mProductId=1562              OneM8
 
 //            if (App.IS_LOLLIPOP) {                                 // Android 5.0+ only
 //                try {
@@ -79,11 +79,11 @@ class UsbDeviceCompat(val wrappedDevice: UsbDevice) {
 //            }
 
             var usb_dev_name = ""
-            usb_dev_name += VENDOR_NAMES[dev_vend_id] ?: "$dev_vend_id"
+            usb_dev_name += VENDOR_NAMES[vendorId] ?: "$vendorId"
             usb_dev_name += " "
-            usb_dev_name += Utils.hex_get(dev_vend_id.toShort())
+            usb_dev_name += Utils.hex_get(vendorId.toShort())
             usb_dev_name += ":"
-            usb_dev_name += Utils.hex_get(dev_prod_id.toShort())
+            usb_dev_name += Utils.hex_get(productId.toShort())
 
             return usb_dev_name
         }

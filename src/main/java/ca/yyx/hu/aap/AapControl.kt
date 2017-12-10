@@ -3,7 +3,6 @@ package ca.yyx.hu.aap
 import android.media.AudioManager
 import ca.yyx.hu.aap.protocol.AudioConfigs
 import ca.yyx.hu.aap.protocol.Channel
-import ca.yyx.hu.aap.protocol.MsgType
 import ca.yyx.hu.aap.protocol.messages.DrivingStatusEvent
 import ca.yyx.hu.aap.protocol.messages.ServiceDiscoveryResponse
 import ca.yyx.hu.aap.protocol.nano.*
@@ -84,7 +83,15 @@ internal class AapControl(
     private fun media_sink_stop_request(channel: Int): Int {
         AppLog.i("Media Sink Stop Request: " + Channel.name(channel))
         if (Channel.isAudio(channel)) {
-            aapAudio.stopAudio(channel)
+            if (channel == Channel.ID_MIC) {
+                aapAudio.stopAudio(channel)
+            } else {
+                aapAudio.requestFocusChange(
+                        AudioConfigs.stream(channel),
+                        Control.AudioFocusRequestNotification.AUDIOFOCUS_RELEASE, AudioManager.OnAudioFocusChangeListener {
+
+                })
+            }
         }
         return 0
     }

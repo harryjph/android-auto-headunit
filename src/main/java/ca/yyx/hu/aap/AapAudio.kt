@@ -16,20 +16,16 @@ import ca.yyx.hu.utils.AppLog
  * *
  * @link https://github.com/google/ExoPlayer/blob/release-v2/library/src/main/java/com/google/android/exoplayer2/audio/AudioTrack.java
  */
-
 internal class AapAudio(
         private val audioDecoder: AudioDecoder,
         private val audioManager: AudioManager) {
 
     fun requestFocusChange(stream: Int, focusRequest: Int, callback: AudioManager.OnAudioFocusChangeListener) {
-        if (focusRequest == Control.AudioFocusRequestNotification.AUDIOFOCUS_RELEASE) {
-            audioManager.abandonAudioFocus(callback)
-        } else if (focusRequest == Control.AudioFocusRequestNotification.AUDIOFOCUS_GAIN) {
-            audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN)
-        } else if (focusRequest == Control.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT) {
-            audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-        } else if (focusRequest == Control.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK) {
-            audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+        when (focusRequest) {
+            Control.AudioFocusRequestNotification.AUDIOFOCUS_RELEASE -> audioManager.abandonAudioFocus(callback)
+            Control.AudioFocusRequestNotification.AUDIOFOCUS_GAIN -> audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN)
+            Control.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT -> audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+            Control.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK -> audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
         }
     }
 

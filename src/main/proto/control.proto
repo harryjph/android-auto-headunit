@@ -130,8 +130,34 @@ message Service
     }
     optional MediaPlaybackStatusService media_playback_service = 9;
 
+    enum PhoneStatus_State {
+       PhoneStatus_State_Inactive = 1;
+       PhoneStatus_State_InCall = 2;
+       PhoneStatus_State_Incoming = 3;
+       PhoneStatus_State_OnHold = 4;
+       PhoneStatus_State_Muted = 5;
+       PhoneStatus_State_Conferenced = 6;
+    }
+
+    message PhoneStatus_Call
+    {
+        // caller_number
+        // required uint32  caller_id
+        // caller_number_type
+        // optional bytes caller_thumbnail
+        // required PhoneStatus_State phone_state
+        // required int32 call_duration_seconds
+    }
+
+    message PhoneStatusService
+    {
+        repeated PhoneStatus_Call calls = 1;
+        optional uint32 signal_strength = 2;
+    }
+
+    optional PhoneStatusService phone_status_service = 10;
+
     //radio_service = 7
-    //phone_status_service = 10
     //media_browser_service=11
     //vendor_extension_service==12
     //generic_notification_service==13

@@ -83,15 +83,7 @@ internal class AapControl(
     private fun media_sink_stop_request(channel: Int): Int {
         AppLog.i("Media Sink Stop Request: " + Channel.name(channel))
         if (Channel.isAudio(channel)) {
-            if (channel == Channel.ID_MIC) {
-                aapAudio.stopAudio(channel)
-            } else {
-                aapAudio.requestFocusChange(
-                        AudioConfigs.stream(channel),
-                        Control.AudioFocusRequestNotification.AUDIOFOCUS_RELEASE, AudioManager.OnAudioFocusChangeListener {
-
-                })
-            }
+            aapAudio.stopAudio(channel)
         }
         return 0
     }
@@ -330,7 +322,7 @@ internal class AapControl(
 
         private val focusResponse = mapOf(
             AudioManager.AUDIOFOCUS_LOSS to Control.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS,
-            // AudioManager.AUDIOFOCUS_LOSS_TRANSIENT to Control.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS_TRANSIENT,
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT to Control.AudioFocusNotification.AUDIOFOCUS_STATE_LOSS_TRANSIENT,
             AudioManager.AUDIOFOCUS_GAIN to Control.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN,
             AudioManager.AUDIOFOCUS_GAIN_TRANSIENT to Control.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN_TRANSIENT,
             AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK to Control.AudioFocusNotification.AUDIOFOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY

@@ -28,6 +28,14 @@ enum ControlMsgType
     MSG_CONTROL_AUDIOFOCUSNOTFICATION = 0x13;
 }
 
+enum BluetoothPairingMethod
+{
+    BLUETOOTH_PARING_METHOD_1 = 1;
+    BLUETOOTH_PARING_METHOD_A2DP = 2;
+    BLUETOOTH_PARING_METHOD_3 = 3;
+    BLUETOOTH_PARING_METHOD_HFP = 4;
+}
+
 message Service
 {
     optional uint32 id = 1;
@@ -98,13 +106,6 @@ message Service
 
     message BluetoothService
     {
-        enum BluetoothPairingMethod
-        {
-            BLUETOOTH_PARING_METHOD_1 = 1;
-            BLUETOOTH_PARING_METHOD_A2DP = 2;
-            BLUETOOTH_PARING_METHOD_3 = 3;
-            BLUETOOTH_PARING_METHOD_HFP = 4;
-        }
         required string car_address = 1;
         repeated BluetoothPairingMethod supported_pairing_methods = 2;
     }
@@ -131,22 +132,36 @@ message Service
     optional MediaPlaybackStatusService media_playback_service = 9;
 
     enum PhoneStatus_State {
-       PhoneStatus_State_Inactive = 1;
-       PhoneStatus_State_InCall = 2;
-       PhoneStatus_State_Incoming = 3;
-       PhoneStatus_State_OnHold = 4;
+       PhoneStatus_State_InCall = 1;
+       PhoneStatus_State_OnHold = 2;
+       PhoneStatus_State_HangingUp = 3;
+       PhoneStatus_State_Incoming = 4;
        PhoneStatus_State_Muted = 5;
        PhoneStatus_State_Conferenced = 6;
     }
 
     message PhoneStatus_Call
     {
+        optional PhoneStatus_State state = 1;
+        //in seconds
+        optional uint32 call_duration_seconds = 2;
+        optional string caller_number = 3;
+        optional string caller_id = 4;
+        optional string caller_number_type = 5;
+        optional bytes thumbnail = 6;
+
         // caller_number
-        // required uint32  caller_id
+        // required uint32 caller_id
         // caller_number_type
         // optional bytes caller_thumbnail
         // required PhoneStatus_State phone_state
         // required int32 call_duration_seconds
+    }
+
+    message PhoneStatus_Input
+    {
+        optional string caller_number = 1;
+        optional string caller_id = 2;
     }
 
     message PhoneStatusService
@@ -159,8 +174,18 @@ message Service
 
     //radio_service = 7
     //media_browser_service=11
-    //vendor_extension_service==12
-    //generic_notification_service==13
+    message VendorExtensionService
+    {
+        optional string name = 1;
+        repeated string package_white_list = 2;
+        optional bytes data = 3;
+    }
+    optional VendorExtensionService vendor_extension_service = 12;
+
+    message GenericNotificationService
+    {
+    }
+    optional GenericNotificationService generic_notification_service = 13;
 }
 
 message ServiceDiscoveryRequest
@@ -273,4 +298,47 @@ message NavFocusRequestNotification
 message NavFocusNotification
 {
     required NavFocusType focus_type = 1;
+}
+
+message GenericNotificationRequest
+{
+    required string id = 1;
+    optional string text = 2;
+    optional string icon = 3;
+}
+
+message GenericNotification
+{
+    required string id = 1;
+    required bool handled = 2;
+}
+
+message GenericNotificationsStart
+{
+}
+
+message GenericNotificationsStop
+{
+}
+
+message BluetoothPairingRequest
+{
+    required string phone_address = 1;
+    optional BluetoothPairingMethod pairing_method = 2;
+}
+
+message BluetoothPairingResponse
+{
+    enum BluetoothPairingStatus
+    {
+        BLUETOOTH_PAIRING_STATUS_1 = 1;
+        BLUETOOTH_PAIRING_STATUS_2 = 2;
+    }
+    optional bool already_paired = 1;
+    optional BluetoothPairingStatus status = 2;
+}
+
+message BluetoothAuthData
+{
+    optional string data = 1;
 }

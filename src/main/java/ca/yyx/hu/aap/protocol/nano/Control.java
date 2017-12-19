@@ -24,12 +24,26 @@ public interface Control {
   public static final int MSG_CONTROL_AUDIOFOCUSREQUESTNOTFICATION = 18;
   public static final int MSG_CONTROL_AUDIOFOCUSNOTFICATION = 19;
 
+  // enum BluetoothPairingMethod
+  public static final int BLUETOOTH_PARING_METHOD_1 = 1;
+  public static final int BLUETOOTH_PARING_METHOD_A2DP = 2;
+  public static final int BLUETOOTH_PARING_METHOD_3 = 3;
+  public static final int BLUETOOTH_PARING_METHOD_HFP = 4;
+
   // enum NavFocusType
   public static final int NAV_FOCUS_1 = 1;
   public static final int NAV_FOCUS_2 = 2;
 
   public static final class Service extends
       com.google.protobuf.nano.MessageNano {
+
+    // enum PhoneStatus_State
+    public static final int PhoneStatus_State_InCall = 1;
+    public static final int PhoneStatus_State_OnHold = 2;
+    public static final int PhoneStatus_State_HangingUp = 3;
+    public static final int PhoneStatus_State_Incoming = 4;
+    public static final int PhoneStatus_State_Muted = 5;
+    public static final int PhoneStatus_State_Conferenced = 6;
 
     public static final class SensorSourceService extends
         com.google.protobuf.nano.MessageNano {
@@ -105,9 +119,19 @@ public interface Control {
                   case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_FUEL_LEVEL:
                   case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_PARKING_BRAKE:
                   case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_GEAR:
+                  case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_DIAGNOSTICS:
                   case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_NIGHT:
                   case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_ENVIRONMENT:
+                  case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_HVAC:
                   case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_DRIVING_STATUS:
+                  case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_DEAD_RECONING:
+                  case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_PASSENGER:
+                  case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_DOOR:
+                  case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_LIGHT:
+                  case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_TIRE:
+                  case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_ACCEL:
+                  case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_GYRO:
+                  case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_GPS:
                     this.type = value;
                     break;
                 }
@@ -975,12 +999,6 @@ public interface Control {
     public static final class BluetoothService extends
         com.google.protobuf.nano.MessageNano {
 
-      // enum BluetoothPairingMethod
-      public static final int BLUETOOTH_PARING_METHOD_1 = 1;
-      public static final int BLUETOOTH_PARING_METHOD_A2DP = 2;
-      public static final int BLUETOOTH_PARING_METHOD_3 = 3;
-      public static final int BLUETOOTH_PARING_METHOD_HFP = 4;
-
       private static volatile BluetoothService[] _emptyArray;
       public static BluetoothService[] emptyArray() {
         // Lazily initializes the empty array
@@ -998,7 +1016,7 @@ public interface Control {
       // required string car_address = 1;
       public java.lang.String carAddress;
 
-      // repeated .ca.yyx.hu.aap.protocol.Service.BluetoothService.BluetoothPairingMethod supported_pairing_methods = 2;
+      // repeated .ca.yyx.hu.aap.protocol.BluetoothPairingMethod supported_pairing_methods = 2;
       public int[] supportedPairingMethods;
 
       public BluetoothService() {
@@ -1072,10 +1090,10 @@ public interface Control {
                 }
                 int value = input.readInt32();
                 switch (value) {
-                  case ca.yyx.hu.aap.protocol.nano.Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_1:
-                  case ca.yyx.hu.aap.protocol.nano.Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_A2DP:
-                  case ca.yyx.hu.aap.protocol.nano.Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_3:
-                  case ca.yyx.hu.aap.protocol.nano.Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_HFP:
+                  case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_1:
+                  case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_A2DP:
+                  case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_3:
+                  case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_HFP:
                     validValues[validCount++] = value;
                     break;
                 }
@@ -1103,10 +1121,10 @@ public interface Control {
               int startPos = input.getPosition();
               while (input.getBytesUntilLimit() > 0) {
                 switch (input.readInt32()) {
-                  case ca.yyx.hu.aap.protocol.nano.Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_1:
-                  case ca.yyx.hu.aap.protocol.nano.Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_A2DP:
-                  case ca.yyx.hu.aap.protocol.nano.Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_3:
-                  case ca.yyx.hu.aap.protocol.nano.Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_HFP:
+                  case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_1:
+                  case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_A2DP:
+                  case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_3:
+                  case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_HFP:
                     arrayLength++;
                     break;
                 }
@@ -1121,10 +1139,10 @@ public interface Control {
                 while (input.getBytesUntilLimit() > 0) {
                   int value = input.readInt32();
                   switch (value) {
-                    case ca.yyx.hu.aap.protocol.nano.Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_1:
-                    case ca.yyx.hu.aap.protocol.nano.Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_A2DP:
-                    case ca.yyx.hu.aap.protocol.nano.Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_3:
-                    case ca.yyx.hu.aap.protocol.nano.Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_HFP:
+                    case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_1:
+                    case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_A2DP:
+                    case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_3:
+                    case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_HFP:
                       newArray[i++] = value;
                       break;
                   }
@@ -1418,6 +1436,598 @@ public interface Control {
       }
     }
 
+    public static final class PhoneStatus_Call extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile PhoneStatus_Call[] _emptyArray;
+      public static PhoneStatus_Call[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new PhoneStatus_Call[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional .ca.yyx.hu.aap.protocol.Service.PhoneStatus_State state = 1;
+      public int state;
+
+      // optional uint32 call_duration_seconds = 2;
+      public int callDurationSeconds;
+
+      // optional string caller_number = 3;
+      public java.lang.String callerNumber;
+
+      // optional string caller_id = 4;
+      public java.lang.String callerId;
+
+      // optional string caller_number_type = 5;
+      public java.lang.String callerNumberType;
+
+      // optional bytes thumbnail = 6;
+      public byte[] thumbnail;
+
+      public PhoneStatus_Call() {
+        clear();
+      }
+
+      public PhoneStatus_Call clear() {
+        state = ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_State_InCall;
+        callDurationSeconds = 0;
+        callerNumber = "";
+        callerId = "";
+        callerNumberType = "";
+        thumbnail = com.google.protobuf.nano.WireFormatNano.EMPTY_BYTES;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.state != ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_State_InCall) {
+          output.writeInt32(1, this.state);
+        }
+        if (this.callDurationSeconds != 0) {
+          output.writeUInt32(2, this.callDurationSeconds);
+        }
+        if (!this.callerNumber.equals("")) {
+          output.writeString(3, this.callerNumber);
+        }
+        if (!this.callerId.equals("")) {
+          output.writeString(4, this.callerId);
+        }
+        if (!this.callerNumberType.equals("")) {
+          output.writeString(5, this.callerNumberType);
+        }
+        if (!java.util.Arrays.equals(this.thumbnail, com.google.protobuf.nano.WireFormatNano.EMPTY_BYTES)) {
+          output.writeBytes(6, this.thumbnail);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.state != ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_State_InCall) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt32Size(1, this.state);
+        }
+        if (this.callDurationSeconds != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeUInt32Size(2, this.callDurationSeconds);
+        }
+        if (!this.callerNumber.equals("")) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeStringSize(3, this.callerNumber);
+        }
+        if (!this.callerId.equals("")) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeStringSize(4, this.callerId);
+        }
+        if (!this.callerNumberType.equals("")) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeStringSize(5, this.callerNumberType);
+        }
+        if (!java.util.Arrays.equals(this.thumbnail, com.google.protobuf.nano.WireFormatNano.EMPTY_BYTES)) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeBytesSize(6, this.thumbnail);
+        }
+        return size;
+      }
+
+      @Override
+      public PhoneStatus_Call mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              int value = input.readInt32();
+              switch (value) {
+                case ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_State_InCall:
+                case ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_State_OnHold:
+                case ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_State_HangingUp:
+                case ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_State_Incoming:
+                case ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_State_Muted:
+                case ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_State_Conferenced:
+                  this.state = value;
+                  break;
+              }
+              break;
+            }
+            case 16: {
+              this.callDurationSeconds = input.readUInt32();
+              break;
+            }
+            case 26: {
+              this.callerNumber = input.readString();
+              break;
+            }
+            case 34: {
+              this.callerId = input.readString();
+              break;
+            }
+            case 42: {
+              this.callerNumberType = input.readString();
+              break;
+            }
+            case 50: {
+              this.thumbnail = input.readBytes();
+              break;
+            }
+          }
+        }
+      }
+
+      public static PhoneStatus_Call parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new PhoneStatus_Call(), data);
+      }
+
+      public static PhoneStatus_Call parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new PhoneStatus_Call().mergeFrom(input);
+      }
+    }
+
+    public static final class PhoneStatus_Input extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile PhoneStatus_Input[] _emptyArray;
+      public static PhoneStatus_Input[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new PhoneStatus_Input[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional string caller_number = 1;
+      public java.lang.String callerNumber;
+
+      // optional string caller_id = 2;
+      public java.lang.String callerId;
+
+      public PhoneStatus_Input() {
+        clear();
+      }
+
+      public PhoneStatus_Input clear() {
+        callerNumber = "";
+        callerId = "";
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (!this.callerNumber.equals("")) {
+          output.writeString(1, this.callerNumber);
+        }
+        if (!this.callerId.equals("")) {
+          output.writeString(2, this.callerId);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (!this.callerNumber.equals("")) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeStringSize(1, this.callerNumber);
+        }
+        if (!this.callerId.equals("")) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeStringSize(2, this.callerId);
+        }
+        return size;
+      }
+
+      @Override
+      public PhoneStatus_Input mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              this.callerNumber = input.readString();
+              break;
+            }
+            case 18: {
+              this.callerId = input.readString();
+              break;
+            }
+          }
+        }
+      }
+
+      public static PhoneStatus_Input parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new PhoneStatus_Input(), data);
+      }
+
+      public static PhoneStatus_Input parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new PhoneStatus_Input().mergeFrom(input);
+      }
+    }
+
+    public static final class PhoneStatusService extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile PhoneStatusService[] _emptyArray;
+      public static PhoneStatusService[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new PhoneStatusService[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // repeated .ca.yyx.hu.aap.protocol.Service.PhoneStatus_Call calls = 1;
+      public ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_Call[] calls;
+
+      // optional uint32 signal_strength = 2;
+      public int signalStrength;
+
+      public PhoneStatusService() {
+        clear();
+      }
+
+      public PhoneStatusService clear() {
+        calls = ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_Call.emptyArray();
+        signalStrength = 0;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.calls != null && this.calls.length > 0) {
+          for (int i = 0; i < this.calls.length; i++) {
+            ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_Call element = this.calls[i];
+            if (element != null) {
+              output.writeMessage(1, element);
+            }
+          }
+        }
+        if (this.signalStrength != 0) {
+          output.writeUInt32(2, this.signalStrength);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.calls != null && this.calls.length > 0) {
+          for (int i = 0; i < this.calls.length; i++) {
+            ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_Call element = this.calls[i];
+            if (element != null) {
+              size += com.google.protobuf.nano.CodedOutputByteBufferNano
+                .computeMessageSize(1, element);
+            }
+          }
+        }
+        if (this.signalStrength != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeUInt32Size(2, this.signalStrength);
+        }
+        return size;
+      }
+
+      @Override
+      public PhoneStatusService mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              int arrayLength = com.google.protobuf.nano.WireFormatNano
+                  .getRepeatedFieldArrayLength(input, 10);
+              int i = this.calls == null ? 0 : this.calls.length;
+              ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_Call[] newArray =
+                  new ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_Call[i + arrayLength];
+              if (i != 0) {
+                java.lang.System.arraycopy(this.calls, 0, newArray, 0, i);
+              }
+              for (; i < newArray.length - 1; i++) {
+                newArray[i] = new ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_Call();
+                input.readMessage(newArray[i]);
+                input.readTag();
+              }
+              // Last one without readTag.
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatus_Call();
+              input.readMessage(newArray[i]);
+              this.calls = newArray;
+              break;
+            }
+            case 16: {
+              this.signalStrength = input.readUInt32();
+              break;
+            }
+          }
+        }
+      }
+
+      public static PhoneStatusService parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new PhoneStatusService(), data);
+      }
+
+      public static PhoneStatusService parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new PhoneStatusService().mergeFrom(input);
+      }
+    }
+
+    public static final class VendorExtensionService extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile VendorExtensionService[] _emptyArray;
+      public static VendorExtensionService[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new VendorExtensionService[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional string name = 1;
+      public java.lang.String name;
+
+      // repeated string package_white_list = 2;
+      public java.lang.String[] packageWhiteList;
+
+      // optional bytes data = 3;
+      public byte[] data;
+
+      public VendorExtensionService() {
+        clear();
+      }
+
+      public VendorExtensionService clear() {
+        name = "";
+        packageWhiteList = com.google.protobuf.nano.WireFormatNano.EMPTY_STRING_ARRAY;
+        data = com.google.protobuf.nano.WireFormatNano.EMPTY_BYTES;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (!this.name.equals("")) {
+          output.writeString(1, this.name);
+        }
+        if (this.packageWhiteList != null && this.packageWhiteList.length > 0) {
+          for (int i = 0; i < this.packageWhiteList.length; i++) {
+            java.lang.String element = this.packageWhiteList[i];
+            if (element != null) {
+              output.writeString(2, element);
+            }
+          }
+        }
+        if (!java.util.Arrays.equals(this.data, com.google.protobuf.nano.WireFormatNano.EMPTY_BYTES)) {
+          output.writeBytes(3, this.data);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (!this.name.equals("")) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeStringSize(1, this.name);
+        }
+        if (this.packageWhiteList != null && this.packageWhiteList.length > 0) {
+          int dataCount = 0;
+          int dataSize = 0;
+          for (int i = 0; i < this.packageWhiteList.length; i++) {
+            java.lang.String element = this.packageWhiteList[i];
+            if (element != null) {
+              dataCount++;
+              dataSize += com.google.protobuf.nano.CodedOutputByteBufferNano
+                  .computeStringSizeNoTag(element);
+            }
+          }
+          size += dataSize;
+          size += 1 * dataCount;
+        }
+        if (!java.util.Arrays.equals(this.data, com.google.protobuf.nano.WireFormatNano.EMPTY_BYTES)) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeBytesSize(3, this.data);
+        }
+        return size;
+      }
+
+      @Override
+      public VendorExtensionService mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              this.name = input.readString();
+              break;
+            }
+            case 18: {
+              int arrayLength = com.google.protobuf.nano.WireFormatNano
+                  .getRepeatedFieldArrayLength(input, 18);
+              int i = this.packageWhiteList == null ? 0 : this.packageWhiteList.length;
+              java.lang.String[] newArray = new java.lang.String[i + arrayLength];
+              if (i != 0) {
+                java.lang.System.arraycopy(this.packageWhiteList, 0, newArray, 0, i);
+              }
+              for (; i < newArray.length - 1; i++) {
+                newArray[i] = input.readString();
+                input.readTag();
+              }
+              // Last one without readTag.
+              newArray[i] = input.readString();
+              this.packageWhiteList = newArray;
+              break;
+            }
+            case 26: {
+              this.data = input.readBytes();
+              break;
+            }
+          }
+        }
+      }
+
+      public static VendorExtensionService parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new VendorExtensionService(), data);
+      }
+
+      public static VendorExtensionService parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new VendorExtensionService().mergeFrom(input);
+      }
+    }
+
+    public static final class GenericNotificationService extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile GenericNotificationService[] _emptyArray;
+      public static GenericNotificationService[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new GenericNotificationService[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      public GenericNotificationService() {
+        clear();
+      }
+
+      public GenericNotificationService clear() {
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public GenericNotificationService mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+          }
+        }
+      }
+
+      public static GenericNotificationService parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new GenericNotificationService(), data);
+      }
+
+      public static GenericNotificationService parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new GenericNotificationService().mergeFrom(input);
+      }
+    }
+
     private static volatile Service[] _emptyArray;
     public static Service[] emptyArray() {
       // Lazily initializes the empty array
@@ -1456,6 +2066,15 @@ public interface Control {
     // optional .ca.yyx.hu.aap.protocol.Service.MediaPlaybackStatusService media_playback_service = 9;
     public ca.yyx.hu.aap.protocol.nano.Control.Service.MediaPlaybackStatusService mediaPlaybackService;
 
+    // optional .ca.yyx.hu.aap.protocol.Service.PhoneStatusService phone_status_service = 10;
+    public ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatusService phoneStatusService;
+
+    // optional .ca.yyx.hu.aap.protocol.Service.VendorExtensionService vendor_extension_service = 12;
+    public ca.yyx.hu.aap.protocol.nano.Control.Service.VendorExtensionService vendorExtensionService;
+
+    // optional .ca.yyx.hu.aap.protocol.Service.GenericNotificationService generic_notification_service = 13;
+    public ca.yyx.hu.aap.protocol.nano.Control.Service.GenericNotificationService genericNotificationService;
+
     public Service() {
       clear();
     }
@@ -1469,6 +2088,9 @@ public interface Control {
       bluetoothService = null;
       navigationStatusService = null;
       mediaPlaybackService = null;
+      phoneStatusService = null;
+      vendorExtensionService = null;
+      genericNotificationService = null;
       cachedSize = -1;
       return this;
     }
@@ -1499,6 +2121,15 @@ public interface Control {
       }
       if (this.mediaPlaybackService != null) {
         output.writeMessage(9, this.mediaPlaybackService);
+      }
+      if (this.phoneStatusService != null) {
+        output.writeMessage(10, this.phoneStatusService);
+      }
+      if (this.vendorExtensionService != null) {
+        output.writeMessage(12, this.vendorExtensionService);
+      }
+      if (this.genericNotificationService != null) {
+        output.writeMessage(13, this.genericNotificationService);
       }
       super.writeTo(output);
     }
@@ -1537,6 +2168,18 @@ public interface Control {
       if (this.mediaPlaybackService != null) {
         size += com.google.protobuf.nano.CodedOutputByteBufferNano
           .computeMessageSize(9, this.mediaPlaybackService);
+      }
+      if (this.phoneStatusService != null) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeMessageSize(10, this.phoneStatusService);
+      }
+      if (this.vendorExtensionService != null) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeMessageSize(12, this.vendorExtensionService);
+      }
+      if (this.genericNotificationService != null) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeMessageSize(13, this.genericNotificationService);
       }
       return size;
     }
@@ -1607,6 +2250,27 @@ public interface Control {
               this.mediaPlaybackService = new ca.yyx.hu.aap.protocol.nano.Control.Service.MediaPlaybackStatusService();
             }
             input.readMessage(this.mediaPlaybackService);
+            break;
+          }
+          case 82: {
+            if (this.phoneStatusService == null) {
+              this.phoneStatusService = new ca.yyx.hu.aap.protocol.nano.Control.Service.PhoneStatusService();
+            }
+            input.readMessage(this.phoneStatusService);
+            break;
+          }
+          case 98: {
+            if (this.vendorExtensionService == null) {
+              this.vendorExtensionService = new ca.yyx.hu.aap.protocol.nano.Control.Service.VendorExtensionService();
+            }
+            input.readMessage(this.vendorExtensionService);
+            break;
+          }
+          case 106: {
+            if (this.genericNotificationService == null) {
+              this.genericNotificationService = new ca.yyx.hu.aap.protocol.nano.Control.Service.GenericNotificationService();
+            }
+            input.readMessage(this.genericNotificationService);
             break;
           }
         }
@@ -2970,6 +3634,617 @@ public interface Control {
             com.google.protobuf.nano.CodedInputByteBufferNano input)
         throws java.io.IOException {
       return new NavFocusNotification().mergeFrom(input);
+    }
+  }
+
+  public static final class GenericNotificationRequest extends
+      com.google.protobuf.nano.MessageNano {
+
+    private static volatile GenericNotificationRequest[] _emptyArray;
+    public static GenericNotificationRequest[] emptyArray() {
+      // Lazily initializes the empty array
+      if (_emptyArray == null) {
+        synchronized (
+            com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+          if (_emptyArray == null) {
+            _emptyArray = new GenericNotificationRequest[0];
+          }
+        }
+      }
+      return _emptyArray;
+    }
+
+    // required string id = 1;
+    public java.lang.String id;
+
+    // optional string text = 2;
+    public java.lang.String text;
+
+    // optional string icon = 3;
+    public java.lang.String icon;
+
+    public GenericNotificationRequest() {
+      clear();
+    }
+
+    public GenericNotificationRequest clear() {
+      id = "";
+      text = "";
+      icon = "";
+      cachedSize = -1;
+      return this;
+    }
+
+    @Override
+    public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+        throws java.io.IOException {
+      output.writeString(1, this.id);
+      if (!this.text.equals("")) {
+        output.writeString(2, this.text);
+      }
+      if (!this.icon.equals("")) {
+        output.writeString(3, this.icon);
+      }
+      super.writeTo(output);
+    }
+
+    @Override
+    protected int computeSerializedSize() {
+      int size = super.computeSerializedSize();
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeStringSize(1, this.id);
+      if (!this.text.equals("")) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeStringSize(2, this.text);
+      }
+      if (!this.icon.equals("")) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeStringSize(3, this.icon);
+      }
+      return size;
+    }
+
+    @Override
+    public GenericNotificationRequest mergeFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      while (true) {
+        int tag = input.readTag();
+        switch (tag) {
+          case 0:
+            return this;
+          default: {
+            if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+              return this;
+            }
+            break;
+          }
+          case 10: {
+            this.id = input.readString();
+            break;
+          }
+          case 18: {
+            this.text = input.readString();
+            break;
+          }
+          case 26: {
+            this.icon = input.readString();
+            break;
+          }
+        }
+      }
+    }
+
+    public static GenericNotificationRequest parseFrom(byte[] data)
+        throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new GenericNotificationRequest(), data);
+    }
+
+    public static GenericNotificationRequest parseFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      return new GenericNotificationRequest().mergeFrom(input);
+    }
+  }
+
+  public static final class GenericNotification extends
+      com.google.protobuf.nano.MessageNano {
+
+    private static volatile GenericNotification[] _emptyArray;
+    public static GenericNotification[] emptyArray() {
+      // Lazily initializes the empty array
+      if (_emptyArray == null) {
+        synchronized (
+            com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+          if (_emptyArray == null) {
+            _emptyArray = new GenericNotification[0];
+          }
+        }
+      }
+      return _emptyArray;
+    }
+
+    // required string id = 1;
+    public java.lang.String id;
+
+    // required bool handled = 2;
+    public boolean handled;
+
+    public GenericNotification() {
+      clear();
+    }
+
+    public GenericNotification clear() {
+      id = "";
+      handled = false;
+      cachedSize = -1;
+      return this;
+    }
+
+    @Override
+    public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+        throws java.io.IOException {
+      output.writeString(1, this.id);
+      output.writeBool(2, this.handled);
+      super.writeTo(output);
+    }
+
+    @Override
+    protected int computeSerializedSize() {
+      int size = super.computeSerializedSize();
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeStringSize(1, this.id);
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeBoolSize(2, this.handled);
+      return size;
+    }
+
+    @Override
+    public GenericNotification mergeFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      while (true) {
+        int tag = input.readTag();
+        switch (tag) {
+          case 0:
+            return this;
+          default: {
+            if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+              return this;
+            }
+            break;
+          }
+          case 10: {
+            this.id = input.readString();
+            break;
+          }
+          case 16: {
+            this.handled = input.readBool();
+            break;
+          }
+        }
+      }
+    }
+
+    public static GenericNotification parseFrom(byte[] data)
+        throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new GenericNotification(), data);
+    }
+
+    public static GenericNotification parseFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      return new GenericNotification().mergeFrom(input);
+    }
+  }
+
+  public static final class GenericNotificationsStart extends
+      com.google.protobuf.nano.MessageNano {
+
+    private static volatile GenericNotificationsStart[] _emptyArray;
+    public static GenericNotificationsStart[] emptyArray() {
+      // Lazily initializes the empty array
+      if (_emptyArray == null) {
+        synchronized (
+            com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+          if (_emptyArray == null) {
+            _emptyArray = new GenericNotificationsStart[0];
+          }
+        }
+      }
+      return _emptyArray;
+    }
+
+    public GenericNotificationsStart() {
+      clear();
+    }
+
+    public GenericNotificationsStart clear() {
+      cachedSize = -1;
+      return this;
+    }
+
+    @Override
+    public GenericNotificationsStart mergeFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      while (true) {
+        int tag = input.readTag();
+        switch (tag) {
+          case 0:
+            return this;
+          default: {
+            if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+              return this;
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    public static GenericNotificationsStart parseFrom(byte[] data)
+        throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new GenericNotificationsStart(), data);
+    }
+
+    public static GenericNotificationsStart parseFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      return new GenericNotificationsStart().mergeFrom(input);
+    }
+  }
+
+  public static final class GenericNotificationsStop extends
+      com.google.protobuf.nano.MessageNano {
+
+    private static volatile GenericNotificationsStop[] _emptyArray;
+    public static GenericNotificationsStop[] emptyArray() {
+      // Lazily initializes the empty array
+      if (_emptyArray == null) {
+        synchronized (
+            com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+          if (_emptyArray == null) {
+            _emptyArray = new GenericNotificationsStop[0];
+          }
+        }
+      }
+      return _emptyArray;
+    }
+
+    public GenericNotificationsStop() {
+      clear();
+    }
+
+    public GenericNotificationsStop clear() {
+      cachedSize = -1;
+      return this;
+    }
+
+    @Override
+    public GenericNotificationsStop mergeFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      while (true) {
+        int tag = input.readTag();
+        switch (tag) {
+          case 0:
+            return this;
+          default: {
+            if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+              return this;
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    public static GenericNotificationsStop parseFrom(byte[] data)
+        throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new GenericNotificationsStop(), data);
+    }
+
+    public static GenericNotificationsStop parseFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      return new GenericNotificationsStop().mergeFrom(input);
+    }
+  }
+
+  public static final class BluetoothPairingRequest extends
+      com.google.protobuf.nano.MessageNano {
+
+    private static volatile BluetoothPairingRequest[] _emptyArray;
+    public static BluetoothPairingRequest[] emptyArray() {
+      // Lazily initializes the empty array
+      if (_emptyArray == null) {
+        synchronized (
+            com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+          if (_emptyArray == null) {
+            _emptyArray = new BluetoothPairingRequest[0];
+          }
+        }
+      }
+      return _emptyArray;
+    }
+
+    // required string phone_address = 1;
+    public java.lang.String phoneAddress;
+
+    // optional .ca.yyx.hu.aap.protocol.BluetoothPairingMethod pairing_method = 2;
+    public int pairingMethod;
+
+    public BluetoothPairingRequest() {
+      clear();
+    }
+
+    public BluetoothPairingRequest clear() {
+      phoneAddress = "";
+      pairingMethod = ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_1;
+      cachedSize = -1;
+      return this;
+    }
+
+    @Override
+    public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+        throws java.io.IOException {
+      output.writeString(1, this.phoneAddress);
+      if (this.pairingMethod != ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_1) {
+        output.writeInt32(2, this.pairingMethod);
+      }
+      super.writeTo(output);
+    }
+
+    @Override
+    protected int computeSerializedSize() {
+      int size = super.computeSerializedSize();
+      size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeStringSize(1, this.phoneAddress);
+      if (this.pairingMethod != ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_1) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeInt32Size(2, this.pairingMethod);
+      }
+      return size;
+    }
+
+    @Override
+    public BluetoothPairingRequest mergeFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      while (true) {
+        int tag = input.readTag();
+        switch (tag) {
+          case 0:
+            return this;
+          default: {
+            if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+              return this;
+            }
+            break;
+          }
+          case 10: {
+            this.phoneAddress = input.readString();
+            break;
+          }
+          case 16: {
+            int value = input.readInt32();
+            switch (value) {
+              case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_1:
+              case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_A2DP:
+              case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_3:
+              case ca.yyx.hu.aap.protocol.nano.Control.BLUETOOTH_PARING_METHOD_HFP:
+                this.pairingMethod = value;
+                break;
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    public static BluetoothPairingRequest parseFrom(byte[] data)
+        throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new BluetoothPairingRequest(), data);
+    }
+
+    public static BluetoothPairingRequest parseFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      return new BluetoothPairingRequest().mergeFrom(input);
+    }
+  }
+
+  public static final class BluetoothPairingResponse extends
+      com.google.protobuf.nano.MessageNano {
+
+    // enum BluetoothPairingStatus
+    public static final int BLUETOOTH_PAIRING_STATUS_1 = 1;
+    public static final int BLUETOOTH_PAIRING_STATUS_2 = 2;
+
+    private static volatile BluetoothPairingResponse[] _emptyArray;
+    public static BluetoothPairingResponse[] emptyArray() {
+      // Lazily initializes the empty array
+      if (_emptyArray == null) {
+        synchronized (
+            com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+          if (_emptyArray == null) {
+            _emptyArray = new BluetoothPairingResponse[0];
+          }
+        }
+      }
+      return _emptyArray;
+    }
+
+    // optional bool already_paired = 1;
+    public boolean alreadyPaired;
+
+    // optional .ca.yyx.hu.aap.protocol.BluetoothPairingResponse.BluetoothPairingStatus status = 2;
+    public int status;
+
+    public BluetoothPairingResponse() {
+      clear();
+    }
+
+    public BluetoothPairingResponse clear() {
+      alreadyPaired = false;
+      status = ca.yyx.hu.aap.protocol.nano.Control.BluetoothPairingResponse.BLUETOOTH_PAIRING_STATUS_1;
+      cachedSize = -1;
+      return this;
+    }
+
+    @Override
+    public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+        throws java.io.IOException {
+      if (this.alreadyPaired != false) {
+        output.writeBool(1, this.alreadyPaired);
+      }
+      if (this.status != ca.yyx.hu.aap.protocol.nano.Control.BluetoothPairingResponse.BLUETOOTH_PAIRING_STATUS_1) {
+        output.writeInt32(2, this.status);
+      }
+      super.writeTo(output);
+    }
+
+    @Override
+    protected int computeSerializedSize() {
+      int size = super.computeSerializedSize();
+      if (this.alreadyPaired != false) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeBoolSize(1, this.alreadyPaired);
+      }
+      if (this.status != ca.yyx.hu.aap.protocol.nano.Control.BluetoothPairingResponse.BLUETOOTH_PAIRING_STATUS_1) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeInt32Size(2, this.status);
+      }
+      return size;
+    }
+
+    @Override
+    public BluetoothPairingResponse mergeFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      while (true) {
+        int tag = input.readTag();
+        switch (tag) {
+          case 0:
+            return this;
+          default: {
+            if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+              return this;
+            }
+            break;
+          }
+          case 8: {
+            this.alreadyPaired = input.readBool();
+            break;
+          }
+          case 16: {
+            int value = input.readInt32();
+            switch (value) {
+              case ca.yyx.hu.aap.protocol.nano.Control.BluetoothPairingResponse.BLUETOOTH_PAIRING_STATUS_1:
+              case ca.yyx.hu.aap.protocol.nano.Control.BluetoothPairingResponse.BLUETOOTH_PAIRING_STATUS_2:
+                this.status = value;
+                break;
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    public static BluetoothPairingResponse parseFrom(byte[] data)
+        throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new BluetoothPairingResponse(), data);
+    }
+
+    public static BluetoothPairingResponse parseFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      return new BluetoothPairingResponse().mergeFrom(input);
+    }
+  }
+
+  public static final class BluetoothAuthData extends
+      com.google.protobuf.nano.MessageNano {
+
+    private static volatile BluetoothAuthData[] _emptyArray;
+    public static BluetoothAuthData[] emptyArray() {
+      // Lazily initializes the empty array
+      if (_emptyArray == null) {
+        synchronized (
+            com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+          if (_emptyArray == null) {
+            _emptyArray = new BluetoothAuthData[0];
+          }
+        }
+      }
+      return _emptyArray;
+    }
+
+    // optional string data = 1;
+    public java.lang.String data;
+
+    public BluetoothAuthData() {
+      clear();
+    }
+
+    public BluetoothAuthData clear() {
+      data = "";
+      cachedSize = -1;
+      return this;
+    }
+
+    @Override
+    public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+        throws java.io.IOException {
+      if (!this.data.equals("")) {
+        output.writeString(1, this.data);
+      }
+      super.writeTo(output);
+    }
+
+    @Override
+    protected int computeSerializedSize() {
+      int size = super.computeSerializedSize();
+      if (!this.data.equals("")) {
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeStringSize(1, this.data);
+      }
+      return size;
+    }
+
+    @Override
+    public BluetoothAuthData mergeFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      while (true) {
+        int tag = input.readTag();
+        switch (tag) {
+          case 0:
+            return this;
+          default: {
+            if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+              return this;
+            }
+            break;
+          }
+          case 10: {
+            this.data = input.readString();
+            break;
+          }
+        }
+      }
+    }
+
+    public static BluetoothAuthData parseFrom(byte[] data)
+        throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+      return com.google.protobuf.nano.MessageNano.mergeFrom(new BluetoothAuthData(), data);
+    }
+
+    public static BluetoothAuthData parseFrom(
+            com.google.protobuf.nano.CodedInputByteBufferNano input)
+        throws java.io.IOException {
+      return new BluetoothAuthData().mergeFrom(input);
     }
   }
 }

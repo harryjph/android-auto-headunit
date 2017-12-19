@@ -13,6 +13,9 @@ object Channel {
     const val ID_BTH = 8
     const val ID_MPB = 9
     const val ID_NAV = 10
+    const val ID_NOT = 11
+    const val ID_NOTI = 11
+    const val ID_PHONE = 12
 
     fun name(channel: Int): String {
         when (channel) {
@@ -27,6 +30,8 @@ object Channel {
             ID_BTH -> return "BLUETOOTH"
             ID_MPB -> return "MUSIC_PLAYBACK"
             ID_NAV -> return "NAVIGATION_DIRECTIONS"
+            ID_NOTI -> return "NOTIFICATION"
+            ID_PHONE -> return "PHONE_STATUS"
         }
         return "UNK"
     }

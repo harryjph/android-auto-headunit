@@ -19,9 +19,19 @@ public interface Sensors {
   public static final int SENSOR_TYPE_FUEL_LEVEL = 6;
   public static final int SENSOR_TYPE_PARKING_BRAKE = 7;
   public static final int SENSOR_TYPE_GEAR = 8;
+  public static final int SENSOR_TYPE_DIAGNOSTICS = 9;
   public static final int SENSOR_TYPE_NIGHT = 10;
   public static final int SENSOR_TYPE_ENVIRONMENT = 11;
+  public static final int SENSOR_TYPE_HVAC = 12;
   public static final int SENSOR_TYPE_DRIVING_STATUS = 13;
+  public static final int SENSOR_TYPE_DEAD_RECONING = 14;
+  public static final int SENSOR_TYPE_PASSENGER = 15;
+  public static final int SENSOR_TYPE_DOOR = 16;
+  public static final int SENSOR_TYPE_LIGHT = 17;
+  public static final int SENSOR_TYPE_TIRE = 18;
+  public static final int SENSOR_TYPE_ACCEL = 19;
+  public static final int SENSOR_TYPE_GYRO = 20;
+  public static final int SENSOR_TYPE_GPS = 21;
 
   public static final class SensorBatch extends
       com.google.protobuf.nano.MessageNano {
@@ -200,17 +210,17 @@ public interface Sensors {
       }
     }
 
-    public static final class RPM extends
+    public static final class RpmData extends
         com.google.protobuf.nano.MessageNano {
 
-      private static volatile RPM[] _emptyArray;
-      public static RPM[] emptyArray() {
+      private static volatile RpmData[] _emptyArray;
+      public static RpmData[] emptyArray() {
         // Lazily initializes the empty array
         if (_emptyArray == null) {
           synchronized (
               com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
             if (_emptyArray == null) {
-              _emptyArray = new RPM[0];
+              _emptyArray = new RpmData[0];
             }
           }
         }
@@ -220,11 +230,11 @@ public interface Sensors {
       // required int32 rpm = 1;
       public int rpm;
 
-      public RPM() {
+      public RpmData() {
         clear();
       }
 
-      public RPM clear() {
+      public RpmData clear() {
         rpm = 0;
         cachedSize = -1;
         return this;
@@ -246,7 +256,7 @@ public interface Sensors {
       }
 
       @Override
-      public RPM mergeFrom(
+      public RpmData mergeFrom(
               com.google.protobuf.nano.CodedInputByteBufferNano input)
           throws java.io.IOException {
         while (true) {
@@ -268,29 +278,29 @@ public interface Sensors {
         }
       }
 
-      public static RPM parseFrom(byte[] data)
+      public static RpmData parseFrom(byte[] data)
           throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-        return com.google.protobuf.nano.MessageNano.mergeFrom(new RPM(), data);
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new RpmData(), data);
       }
 
-      public static RPM parseFrom(
+      public static RpmData parseFrom(
               com.google.protobuf.nano.CodedInputByteBufferNano input)
           throws java.io.IOException {
-        return new RPM().mergeFrom(input);
+        return new RpmData().mergeFrom(input);
       }
     }
 
-    public static final class FuelLevel extends
+    public static final class FuelData extends
         com.google.protobuf.nano.MessageNano {
 
-      private static volatile FuelLevel[] _emptyArray;
-      public static FuelLevel[] emptyArray() {
+      private static volatile FuelData[] _emptyArray;
+      public static FuelData[] emptyArray() {
         // Lazily initializes the empty array
         if (_emptyArray == null) {
           synchronized (
               com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
             if (_emptyArray == null) {
-              _emptyArray = new FuelLevel[0];
+              _emptyArray = new FuelData[0];
             }
           }
         }
@@ -306,11 +316,11 @@ public interface Sensors {
       // optional bool lowfuel = 3;
       public boolean lowfuel;
 
-      public FuelLevel() {
+      public FuelData() {
         clear();
       }
 
-      public FuelLevel clear() {
+      public FuelData clear() {
         fuellevel = 0;
         range = 0;
         lowfuel = false;
@@ -348,7 +358,7 @@ public interface Sensors {
       }
 
       @Override
-      public FuelLevel mergeFrom(
+      public FuelData mergeFrom(
               com.google.protobuf.nano.CodedInputByteBufferNano input)
           throws java.io.IOException {
         while (true) {
@@ -378,29 +388,29 @@ public interface Sensors {
         }
       }
 
-      public static FuelLevel parseFrom(byte[] data)
+      public static FuelData parseFrom(byte[] data)
           throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-        return com.google.protobuf.nano.MessageNano.mergeFrom(new FuelLevel(), data);
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new FuelData(), data);
       }
 
-      public static FuelLevel parseFrom(
+      public static FuelData parseFrom(
               com.google.protobuf.nano.CodedInputByteBufferNano input)
           throws java.io.IOException {
-        return new FuelLevel().mergeFrom(input);
+        return new FuelData().mergeFrom(input);
       }
     }
 
-    public static final class DeadReckoning extends
+    public static final class DeadReckoningData extends
         com.google.protobuf.nano.MessageNano {
 
-      private static volatile DeadReckoning[] _emptyArray;
-      public static DeadReckoning[] emptyArray() {
+      private static volatile DeadReckoningData[] _emptyArray;
+      public static DeadReckoningData[] emptyArray() {
         // Lazily initializes the empty array
         if (_emptyArray == null) {
           synchronized (
               com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
             if (_emptyArray == null) {
-              _emptyArray = new DeadReckoning[0];
+              _emptyArray = new DeadReckoningData[0];
             }
           }
         }
@@ -413,11 +423,11 @@ public interface Sensors {
       // optional int32 wheel_speed = 2;
       public int wheelSpeed;
 
-      public DeadReckoning() {
+      public DeadReckoningData() {
         clear();
       }
 
-      public DeadReckoning clear() {
+      public DeadReckoningData clear() {
         steeringAngel = 0;
         wheelSpeed = 0;
         cachedSize = -1;
@@ -451,7 +461,7 @@ public interface Sensors {
       }
 
       @Override
-      public DeadReckoning mergeFrom(
+      public DeadReckoningData mergeFrom(
               com.google.protobuf.nano.CodedInputByteBufferNano input)
           throws java.io.IOException {
         while (true) {
@@ -477,15 +487,15 @@ public interface Sensors {
         }
       }
 
-      public static DeadReckoning parseFrom(byte[] data)
+      public static DeadReckoningData parseFrom(byte[] data)
           throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
-        return com.google.protobuf.nano.MessageNano.mergeFrom(new DeadReckoning(), data);
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new DeadReckoningData(), data);
       }
 
-      public static DeadReckoning parseFrom(
+      public static DeadReckoningData parseFrom(
               com.google.protobuf.nano.CodedInputByteBufferNano input)
           throws java.io.IOException {
-        return new DeadReckoning().mergeFrom(input);
+        return new DeadReckoningData().mergeFrom(input);
       }
     }
 
@@ -653,8 +663,13 @@ public interface Sensors {
         com.google.protobuf.nano.MessageNano {
 
       // enum Status
-      public static final int DRIVING_STATUS_PARKED = 0;
-      public static final int DRIVING_STATUS_MOOVING = 1;
+      public static final int DRIVING_STATUS_UNRESTRICTED = 0;
+      public static final int DRIVING_STATUS_NO_VIDEO = 1;
+      public static final int DRIVING_STATUS_FULLY_RESTRICTED = 31;
+      public static final int DRIVING_STATUS_LIMIT_MESSAGE_LEN = 16;
+      public static final int DRIVING_STATUS_NO_CONFIG = 8;
+      public static final int DRIVING_STATUS_NO_KEYBOARD_INPUT = 2;
+      public static final int DRIVING_STATUS_NO_VOICE_INPUT = 4;
 
       private static volatile DrivingStatusData[] _emptyArray;
       public static DrivingStatusData[] emptyArray() {
@@ -1017,6 +1032,1351 @@ public interface Sensors {
       }
     }
 
+    public static final class GearData extends
+        com.google.protobuf.nano.MessageNano {
+
+      // enum GEAR
+      public static final int GEAR_DRIVE = 100;
+      public static final int GEAR_EIGHTH = 8;
+      public static final int GEAR_FIFTH = 5;
+      public static final int GEAR_FIRST = 1;
+      public static final int GEAR_FOURTH = 4;
+      public static final int GEAR_NEUTRAL = 0;
+      public static final int GEAR_NINTH = 9;
+      public static final int GEAR_PARK = 101;
+      public static final int GEAR_REVERSE = 102;
+      public static final int GEAR_SECOND = 2;
+      public static final int GEAR_SEVENTH = 7;
+      public static final int GEAR_SIXTH = 6;
+      public static final int GEAR_TENTH = 10;
+      public static final int GEAR_THIRD = 3;
+
+      private static volatile GearData[] _emptyArray;
+      public static GearData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new GearData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // required .ca.yyx.hu.aap.protocol.SensorBatch.GearData.GEAR gear = 1;
+      public int gear;
+
+      public GearData() {
+        clear();
+      }
+
+      public GearData clear() {
+        gear = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_DRIVE;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        output.writeInt32(1, this.gear);
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        size += com.google.protobuf.nano.CodedOutputByteBufferNano
+          .computeInt32Size(1, this.gear);
+        return size;
+      }
+
+      @Override
+      public GearData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              int value = input.readInt32();
+              switch (value) {
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_DRIVE:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_EIGHTH:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_FIFTH:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_FIRST:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_FOURTH:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_NEUTRAL:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_NINTH:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_PARK:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_REVERSE:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_SECOND:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_SEVENTH:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_SIXTH:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_TENTH:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.GEAR_THIRD:
+                  this.gear = value;
+                  break;
+              }
+              break;
+            }
+          }
+        }
+      }
+
+      public static GearData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new GearData(), data);
+      }
+
+      public static GearData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new GearData().mergeFrom(input);
+      }
+    }
+
+    public static final class CompassData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile CompassData[] _emptyArray;
+      public static CompassData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new CompassData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional int32 bearing_e6 = 1;
+      public int bearingE6;
+
+      // optional int32 pitch_e6 = 2;
+      public int pitchE6;
+
+      // optional int32 roll_e6 = 3;
+      public int rollE6;
+
+      public CompassData() {
+        clear();
+      }
+
+      public CompassData clear() {
+        bearingE6 = 0;
+        pitchE6 = 0;
+        rollE6 = 0;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.bearingE6 != 0) {
+          output.writeInt32(1, this.bearingE6);
+        }
+        if (this.pitchE6 != 0) {
+          output.writeInt32(2, this.pitchE6);
+        }
+        if (this.rollE6 != 0) {
+          output.writeInt32(3, this.rollE6);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.bearingE6 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(1, this.bearingE6);
+        }
+        if (this.pitchE6 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(2, this.pitchE6);
+        }
+        if (this.rollE6 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(3, this.rollE6);
+        }
+        return size;
+      }
+
+      @Override
+      public CompassData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.bearingE6 = input.readInt32();
+              break;
+            }
+            case 16: {
+              this.pitchE6 = input.readInt32();
+              break;
+            }
+            case 24: {
+              this.rollE6 = input.readInt32();
+              break;
+            }
+          }
+        }
+      }
+
+      public static CompassData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new CompassData(), data);
+      }
+
+      public static CompassData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new CompassData().mergeFrom(input);
+      }
+    }
+
+    public static final class SpeedData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile SpeedData[] _emptyArray;
+      public static SpeedData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new SpeedData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional int32 speed_e6 = 1;
+      public int speedE6;
+
+      // optional bool cruise_engaged = 2;
+      public boolean cruiseEngaged;
+
+      // optional bool cruise_set_speed = 3;
+      public boolean cruiseSetSpeed;
+
+      public SpeedData() {
+        clear();
+      }
+
+      public SpeedData clear() {
+        speedE6 = 0;
+        cruiseEngaged = false;
+        cruiseSetSpeed = false;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.speedE6 != 0) {
+          output.writeInt32(1, this.speedE6);
+        }
+        if (this.cruiseEngaged != false) {
+          output.writeBool(2, this.cruiseEngaged);
+        }
+        if (this.cruiseSetSpeed != false) {
+          output.writeBool(3, this.cruiseSetSpeed);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.speedE6 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(1, this.speedE6);
+        }
+        if (this.cruiseEngaged != false) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeBoolSize(2, this.cruiseEngaged);
+        }
+        if (this.cruiseSetSpeed != false) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeBoolSize(3, this.cruiseSetSpeed);
+        }
+        return size;
+      }
+
+      @Override
+      public SpeedData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.speedE6 = input.readInt32();
+              break;
+            }
+            case 16: {
+              this.cruiseEngaged = input.readBool();
+              break;
+            }
+            case 24: {
+              this.cruiseSetSpeed = input.readBool();
+              break;
+            }
+          }
+        }
+      }
+
+      public static SpeedData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new SpeedData(), data);
+      }
+
+      public static SpeedData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new SpeedData().mergeFrom(input);
+      }
+    }
+
+    public static final class OdometerData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile OdometerData[] _emptyArray;
+      public static OdometerData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new OdometerData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional int32 kms_el = 1;
+      public int kmsEl;
+
+      // optional int32 trip_kms_el = 2;
+      public int tripKmsEl;
+
+      public OdometerData() {
+        clear();
+      }
+
+      public OdometerData clear() {
+        kmsEl = 0;
+        tripKmsEl = 0;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.kmsEl != 0) {
+          output.writeInt32(1, this.kmsEl);
+        }
+        if (this.tripKmsEl != 0) {
+          output.writeInt32(2, this.tripKmsEl);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.kmsEl != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(1, this.kmsEl);
+        }
+        if (this.tripKmsEl != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(2, this.tripKmsEl);
+        }
+        return size;
+      }
+
+      @Override
+      public OdometerData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.kmsEl = input.readInt32();
+              break;
+            }
+            case 16: {
+              this.tripKmsEl = input.readInt32();
+              break;
+            }
+          }
+        }
+      }
+
+      public static OdometerData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new OdometerData(), data);
+      }
+
+      public static OdometerData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new OdometerData().mergeFrom(input);
+      }
+    }
+
+    public static final class DiagnosticsData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile DiagnosticsData[] _emptyArray;
+      public static DiagnosticsData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new DiagnosticsData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional bytes diagnostics_byte = 1;
+      public byte[] diagnosticsByte;
+
+      public DiagnosticsData() {
+        clear();
+      }
+
+      public DiagnosticsData clear() {
+        diagnosticsByte = com.google.protobuf.nano.WireFormatNano.EMPTY_BYTES;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (!java.util.Arrays.equals(this.diagnosticsByte, com.google.protobuf.nano.WireFormatNano.EMPTY_BYTES)) {
+          output.writeBytes(1, this.diagnosticsByte);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (!java.util.Arrays.equals(this.diagnosticsByte, com.google.protobuf.nano.WireFormatNano.EMPTY_BYTES)) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeBytesSize(1, this.diagnosticsByte);
+        }
+        return size;
+      }
+
+      @Override
+      public DiagnosticsData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              this.diagnosticsByte = input.readBytes();
+              break;
+            }
+          }
+        }
+      }
+
+      public static DiagnosticsData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new DiagnosticsData(), data);
+      }
+
+      public static DiagnosticsData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new DiagnosticsData().mergeFrom(input);
+      }
+    }
+
+    public static final class EnvironmentData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile EnvironmentData[] _emptyArray;
+      public static EnvironmentData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new EnvironmentData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional int32 temperature_e3 = 1;
+      public int temperatureE3;
+
+      // optional int32 pressure_e3 = 2;
+      public int pressureE3;
+
+      // optional int32 rain = 3;
+      public int rain;
+
+      public EnvironmentData() {
+        clear();
+      }
+
+      public EnvironmentData clear() {
+        temperatureE3 = 0;
+        pressureE3 = 0;
+        rain = 0;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.temperatureE3 != 0) {
+          output.writeInt32(1, this.temperatureE3);
+        }
+        if (this.pressureE3 != 0) {
+          output.writeInt32(2, this.pressureE3);
+        }
+        if (this.rain != 0) {
+          output.writeInt32(3, this.rain);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.temperatureE3 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(1, this.temperatureE3);
+        }
+        if (this.pressureE3 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(2, this.pressureE3);
+        }
+        if (this.rain != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(3, this.rain);
+        }
+        return size;
+      }
+
+      @Override
+      public EnvironmentData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.temperatureE3 = input.readInt32();
+              break;
+            }
+            case 16: {
+              this.pressureE3 = input.readInt32();
+              break;
+            }
+            case 24: {
+              this.rain = input.readInt32();
+              break;
+            }
+          }
+        }
+      }
+
+      public static EnvironmentData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new EnvironmentData(), data);
+      }
+
+      public static EnvironmentData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new EnvironmentData().mergeFrom(input);
+      }
+    }
+
+    public static final class HvacData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile HvacData[] _emptyArray;
+      public static HvacData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new HvacData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional int32 target_temperature_e3 = 1;
+      public int targetTemperatureE3;
+
+      // optional int32 current_temperature_e3 = 2;
+      public int currentTemperatureE3;
+
+      public HvacData() {
+        clear();
+      }
+
+      public HvacData clear() {
+        targetTemperatureE3 = 0;
+        currentTemperatureE3 = 0;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.targetTemperatureE3 != 0) {
+          output.writeInt32(1, this.targetTemperatureE3);
+        }
+        if (this.currentTemperatureE3 != 0) {
+          output.writeInt32(2, this.currentTemperatureE3);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.targetTemperatureE3 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(1, this.targetTemperatureE3);
+        }
+        if (this.currentTemperatureE3 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(2, this.currentTemperatureE3);
+        }
+        return size;
+      }
+
+      @Override
+      public HvacData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.targetTemperatureE3 = input.readInt32();
+              break;
+            }
+            case 16: {
+              this.currentTemperatureE3 = input.readInt32();
+              break;
+            }
+          }
+        }
+      }
+
+      public static HvacData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new HvacData(), data);
+      }
+
+      public static HvacData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new HvacData().mergeFrom(input);
+      }
+    }
+
+    public static final class AccelerometerData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile AccelerometerData[] _emptyArray;
+      public static AccelerometerData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new AccelerometerData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional int32 acceleration_x_e3 = 1;
+      public int accelerationXE3;
+
+      // optional int32 acceleration_y_e3 = 2;
+      public int accelerationYE3;
+
+      // optional int32 acceleration_z_e3 = 3;
+      public int accelerationZE3;
+
+      public AccelerometerData() {
+        clear();
+      }
+
+      public AccelerometerData clear() {
+        accelerationXE3 = 0;
+        accelerationYE3 = 0;
+        accelerationZE3 = 0;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.accelerationXE3 != 0) {
+          output.writeInt32(1, this.accelerationXE3);
+        }
+        if (this.accelerationYE3 != 0) {
+          output.writeInt32(2, this.accelerationYE3);
+        }
+        if (this.accelerationZE3 != 0) {
+          output.writeInt32(3, this.accelerationZE3);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.accelerationXE3 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(1, this.accelerationXE3);
+        }
+        if (this.accelerationYE3 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(2, this.accelerationYE3);
+        }
+        if (this.accelerationZE3 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(3, this.accelerationZE3);
+        }
+        return size;
+      }
+
+      @Override
+      public AccelerometerData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.accelerationXE3 = input.readInt32();
+              break;
+            }
+            case 16: {
+              this.accelerationYE3 = input.readInt32();
+              break;
+            }
+            case 24: {
+              this.accelerationZE3 = input.readInt32();
+              break;
+            }
+          }
+        }
+      }
+
+      public static AccelerometerData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new AccelerometerData(), data);
+      }
+
+      public static AccelerometerData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new AccelerometerData().mergeFrom(input);
+      }
+    }
+
+    public static final class GyroscopeData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile GyroscopeData[] _emptyArray;
+      public static GyroscopeData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new GyroscopeData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional int32 rotation_speed_x_e3 = 1;
+      public int rotationSpeedXE3;
+
+      // optional int32 rotation_speed_y_e3 = 2;
+      public int rotationSpeedYE3;
+
+      // optional int32 rotation_speed_z_e3 = 3;
+      public int rotationSpeedZE3;
+
+      public GyroscopeData() {
+        clear();
+      }
+
+      public GyroscopeData clear() {
+        rotationSpeedXE3 = 0;
+        rotationSpeedYE3 = 0;
+        rotationSpeedZE3 = 0;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.rotationSpeedXE3 != 0) {
+          output.writeInt32(1, this.rotationSpeedXE3);
+        }
+        if (this.rotationSpeedYE3 != 0) {
+          output.writeInt32(2, this.rotationSpeedYE3);
+        }
+        if (this.rotationSpeedZE3 != 0) {
+          output.writeInt32(3, this.rotationSpeedZE3);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.rotationSpeedXE3 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(1, this.rotationSpeedXE3);
+        }
+        if (this.rotationSpeedYE3 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(2, this.rotationSpeedYE3);
+        }
+        if (this.rotationSpeedZE3 != 0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeInt32Size(3, this.rotationSpeedZE3);
+        }
+        return size;
+      }
+
+      @Override
+      public GyroscopeData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.rotationSpeedXE3 = input.readInt32();
+              break;
+            }
+            case 16: {
+              this.rotationSpeedYE3 = input.readInt32();
+              break;
+            }
+            case 24: {
+              this.rotationSpeedZE3 = input.readInt32();
+              break;
+            }
+          }
+        }
+      }
+
+      public static GyroscopeData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new GyroscopeData(), data);
+      }
+
+      public static GyroscopeData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new GyroscopeData().mergeFrom(input);
+      }
+    }
+
+    public static final class DoorData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile DoorData[] _emptyArray;
+      public static DoorData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new DoorData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional bool hood_open = 1;
+      public boolean hoodOpen;
+
+      // optional bool boot_open = 2;
+      public boolean bootOpen;
+
+      // repeated bool door_open = 3;
+      public boolean[] doorOpen;
+
+      public DoorData() {
+        clear();
+      }
+
+      public DoorData clear() {
+        hoodOpen = false;
+        bootOpen = false;
+        doorOpen = com.google.protobuf.nano.WireFormatNano.EMPTY_BOOLEAN_ARRAY;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.hoodOpen != false) {
+          output.writeBool(1, this.hoodOpen);
+        }
+        if (this.bootOpen != false) {
+          output.writeBool(2, this.bootOpen);
+        }
+        if (this.doorOpen != null && this.doorOpen.length > 0) {
+          for (int i = 0; i < this.doorOpen.length; i++) {
+            output.writeBool(3, this.doorOpen[i]);
+          }
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.hoodOpen != false) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeBoolSize(1, this.hoodOpen);
+        }
+        if (this.bootOpen != false) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeBoolSize(2, this.bootOpen);
+        }
+        if (this.doorOpen != null && this.doorOpen.length > 0) {
+          int dataSize = 1 * this.doorOpen.length;
+          size += dataSize;
+          size += 1 * this.doorOpen.length;
+        }
+        return size;
+      }
+
+      @Override
+      public DoorData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.hoodOpen = input.readBool();
+              break;
+            }
+            case 16: {
+              this.bootOpen = input.readBool();
+              break;
+            }
+            case 24: {
+              int arrayLength = com.google.protobuf.nano.WireFormatNano
+                  .getRepeatedFieldArrayLength(input, 24);
+              int i = this.doorOpen == null ? 0 : this.doorOpen.length;
+              boolean[] newArray = new boolean[i + arrayLength];
+              if (i != 0) {
+                java.lang.System.arraycopy(this.doorOpen, 0, newArray, 0, i);
+              }
+              for (; i < newArray.length - 1; i++) {
+                newArray[i] = input.readBool();
+                input.readTag();
+              }
+              // Last one without readTag.
+              newArray[i] = input.readBool();
+              this.doorOpen = newArray;
+              break;
+            }
+            case 26: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              // First pass to compute array length.
+              int arrayLength = 0;
+              int startPos = input.getPosition();
+              while (input.getBytesUntilLimit() > 0) {
+                input.readBool();
+                arrayLength++;
+              }
+              input.rewindToPosition(startPos);
+              int i = this.doorOpen == null ? 0 : this.doorOpen.length;
+              boolean[] newArray = new boolean[i + arrayLength];
+              if (i != 0) {
+                java.lang.System.arraycopy(this.doorOpen, 0, newArray, 0, i);
+              }
+              for (; i < newArray.length; i++) {
+                newArray[i] = input.readBool();
+              }
+              this.doorOpen = newArray;
+              input.popLimit(limit);
+              break;
+            }
+          }
+        }
+      }
+
+      public static DoorData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new DoorData(), data);
+      }
+
+      public static DoorData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new DoorData().mergeFrom(input);
+      }
+    }
+
+    public static final class LightData extends
+        com.google.protobuf.nano.MessageNano {
+
+      // enum HEADLIGHT_STATE
+      public static final int HEADLIGHT_STATE_0 = 0;
+      public static final int HEADLIGHT_STATE_1 = 1;
+      public static final int HEADLIGHT_STATE_2 = 2;
+      public static final int HEADLIGHT_STATE_3 = 3;
+
+      // enum TURN_INDICATOR_STATE
+      public static final int TURN_INDICATOR_STATE_0 = 0;
+      public static final int TURN_INDICATOR_STATE_1 = 1;
+      public static final int TURN_INDICATOR_STATE_2 = 2;
+      public static final int TURN_INDICATOR_STATE_3 = 3;
+
+      private static volatile LightData[] _emptyArray;
+      public static LightData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new LightData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional .ca.yyx.hu.aap.protocol.SensorBatch.LightData.HEADLIGHT_STATE headlight = 1;
+      public int headlight;
+
+      // optional .ca.yyx.hu.aap.protocol.SensorBatch.LightData.TURN_INDICATOR_STATE turn_indicator = 2;
+      public int turnIndicator;
+
+      // optional bool hazard_light_on = 3;
+      public boolean hazardLightOn;
+
+      public LightData() {
+        clear();
+      }
+
+      public LightData clear() {
+        headlight = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.HEADLIGHT_STATE_0;
+        turnIndicator = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.TURN_INDICATOR_STATE_0;
+        hazardLightOn = false;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.headlight != ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.HEADLIGHT_STATE_0) {
+          output.writeInt32(1, this.headlight);
+        }
+        if (this.turnIndicator != ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.TURN_INDICATOR_STATE_0) {
+          output.writeInt32(2, this.turnIndicator);
+        }
+        if (this.hazardLightOn != false) {
+          output.writeBool(3, this.hazardLightOn);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.headlight != ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.HEADLIGHT_STATE_0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt32Size(1, this.headlight);
+        }
+        if (this.turnIndicator != ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.TURN_INDICATOR_STATE_0) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+            .computeInt32Size(2, this.turnIndicator);
+        }
+        if (this.hazardLightOn != false) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeBoolSize(3, this.hazardLightOn);
+        }
+        return size;
+      }
+
+      @Override
+      public LightData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              int value = input.readInt32();
+              switch (value) {
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.HEADLIGHT_STATE_0:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.HEADLIGHT_STATE_1:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.HEADLIGHT_STATE_2:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.HEADLIGHT_STATE_3:
+                  this.headlight = value;
+                  break;
+              }
+              break;
+            }
+            case 16: {
+              int value = input.readInt32();
+              switch (value) {
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.TURN_INDICATOR_STATE_0:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.TURN_INDICATOR_STATE_1:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.TURN_INDICATOR_STATE_2:
+                case ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.TURN_INDICATOR_STATE_3:
+                  this.turnIndicator = value;
+                  break;
+              }
+              break;
+            }
+            case 24: {
+              this.hazardLightOn = input.readBool();
+              break;
+            }
+          }
+        }
+      }
+
+      public static LightData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new LightData(), data);
+      }
+
+      public static LightData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new LightData().mergeFrom(input);
+      }
+    }
+
+    public static final class PassengerData extends
+        com.google.protobuf.nano.MessageNano {
+
+      private static volatile PassengerData[] _emptyArray;
+      public static PassengerData[] emptyArray() {
+        // Lazily initializes the empty array
+        if (_emptyArray == null) {
+          synchronized (
+              com.google.protobuf.nano.InternalNano.LAZY_INIT_LOCK) {
+            if (_emptyArray == null) {
+              _emptyArray = new PassengerData[0];
+            }
+          }
+        }
+        return _emptyArray;
+      }
+
+      // optional bool passenger_present = 1;
+      public boolean passengerPresent;
+
+      public PassengerData() {
+        clear();
+      }
+
+      public PassengerData clear() {
+        passengerPresent = false;
+        cachedSize = -1;
+        return this;
+      }
+
+      @Override
+      public void writeTo(com.google.protobuf.nano.CodedOutputByteBufferNano output)
+          throws java.io.IOException {
+        if (this.passengerPresent != false) {
+          output.writeBool(1, this.passengerPresent);
+        }
+        super.writeTo(output);
+      }
+
+      @Override
+      protected int computeSerializedSize() {
+        int size = super.computeSerializedSize();
+        if (this.passengerPresent != false) {
+          size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeBoolSize(1, this.passengerPresent);
+        }
+        return size;
+      }
+
+      @Override
+      public PassengerData mergeFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              return this;
+            default: {
+              if (!com.google.protobuf.nano.WireFormatNano.parseUnknownField(input, tag)) {
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              this.passengerPresent = input.readBool();
+              break;
+            }
+          }
+        }
+      }
+
+      public static PassengerData parseFrom(byte[] data)
+          throws com.google.protobuf.nano.InvalidProtocolBufferNanoException {
+        return com.google.protobuf.nano.MessageNano.mergeFrom(new PassengerData(), data);
+      }
+
+      public static PassengerData parseFrom(
+              com.google.protobuf.nano.CodedInputByteBufferNano input)
+          throws java.io.IOException {
+        return new PassengerData().mergeFrom(input);
+      }
+    }
+
     private static volatile SensorBatch[] _emptyArray;
     public static SensorBatch[] emptyArray() {
       // Lazily initializes the empty array
@@ -1034,14 +2394,59 @@ public interface Sensors {
     // repeated .ca.yyx.hu.aap.protocol.SensorBatch.LocationData location_data = 1;
     public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LocationData[] locationData;
 
-    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.ParkingBrakeData parking_break_data = 7;
-    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.ParkingBrakeData[] parkingBreakData;
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.CompassData compass_data = 2;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.CompassData[] compassData;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.SpeedData speed_data = 3;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.SpeedData[] speedData;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.RpmData rpm = 4;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.RpmData[] rpm;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.OdometerData odometer_data = 5;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.OdometerData[] odometerData;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.FuelData fuel_data = 6;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.FuelData[] fuelData;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.ParkingBrakeData parkingbrake_data = 7;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.ParkingBrakeData[] parkingbrakeData;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.GearData gear_data = 8;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData[] gearData;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.DiagnosticsData diagnostics_data = 9;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DiagnosticsData[] diagnosticsData;
 
     // repeated .ca.yyx.hu.aap.protocol.SensorBatch.NightModeData night_mode = 10;
     public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.NightModeData[] nightMode;
 
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.EnvironmentData enviorment_data = 11;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.EnvironmentData[] enviormentData;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.HvacData hvac_data = 12;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.HvacData[] hvacData;
+
     // repeated .ca.yyx.hu.aap.protocol.SensorBatch.DrivingStatusData driving_status = 13;
     public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DrivingStatusData[] drivingStatus;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.DeadReckoningData dead_reckoning = 14;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DeadReckoningData[] deadReckoning;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.PassengerData passenger_data = 15;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.PassengerData[] passengerData;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.DoorData door_data = 16;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DoorData[] doorData;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.LightData light_data = 17;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData[] lightData;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.AccelerometerData accel_data = 19;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.AccelerometerData[] accelData;
+
+    // repeated .ca.yyx.hu.aap.protocol.SensorBatch.GyroscopeData gyro_data = 20;
+    public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GyroscopeData[] gyroData;
 
     // repeated .ca.yyx.hu.aap.protocol.SensorBatch.GpsSatelliteData gps_satellite_data = 21;
     public ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GpsSatelliteData[] gpsSatelliteData;
@@ -1052,9 +2457,24 @@ public interface Sensors {
 
     public SensorBatch clear() {
       locationData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LocationData.emptyArray();
-      parkingBreakData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.ParkingBrakeData.emptyArray();
+      compassData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.CompassData.emptyArray();
+      speedData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.SpeedData.emptyArray();
+      rpm = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.RpmData.emptyArray();
+      odometerData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.OdometerData.emptyArray();
+      fuelData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.FuelData.emptyArray();
+      parkingbrakeData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.ParkingBrakeData.emptyArray();
+      gearData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData.emptyArray();
+      diagnosticsData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DiagnosticsData.emptyArray();
       nightMode = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.NightModeData.emptyArray();
+      enviormentData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.EnvironmentData.emptyArray();
+      hvacData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.HvacData.emptyArray();
       drivingStatus = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DrivingStatusData.emptyArray();
+      deadReckoning = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DeadReckoningData.emptyArray();
+      passengerData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.PassengerData.emptyArray();
+      doorData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DoorData.emptyArray();
+      lightData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData.emptyArray();
+      accelData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.AccelerometerData.emptyArray();
+      gyroData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GyroscopeData.emptyArray();
       gpsSatelliteData = ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GpsSatelliteData.emptyArray();
       cachedSize = -1;
       return this;
@@ -1071,11 +2491,67 @@ public interface Sensors {
           }
         }
       }
-      if (this.parkingBreakData != null && this.parkingBreakData.length > 0) {
-        for (int i = 0; i < this.parkingBreakData.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.ParkingBrakeData element = this.parkingBreakData[i];
+      if (this.compassData != null && this.compassData.length > 0) {
+        for (int i = 0; i < this.compassData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.CompassData element = this.compassData[i];
+          if (element != null) {
+            output.writeMessage(2, element);
+          }
+        }
+      }
+      if (this.speedData != null && this.speedData.length > 0) {
+        for (int i = 0; i < this.speedData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.SpeedData element = this.speedData[i];
+          if (element != null) {
+            output.writeMessage(3, element);
+          }
+        }
+      }
+      if (this.rpm != null && this.rpm.length > 0) {
+        for (int i = 0; i < this.rpm.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.RpmData element = this.rpm[i];
+          if (element != null) {
+            output.writeMessage(4, element);
+          }
+        }
+      }
+      if (this.odometerData != null && this.odometerData.length > 0) {
+        for (int i = 0; i < this.odometerData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.OdometerData element = this.odometerData[i];
+          if (element != null) {
+            output.writeMessage(5, element);
+          }
+        }
+      }
+      if (this.fuelData != null && this.fuelData.length > 0) {
+        for (int i = 0; i < this.fuelData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.FuelData element = this.fuelData[i];
+          if (element != null) {
+            output.writeMessage(6, element);
+          }
+        }
+      }
+      if (this.parkingbrakeData != null && this.parkingbrakeData.length > 0) {
+        for (int i = 0; i < this.parkingbrakeData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.ParkingBrakeData element = this.parkingbrakeData[i];
           if (element != null) {
             output.writeMessage(7, element);
+          }
+        }
+      }
+      if (this.gearData != null && this.gearData.length > 0) {
+        for (int i = 0; i < this.gearData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData element = this.gearData[i];
+          if (element != null) {
+            output.writeMessage(8, element);
+          }
+        }
+      }
+      if (this.diagnosticsData != null && this.diagnosticsData.length > 0) {
+        for (int i = 0; i < this.diagnosticsData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DiagnosticsData element = this.diagnosticsData[i];
+          if (element != null) {
+            output.writeMessage(9, element);
           }
         }
       }
@@ -1087,11 +2563,75 @@ public interface Sensors {
           }
         }
       }
+      if (this.enviormentData != null && this.enviormentData.length > 0) {
+        for (int i = 0; i < this.enviormentData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.EnvironmentData element = this.enviormentData[i];
+          if (element != null) {
+            output.writeMessage(11, element);
+          }
+        }
+      }
+      if (this.hvacData != null && this.hvacData.length > 0) {
+        for (int i = 0; i < this.hvacData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.HvacData element = this.hvacData[i];
+          if (element != null) {
+            output.writeMessage(12, element);
+          }
+        }
+      }
       if (this.drivingStatus != null && this.drivingStatus.length > 0) {
         for (int i = 0; i < this.drivingStatus.length; i++) {
           ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DrivingStatusData element = this.drivingStatus[i];
           if (element != null) {
             output.writeMessage(13, element);
+          }
+        }
+      }
+      if (this.deadReckoning != null && this.deadReckoning.length > 0) {
+        for (int i = 0; i < this.deadReckoning.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DeadReckoningData element = this.deadReckoning[i];
+          if (element != null) {
+            output.writeMessage(14, element);
+          }
+        }
+      }
+      if (this.passengerData != null && this.passengerData.length > 0) {
+        for (int i = 0; i < this.passengerData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.PassengerData element = this.passengerData[i];
+          if (element != null) {
+            output.writeMessage(15, element);
+          }
+        }
+      }
+      if (this.doorData != null && this.doorData.length > 0) {
+        for (int i = 0; i < this.doorData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DoorData element = this.doorData[i];
+          if (element != null) {
+            output.writeMessage(16, element);
+          }
+        }
+      }
+      if (this.lightData != null && this.lightData.length > 0) {
+        for (int i = 0; i < this.lightData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData element = this.lightData[i];
+          if (element != null) {
+            output.writeMessage(17, element);
+          }
+        }
+      }
+      if (this.accelData != null && this.accelData.length > 0) {
+        for (int i = 0; i < this.accelData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.AccelerometerData element = this.accelData[i];
+          if (element != null) {
+            output.writeMessage(19, element);
+          }
+        }
+      }
+      if (this.gyroData != null && this.gyroData.length > 0) {
+        for (int i = 0; i < this.gyroData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GyroscopeData element = this.gyroData[i];
+          if (element != null) {
+            output.writeMessage(20, element);
           }
         }
       }
@@ -1118,12 +2658,75 @@ public interface Sensors {
           }
         }
       }
-      if (this.parkingBreakData != null && this.parkingBreakData.length > 0) {
-        for (int i = 0; i < this.parkingBreakData.length; i++) {
-          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.ParkingBrakeData element = this.parkingBreakData[i];
+      if (this.compassData != null && this.compassData.length > 0) {
+        for (int i = 0; i < this.compassData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.CompassData element = this.compassData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(2, element);
+          }
+        }
+      }
+      if (this.speedData != null && this.speedData.length > 0) {
+        for (int i = 0; i < this.speedData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.SpeedData element = this.speedData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(3, element);
+          }
+        }
+      }
+      if (this.rpm != null && this.rpm.length > 0) {
+        for (int i = 0; i < this.rpm.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.RpmData element = this.rpm[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(4, element);
+          }
+        }
+      }
+      if (this.odometerData != null && this.odometerData.length > 0) {
+        for (int i = 0; i < this.odometerData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.OdometerData element = this.odometerData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(5, element);
+          }
+        }
+      }
+      if (this.fuelData != null && this.fuelData.length > 0) {
+        for (int i = 0; i < this.fuelData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.FuelData element = this.fuelData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(6, element);
+          }
+        }
+      }
+      if (this.parkingbrakeData != null && this.parkingbrakeData.length > 0) {
+        for (int i = 0; i < this.parkingbrakeData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.ParkingBrakeData element = this.parkingbrakeData[i];
           if (element != null) {
             size += com.google.protobuf.nano.CodedOutputByteBufferNano
               .computeMessageSize(7, element);
+          }
+        }
+      }
+      if (this.gearData != null && this.gearData.length > 0) {
+        for (int i = 0; i < this.gearData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData element = this.gearData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(8, element);
+          }
+        }
+      }
+      if (this.diagnosticsData != null && this.diagnosticsData.length > 0) {
+        for (int i = 0; i < this.diagnosticsData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DiagnosticsData element = this.diagnosticsData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(9, element);
           }
         }
       }
@@ -1136,12 +2739,84 @@ public interface Sensors {
           }
         }
       }
+      if (this.enviormentData != null && this.enviormentData.length > 0) {
+        for (int i = 0; i < this.enviormentData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.EnvironmentData element = this.enviormentData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(11, element);
+          }
+        }
+      }
+      if (this.hvacData != null && this.hvacData.length > 0) {
+        for (int i = 0; i < this.hvacData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.HvacData element = this.hvacData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(12, element);
+          }
+        }
+      }
       if (this.drivingStatus != null && this.drivingStatus.length > 0) {
         for (int i = 0; i < this.drivingStatus.length; i++) {
           ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DrivingStatusData element = this.drivingStatus[i];
           if (element != null) {
             size += com.google.protobuf.nano.CodedOutputByteBufferNano
               .computeMessageSize(13, element);
+          }
+        }
+      }
+      if (this.deadReckoning != null && this.deadReckoning.length > 0) {
+        for (int i = 0; i < this.deadReckoning.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DeadReckoningData element = this.deadReckoning[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(14, element);
+          }
+        }
+      }
+      if (this.passengerData != null && this.passengerData.length > 0) {
+        for (int i = 0; i < this.passengerData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.PassengerData element = this.passengerData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(15, element);
+          }
+        }
+      }
+      if (this.doorData != null && this.doorData.length > 0) {
+        for (int i = 0; i < this.doorData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DoorData element = this.doorData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(16, element);
+          }
+        }
+      }
+      if (this.lightData != null && this.lightData.length > 0) {
+        for (int i = 0; i < this.lightData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData element = this.lightData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(17, element);
+          }
+        }
+      }
+      if (this.accelData != null && this.accelData.length > 0) {
+        for (int i = 0; i < this.accelData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.AccelerometerData element = this.accelData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(19, element);
+          }
+        }
+      }
+      if (this.gyroData != null && this.gyroData.length > 0) {
+        for (int i = 0; i < this.gyroData.length; i++) {
+          ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GyroscopeData element = this.gyroData[i];
+          if (element != null) {
+            size += com.google.protobuf.nano.CodedOutputByteBufferNano
+              .computeMessageSize(20, element);
           }
         }
       }
@@ -1192,14 +2867,114 @@ public interface Sensors {
             this.locationData = newArray;
             break;
           }
+          case 18: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 18);
+            int i = this.compassData == null ? 0 : this.compassData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.CompassData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.CompassData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.compassData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.CompassData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.CompassData();
+            input.readMessage(newArray[i]);
+            this.compassData = newArray;
+            break;
+          }
+          case 26: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 26);
+            int i = this.speedData == null ? 0 : this.speedData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.SpeedData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.SpeedData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.speedData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.SpeedData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.SpeedData();
+            input.readMessage(newArray[i]);
+            this.speedData = newArray;
+            break;
+          }
+          case 34: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 34);
+            int i = this.rpm == null ? 0 : this.rpm.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.RpmData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.RpmData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.rpm, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.RpmData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.RpmData();
+            input.readMessage(newArray[i]);
+            this.rpm = newArray;
+            break;
+          }
+          case 42: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 42);
+            int i = this.odometerData == null ? 0 : this.odometerData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.OdometerData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.OdometerData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.odometerData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.OdometerData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.OdometerData();
+            input.readMessage(newArray[i]);
+            this.odometerData = newArray;
+            break;
+          }
+          case 50: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 50);
+            int i = this.fuelData == null ? 0 : this.fuelData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.FuelData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.FuelData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.fuelData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.FuelData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.FuelData();
+            input.readMessage(newArray[i]);
+            this.fuelData = newArray;
+            break;
+          }
           case 58: {
             int arrayLength = com.google.protobuf.nano.WireFormatNano
                 .getRepeatedFieldArrayLength(input, 58);
-            int i = this.parkingBreakData == null ? 0 : this.parkingBreakData.length;
+            int i = this.parkingbrakeData == null ? 0 : this.parkingbrakeData.length;
             ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.ParkingBrakeData[] newArray =
                 new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.ParkingBrakeData[i + arrayLength];
             if (i != 0) {
-              java.lang.System.arraycopy(this.parkingBreakData, 0, newArray, 0, i);
+              java.lang.System.arraycopy(this.parkingbrakeData, 0, newArray, 0, i);
             }
             for (; i < newArray.length - 1; i++) {
               newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.ParkingBrakeData();
@@ -1209,7 +2984,47 @@ public interface Sensors {
             // Last one without readTag.
             newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.ParkingBrakeData();
             input.readMessage(newArray[i]);
-            this.parkingBreakData = newArray;
+            this.parkingbrakeData = newArray;
+            break;
+          }
+          case 66: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 66);
+            int i = this.gearData == null ? 0 : this.gearData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.gearData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GearData();
+            input.readMessage(newArray[i]);
+            this.gearData = newArray;
+            break;
+          }
+          case 74: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 74);
+            int i = this.diagnosticsData == null ? 0 : this.diagnosticsData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DiagnosticsData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DiagnosticsData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.diagnosticsData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DiagnosticsData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DiagnosticsData();
+            input.readMessage(newArray[i]);
+            this.diagnosticsData = newArray;
             break;
           }
           case 82: {
@@ -1232,6 +3047,46 @@ public interface Sensors {
             this.nightMode = newArray;
             break;
           }
+          case 90: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 90);
+            int i = this.enviormentData == null ? 0 : this.enviormentData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.EnvironmentData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.EnvironmentData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.enviormentData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.EnvironmentData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.EnvironmentData();
+            input.readMessage(newArray[i]);
+            this.enviormentData = newArray;
+            break;
+          }
+          case 98: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 98);
+            int i = this.hvacData == null ? 0 : this.hvacData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.HvacData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.HvacData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.hvacData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.HvacData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.HvacData();
+            input.readMessage(newArray[i]);
+            this.hvacData = newArray;
+            break;
+          }
           case 106: {
             int arrayLength = com.google.protobuf.nano.WireFormatNano
                 .getRepeatedFieldArrayLength(input, 106);
@@ -1250,6 +3105,126 @@ public interface Sensors {
             newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DrivingStatusData();
             input.readMessage(newArray[i]);
             this.drivingStatus = newArray;
+            break;
+          }
+          case 114: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 114);
+            int i = this.deadReckoning == null ? 0 : this.deadReckoning.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DeadReckoningData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DeadReckoningData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.deadReckoning, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DeadReckoningData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DeadReckoningData();
+            input.readMessage(newArray[i]);
+            this.deadReckoning = newArray;
+            break;
+          }
+          case 122: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 122);
+            int i = this.passengerData == null ? 0 : this.passengerData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.PassengerData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.PassengerData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.passengerData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.PassengerData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.PassengerData();
+            input.readMessage(newArray[i]);
+            this.passengerData = newArray;
+            break;
+          }
+          case 130: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 130);
+            int i = this.doorData == null ? 0 : this.doorData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DoorData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DoorData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.doorData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DoorData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.DoorData();
+            input.readMessage(newArray[i]);
+            this.doorData = newArray;
+            break;
+          }
+          case 138: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 138);
+            int i = this.lightData == null ? 0 : this.lightData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.lightData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.LightData();
+            input.readMessage(newArray[i]);
+            this.lightData = newArray;
+            break;
+          }
+          case 154: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 154);
+            int i = this.accelData == null ? 0 : this.accelData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.AccelerometerData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.AccelerometerData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.accelData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.AccelerometerData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.AccelerometerData();
+            input.readMessage(newArray[i]);
+            this.accelData = newArray;
+            break;
+          }
+          case 162: {
+            int arrayLength = com.google.protobuf.nano.WireFormatNano
+                .getRepeatedFieldArrayLength(input, 162);
+            int i = this.gyroData == null ? 0 : this.gyroData.length;
+            ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GyroscopeData[] newArray =
+                new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GyroscopeData[i + arrayLength];
+            if (i != 0) {
+              java.lang.System.arraycopy(this.gyroData, 0, newArray, 0, i);
+            }
+            for (; i < newArray.length - 1; i++) {
+              newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GyroscopeData();
+              input.readMessage(newArray[i]);
+              input.readTag();
+            }
+            // Last one without readTag.
+            newArray[i] = new ca.yyx.hu.aap.protocol.nano.Sensors.SensorBatch.GyroscopeData();
+            input.readMessage(newArray[i]);
+            this.gyroData = newArray;
             break;
           }
           case 170: {
@@ -1374,9 +3349,19 @@ public interface Sensors {
               case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_FUEL_LEVEL:
               case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_PARKING_BRAKE:
               case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_GEAR:
+              case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_DIAGNOSTICS:
               case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_NIGHT:
               case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_ENVIRONMENT:
+              case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_HVAC:
               case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_DRIVING_STATUS:
+              case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_DEAD_RECONING:
+              case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_PASSENGER:
+              case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_DOOR:
+              case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_LIGHT:
+              case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_TIRE:
+              case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_ACCEL:
+              case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_GYRO:
+              case ca.yyx.hu.aap.protocol.nano.Sensors.SENSOR_TYPE_GPS:
                 this.type = value;
                 break;
             }

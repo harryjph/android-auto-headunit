@@ -21,25 +21,25 @@ internal class AapMessageHandlerType(
         settings: Settings,
         backgroundNotification: BackgroundNotification) : AapMessageHandler {
 
-    private val aapControl: AapControl = AapControl(transport, recorder, aapAudio, settings)
+    private val aapControl: AapControl = AapControlGateway(transport, recorder, aapAudio, settings)
     private val mediaPlayback = AapMediaPlayback(backgroundNotification)
 
     @Throws(AapMessageHandler.HandleException::class)
     override fun handle(message: AapMessage) {
 
-        val msg_type = message.type
+        val msgType = message.type
         val flags = message.flags
 
-        if (message.isAudio && (msg_type == 0 || msg_type == 1)) {
+        if (message.isAudio && (msgType == 0 || msgType == 1)) {
             transport.sendMediaAck(message.channel)
             aapAudio.process(message)
             // 300 ms @ 48000/sec   samples = 14400     stereo 16 bit results in bytes = 57600
-        } else if (message.isVideo && (msg_type == 0 || msg_type == 1 || flags.toInt() == 8 || flags.toInt() == 9 || flags.toInt() == 10)) {
+        } else if (message.isVideo && (msgType == 0 || msgType == 1 || flags.toInt() == 8 || flags.toInt() == 9 || flags.toInt() == 10)) {
             transport.sendMediaAck(message.channel)
             aapVideo.process(message)
-        } else if (message.channel == Channel.ID_MPB && msg_type > 31) {
+        } else if (message.channel == Channel.ID_MPB && msgType > 31) {
             mediaPlayback.process(message)
-        } else if (msg_type in 0..31 || msg_type in 32768..32799 || msg_type in 65504..65535) {
+        } else if (msgType in 0..31 || msgType in 32768..32799 || msgType in 65504..65535) {
             try {
                 aapControl.execute(message)
             } catch (e: InvalidProtocolBufferNanoException) {
@@ -47,7 +47,7 @@ internal class AapMessageHandlerType(
                 throw AapMessageHandler.HandleException(e)
             }
         } else {
-            AppLog.e("Unknown msg_type: %d, flags: %d", msg_type, flags)
+            AppLog.e("Unknown msg_type: %d, flags: %d", msgType, flags)
         }
 
     }

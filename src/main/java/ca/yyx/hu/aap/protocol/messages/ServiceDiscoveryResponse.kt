@@ -116,7 +116,7 @@ class ServiceDiscoveryResponse(settings: Settings)
                 bluetooth.id = Channel.ID_BTH
                 bluetooth.bluetoothService = Control.Service.BluetoothService()
                 bluetooth.bluetoothService.carAddress = settings.bluetoothAddress
-                bluetooth.bluetoothService.supportedPairingMethods = intArrayOf(Control.Service.BluetoothService.BLUETOOTH_PARING_METHOD_HFP)
+                bluetooth.bluetoothService.supportedPairingMethods = intArrayOf(Control.BLUETOOTH_PARING_METHOD_A2DP, Control.BLUETOOTH_PARING_METHOD_HFP)
                 services.add(bluetooth)
             } else {
                 AppLog.i("BT MAC Address is empty. Skip bluetooth service")

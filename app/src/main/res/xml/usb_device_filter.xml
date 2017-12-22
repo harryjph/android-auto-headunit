@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <!-- Match all devices -->
+    <usb-device />
+
+    <usb-device vendor-id="6353" product-id="11520" />
+    <usb-device vendor-id="6353" product-id="11521" />
+
+
+</resources>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:background="@color/primary_dark"
+        android:layout_gravity="bottom"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/settings"
+            android:layout_width="128dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_settings_white_24dp"
+            android:background="?android:attr/actionBarItemBackground"
+            android:contentDescription="@string/settings" />
+
+        <ImageButton
+            android:id="@+id/video_button"
+            android:layout_width="128dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_launch_white_24dp"
+            android:background="?android:attr/actionBarItemBackground"
+            android:contentDescription="@string/video" />
+
+        <ImageButton
+            android:id="@+id/usb"
+            android:layout_width="128dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_usb_white_24dp"
+            android:background="?android:attr/actionBarItemBackground"
+            android:contentDescription="@string/usb" />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/main_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="top|center"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="96dp"
+        android:layout_marginRight="96dp"
+        android:layout_marginBottom="68dp"
+        android:padding="8dp"
+        />
+
+    <TextView
+        android:id="@+id/ip_address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|bottom"
+        android:layout_marginBottom="72dp"
+        android:layout_marginRight="8dp"
+        tools:text="192.168.1.1" />
+
+</FrameLayout>

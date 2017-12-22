@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Headunit</string>
+    <string name="menu">Menu</string>
+    <string name="settings">Settings</string>
+
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="allowed">Allowed</string>
+    <string name="ignored">Ignored</string>
+    <string name="exit">Exit</string>
+    <string name="video">Video</string>
+    <string name="title">Headunit</string>
+    <string name="remove">Remove</string>
+    <string name="usb">Usb</string>
+    <string name="mic_sample_rate">"Mic sample rate: %dkHz"</string>
+    <string name="keymap">Keymap</string>
+    <string name="night_mode">Night mode: %s</string>
+    <string name="bluetooth_address_s">Bluetooth address: %s</string>
+    <string name="enter_bluetooth_mac">Enter bluetooth MAC</string>
+    <string name="reset">Reset</string>
+    <string name="gps_for_navigation">Gps for navigation: %s</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+</resources>
+

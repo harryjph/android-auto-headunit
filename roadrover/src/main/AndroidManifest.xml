@@ -1,2 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="info.anodsplace.headunit.roadrover" />
+    package="info.anodsplace.headunit.roadrover">
+
+    <application
+        android:name="info.anodsplace.headunit.roadrover.App"
+        android:hardwareAccelerated="true"
+        android:label="Roadrover Headunit">
+
+    </application>
+</manifest>

@@ -1,4 +1,4 @@
-package ca.yyx.hu.roadrover
+package info.anodsplace.headunit.roadrover
 
 import android.content.BroadcastReceiver
 import android.content.Context

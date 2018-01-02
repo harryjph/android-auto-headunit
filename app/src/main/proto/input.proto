@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package ca.yyx.hu.aap.protocol;
+package info.anodsplace.headunit.aap.protocol;
 option java_outer_classname = "Input";
 
 import "common.proto";

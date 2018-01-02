@@ -97,12 +97,12 @@ class KeymapFragment : info.anodsplace.headunit.app.BaseFragment(), MainActivity
 
     override fun onResume() {
         super.onResume()
-        LocalBroadcastManager.getInstance(activity).registerReceiver(keyCodeReceiver, IntentFilters.keyEvent)
+        registerReceiver(keyCodeReceiver, IntentFilters.keyEvent)
     }
 
     override fun onPause() {
         super.onPause()
-        LocalBroadcastManager.getInstance(activity).unregisterReceiver(keyCodeReceiver)
+        unregisterReceiver(keyCodeReceiver)
     }
 
     override fun onClick(v: View?) {

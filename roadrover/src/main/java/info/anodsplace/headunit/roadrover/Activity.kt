@@ -10,6 +10,7 @@ import android.widget.TextView
 import info.anodsplace.headunit.contract.KeyIntent
 import info.anodsplace.headunit.contract.ProjectionActivityRequest
 import android.text.method.ScrollingMovementMethod
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 
@@ -36,6 +37,44 @@ class Activity: Activity() {
         }
     }
 
+    private val rrUpdates: IRRCtrlListener = object : IRRCtrlListener.Stub() {
+        override fun onCmdComplete(p0: Int, p1: Int, p2: Int, p3: ByteArray?): Int {
+            Log.d("Roadrover", "onCmdComplete()")
+            return 0
+        }
+
+        override fun onRRCtrlParamChange(p0: Int, p1: Int, p2: Int, p3: ByteArray?): Int {
+            if (p0 == 7) {
+                textBox.append("[CTRL] Brake: $p2")
+            } else {
+                textBox.append("[CTRL] param: $p0, lvalue = $p1, wvalue= p2")
+            }
+            return 0
+        }
+
+    }
+
+    private val carListener = object: IRRCtrlDeviceListener.Stub() {
+        override fun onDeviceCmdComplete(p0: Int, p1: Int, p2: Int, p3: Int, p4: Int, p5: ByteArray?): Int {
+            Log.d("Roadrover", "onDeviceCmdComplete()")
+            return 0
+        }
+
+        override fun onDeviceInfo(p0: Int, p1: Int, p2: ByteArray?): Int {
+            Log.d("Roadrover", "onDeviceInfo($p0, $p1, $p2)")
+            return 0
+        }
+
+        override fun onDeviceParamChanged(p0: Int, p1: Int, p2: ByteArray?): Int {
+            Log.d("Roadrover", "onDeviceParamChanged($p0, $p1, $p2)")
+            return 0
+        }
+    }
+
+    private val ctrlManager: IRRCtrlManager? by lazy {
+        IRRCtrlManager.Stub.get()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(this.textBox)
@@ -45,6 +84,12 @@ class Activity: Activity() {
         hu.addAction(ProjectionActivityRequest.action)
         hu.addAction(KeyIntent.action)
         registerReceiver(huSent, hu)
+
+        Log.d("Roadrover", "Version ${ctrlManager?.version ?: "Unknown"}")
+        Log.d("Roadrover", "Brake ${ctrlManager?.getIntParam(7) ?: "Unknown"}")
+
+        ctrlManager?.requestRRUpdates(0, rrUpdates)
+        //deviceHandler = this.ctrlManager?.deviceOpen(this.mDeviceType, 0, 0, this.mCtrlDeviceListener) ?: 0
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -66,5 +111,6 @@ class Activity: Activity() {
         super.onDestroy()
         unregisterReceiver(carReceived)
         unregisterReceiver(huSent)
+        ctrlManager?.unrequestRRUpdates(0, rrUpdates)
     }
 }

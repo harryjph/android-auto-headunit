@@ -1,6 +1,7 @@
 package info.anodsplace.headunit.roadrover
 
 import android.app.Application
+import android.os.IBinder
 
 /**
  * @author algavris

@@ -3,7 +3,6 @@ package info.anodsplace.headunit.aap
 import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.MsgType
 import info.anodsplace.headunit.utils.AppLog
-import info.anodsplace.headunit.utils.Utils
 
 /**
  * @author algavris

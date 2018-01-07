@@ -18,6 +18,7 @@ import info.anodsplace.headunit.connection.AccessoryConnection
 import info.anodsplace.headunit.connection.SocketAccessoryConnection
 import info.anodsplace.headunit.connection.UsbAccessoryConnection
 import info.anodsplace.headunit.connection.UsbReceiver
+import info.anodsplace.headunit.contract.ConnectedIntent
 import info.anodsplace.headunit.location.GpsLocationService
 import info.anodsplace.headunit.utils.*
 import info.anodsplace.headunit.contract.DisconnectIntent
@@ -101,7 +102,9 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     override fun onConnectionResult(success: Boolean) {
         if (success) {
             reset()
-            App.provide(this).transport.connectAndStart(accessoryConnection!!)
+            if (App.provide(this).transport.connectAndStart(accessoryConnection!!)) {
+                sendBroadcast(ConnectedIntent())
+            }
         } else {
             AppLog.e("Cannot connect to device")
             Toast.makeText(this, "Cannot connect to the device", Toast.LENGTH_SHORT).show()

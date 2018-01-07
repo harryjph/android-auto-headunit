@@ -1,8 +1,10 @@
-package info.anodsplace.headunit.utils;
+package info.anodsplace.headunit.aap;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import info.anodsplace.headunit.utils.AppLog;
 
 /**
  * @author algavris

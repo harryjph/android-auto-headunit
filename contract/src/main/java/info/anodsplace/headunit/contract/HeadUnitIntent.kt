@@ -15,6 +15,12 @@ object HeadUnit {
     const val packageName = "info.anodsplace.info.headunit"
 }
 
+class ConnectedIntent: Intent(action) {
+    companion object {
+        const val action = "${HeadUnit.packageName}.ACTION_CONNECTED"
+    }
+}
+
 class DisconnectIntent : Intent(action) {
 
     companion object {

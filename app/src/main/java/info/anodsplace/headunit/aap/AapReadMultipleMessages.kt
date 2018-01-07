@@ -4,7 +4,6 @@ import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.messages.Messages
 import info.anodsplace.headunit.connection.AccessoryConnection
 import info.anodsplace.headunit.utils.AppLog
-import info.anodsplace.headunit.utils.Utils
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 

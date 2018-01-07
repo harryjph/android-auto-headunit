@@ -1,8 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="info.anodsplace.headunit.roadrover">
+    package="info.anodsplace.roadrover">
 
     <application
-        android:name="info.anodsplace.headunit.roadrover.App"
         android:hardwareAccelerated="true"
         android:label="Roadrover Headunit">
 
@@ -21,10 +20,13 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".BootCompleteReceiver" >
+        <service android:name=".AppService" />
+
+        <receiver android:name=".ConnectedReceiver" android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="info.anodsplace.info.headunit.ACTION_CONNECTED" />
             </intent-filter>
         </receiver>
+
     </application>
 </manifest>

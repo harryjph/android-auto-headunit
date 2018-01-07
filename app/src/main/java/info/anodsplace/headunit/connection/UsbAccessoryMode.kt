@@ -6,7 +6,7 @@ import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbManager
 
 import info.anodsplace.headunit.utils.AppLog
-import info.anodsplace.headunit.utils.Utils
+import info.anodsplace.headunit.aap.Utils
 
 /**
  * @author algavris

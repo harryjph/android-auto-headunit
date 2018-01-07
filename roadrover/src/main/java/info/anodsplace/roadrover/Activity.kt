@@ -1,4 +1,4 @@
-package info.anodsplace.headunit.roadrover
+package info.anodsplace.roadrover
 
 import android.app.Activity
 import android.content.BroadcastReceiver
@@ -39,7 +39,7 @@ class Activity: Activity() {
 
     private val rrUpdates: IRRCtrlListener = object : IRRCtrlListener.Stub() {
         override fun onCmdComplete(p0: Int, p1: Int, p2: Int, p3: ByteArray?): Int {
-            Log.d("Roadrover", "onCmdComplete()")
+            Log.d("RoadroverHU", "onCmdComplete()")
             return 0
         }
 
@@ -56,17 +56,17 @@ class Activity: Activity() {
 
     private val carListener = object: IRRCtrlDeviceListener.Stub() {
         override fun onDeviceCmdComplete(p0: Int, p1: Int, p2: Int, p3: Int, p4: Int, p5: ByteArray?): Int {
-            Log.d("Roadrover", "onDeviceCmdComplete()")
+            Log.d("RoadroverHU", "onDeviceCmdComplete()")
             return 0
         }
 
         override fun onDeviceInfo(p0: Int, p1: Int, p2: ByteArray?): Int {
-            Log.d("Roadrover", "onDeviceInfo($p0, $p1, $p2)")
+            Log.d("RoadroverHU", "onDeviceInfo($p0, $p1, $p2)")
             return 0
         }
 
         override fun onDeviceParamChanged(p0: Int, p1: Int, p2: ByteArray?): Int {
-            Log.d("Roadrover", "onDeviceParamChanged($p0, $p1, $p2)")
+            Log.d("RoadroverHU", "onDeviceParamChanged($p0, $p1, $p2)")
             return 0
         }
     }
@@ -79,14 +79,16 @@ class Activity: Activity() {
         super.onCreate(savedInstanceState)
         setContentView(this.textBox)
 
+        startService(Intent(this, AppService::class.java))
+
         registerReceiver(carReceived, DeviceListener.createIntentFilter())
         val hu = IntentFilter()
         hu.addAction(ProjectionActivityRequest.action)
         hu.addAction(KeyIntent.action)
         registerReceiver(huSent, hu)
 
-        Log.d("Roadrover", "Version ${ctrlManager?.version ?: "Unknown"}")
-        Log.d("Roadrover", "Brake ${ctrlManager?.getIntParam(7) ?: "Unknown"}")
+        Log.d("RoadroverHU", "Version ${ctrlManager?.version ?: "Unknown"}")
+        Log.d("RoadroverHU", "Brake ${ctrlManager?.getIntParam(7) ?: "Unknown"}")
 
         ctrlManager?.requestRRUpdates(0, rrUpdates)
         //deviceHandler = this.ctrlManager?.deviceOpen(this.mDeviceType, 0, 0, this.mCtrlDeviceListener) ?: 0

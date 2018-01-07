@@ -9,7 +9,6 @@ import info.anodsplace.headunit.aap.protocol.nano.*
 import info.anodsplace.headunit.decoder.MicRecorder
 import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.utils.Settings
-import info.anodsplace.headunit.utils.Utils
 import com.google.protobuf.nano.InvalidProtocolBufferNanoException
 
 /**

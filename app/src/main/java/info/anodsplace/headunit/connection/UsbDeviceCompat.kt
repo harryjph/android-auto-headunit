@@ -4,7 +4,7 @@ import android.hardware.usb.UsbDevice
 
 import java.util.Locale
 
-import info.anodsplace.headunit.utils.Utils
+import info.anodsplace.headunit.aap.Utils
 
 /**
  * @author algavris

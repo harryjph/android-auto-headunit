@@ -1,6 +1,7 @@
 package info.anodsplace.headunit.aap.protocol.messages
 
-import info.anodsplace.headunit.utils.Utils
+import info.anodsplace.headunit.aap.Utils
+
 
 /**
  * @author algavris

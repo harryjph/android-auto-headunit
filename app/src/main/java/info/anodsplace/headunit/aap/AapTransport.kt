@@ -36,7 +36,7 @@ class AapTransport(
     private val sessionIds = SparseIntArray(4)
     private val startedSensors = HashSet<Int>(4)
     private val ssl = AapSslNative()
-    private val keyCodes = settings.keyCodes.entries.associateTo(mutableMapOf<Int,Int>(), {
+    private val keyCodes = settings.keyCodes.entries.associateTo(mutableMapOf(), {
         it.value to it.key
     })
 
@@ -111,7 +111,7 @@ class AapTransport(
         handler = null
     }
 
-    internal fun connectAndStart(connection: AccessoryConnection): Boolean {
+    internal fun start(connection: AccessoryConnection): Boolean {
         AppLog.i("Start Aap transport for " + connection)
 
         if (!handshake(connection)) {
@@ -192,7 +192,7 @@ class AapTransport(
         return true
     }
 
-    fun sendButton(keyCode: Int, isPress: Boolean) {
+    fun send(keyCode: Int, isPress: Boolean) {
         val mapped = keyCodes[keyCode] ?: keyCode
         val aapKeyCode = KeyCode.convert(mapped)
 

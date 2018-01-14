@@ -12,7 +12,7 @@ import java.nio.ByteBuffer
  */
 internal class AapVideo(private val videoDecoder: VideoDecoder) {
 
-    private val video_message = ByteBuffer.allocate(Messages.DEF_BUFFER_LENGTH * 8)
+    private val messageBuffer = ByteBuffer.allocate(Messages.DEF_BUFFER_LENGTH * 8)
 
     fun process(message: AapMessage): Boolean {
 
@@ -40,20 +40,20 @@ internal class AapVideo(private val videoDecoder: VideoDecoder) {
                         && buf[10].toInt() == 0 && buf[11].toInt() == 0 && buf[12].toInt() == 0 && buf[13].toInt() == 1) {
                     // If First fragment Video
                     // Len in bytes 2,3 doesn't include total len 4 bytes at 4,5,6,7
-                    video_message.put(message.data, 10, message.size - 10)
+                    messageBuffer.put(message.data, 10, message.size - 10)
                     return true
                 }
             }
             8 -> {
-                video_message.put(message.data, 0, message.size)// If Middle fragment Video
+                messageBuffer.put(message.data, 0, message.size)// If Middle fragment Video
                 return true
             }
             10 -> {
-                video_message.put(message.data, 0, message.size)
-                video_message.flip()
+                messageBuffer.put(message.data, 0, message.size)
+                messageBuffer.flip()
                 // Decode H264 video fully re-assembled
-                videoDecoder.decode(video_message.array(), 0, video_message.limit())
-                video_message.clear()
+                videoDecoder.decode(messageBuffer.array(), 0, messageBuffer.limit())
+                messageBuffer.clear()
                 return true
             }
         }

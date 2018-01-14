@@ -21,7 +21,7 @@ import info.anodsplace.headunit.view.ProjectionView
 import info.anodsplace.headunit.contract.KeyIntent
 
 class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
-    private lateinit var projectionView: ProjectionView
+    private val projectionView: ProjectionView by lazy { findViewById<ProjectionView>(R.id.surface) }
 
     private val disconnectReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -41,7 +41,6 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
         AppLog.i("HeadUnit for Android Auto (tm) - Copyright 2011-2015 Michael A. Reid. All Rights Reserved...")
 
-        projectionView = findViewById<ProjectionView>(R.id.surface)
         projectionView.setSurfaceCallback(this)
         projectionView.setOnTouchListener { _, event ->
             sendTouchEvent(event)
@@ -111,7 +110,7 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
     }
 
     private fun onKeyEvent(keyCode: Int, isPress: Boolean) {
-        transport.sendButton(keyCode, isPress)
+        transport.send(keyCode, isPress)
     }
 
     companion object {

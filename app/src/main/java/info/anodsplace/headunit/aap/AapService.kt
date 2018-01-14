@@ -9,7 +9,6 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.IBinder
 import android.support.v4.app.NotificationCompat
-import android.support.v4.content.LocalBroadcastManager
 import android.widget.Toast
 import info.anodsplace.headunit.App
 import info.anodsplace.headunit.R
@@ -52,8 +51,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
 
         val nightModeFilter = IntentFilter()
         nightModeFilter.addAction(Intent.ACTION_TIME_TICK)
-        LocalBroadcastManager.getInstance(this).registerReceiver(nightModeReceiver, nightModeFilter)
-        registerReceiver(nightModeReceiver, IntentFilters.locationUpdate)
+        nightModeFilter.addAction(LocationUpdateIntent.action)
         registerReceiver(nightModeReceiver, nightModeFilter)
         registerReceiver(usbReceiver, UsbReceiver.createFilter())
     }
@@ -62,14 +60,13 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
         super.onDestroy()
         onDisconnect()
         unregisterReceiver(nightModeReceiver)
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(nightModeReceiver)
         unregisterReceiver(usbReceiver)
         uiModeManager.disableCarMode(0)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        accessoryConnection = createConnection(intent, this)
+        accessoryConnection = connectionFactory(intent, this)
         if (accessoryConnection == null) {
             AppLog.e("Cannot create connection " + intent)
             stopSelf()
@@ -102,7 +99,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     override fun onConnectionResult(success: Boolean) {
         if (success) {
             reset()
-            if (App.provide(this).transport.connectAndStart(accessoryConnection!!)) {
+            if (App.provide(this).transport.start(accessoryConnection!!)) {
                 sendBroadcast(ConnectedIntent())
             }
         } else {
@@ -141,7 +138,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
 
     }
 
-    private class NightModeReceiver(private val settings: Settings, private val mUiModeManager: UiModeManager) : BroadcastReceiver() {
+    private class NightModeReceiver(private val settings: Settings, private val modeManager: UiModeManager) : BroadcastReceiver() {
         private var nightMode = NightMode(settings, false)
         private var initialized = false
         private var lastValue = false
@@ -160,7 +157,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
                 initialized = App.provide(context).transport.send(NightModeEvent(isCurrent))
                 if (initialized)
                 {
-                    mUiModeManager.nightMode = if (isCurrent) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO
+                    modeManager.nightMode = if (isCurrent) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO
                 }
             }
         }
@@ -186,7 +183,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
             return intent
         }
 
-        private fun createConnection(intent: Intent?, context: Context): AccessoryConnection? {
+        private fun connectionFactory(intent: Intent?, context: Context): AccessoryConnection? {
 
             val connectionType = intent?.getIntExtra(EXTRA_CONNECTION_TYPE, 0) ?: 0
 

@@ -32,7 +32,7 @@ internal class AapReadSingleMessage(connection: AccessoryConnection, ssl: AapSsl
         }
 
         try {
-            val msg = AapMessageIncoming.decrypt(recv_header, 0, msg_buffer, mSsl)
+            val msg = AapMessageIncoming.decrypt(recv_header, 0, msg_buffer, ssl)
 
             // Decrypt & Process 1 received encrypted message
             if (msg == null) {
@@ -41,7 +41,7 @@ internal class AapReadSingleMessage(connection: AccessoryConnection, ssl: AapSsl
                 return -1
             }
 
-            mHandler.handle(msg)
+            handler.handle(msg)
             return 0
         } catch (e: AapMessageHandler.HandleException) {
             return -1

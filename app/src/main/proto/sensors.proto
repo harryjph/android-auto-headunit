@@ -63,13 +63,13 @@ message SensorBatch
         optional int32 steering_angel = 1;
         optional int32 wheel_speed = 2;
     }
-    message NightModeData
+    message NightData
     {
-        required bool is_night = 1;
+        required bool is_night_mode = 1;
     }
     message ParkingBrakeData
     {
-        required bool parking_brake = 1;
+        required bool is_engaged = 1;
     }
     message DrivingStatusData
     {
@@ -77,11 +77,11 @@ message SensorBatch
         {
             DRIVING_STATUS_UNRESTRICTED = 0; // 0x0
             DRIVING_STATUS_NO_VIDEO = 1; // 0x1
-            DRIVING_STATUS_FULLY_RESTRICTED = 31; // 0x1f
-            DRIVING_STATUS_LIMIT_MESSAGE_LEN = 16; // 0x10
-            DRIVING_STATUS_NO_CONFIG = 8; // 0x8
             DRIVING_STATUS_NO_KEYBOARD_INPUT = 2; // 0x2
-            DRIVING_STATUS_NO_VOICE_INPUT = 4; // 0x4
+            DRIVE_STATUS_NO_VOICE_INPUT = 4; // 0x4
+            DRIVING_STATUS_NO_CONFIG = 8; // 0x8
+            DRIVING_STATUS_LIMIT_MESSAGE_LEN = 16; // 0x10
+            DRIVING_STATUS_FULLY_RESTRICTED = 31; // 0x1f
         }
         required int32 status = 1;
     }
@@ -203,7 +203,7 @@ message SensorBatch
     repeated ParkingBrakeData parkingbrake_data = 7; // Working
     repeated GearData gear_data = 8; //Working but need to do the enum definition, and has no effect
     repeated DiagnosticsData diagnostics_data = 9; //Sensor not yet supported
-    repeated NightModeData night_mode = 10; // Working
+    repeated NightData night_mode = 10; // Working
     repeated EnvironmentData enviorment_data = 11; //Sensor not yet supported
     repeated HvacData hvac_data = 12; //Sensor not yet supported
     repeated DrivingStatusData driving_status = 13; //Working

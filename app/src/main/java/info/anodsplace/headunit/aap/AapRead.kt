@@ -15,17 +15,17 @@ internal interface AapRead {
     fun read(): Int
 
     abstract class Base internal constructor(
-            private val mConnection: AccessoryConnection?,
-            internal val mSsl: AapSsl,
-            internal val mHandler: AapMessageHandler) : AapRead {
+            private val connection: AccessoryConnection?,
+            internal val ssl: AapSsl,
+            internal val handler: AapMessageHandler) : AapRead {
 
         override fun read(): Int {
-            if (mConnection == null) {
+            if (connection == null) {
                 AppLog.e("No connection.")
                 return -1
             }
 
-            return doRead(mConnection)
+            return doRead(connection)
         }
 
         protected abstract fun doRead(connection: AccessoryConnection): Int

@@ -80,7 +80,7 @@ internal class AapReadMultipleMessages(
                 break
             }
 
-            val msg = AapMessageIncoming.decrypt(recv_header, 0, msg_buffer, mSsl)
+            val msg = AapMessageIncoming.decrypt(recv_header, 0, msg_buffer, ssl)
 
             // Decrypt & Process 1 received encrypted message
             if (msg == null) {
@@ -89,7 +89,7 @@ internal class AapReadMultipleMessages(
                 break
             }
 
-            mHandler.handle(msg)
+            handler.handle(msg)
         }
 
         // consume

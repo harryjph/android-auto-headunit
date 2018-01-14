@@ -31,7 +31,7 @@ class AapBroadcastReceiver : BroadcastReceiver() {
             }
         } else if (intent.action == MediaKeyIntent.action) {
             val event = intent.getParcelableExtra<KeyEvent>(KeyIntent.extraEvent)
-            component.transport.sendButton(event.keyCode, event.action == KeyEvent.ACTION_DOWN)
+            component.transport.send(event.keyCode, event.action == KeyEvent.ACTION_DOWN)
         } else if (intent.action == ProjectionActivityRequest.action){
             if (component.transport.isAlive) {
                 val aapIntent = Intent(context, AapProjectionActivity::class.java)

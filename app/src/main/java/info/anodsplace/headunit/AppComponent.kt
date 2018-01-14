@@ -20,7 +20,7 @@ class AppComponent(private val app: App) {
     val transport: AapTransport
         get() {
             if (_transport == null) {
-               _transport = AapTransport(audioDecoder, videoDecoder, audioManager, settings, backgroundNotification)
+               _transport = AapTransport(audioDecoder, videoDecoder, audioManager, settings, backgroundNotification, app)
             }
             return _transport!!
         }

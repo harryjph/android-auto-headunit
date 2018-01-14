@@ -28,10 +28,8 @@ class AppComponent(private val app: App) {
     val settings = Settings(app)
     val videoDecoder = VideoDecoder()
     val audioDecoder = AudioDecoder()
-    var hasVideoFocus = false
 
     fun resetTransport() {
-        hasVideoFocus = false
         _transport?.quit()
         _transport = null
     }

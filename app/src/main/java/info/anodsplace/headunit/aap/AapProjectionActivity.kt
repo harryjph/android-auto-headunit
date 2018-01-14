@@ -50,14 +50,12 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
     override fun onPause() {
         super.onPause()
-        App.provide(this).hasVideoFocus = false
         unregisterReceiver(disconnectReceiver)
         unregisterReceiver(keyCodeReceiver)
     }
 
     override fun onResume() {
         super.onResume()
-        App.provide(this).hasVideoFocus = true
         registerReceiver(disconnectReceiver, IntentFilters.disconnect)
         registerReceiver(keyCodeReceiver, IntentFilters.keyEvent)
     }

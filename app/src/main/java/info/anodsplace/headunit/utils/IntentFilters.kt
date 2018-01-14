@@ -9,7 +9,5 @@ import info.anodsplace.headunit.contract.*
  */
 object IntentFilters {
     val disconnect = IntentFilter(DisconnectIntent.action)
-    val locationUpdate = IntentFilter(LocationUpdateIntent.action)
     val keyEvent = IntentFilter(KeyIntent.action)
-    val mediaKeyEvent = IntentFilter(MediaKeyIntent.action)
 }

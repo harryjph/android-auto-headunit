@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.content.IntentFilter
 import android.view.KeyEvent
 import info.anodsplace.headunit.aap.AapProjectionActivity
 import info.anodsplace.headunit.aap.protocol.messages.LocationUpdateEvent
@@ -17,6 +18,16 @@ import info.anodsplace.headunit.contract.ProjectionActivityRequest
  * @date 22/12/2017
  */
 class AapBroadcastReceiver : BroadcastReceiver() {
+
+    companion object {
+        val filter: IntentFilter by lazy {
+            val filter = IntentFilter()
+            filter.addAction(LocationUpdateIntent.action)
+            filter.addAction(MediaKeyIntent.action)
+            filter.addAction(ProjectionActivityRequest.action)
+            filter
+        }
+    }
 
     override fun onReceive(context: Context, intent: Intent) {
         val component = App.provide(context)

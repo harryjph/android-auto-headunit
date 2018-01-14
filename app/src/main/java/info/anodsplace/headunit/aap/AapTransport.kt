@@ -1,5 +1,6 @@
 package info.anodsplace.headunit.aap
 
+import android.content.Context
 import android.media.AudioManager
 import android.os.*
 import android.util.SparseIntArray
@@ -8,6 +9,7 @@ import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.messages.*
 import info.anodsplace.headunit.aap.protocol.nano.Input
 import info.anodsplace.headunit.connection.AccessoryConnection
+import info.anodsplace.headunit.contract.ProjectionActivityRequest
 import info.anodsplace.headunit.decoder.AudioDecoder
 import info.anodsplace.headunit.decoder.MicRecorder
 import info.anodsplace.headunit.decoder.VideoDecoder
@@ -21,13 +23,8 @@ class AapTransport(
         audioManager: AudioManager,
         private val settings: Settings,
         private val notification: BackgroundNotification,
-        private val listener: AapTransport.Listener)
+        private val context: Context)
     : Handler.Callback, MicRecorder.Listener {
-
-
-    interface Listener {
-        fun gainVideoFocus()
-    }
 
     private val aapAudio: AapAudio
     private val aapVideo: AapVideo
@@ -242,7 +239,7 @@ class AapTransport(
     }
 
     internal fun gainVideoFocus() {
-        listener.gainVideoFocus()
+        context.sendBroadcast(ProjectionActivityRequest())
     }
 
     internal fun sendMediaAck(channel: Int) {

@@ -12,7 +12,7 @@ import info.anodsplace.headunit.utils.IntentFilters
  * @date 30/05/2016.
  */
 
-class App : Application(), AapTransport.Listener {
+class App : Application() {
 
     private val component: AppComponent by lazy {
         AppComponent(this)
@@ -21,11 +21,7 @@ class App : Application(), AapTransport.Listener {
     override fun onCreate() {
         super.onCreate()
 
-        registerReceiver(AapBroadcastReceiver(), IntentFilters.mediaKeyEvent)
-    }
-
-    override fun gainVideoFocus() {
-        startActivity(AapProjectionActivity.intent(this))
+        registerReceiver(AapBroadcastReceiver(), AapBroadcastReceiver.filter)
     }
 
     companion object {

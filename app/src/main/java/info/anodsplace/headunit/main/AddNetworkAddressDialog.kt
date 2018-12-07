@@ -1,9 +1,13 @@
 package info.anodsplace.headunit.main
 
 import android.app.AlertDialog
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.EditText
+import androidx.fragment.app.DialogFragment
 import info.anodsplace.headunit.R
+import info.anodsplace.headunit.utils.AppLog
+import java.net.InetAddress
 
 /**
  * @author algavris
@@ -11,7 +15,7 @@ import info.anodsplace.headunit.R
  * @date 15/11/2016.
  */
 
-class AddNetworkAddressDialog : android.app.DialogFragment() {
+class AddNetworkAddressDialog : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: android.os.Bundle?): android.app.Dialog {
         val builder = AlertDialog.Builder(activity)
@@ -23,7 +27,7 @@ class AddNetworkAddressDialog : android.app.DialogFragment() {
         val third = content.findViewById<EditText>(info.anodsplace.headunit.R.id.third)
         val fourth = content.findViewById<EditText>(info.anodsplace.headunit.R.id.fourth)
 
-        val ip = arguments.getSerializable("ip") as java.net.InetAddress
+        val ip = arguments!!.getSerializable("ip") as java.net.InetAddress
         val addr = ip.address
 
         first.setText("$($addr[0] and 0xFF)")
@@ -37,17 +41,17 @@ class AddNetworkAddressDialog : android.app.DialogFragment() {
                 .setPositiveButton("Add") { _, _ ->
                     val newAddr = ByteArray(4)
                     try {
-                        newAddr[0] = info.anodsplace.headunit.main.AddNetworkAddressDialog.Companion.strToByte(first.text.toString())
-                        newAddr[1] = info.anodsplace.headunit.main.AddNetworkAddressDialog.Companion.strToByte(second.text.toString())
-                        newAddr[2] = info.anodsplace.headunit.main.AddNetworkAddressDialog.Companion.strToByte(third.text.toString())
-                        newAddr[3] = info.anodsplace.headunit.main.AddNetworkAddressDialog.Companion.strToByte(fourth.text.toString())
+                        newAddr[0] = strToByte(first.text.toString())
+                        newAddr[1] = strToByte(second.text.toString())
+                        newAddr[2] = strToByte(third.text.toString())
+                        newAddr[3] = strToByte(fourth.text.toString())
 
-                        val f = fragmentManager.findFragmentByTag(NetworkListFragment.Companion.TAG) as NetworkListFragment
+                        val f = fragmentManager!!.findFragmentByTag(NetworkListFragment.TAG) as NetworkListFragment
                         f.addAddress(java.net.InetAddress.getByAddress(newAddr))
                     } catch (e: java.net.UnknownHostException) {
-                        info.anodsplace.headunit.utils.AppLog.e(e)
+                        AppLog.e(e)
                     } catch (e: NumberFormatException) {
-                        info.anodsplace.headunit.utils.AppLog.e(e)
+                        AppLog.e(e)
                     }
                 }
                 .setNegativeButton(android.R.string.cancel) { dialog, _ -> dialog.cancel() }
@@ -56,17 +60,14 @@ class AddNetworkAddressDialog : android.app.DialogFragment() {
 
     companion object {
 
-        fun create(ip: java.net.InetAddress?): info.anodsplace.headunit.main.AddNetworkAddressDialog {
-            val dialog = info.anodsplace.headunit.main.AddNetworkAddressDialog()
-            val args = android.os.Bundle()
+        fun create(ip: InetAddress?) = AddNetworkAddressDialog().apply {
+            arguments = Bundle()
             if (ip != null) {
-                args.putSerializable("ip", ip)
+                arguments!!.putSerializable("ip", ip)
             }
-            dialog.arguments = args
-            return dialog
         }
 
-        internal fun strToByte(str: String): Byte {
+        fun strToByte(str: String): Byte {
             val i = Integer.valueOf(str)
             return i.toByte()
         }

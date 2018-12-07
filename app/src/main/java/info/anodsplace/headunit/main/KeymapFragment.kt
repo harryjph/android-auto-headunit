@@ -4,11 +4,14 @@ import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.support.v4.content.LocalBroadcastManager
+import android.os.Bundle
 import android.view.KeyEvent
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import info.anodsplace.headunit.R
 import info.anodsplace.headunit.utils.IntentFilters
 import info.anodsplace.headunit.utils.Settings
@@ -19,7 +22,7 @@ import info.anodsplace.headunit.contract.KeyIntent
  * @author algavris
  * @date 13/06/2017
  */
-class KeymapFragment : info.anodsplace.headunit.app.BaseFragment(), MainActivity.KeyListener, View.OnClickListener {
+class KeymapFragment : Fragment(), MainActivity.KeyListener, View.OnClickListener {
 
     private val idToCode = mapOf(
         R.id.keycode_soft_left to KeyEvent.KEYCODE_SOFT_LEFT,
@@ -67,18 +70,18 @@ class KeymapFragment : info.anodsplace.headunit.app.BaseFragment(), MainActivity
     private lateinit var settings: Settings
     private var codesMap = mutableMapOf<Int, Int>()
 
-    override fun onCreateView(inflater: android.view.LayoutInflater, container: android.view.ViewGroup, savedInstanceState: android.os.Bundle?): android.view.View {
-        val view = inflater.inflate(info.anodsplace.headunit.R.layout.fragment_keymap, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): android.view.View {
+        val view = inflater.inflate(R.layout.fragment_keymap, container, false)
 
-        settings = Settings(activity)
+        settings = Settings(context!!)
         codesMap = settings.keyCodes
 
-        idToCode.forEach({
+        idToCode.forEach {
             (resId, keyCode) ->
             val button = view.findViewById<Button>(resId)
             button.tag = keyCode
             button.setOnClickListener(this)
-        })
+        }
 
         view.findViewById<Button>(R.id.reset_codes).setOnClickListener {
             codesMap = mutableMapOf()
@@ -97,12 +100,12 @@ class KeymapFragment : info.anodsplace.headunit.app.BaseFragment(), MainActivity
 
     override fun onResume() {
         super.onResume()
-        registerReceiver(keyCodeReceiver, IntentFilters.keyEvent)
+        context?.registerReceiver(keyCodeReceiver, IntentFilters.keyEvent)
     }
 
     override fun onPause() {
         super.onPause()
-        unregisterReceiver(keyCodeReceiver)
+        context?.unregisterReceiver(keyCodeReceiver)
     }
 
     override fun onClick(v: View?) {
@@ -113,8 +116,8 @@ class KeymapFragment : info.anodsplace.headunit.app.BaseFragment(), MainActivity
         Toast.makeText(activity, "Press a key to assign to '$name'", Toast.LENGTH_SHORT).show()
     }
 
-    override fun onAttach(activity: Activity) {
-        super.onAttach(activity)
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
 
         (activity as? MainActivity)?.let {
             it.setDefaultKeyMode(Activity.DEFAULT_KEYS_DISABLE)
@@ -160,6 +163,6 @@ class KeymapFragment : info.anodsplace.headunit.app.BaseFragment(), MainActivity
             it.value == keyCode
         })?.key ?: keyCode
         val resId = codeToId[mappedCode] ?: return null
-        return view.findViewById<Button>(resId)
+        return view?.findViewById(resId)
     }
 }

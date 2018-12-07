@@ -2,14 +2,13 @@ package info.anodsplace.headunit.main
 
 import android.content.Context
 import android.graphics.BitmapFactory
-import android.support.v4.app.NotificationCompat
+import androidx.core.app.NotificationCompat
 import info.anodsplace.headunit.R
 import android.app.PendingIntent
 import android.view.KeyEvent
 import info.anodsplace.headunit.App
 import info.anodsplace.headunit.aap.AapProjectionActivity
 import info.anodsplace.headunit.aap.protocol.nano.MediaPlayback
-import info.anodsplace.headunit.utils.DeviceIntent
 import info.anodsplace.headunit.contract.MediaKeyIntent
 
 

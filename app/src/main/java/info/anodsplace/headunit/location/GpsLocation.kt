@@ -5,10 +5,9 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
-import android.support.v4.content.LocalBroadcastManager
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 import info.anodsplace.headunit.utils.AppLog
-import info.anodsplace.headunit.utils.DeviceIntent
 import info.anodsplace.headunit.contract.LocationUpdateIntent
 
 /**

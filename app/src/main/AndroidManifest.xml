@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="info.anodsplace.headunit">
 
     <uses-sdk />
@@ -37,7 +38,8 @@
         android:name=".App"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/title">
+        android:label="@string/title"
+        tools:ignore="GoogleAppIndexingWarning">
 
         <activity
             android:name=".aap.AapProjectionActivity"
@@ -87,10 +89,6 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-
-        <meta-data
-            android:name="net.hockeyapp.android.appIdentifier"
-            android:value="${HOCKEYAPP_APP_ID}" />
 
     </application>
 </manifest>

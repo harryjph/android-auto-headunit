@@ -25,19 +25,19 @@ class Settings(context: Context) {
     }
 
     var allowedDevices: Set<String>
-        get() = prefs.getStringSet("allow-devices", HashSet<String>())
+        get() = prefs.getStringSet("allow-devices", HashSet<String>())!!
         set(devices) {
             prefs.edit().putStringSet("allow-devices", devices).apply()
         }
 
     var networkAddresses: Set<String>
-        get() = prefs.getStringSet("network-addresses", HashSet<String>())
+        get() = prefs.getStringSet("network-addresses", HashSet<String>())!!
         set(addrs) {
             prefs.edit().putStringSet("network-addresses", addrs).apply()
         }
 
     var bluetoothAddress: String
-        get() = prefs.getString("bt-address", "40:EF:4C:A3:CB:A5")
+        get() = prefs.getString("bt-address", "40:EF:4C:A3:CB:A5")!!
         set(value) = prefs.edit().putString("bt-address", value).apply()
 
     var lastKnownLocation: Location
@@ -81,12 +81,12 @@ class Settings(context: Context) {
 
     var keyCodes: MutableMap<Int, Int>
         get() {
-            val set = prefs.getStringSet("key-codes", mutableSetOf())
+            val set = prefs.getStringSet("key-codes", mutableSetOf())!!
             val map = mutableMapOf<Int, Int>()
-            set.forEach({
+            set.forEach {
                 val codes = it.split("-")
-                map.put(codes[0].toInt(), codes[1].toInt())
-            })
+                map[codes[0].toInt()] = codes[1].toInt()
+            }
             return map
         }
         set(codesMap) {

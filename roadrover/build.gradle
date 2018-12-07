@@ -1,11 +1,11 @@
 buildscript {
-    ext.kotlin_version = '1.2.10'
+    ext.kotlin_version = '1.2.71'
     repositories {
         jcenter()
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.0-alpha07'
+        classpath 'com.android.tools.build:gradle:3.3.0-rc02'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -29,7 +29,7 @@ android {
     defaultConfig {
         applicationId "info.anodsplace.roadrover"
         minSdkVersion 16
-        targetSdkVersion 16
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }
@@ -51,7 +51,7 @@ android {
 dependencies {
 
 compile project(path: ':..:contract')
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 repositories {
     mavenCentral()

@@ -12,6 +12,9 @@ import info.anodsplace.headunit.utils.AppLog
 class UsbReceiver(private val mListener: UsbReceiver.Listener)          // USB Broadcast Receiver enabled by start() & disabled by stop()
     : BroadcastReceiver() {
 
+    init {
+        AppLog.d("UsbReceiver registered")
+    }
 
     interface Listener {
         fun onUsbDetach(device: UsbDevice)
@@ -21,17 +24,21 @@ class UsbReceiver(private val mListener: UsbReceiver.Listener)          // USB B
 
     override fun onReceive(context: Context, intent: Intent) {
         val device: UsbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE) ?: return
-        AppLog.i("USB Intent: " + intent)
+        AppLog.i("USB Intent: $intent")
 
         val action = intent.action
-        if (action == UsbManager.ACTION_USB_DEVICE_DETACHED) {    // If detach...
-            mListener.onUsbDetach(device)                                  // Handle detached device
-        } else if (action == UsbManager.ACTION_USB_DEVICE_ATTACHED) {// If attach...
-            mListener.onUsbAttach(device)
-        } else if (action == ACTION_USB_DEVICE_PERMISSION) {                 // If Our App specific Intent for permission request...
-            val permissionGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
-            val connect = intent.getBooleanExtra(EXTRA_CONNECT, false)
-            mListener.onUsbPermission(permissionGranted, connect, device)
+        when (action) {
+            UsbManager.ACTION_USB_DEVICE_DETACHED -> // If detach...
+                mListener.onUsbDetach(device)
+            // Handle detached device
+            UsbManager.ACTION_USB_DEVICE_ATTACHED -> // If attach...
+                mListener.onUsbAttach(device)
+            ACTION_USB_DEVICE_PERMISSION -> {
+                // If Our App specific Intent for permission request...
+                val permissionGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
+                val connect = intent.getBooleanExtra(EXTRA_CONNECT, false)
+                mListener.onUsbPermission(permissionGranted, connect, device)
+            }
         }
     }
 
@@ -48,14 +55,12 @@ class UsbReceiver(private val mListener: UsbReceiver.Listener)          // USB B
         }
 
         fun match(action: String): Boolean {
-            if (action == UsbManager.ACTION_USB_DEVICE_DETACHED) {
-                return true
-            } else if (action == UsbManager.ACTION_USB_DEVICE_ATTACHED) {
-                return true
-            } else if (action == ACTION_USB_DEVICE_PERMISSION) {
-                return true
+            return when (action) {
+                UsbManager.ACTION_USB_DEVICE_DETACHED -> true
+                UsbManager.ACTION_USB_DEVICE_ATTACHED -> true
+                ACTION_USB_DEVICE_PERMISSION -> true
+                else -> false
             }
-            return false
         }
     }
 }

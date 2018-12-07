@@ -25,7 +25,7 @@ class UsbAttachedActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        AppLog.i("USB Intent: " + intent)
+        AppLog.i("USB Intent: $intent")
 
         val device = DeviceIntent(intent).device
         if (device == null) {

@@ -8,7 +8,7 @@ import android.content.*
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.IBinder
-import android.support.v4.app.NotificationCompat
+import androidx.core.app.NotificationCompat
 import android.widget.Toast
 import info.anodsplace.headunit.App
 import info.anodsplace.headunit.R

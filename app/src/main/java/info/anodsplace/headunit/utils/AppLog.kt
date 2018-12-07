@@ -25,7 +25,7 @@ object AppLog {
     }
 
     var LOGGER: Logger = Logger.Android()
-    private val LOG_LEVEL = Log.INFO
+    private const val LOG_LEVEL = Log.DEBUG
 
     val TAG = "CAR.HU.J"
     val LOG_VERBOSE = LOG_LEVEL <= Log.VERBOSE
@@ -84,14 +84,11 @@ object AppLog {
         var formatted: String
         if (array.isEmpty()) {
             formatted = msg
-        } else {
-            try {
-                formatted = String.format(Locale.US, msg, *array)
-            } catch (ex: IllegalFormatException) {
-                e("IllegalFormatException: formatString='%s' numArgs=%d", msg, array.size)
-                formatted = msg + " (An error occurred while formatting the message.)"
-            }
-
+        } else try {
+            formatted = String.format(Locale.US, msg, *array)
+        } catch (ex: IllegalFormatException) {
+            e("IllegalFormatException: formatString='%s' numArgs=%d", msg, array.size)
+            formatted = "$msg (An error occurred while formatting the message.)"
         }
         val stackTrace = Throwable().fillInStackTrace().stackTrace
         var string = "<unknown>"

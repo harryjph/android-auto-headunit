@@ -1,14 +1,11 @@
 package info.anodsplace.headunit.main
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import android.widget.TextView
-
-import net.hockeyapp.android.CrashManager
-import net.hockeyapp.android.UpdateManager
-
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModelProviders
 import info.anodsplace.headunit.App
 import info.anodsplace.headunit.R
 import info.anodsplace.headunit.aap.AapProjectionActivity
@@ -18,7 +15,7 @@ import info.anodsplace.headunit.utils.SystemUI
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.IOException
 
-class MainActivity : Activity() {
+class MainActivity : FragmentActivity() {
 
     var keyListener: KeyListener? = null
 
@@ -38,18 +35,20 @@ class MainActivity : Activity() {
         }
 
         usb.setOnClickListener {
-            fragmentManager
+            supportFragmentManager
                     .beginTransaction()
                     .replace(R.id.main_content, UsbListFragment())
                     .commit()
         }
 
         settings.setOnClickListener {
-            fragmentManager
+            supportFragmentManager
                     .beginTransaction()
                     .replace(R.id.main_content, SettingsFragment())
                     .commit()
         }
+
+        ViewModelProviders.of(this).get(MainViewModel::class.java)
 
         try {
             val currentIp = NetworkUtils.getWifiIpAddress(this)
@@ -57,8 +56,6 @@ class MainActivity : Activity() {
             val ipView = findViewById<TextView>(R.id.ip_address)
             ipView.text = inet?.hostAddress ?: ""
         } catch (ignored: IOException) { }
-
-        UpdateManager.register(this)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -69,7 +66,6 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         video_button.isEnabled = App.provide(this).transport.isAlive
-        CrashManager.register(this)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {

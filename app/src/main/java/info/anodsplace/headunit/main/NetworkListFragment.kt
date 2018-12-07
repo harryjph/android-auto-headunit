@@ -1,16 +1,17 @@
 package info.anodsplace.headunit.main
 
-import android.app.FragmentManager
 import android.content.Context
 import android.os.Bundle
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.text.Html
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 
 import java.io.IOException
 import java.net.InetAddress
@@ -20,7 +21,6 @@ import java.util.Locale
 
 import info.anodsplace.headunit.R
 import info.anodsplace.headunit.aap.AapService
-import info.anodsplace.headunit.app.BaseFragment
 import info.anodsplace.headunit.utils.NetworkUtils
 import info.anodsplace.headunit.utils.Settings
 
@@ -30,15 +30,13 @@ import info.anodsplace.headunit.utils.Settings
  * @date 05/11/2016.
  */
 
-class NetworkListFragment : BaseFragment() {
+class NetworkListFragment : Fragment() {
     private lateinit var mAdapter: AddressAdapter
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle?): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val recyclerView = inflater.inflate(R.layout.fragment_list, container, false) as RecyclerView
 
-        val context = activity
-
-        mAdapter = AddressAdapter(context, fragmentManager)
+        mAdapter = AddressAdapter(context!!, fragmentManager!!)
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = mAdapter
         return recyclerView

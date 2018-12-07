@@ -2,10 +2,13 @@ package info.anodsplace.headunit.main
 
 import android.app.AlertDialog
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import info.anodsplace.headunit.R
 import info.anodsplace.headunit.decoder.MicRecorder
 import info.anodsplace.headunit.utils.Settings
@@ -15,21 +18,22 @@ import kotlinx.android.synthetic.main.fragment_settings.*
  * @author algavris
  * @date 13/06/2017
  */
-class SettingsFragment : info.anodsplace.headunit.app.BaseFragment() {
+class SettingsFragment : Fragment() {
     lateinit var settings: Settings
-    override fun onCreateView(inflater: android.view.LayoutInflater, container: android.view.ViewGroup, savedInstanceState: android.os.Bundle?): android.view.View {
-        return inflater.inflate(info.anodsplace.headunit.R.layout.fragment_settings, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        return inflater.inflate(R.layout.fragment_settings, container, false)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         keymapButton.setOnClickListener {
-            fragmentManager
-                    .beginTransaction()
-                    .replace(R.id.main_content, KeymapFragment())
-                    .commit()
+            fragmentManager?.apply {
+                beginTransaction()
+                        .replace(R.id.main_content, KeymapFragment())
+                        .commit()
+            }
         }
 
-        settings = Settings(activity)
+        settings = Settings(context!!)
 
         gpsNavigationButton.text = getString(R.string.gps_for_navigation, if (settings.useGpsForNavigation) getString(R.string.enabled) else getString(R.string.disabled) )
         gpsNavigationButton.tag = settings.useGpsForNavigation
@@ -49,7 +53,7 @@ class SettingsFragment : info.anodsplace.headunit.app.BaseFragment() {
             val recorder: MicRecorder? = try { MicRecorder(newValue) } catch (e: Exception) { null }
 
             if (recorder == null) {
-                Toast.makeText(activity, "Value not supported: " + newValue, Toast.LENGTH_LONG).show()
+                Toast.makeText(activity, "Value not supported: $newValue", Toast.LENGTH_LONG).show()
             } else {
                 settings.micSampleRate = newValue
                 (it as Button).text = getString(R.string.mic_sample_rate, newValue / 1000)
@@ -77,10 +81,10 @@ class SettingsFragment : info.anodsplace.headunit.app.BaseFragment() {
             AlertDialog.Builder(activity)
                 .setTitle(R.string.enter_bluetooth_mac)
                 .setView(editView)
-                .setPositiveButton(android.R.string.ok, { dialog, _ ->
+                .setPositiveButton(android.R.string.ok) { dialog, _ ->
                     settings.bluetoothAddress = editView.text.toString().trim()
                     dialog.dismiss()
-                }).show()
+                }.show()
         }
     }
 }

@@ -1,6 +1,8 @@
 package info.anodsplace.headunit.aap
 
+import android.app.UiModeManager
 import android.content.Context
+import android.content.Context.UI_MODE_SERVICE
 import android.media.AudioManager
 import android.os.*
 import android.util.SparseIntArray
@@ -33,10 +35,10 @@ class AapTransport(
     private val sessionIds = SparseIntArray(4)
     private val startedSensors = HashSet<Int>(4)
     private val ssl = AapSslNative()
-    private val keyCodes = settings.keyCodes.entries.associateTo(mutableMapOf(), {
+    private val keyCodes = settings.keyCodes.entries.associateTo(mutableMapOf()) {
         it.value to it.key
-    })
-
+    }
+    private val modeManager: UiModeManager =  context.getSystemService(UI_MODE_SERVICE) as UiModeManager
     private var connection: AccessoryConnection? = null
     private var aapRead: AapRead? = null
     private var handler: Handler? = null
@@ -135,13 +137,13 @@ class AapTransport(
         val version = Messages.createRawMessage(0, 3, 1, Messages.VERSION_REQUEST, Messages.VERSION_REQUEST.size) // Version Request
         var ret = connection.send(version, version.size, 1000)
         if (ret < 0) {
-            AppLog.e("Version request sendEncrypted ret: " + ret)
+            AppLog.e("Version request sendEncrypted ret: $ret")
             return false
         }
 
         ret = connection.recv(buffer, buffer.size, 1000)
         if (ret <= 0) {
-            AppLog.e("Version request recv ret: " + ret)
+            AppLog.e("Version request recv ret: $ret")
             return false
         }
         AppLog.i("Version response recv ret: %d", ret)
@@ -149,7 +151,7 @@ class AapTransport(
         // SSL
         ret = ssl.prepare()
         if (ret < 0) {
-            AppLog.e("SSL prepare failed: " + ret)
+            AppLog.e("SSL prepare failed: $ret")
             return false
         }
 
@@ -180,7 +182,7 @@ class AapTransport(
         val status = Messages.createRawMessage(0, 3, 4, byteArrayOf(8, 0), 2)
         ret = connection.send(status, status.size, 1000)
         if (ret < 0) {
-            AppLog.e("Status request sendEncrypted ret: " + ret)
+            AppLog.e("Status request sendEncrypted ret: $ret")
             return false
         }
 
@@ -200,8 +202,15 @@ class AapTransport(
             return
         }
 
+        if (mapped == KeyEvent.KEYCODE_N) {
+            val enabled = modeManager.nightMode != UiModeManager.MODE_NIGHT_YES
+            send(NightModeEvent(enabled))
+            modeManager.nightMode = if (enabled) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO
+            return
+        }
+
         if (aapKeyCode == KeyEvent.KEYCODE_UNKNOWN) {
-            AppLog.i("Unknown: " + keyCode)
+            AppLog.i("Unknown: $keyCode")
         }
 
         val ts = SystemClock.elapsedRealtime()

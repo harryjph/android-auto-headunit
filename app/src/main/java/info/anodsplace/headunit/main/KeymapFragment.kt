@@ -43,7 +43,8 @@ class KeymapFragment : Fragment(), MainActivity.KeyListener, View.OnClickListene
         R.id.keycode_search to KeyEvent.KEYCODE_SEARCH,
         R.id.keycode_call to KeyEvent.KEYCODE_CALL,
         R.id.keycode_music to KeyEvent.KEYCODE_MUSIC,
-        R.id.keycode_nav to KeyEvent.KEYCODE_GUIDE)
+        R.id.keycode_nav to KeyEvent.KEYCODE_GUIDE,
+        R.id.keycode_night to KeyEvent.KEYCODE_N)
 
     private val codeToId = mapOf(
         KeyEvent.KEYCODE_SOFT_LEFT to R.id.keycode_soft_left,
@@ -64,7 +65,8 @@ class KeymapFragment : Fragment(), MainActivity.KeyListener, View.OnClickListene
         KeyEvent.KEYCODE_SEARCH to R.id.keycode_search,
         KeyEvent.KEYCODE_CALL to R.id.keycode_call,
         KeyEvent.KEYCODE_MUSIC to R.id.keycode_music,
-        KeyEvent.KEYCODE_GUIDE to R.id.keycode_nav)
+        KeyEvent.KEYCODE_GUIDE to R.id.keycode_nav,
+        KeyEvent.KEYCODE_N to R.id.keycode_night)
 
     private var assignCode = KeyEvent.KEYCODE_UNKNOWN
     private lateinit var settings: Settings

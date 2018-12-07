@@ -10,6 +10,7 @@ import android.view.KeyEvent
 import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.messages.*
 import info.anodsplace.headunit.aap.protocol.nano.Input
+import info.anodsplace.headunit.aap.protocol.nano.Sensors
 import info.anodsplace.headunit.connection.AccessoryConnection
 import info.anodsplace.headunit.contract.ProjectionActivityRequest
 import info.anodsplace.headunit.decoder.AudioDecoder
@@ -54,7 +55,7 @@ class AapTransport(
 
     internal fun startSensor(type: Int) {
         startedSensors.add(type)
-        if (type == 10) {
+        if (type == Sensors.SENSOR_TYPE_NIGHT) {
             send(NightModeEvent(false))
         }
     }

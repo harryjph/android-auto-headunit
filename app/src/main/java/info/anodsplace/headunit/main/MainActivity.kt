@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.ViewModelProviders
 import info.anodsplace.headunit.App
 import info.anodsplace.headunit.R
 import info.anodsplace.headunit.aap.AapProjectionActivity
@@ -18,6 +18,7 @@ import java.io.IOException
 class MainActivity : FragmentActivity() {
 
     var keyListener: KeyListener? = null
+    private val viewModel: MainViewModel by viewModels()
 
     interface KeyListener
     {
@@ -48,7 +49,7 @@ class MainActivity : FragmentActivity() {
                     .commit()
         }
 
-        ViewModelProviders.of(this).get(MainViewModel::class.java)
+        viewModel.register()
 
         try {
             val currentIp = NetworkUtils.getWifiIpAddress(this)

@@ -18,8 +18,9 @@ class MainViewModel(application: Application): AndroidViewModel(application), Us
         get() = getApplication()
     private val settings = Settings(application)
     private val usbReceiver = UsbReceiver(this)
-    init {
-        application.registerReceiver(usbReceiver, UsbReceiver.createFilter())
+
+    fun register() {
+        app.registerReceiver(usbReceiver, UsbReceiver.createFilter())
         usbDevices.value = createDeviceList(settings.allowedDevices)
     }
 

@@ -68,14 +68,14 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
 
         accessoryConnection = connectionFactory(intent, this)
         if (accessoryConnection == null) {
-            AppLog.e("Cannot create connection " + intent)
+            AppLog.e("Cannot create connection $intent")
             stopSelf()
             return START_NOT_STICKY
         }
 
         uiModeManager.enableCarMode(0)
 
-        val noty = NotificationCompat.Builder(this, "default")
+        val noty = NotificationCompat.Builder(this, App.defaultChannel)
                 .setSmallIcon(R.drawable.ic_stat_aa)
                 .setTicker("HeadUnit is running")
                 .setWhen(System.currentTimeMillis())

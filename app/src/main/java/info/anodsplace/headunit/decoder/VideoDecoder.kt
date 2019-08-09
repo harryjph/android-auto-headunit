@@ -51,7 +51,7 @@ class VideoDecoder {
                     return
                 }
 
-                codec_output_consume()
+                codecOutputConsume()
             }
         }
     }
@@ -61,7 +61,7 @@ class VideoDecoder {
             try {
                 mCodec = MediaCodec.createDecoderByType("video/avc")       // Create video codec: ITU-T H.264 / ISO/IEC MPEG-4 Part 10, Advanced Video Coding (MPEG-4 AVC)
             } catch (t: Throwable) {
-                AppLog.e("Throwable creating video/avc decoder: " + t)
+                AppLog.e("Throwable creating video/avc decoder: $t")
             }
 
             try {
@@ -87,7 +87,7 @@ class VideoDecoder {
             mInputBuffers = null
             mCodecBufferInfo = null
             mCodecConfigured = false
-            AppLog.i("Reason: " + reason)
+            AppLog.i("Reason: $reason")
         }
     }
 
@@ -95,7 +95,7 @@ class VideoDecoder {
         try {
             val inputBufIndex = mCodec!!.dequeueInputBuffer(1000000)           // Get input buffer with 1 second timeout
             if (inputBufIndex < 0) {
-                AppLog.e("dequeueInputBuffer: " + inputBufIndex)
+                AppLog.e("dequeueInputBuffer: $inputBufIndex")
                 return false                                                 // Done with "No buffer" error
             }
 
@@ -124,7 +124,7 @@ class VideoDecoder {
         return false                                                     // Error: exception
     }
 
-    private fun codec_output_consume() {                                // Called only by media_decode() after codec_input_provide()
+    private fun codecOutputConsume() {                                // Called only by media_decode() after codec_input_provide()
         var index: Int
         while (true) {                                                          // Until no more buffers...
             index = mCodec!!.dequeueOutputBuffer(mCodecBufferInfo, 0)        // Dequeue an output buffer but do not wait
@@ -142,7 +142,7 @@ class VideoDecoder {
                 break
         }
         if (index != MediaCodec.INFO_TRY_AGAIN_LATER)
-            AppLog.e("index: " + index)
+            AppLog.e("index: $index")
     }
 
     fun onSurfaceHolderAvailable(holder: SurfaceHolder, width: Int, height: Int) {

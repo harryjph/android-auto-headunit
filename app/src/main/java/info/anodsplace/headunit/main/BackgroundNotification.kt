@@ -20,6 +20,7 @@ class BackgroundNotification(private val context: Context) {
 
     companion object {
         private const val NOTIFICATION_MEDIA = 1
+        const val mediaChannel = "media"
     }
 
     fun notify(metadata: MediaPlayback.MediaMetaData) {
@@ -33,7 +34,7 @@ class BackgroundNotification(private val context: Context) {
         val prev = PendingIntent.getBroadcast(context, 1, MediaKeyIntent(prevKey), PendingIntent.FLAG_UPDATE_CURRENT)
 
 
-        val notification = NotificationCompat.Builder(context)
+        val notification = NotificationCompat.Builder(context, mediaChannel)
                 .setContentTitle(metadata.song)
                 .setAutoCancel(false)
                 .setOngoing(true)

@@ -11,7 +11,7 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class LocationUpdateEvent(location: Location)
-    : SensorEvent(Sensors.SENSOR_TYPE_LOCATION, LocationUpdateEvent.makeProto(location)) {
+    : SensorEvent(Sensors.SENSOR_TYPE_LOCATION, makeProto(location)) {
 
     companion object {
         private fun makeProto(location: Location): MessageNano {

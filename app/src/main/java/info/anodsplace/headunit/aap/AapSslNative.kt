@@ -12,6 +12,8 @@ import info.anodsplace.headunit.utils.AppLog
 internal class AapSslNative : AapSsl {
 
     init {
+        System.loadLibrary("crypto")
+        System.loadLibrary("ssl")
         System.loadLibrary("hu_jni")
     }
 
@@ -29,7 +31,7 @@ internal class AapSslNative : AapSsl {
     override fun prepare(): Int {
         val ret = native_ssl_prepare()
         if (ret < 0) {
-            AppLog.e("SSL prepare failed: " + ret)
+            AppLog.e("SSL prepare failed: $ret")
         }
         return ret
     }

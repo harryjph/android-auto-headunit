@@ -11,19 +11,19 @@ import com.google.protobuf.nano.MessageNano
  * @date 13/02/2017.
  */
 class TouchEvent(timeStamp: Long, action: Int, x: Int, y: Int)
-    : AapMessage(Channel.ID_INP, Input.MSG_INPUT_EVENT, TouchEvent.makeProto(timeStamp, action, x, y)) {
+    : AapMessage(Channel.ID_INP, Input.MSG_INPUT_EVENT, makeProto(timeStamp, action, x, y)) {
 
     companion object {
         fun motionEventToAction(event: MotionEvent): Int {
-            when (event.actionMasked) {
-                MotionEvent.ACTION_POINTER_DOWN -> return Input.TouchEvent.TOUCH_ACTION_DOWN
-                MotionEvent.ACTION_DOWN -> return MotionEvent.ACTION_DOWN
-                MotionEvent.ACTION_MOVE -> return MotionEvent.ACTION_MOVE
-                MotionEvent.ACTION_CANCEL -> return MotionEvent.ACTION_UP
-                MotionEvent.ACTION_POINTER_UP -> return MotionEvent.ACTION_POINTER_UP
-                MotionEvent.ACTION_UP -> return MotionEvent.ACTION_UP
+            return when (event.actionMasked) {
+                MotionEvent.ACTION_POINTER_DOWN -> Input.TouchEvent.TOUCH_ACTION_DOWN
+                MotionEvent.ACTION_DOWN -> MotionEvent.ACTION_DOWN
+                MotionEvent.ACTION_MOVE -> MotionEvent.ACTION_MOVE
+                MotionEvent.ACTION_CANCEL -> MotionEvent.ACTION_UP
+                MotionEvent.ACTION_POINTER_UP -> MotionEvent.ACTION_POINTER_UP
+                MotionEvent.ACTION_UP -> MotionEvent.ACTION_UP
                 else -> {
-                    return -1
+                    -1
                 }
             }
         }

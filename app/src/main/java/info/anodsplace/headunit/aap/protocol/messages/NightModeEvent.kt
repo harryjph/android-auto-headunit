@@ -10,7 +10,7 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class NightModeEvent(enabled: Boolean)
-    : SensorEvent(Sensors.SENSOR_TYPE_NIGHT, NightModeEvent.makeProto(enabled)) {
+    : SensorEvent(Sensors.SENSOR_TYPE_NIGHT, makeProto(enabled)) {
 
     companion object {
         private fun makeProto(enabled: Boolean): MessageNano {

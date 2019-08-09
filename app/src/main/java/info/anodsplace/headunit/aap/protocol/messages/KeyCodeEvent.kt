@@ -12,7 +12,7 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class KeyCodeEvent(timeStamp: Long, keycode: Int, isPress: Boolean)
-    : AapMessage(Channel.ID_INP, Input.MSG_INPUT_EVENT, KeyCodeEvent.makeProto(timeStamp, keycode, isPress)) {
+    : AapMessage(Channel.ID_INP, Input.MSG_INPUT_EVENT, makeProto(timeStamp, keycode, isPress)) {
 
     companion object {
         private fun makeProto(timeStamp: Long, keycode: Int, isPress: Boolean): MessageNano {

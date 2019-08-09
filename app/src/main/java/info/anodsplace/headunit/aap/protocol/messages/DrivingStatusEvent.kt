@@ -14,7 +14,7 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class DrivingStatusEvent(status: Int)
-    : AapMessage(Channel.ID_SEN, Sensors.MSG_SENSORS_EVENT, DrivingStatusEvent.makeProto(status)) {
+    : AapMessage(Channel.ID_SEN, Sensors.MSG_SENSORS_EVENT, makeProto(status)) {
 
     companion object {
         private fun makeProto(status: Int): MessageNano {

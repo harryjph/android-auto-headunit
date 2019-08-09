@@ -1,9 +1,9 @@
 #ifndef HEADUNIT_HU_SSL_H
 #define HEADUNIT_HU_SSL_H
 
-#include "libs/headers/openssl/ssl.h"
-#include "libs/headers/openssl/bio.h"
-#include "libs/headers/openssl/ossl_typ.h"
+#include <openssl/ssl.h>
+#include <openssl/bio.h>
+#include <openssl/ossl_typ.h>
 
 #define byte unsigned char
 

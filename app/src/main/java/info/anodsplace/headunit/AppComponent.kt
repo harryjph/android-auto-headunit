@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationManager
 import android.content.Context
 import android.media.AudioManager
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import info.anodsplace.headunit.aap.AapTransport
 import info.anodsplace.headunit.decoder.AudioDecoder
 import info.anodsplace.headunit.decoder.VideoDecoder
@@ -34,10 +35,12 @@ class AppComponent(private val app: App) {
         _transport = null
     }
 
-    val backgroundNotification = BackgroundNotification(app)
+    private val backgroundNotification = BackgroundNotification(app)
 
-    val audioManager: AudioManager
+    private val audioManager: AudioManager
         get() = app.getSystemService(Application.AUDIO_SERVICE) as AudioManager
     val notificationManager: NotificationManager
         get() = app.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+    val localBroadcastManager = LocalBroadcastManager.getInstance(app)
 }

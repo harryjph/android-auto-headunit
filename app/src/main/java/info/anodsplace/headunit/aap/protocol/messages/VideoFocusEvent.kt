@@ -12,7 +12,7 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class VideoFocusEvent(gain: Boolean, unsolicited: Boolean)
-    : AapMessage(Channel.ID_VID, Media.MSG_MEDIA_VIDEOFOCUSNOTIFICATION, VideoFocusEvent.makeProto(gain, unsolicited)) {
+    : AapMessage(Channel.ID_VID, Media.MSG_MEDIA_VIDEOFOCUSNOTIFICATION, makeProto(gain, unsolicited)) {
 
     companion object {
         private fun makeProto(gain: Boolean, unsolicited: Boolean): MessageNano {

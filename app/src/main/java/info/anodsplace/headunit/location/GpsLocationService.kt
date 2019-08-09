@@ -10,18 +10,14 @@ import android.os.IBinder
  * @date 18/12/2016.
  */
 class GpsLocationService : Service() {
-    private var mGpsLocation: GpsLocation? = null
-
-    override fun onCreate() {
-        super.onCreate()
-    }
+    private var gpsLocation: GpsLocation? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (mGpsLocation == null) {
-            mGpsLocation = GpsLocation(this)
+        if (gpsLocation == null) {
+            gpsLocation = GpsLocation(this)
         }
 
-        mGpsLocation?.start()
+        gpsLocation?.start()
 
         return START_STICKY
     }
@@ -29,7 +25,7 @@ class GpsLocationService : Service() {
     override fun onDestroy() {
         super.onDestroy()
 
-        mGpsLocation?.stop()
+        gpsLocation?.stop()
     }
 
     override fun onBind(intent: Intent): IBinder? {

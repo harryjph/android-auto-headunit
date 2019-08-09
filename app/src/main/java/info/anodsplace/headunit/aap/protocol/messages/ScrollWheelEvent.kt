@@ -12,7 +12,7 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class ScrollWheelEvent(timeStamp: Long, delta: Int)
-    : AapMessage(Channel.ID_INP, Input.MSG_INPUT_EVENT, ScrollWheelEvent.makeProto(timeStamp, delta)) {
+    : AapMessage(Channel.ID_INP, Input.MSG_INPUT_EVENT, makeProto(timeStamp, delta)) {
     companion object {
         const val KEYCODE_SCROLL_WHEEL = 65536
 

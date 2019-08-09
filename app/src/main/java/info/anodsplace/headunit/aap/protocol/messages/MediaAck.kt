@@ -11,7 +11,7 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class MediaAck(channel: Int, sessionId: Int)
-    : AapMessage(channel, Media.MSG_MEDIA_ACK, MediaAck.makeProto(sessionId), MediaAck.ackBuf) {
+    : AapMessage(channel, Media.MSG_MEDIA_ACK, makeProto(sessionId), ackBuf) {
     companion object {
 
         private val mediaAck = Media.Ack()

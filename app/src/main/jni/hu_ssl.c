@@ -1,8 +1,8 @@
 #include "hu_uti.h"
 
-#include "libs/headers/openssl/bio.h"
-#include "libs/headers/openssl/ssl.h"
-#include "libs/headers/openssl/rand.h"
+#include <openssl/bio.h>
+#include <openssl/ssl.h>
+#include <openssl/rand.h>
 #include "hu_ssl.h"
 #include "hu_ssl_cert.h"
 

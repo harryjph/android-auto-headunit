@@ -14,7 +14,7 @@ import java.net.UnknownHostException;
 
 public class NetworkUtils {
 
-    public static int getWifiIpAddress(Context context) throws IOException {
+    public static int getWifiIpAddress(Context context) {
         final WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         return wifiManager.getConnectionInfo().getIpAddress();
     }

@@ -32,7 +32,7 @@ class AapTransport(
     private val aapAudio: AapAudio
     private val aapVideo: AapVideo
     private val pollThread: HandlerThread = HandlerThread("AapTransport:Handler", Process.THREAD_PRIORITY_AUDIO)
-    private val micRecorder: MicRecorder = MicRecorder(settings.micSampleRate)
+    private val micRecorder: MicRecorder = MicRecorder(settings.micSampleRate, context)
     private val sessionIds = SparseIntArray(4)
     private val startedSensors = HashSet<Int>(4)
     private val ssl = AapSslNative()
@@ -121,7 +121,7 @@ class AapTransport(
 
         this.connection = connection
 
-        aapRead = AapRead.Factory.create(connection, this, micRecorder, aapAudio, aapVideo, settings, notification)
+        aapRead = AapRead.Factory.create(connection, this, micRecorder, aapAudio, aapVideo, settings, notification, context)
 
         pollThread.start()
         handler = Handler(pollThread.looper, this)

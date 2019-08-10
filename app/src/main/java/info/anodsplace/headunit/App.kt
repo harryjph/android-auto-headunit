@@ -37,7 +37,9 @@ class App : Application() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             component.notificationManager.createNotificationChannel(NotificationChannel(defaultChannel, "Default", NotificationManager.IMPORTANCE_DEFAULT))
-            component.notificationManager.createNotificationChannel(NotificationChannel(BackgroundNotification.mediaChannel, "Media channel", NotificationManager.IMPORTANCE_DEFAULT))
+            val mediaChannel = NotificationChannel(BackgroundNotification.mediaChannel, "Media channel", NotificationManager.IMPORTANCE_DEFAULT)
+            mediaChannel.setSound(null, null)
+            component.notificationManager.createNotificationChannel(mediaChannel)
         }
 
         registerReceiver(AapBroadcastReceiver(), AapBroadcastReceiver.filter)

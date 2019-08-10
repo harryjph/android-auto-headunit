@@ -17,11 +17,11 @@ import info.anodsplace.headunit.utils.Settings
  *
  * @date 13/02/2017.
  */
-class ServiceDiscoveryResponse(settings: Settings)
-    : AapMessage(Channel.ID_CTR, Control.ControlMsgType.SERVICEDISCOVERYRESPONSE_VALUE, makeProto(settings)) {
+class ServiceDiscoveryResponse(settings: Settings, densityDpi: Int)
+    : AapMessage(Channel.ID_CTR, Control.ControlMsgType.SERVICEDISCOVERYRESPONSE_VALUE, makeProto(settings, densityDpi)) {
 
     companion object {
-        private fun makeProto(settings: Settings): Message {
+        private fun makeProto(settings: Settings, densityDpi: Int): Message {
 
             val services = mutableListOf<Control.Service>()
 
@@ -49,9 +49,9 @@ class ServiceDiscoveryResponse(settings: Settings)
                     it.addVideoConfigs(Control.Service.MediaSinkService.VideoConfiguration.newBuilder().apply {
                         marginHeight = 0
                         marginWidth = 0
-                        codecResolution = Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType._800x480
+                        codecResolution = settings.resolution
                         frameRate = Control.Service.MediaSinkService.VideoConfiguration.VideoFrameRateType._60
-                        density = Screen.density
+                        density = 140 //densityDpi
                     }.build())
                 }.build()
             }.build()
@@ -62,8 +62,8 @@ class ServiceDiscoveryResponse(settings: Settings)
                 service.id = Channel.ID_INP
                 service.inputSourceService = Control.Service.InputSourceService.newBuilder().also {
                     it.touchscreen = Control.Service.InputSourceService.TouchConfig.newBuilder().apply {
-                        width = Screen.width
-                        height = Screen.height
+                        width = Screen.forResolution(settings.resolution).width
+                        height = Screen.forResolution(settings.resolution).height
                     }.build()
                     it.addAllKeycodesSupported(KeyCode.supported)
                 }.build()

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.location.Location
+import info.anodsplace.headunit.aap.protocol.proto.Control
 
 import java.util.HashSet
 
@@ -56,6 +57,13 @@ class Settings(context: Context) {
                 .putLong("last-loc-longitude", location.longitude.toLong())
                 .apply()
         }
+
+    var resolution: Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType
+        get() {
+            val number = prefs.getInt("resolution", Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType._800x480_VALUE)
+            return Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType.forNumber(number)
+        }
+        set(value) { prefs.edit().putInt("resolution", value.number).apply() }
 
     var micSampleRate: Int
         get() = prefs.getInt("mic-sample-rate", 8000)

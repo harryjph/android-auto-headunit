@@ -22,5 +22,7 @@
     <string name="gps_for_navigation">Gps for navigation: %s</string>
     <string name="enabled">Enabled</string>
     <string name="disabled">Disabled</string>
+    <string name="resolution">Resolution: %s</string>
+    <string name="change_resolution">Change resolution</string>
 </resources>
 

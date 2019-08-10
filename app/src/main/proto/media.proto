@@ -53,9 +53,9 @@ message Ack
 message MicrophoneRequest
 {
     required bool open = 1;
-    required bool anc_enabled = 2;
-    required bool ec_enabled = 3;
-    required int32 max_unacked = 4;
+    optional bool anc_enabled = 2;
+    optional bool ec_enabled = 3;
+    optional int32 max_unacked = 4;
 }
 
 message MicrophoneResponse

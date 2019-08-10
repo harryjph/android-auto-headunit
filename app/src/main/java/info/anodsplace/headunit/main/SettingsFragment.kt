@@ -1,6 +1,7 @@
 package info.anodsplace.headunit.main
 
 import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import info.anodsplace.headunit.R
+import info.anodsplace.headunit.aap.protocol.proto.Control
 import info.anodsplace.headunit.decoder.MicRecorder
 import info.anodsplace.headunit.utils.Settings
 import kotlinx.android.synthetic.main.fragment_settings.*
@@ -50,7 +52,7 @@ class SettingsFragment : Fragment() {
         micSampleRateButton.setOnClickListener {
             val newValue = Settings.MicSampleRates[it.tag]!!
 
-            val recorder: MicRecorder? = try { MicRecorder(newValue) } catch (e: Exception) { null }
+            val recorder: MicRecorder? = try { MicRecorder(newValue, requireContext().applicationContext) } catch (e: Exception) { null }
 
             if (recorder == null) {
                 Toast.makeText(activity, "Value not supported: $newValue", Toast.LENGTH_LONG).show()
@@ -85,6 +87,29 @@ class SettingsFragment : Fragment() {
                     settings.bluetoothAddress = editView.text.toString().trim()
                     dialog.dismiss()
                 }.show()
+        }
+
+        resolution.text = getString(R.string.resolution, settings.resolution)
+        val items = arrayOf(
+                Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType._800x480.name,
+                Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType._1280x720.name,
+                Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType._1920x1080.name
+        )
+        val values = arrayOf(
+                Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType._800x480,
+                Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType._1280x720,
+                Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType._1920x1080
+        )
+
+        resolution.setOnClickListener {
+            AlertDialog.Builder(activity)
+                    .setTitle(R.string.change_resolution)
+                    .setSingleChoiceItems(items, items.indexOf(settings.resolution.name)) { dialog, which ->
+                        settings.resolution = values[which]
+                        resolution.text = getString(R.string.resolution, settings.resolution)
+                        dialog.dismiss()
+                    }
+                    .show()
         }
     }
 }

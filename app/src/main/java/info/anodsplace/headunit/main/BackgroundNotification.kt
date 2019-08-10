@@ -33,7 +33,6 @@ class BackgroundNotification(private val context: Context) {
         val next = PendingIntent.getBroadcast(context, 1, MediaKeyIntent(nextKey), PendingIntent.FLAG_UPDATE_CURRENT)
         val prev = PendingIntent.getBroadcast(context, 1, MediaKeyIntent(prevKey), PendingIntent.FLAG_UPDATE_CURRENT)
 
-
         val notification = NotificationCompat.Builder(context, mediaChannel)
                 .setContentTitle(metadata.song)
                 .setAutoCancel(false)
@@ -41,10 +40,12 @@ class BackgroundNotification(private val context: Context) {
                 .setContentText(metadata.artist)
                 .setSubText(String.format("Remaining: %02d:%02d", metadata.duration / 60, metadata.duration % 60))
                 .setSmallIcon(R.drawable.ic_stat_aa)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setContentIntent(PendingIntent.getActivity(context, 0, AapProjectionActivity.intent(context), PendingIntent.FLAG_UPDATE_CURRENT))
                 .addAction(R.drawable.ic_skip_previous_black_24dp, "Previous", prev)
                 .addAction(R.drawable.ic_play_arrow_black_24dp, "Play/Pause", playPause)
                 .addAction(R.drawable.ic_skip_next_black_24dp, "Next", next)
+
 
         if (!metadata.albumart.isEmpty) {
             val image = BitmapFactory.decodeByteArray(metadata.albumart.toByteArray(), 0, metadata.albumart.size())

@@ -1,5 +1,6 @@
 package info.anodsplace.headunit.aap
 
+import android.content.Context
 import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.decoder.MicRecorder
 import info.anodsplace.headunit.main.BackgroundNotification
@@ -19,9 +20,10 @@ internal class AapMessageHandlerType(
         private val aapAudio: AapAudio,
         private val aapVideo: AapVideo,
         settings: Settings,
-        backgroundNotification: BackgroundNotification) : AapMessageHandler {
+        backgroundNotification: BackgroundNotification,
+        context: Context) : AapMessageHandler {
 
-    private val aapControl: AapControl = AapControlGateway(transport, recorder, aapAudio, settings)
+    private val aapControl: AapControl = AapControlGateway(transport, recorder, aapAudio, settings, context)
     private val mediaPlayback = AapMediaPlayback(backgroundNotification)
 
     @Throws(AapMessageHandler.HandleException::class)

@@ -39,4 +39,12 @@
         android:layout_height="64dp"
         android:text="@string/bluetooth_address_s"
         android:background="@drawable/button_selectable_background" />
+
+    <Button
+        android:id="@+id/resolution"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:text=""
+        android:background="@drawable/button_selectable_background" />
+
 </LinearLayout>

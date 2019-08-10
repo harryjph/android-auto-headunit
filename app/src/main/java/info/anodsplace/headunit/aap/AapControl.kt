@@ -1,5 +1,6 @@
 package info.anodsplace.headunit.aap
 
+import android.content.Context
 import android.media.AudioManager
 import info.anodsplace.headunit.aap.protocol.AudioConfigs
 import info.anodsplace.headunit.aap.protocol.Channel
@@ -157,7 +158,11 @@ internal class AapControlSensor(private val aapTransport: AapTransport): AapCont
     }
 }
 
-internal class AapControlService(private val aapTransport: AapTransport, private val aapAudio: AapAudio, private val settings: Settings): AapControl {
+internal class AapControlService(
+        private val aapTransport: AapTransport,
+        private val aapAudio: AapAudio,
+        private val settings: Settings,
+        private val context: Context): AapControl {
 
     override fun execute(message: AapMessage): Int {
 
@@ -199,7 +204,7 @@ internal class AapControlService(private val aapTransport: AapTransport, private
     private fun serviceDiscoveryRequest(request: Control.ServiceDiscoveryRequest): Int {                  // Service Discovery Request
         AppLog.i("Service Discovery Request: %s", request.phoneName)                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
-        val msg = ServiceDiscoveryResponse(settings)
+        val msg = ServiceDiscoveryResponse(settings, context.resources.displayMetrics.densityDpi)
         AppLog.i(msg.toString())
 
         aapTransport.send(msg)
@@ -311,9 +316,10 @@ internal class AapControlGateway(
     constructor(aapTransport: AapTransport,
                 micRecorder: MicRecorder,
                 aapAudio: AapAudio,
-                settings: Settings) : this(
+                settings: Settings,
+                context: Context) : this(
             aapTransport,
-            AapControlService(aapTransport, aapAudio, settings),
+            AapControlService(aapTransport, aapAudio, settings, context),
             AapControlMedia(aapTransport, micRecorder, aapAudio),
             AapControlTouch(aapTransport),
             AapControlSensor(aapTransport))

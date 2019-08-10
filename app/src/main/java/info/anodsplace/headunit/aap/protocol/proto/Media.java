@@ -2401,29 +2401,29 @@ public final class Media {
     boolean getOpen();
 
     /**
-     * <code>required bool anc_enabled = 2;</code>
+     * <code>optional bool anc_enabled = 2;</code>
      */
     boolean hasAncEnabled();
     /**
-     * <code>required bool anc_enabled = 2;</code>
+     * <code>optional bool anc_enabled = 2;</code>
      */
     boolean getAncEnabled();
 
     /**
-     * <code>required bool ec_enabled = 3;</code>
+     * <code>optional bool ec_enabled = 3;</code>
      */
     boolean hasEcEnabled();
     /**
-     * <code>required bool ec_enabled = 3;</code>
+     * <code>optional bool ec_enabled = 3;</code>
      */
     boolean getEcEnabled();
 
     /**
-     * <code>required int32 max_unacked = 4;</code>
+     * <code>optional int32 max_unacked = 4;</code>
      */
     boolean hasMaxUnacked();
     /**
-     * <code>required int32 max_unacked = 4;</code>
+     * <code>optional int32 max_unacked = 4;</code>
      */
     int getMaxUnacked();
   }
@@ -2544,13 +2544,13 @@ public final class Media {
     public static final int ANC_ENABLED_FIELD_NUMBER = 2;
     private boolean ancEnabled_;
     /**
-     * <code>required bool anc_enabled = 2;</code>
+     * <code>optional bool anc_enabled = 2;</code>
      */
     public boolean hasAncEnabled() {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>required bool anc_enabled = 2;</code>
+     * <code>optional bool anc_enabled = 2;</code>
      */
     public boolean getAncEnabled() {
       return ancEnabled_;
@@ -2559,13 +2559,13 @@ public final class Media {
     public static final int EC_ENABLED_FIELD_NUMBER = 3;
     private boolean ecEnabled_;
     /**
-     * <code>required bool ec_enabled = 3;</code>
+     * <code>optional bool ec_enabled = 3;</code>
      */
     public boolean hasEcEnabled() {
       return ((bitField0_ & 0x00000004) != 0);
     }
     /**
-     * <code>required bool ec_enabled = 3;</code>
+     * <code>optional bool ec_enabled = 3;</code>
      */
     public boolean getEcEnabled() {
       return ecEnabled_;
@@ -2574,13 +2574,13 @@ public final class Media {
     public static final int MAX_UNACKED_FIELD_NUMBER = 4;
     private int maxUnacked_;
     /**
-     * <code>required int32 max_unacked = 4;</code>
+     * <code>optional int32 max_unacked = 4;</code>
      */
     public boolean hasMaxUnacked() {
       return ((bitField0_ & 0x00000008) != 0);
     }
     /**
-     * <code>required int32 max_unacked = 4;</code>
+     * <code>optional int32 max_unacked = 4;</code>
      */
     public int getMaxUnacked() {
       return maxUnacked_;
@@ -2594,18 +2594,6 @@ public final class Media {
       if (isInitialized == 0) return false;
 
       if (!hasOpen()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      if (!hasAncEnabled()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      if (!hasEcEnabled()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      if (!hasMaxUnacked()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -2974,15 +2962,6 @@ public final class Media {
         if (!hasOpen()) {
           return false;
         }
-        if (!hasAncEnabled()) {
-          return false;
-        }
-        if (!hasEcEnabled()) {
-          return false;
-        }
-        if (!hasMaxUnacked()) {
-          return false;
-        }
         return true;
       }
 
@@ -3040,19 +3019,19 @@ public final class Media {
 
       private boolean ancEnabled_ ;
       /**
-       * <code>required bool anc_enabled = 2;</code>
+       * <code>optional bool anc_enabled = 2;</code>
        */
       public boolean hasAncEnabled() {
         return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>required bool anc_enabled = 2;</code>
+       * <code>optional bool anc_enabled = 2;</code>
        */
       public boolean getAncEnabled() {
         return ancEnabled_;
       }
       /**
-       * <code>required bool anc_enabled = 2;</code>
+       * <code>optional bool anc_enabled = 2;</code>
        */
       public Builder setAncEnabled(boolean value) {
         bitField0_ |= 0x00000002;
@@ -3061,7 +3040,7 @@ public final class Media {
         return this;
       }
       /**
-       * <code>required bool anc_enabled = 2;</code>
+       * <code>optional bool anc_enabled = 2;</code>
        */
       public Builder clearAncEnabled() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -3072,19 +3051,19 @@ public final class Media {
 
       private boolean ecEnabled_ ;
       /**
-       * <code>required bool ec_enabled = 3;</code>
+       * <code>optional bool ec_enabled = 3;</code>
        */
       public boolean hasEcEnabled() {
         return ((bitField0_ & 0x00000004) != 0);
       }
       /**
-       * <code>required bool ec_enabled = 3;</code>
+       * <code>optional bool ec_enabled = 3;</code>
        */
       public boolean getEcEnabled() {
         return ecEnabled_;
       }
       /**
-       * <code>required bool ec_enabled = 3;</code>
+       * <code>optional bool ec_enabled = 3;</code>
        */
       public Builder setEcEnabled(boolean value) {
         bitField0_ |= 0x00000004;
@@ -3093,7 +3072,7 @@ public final class Media {
         return this;
       }
       /**
-       * <code>required bool ec_enabled = 3;</code>
+       * <code>optional bool ec_enabled = 3;</code>
        */
       public Builder clearEcEnabled() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -3104,19 +3083,19 @@ public final class Media {
 
       private int maxUnacked_ ;
       /**
-       * <code>required int32 max_unacked = 4;</code>
+       * <code>optional int32 max_unacked = 4;</code>
        */
       public boolean hasMaxUnacked() {
         return ((bitField0_ & 0x00000008) != 0);
       }
       /**
-       * <code>required int32 max_unacked = 4;</code>
+       * <code>optional int32 max_unacked = 4;</code>
        */
       public int getMaxUnacked() {
         return maxUnacked_;
       }
       /**
-       * <code>required int32 max_unacked = 4;</code>
+       * <code>optional int32 max_unacked = 4;</code>
        */
       public Builder setMaxUnacked(int value) {
         bitField0_ |= 0x00000008;
@@ -3125,7 +3104,7 @@ public final class Media {
         return this;
       }
       /**
-       * <code>required int32 max_unacked = 4;</code>
+       * <code>optional int32 max_unacked = 4;</code>
        */
       public Builder clearMaxUnacked() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -6696,8 +6675,8 @@ public final class Media {
       "rt\022\022\n\nsession_id\030\001 \002(\005\022\033\n\023configuration_" +
       "index\030\002 \002(\r\"&\n\003Ack\022\022\n\nsession_id\030\001 \002(\005\022\013" +
       "\n\003ack\030\002 \002(\r\"_\n\021MicrophoneRequest\022\014\n\004open" +
-      "\030\001 \002(\010\022\023\n\013anc_enabled\030\002 \002(\010\022\022\n\nec_enable" +
-      "d\030\003 \002(\010\022\023\n\013max_unacked\030\004 \002(\005\"8\n\022Micropho" +
+      "\030\001 \002(\010\022\023\n\013anc_enabled\030\002 \001(\010\022\022\n\nec_enable" +
+      "d\030\003 \001(\010\022\023\n\013max_unacked\030\004 \001(\005\"8\n\022Micropho" +
       "neResponse\022\016\n\006status\030\001 \002(\005\022\022\n\nsession_id" +
       "\030\002 \002(\r\"\240\002\n\035VideoFocusRequestNotification" +
       "\022\027\n\017disp_channel_id\030\001 \002(\005\022I\n\004mode\030\002 \002(\0162" +

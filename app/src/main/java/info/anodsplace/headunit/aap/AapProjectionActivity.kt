@@ -21,6 +21,7 @@ import kotlinx.android.synthetic.main.activity_headunit.*
 
 class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
+    private lateinit var screen: Screen
     private val disconnectReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             finish()
@@ -38,6 +39,8 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
         super.onCreate(savedInstanceState)
 
         AppLog.i("HeadUnit for Android Auto (tm) - Copyright 2011-2015 Michael A. Reid. All Rights Reserved...")
+
+        screen = Screen.forResolution(App.provide(this).settings.resolution)
 
         surface.setSurfaceCallback(this)
         surface.setOnTouchListener { _, event ->
@@ -75,8 +78,8 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
     private fun sendTouchEvent(event: MotionEvent) {
 
-        val x = event.getX(0) / (surface.width / Screen.width.toFloat())
-        val y = event.getY(0) / (surface.height / Screen.height.toFloat())
+        val x = event.getX(0) / (surface.width / screen.width.toFloat())
+        val y = event.getY(0) / (surface.height / screen.height.toFloat())
 
         if (x < 0 || y < 0 || x >= 65535 || y >= 65535) {
             AppLog.e("Invalid x: $x  y: $y")

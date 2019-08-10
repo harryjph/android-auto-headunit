@@ -8,7 +8,7 @@ import android.app.PendingIntent
 import android.view.KeyEvent
 import info.anodsplace.headunit.App
 import info.anodsplace.headunit.aap.AapProjectionActivity
-import info.anodsplace.headunit.aap.protocol.nano.MediaPlayback
+import info.anodsplace.headunit.aap.protocol.proto.MediaPlayback
 import info.anodsplace.headunit.contract.MediaKeyIntent
 
 
@@ -46,8 +46,8 @@ class BackgroundNotification(private val context: Context) {
                 .addAction(R.drawable.ic_play_arrow_black_24dp, "Play/Pause", playPause)
                 .addAction(R.drawable.ic_skip_next_black_24dp, "Next", next)
 
-        if (metadata.albumart.isNotEmpty()) {
-            val image = BitmapFactory.decodeByteArray(metadata.albumart, 0, metadata.albumart.size)
+        if (!metadata.albumart.isEmpty) {
+            val image = BitmapFactory.decodeByteArray(metadata.albumart.toByteArray(), 0, metadata.albumart.size())
             notification
                     .setStyle(NotificationCompat.BigPictureStyle().bigPicture(image))
                     .setLargeIcon(image)

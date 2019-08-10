@@ -9,8 +9,8 @@ import android.util.SparseIntArray
 import android.view.KeyEvent
 import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.messages.*
-import info.anodsplace.headunit.aap.protocol.nano.Input
-import info.anodsplace.headunit.aap.protocol.nano.Sensors
+import info.anodsplace.headunit.aap.protocol.proto.Input
+import info.anodsplace.headunit.aap.protocol.proto.Sensors
 import info.anodsplace.headunit.connection.AccessoryConnection
 import info.anodsplace.headunit.contract.ProjectionActivityRequest
 import info.anodsplace.headunit.decoder.AudioDecoder
@@ -55,7 +55,7 @@ class AapTransport(
 
     internal fun startSensor(type: Int) {
         startedSensors.add(type)
-        if (type == Sensors.SENSOR_TYPE_NIGHT) {
+        if (type == Sensors.SensorType.NIGHT_VALUE) {
             send(NightModeEvent(false))
         }
     }
@@ -112,7 +112,7 @@ class AapTransport(
     }
 
     internal fun start(connection: AccessoryConnection): Boolean {
-        AppLog.i("Start Aap transport for " + connection)
+        AppLog.i("Start Aap transport for $connection")
 
         if (!handshake(connection)) {
             AppLog.e("Handshake failed")
@@ -198,7 +198,7 @@ class AapTransport(
 
         if (mapped == KeyEvent.KEYCODE_GUIDE) {
             // Hack for navigation button to simulate touch
-            val action = if (isPress) Input.TouchEvent.TOUCH_ACTION_DOWN else Input.TouchEvent.TOUCH_ACTION_UP
+            val action = if (isPress) Input.TouchEvent.PointerAction.TOUCH_ACTION_DOWN else Input.TouchEvent.PointerAction.TOUCH_ACTION_UP
             this.send(TouchEvent(SystemClock.elapsedRealtime(), action, 99, 444))
             return
         }

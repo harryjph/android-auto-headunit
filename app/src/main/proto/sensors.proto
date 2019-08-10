@@ -1,49 +1,49 @@
 syntax = "proto2";
 
-package info.anodsplace.headunit.aap.protocol;
+package info.anodsplace.headunit.aap.protocol.proto;
 option java_outer_classname = "Sensors";
 
 import "common.proto";
 
 enum SensorsMsgType {
-    MSG_SENSORS_STARTREQUEST = 0x8001;
-    MSG_SENSORS_STARTRESPONSE = 0x8002;
-    MSG_SENSORS_EVENT = 0x8003;
+    SENSOR_STARTREQUEST = 0x8001;
+    SENSOR_STARTRESPONSE = 0x8002;
+    SENSOR_EVENT = 0x8003;
 }
 
 enum SensorType
 {
-    SENSOR_TYPE_LOCATION = 1;
-    SENSOR_TYPE_COMPASS = 2;
-    SENSOR_TYPE_CAR_SPEED = 3;
-    SENSOR_TYPE_RPM = 4;
-    SENSOR_TYPE_ODOMETER = 5;
-    SENSOR_TYPE_FUEL_LEVEL = 6;
-    SENSOR_TYPE_PARKING_BRAKE = 7;
-    SENSOR_TYPE_GEAR = 8;
-    SENSOR_TYPE_DIAGNOSTICS = 9;
-    SENSOR_TYPE_NIGHT = 10;
-    SENSOR_TYPE_ENVIRONMENT = 11;
-    SENSOR_TYPE_HVAC = 12;
-    SENSOR_TYPE_DRIVING_STATUS = 13;
-    SENSOR_TYPE_DEAD_RECONING = 14;
-    SENSOR_TYPE_PASSENGER = 15;
-    SENSOR_TYPE_DOOR = 16;
-    SENSOR_TYPE_LIGHT = 17;
-    SENSOR_TYPE_TIRE = 18;
-    SENSOR_TYPE_ACCEL = 19;
-    SENSOR_TYPE_GYRO = 20;
-    SENSOR_TYPE_GPS = 21;
+    LOCATION = 1;
+    COMPASS = 2;
+    CAR_SPEED = 3;
+    RPM = 4;
+    ODOMETER = 5;
+    FUEL_LEVEL = 6;
+    PARKING_BRAKE = 7;
+    GEAR = 8;
+    DIAGNOSTICS = 9;
+    NIGHT = 10;
+    ENVIRONMENT = 11;
+    HVAC = 12;
+    DRIVING_STATUS = 13;
+    DEAD_RECONING = 14;
+    PASSENGER = 15;
+    DOOR = 16;
+    LIGHT = 17;
+    TIRE = 18;
+    ACCEL = 19;
+    GYRO = 20;
+    GPS = 21;
 }
 
 message SensorBatch
 {
     message LocationData
     {
-        optional uint64 timestamp = 1;
-        optional int32 latitude = 2;
-        optional int32 longitude = 3;
-        optional uint32 accuracy = 4;
+        required uint64 timestamp = 1;
+        required int32 latitude = 2;
+        required int32 longitude = 3;
+        required uint32 accuracy = 4;
         optional int32 altitude = 5;
         optional int32 speed = 6;
         optional int32 bearing = 7;
@@ -75,13 +75,13 @@ message SensorBatch
     {
         enum Status
         {
-            DRIVING_STATUS_UNRESTRICTED = 0; // 0x0
-            DRIVING_STATUS_NO_VIDEO = 1; // 0x1
-            DRIVING_STATUS_NO_KEYBOARD_INPUT = 2; // 0x2
-            DRIVE_STATUS_NO_VOICE_INPUT = 4; // 0x4
-            DRIVING_STATUS_NO_CONFIG = 8; // 0x8
-            DRIVING_STATUS_LIMIT_MESSAGE_LEN = 16; // 0x10
-            DRIVING_STATUS_FULLY_RESTRICTED = 31; // 0x1f
+            UNRESTRICTED = 0; // 0x0
+            NO_VIDEO = 1; // 0x1
+            NO_KEYBOARD_INPUT = 2; // 0x2
+            NO_VOICE_INPUT = 4; // 0x4
+            NO_CONFIG = 8; // 0x8
+            LIMIT_MESSAGE_LEN = 16; // 0x10
+            FULLY_RESTRICTED = 31; // 0x1f
         }
         required int32 status = 1;
     }
@@ -103,32 +103,32 @@ message SensorBatch
     {
         enum GEAR
         {
-            GEAR_DRIVE = 100; // 0x64
-            GEAR_EIGHTH = 8; // 0x8
-            GEAR_FIFTH = 5; // 0x5
-            GEAR_FIRST = 1; // 0x1
-            GEAR_FOURTH = 4; // 0x4
-            GEAR_NEUTRAL = 0; // 0x0
-            GEAR_NINTH = 9; // 0x9
-            GEAR_PARK = 101; // 0x65
-            GEAR_REVERSE = 102; // 0x66
-            GEAR_SECOND = 2; // 0x2
-            GEAR_SEVENTH = 7; // 0x7
-            GEAR_SIXTH = 6; // 0x6
-            GEAR_TENTH = 10; // 0xa
-            GEAR_THIRD = 3; // 0x3
+            DRIVE = 100; // 0x64
+            EIGHTH = 8; // 0x8
+            FIFTH = 5; // 0x5
+            FIRST = 1; // 0x1
+            FOURTH = 4; // 0x4
+            NEUTRAL = 0; // 0x0
+            NINTH = 9; // 0x9
+            PARK = 101; // 0x65
+            REVERSE = 102; // 0x66
+            SECOND = 2; // 0x2
+            SEVENTH = 7; // 0x7
+            SIXTH = 6; // 0x6
+            TENTH = 10; // 0xa
+            THIRD = 3; // 0x3
         }
         required GEAR gear = 1;
     }
     message CompassData
     {
-        optional int32 bearing_e6 =1;
-        optional int32 pitch_e6 =2;
-        optional int32 roll_e6 =3;
+        required int32 bearing_e6 =1;
+        required int32 pitch_e6 =2;
+        required int32 roll_e6 =3;
     }
     message SpeedData
     {
-        optional int32 speed_e6 =1;
+        required int32 speed_e6 =1;
         optional bool cruise_engaged=2;
         optional bool cruise_set_speed=3;
     }
@@ -139,7 +139,7 @@ message SensorBatch
     }
     message DiagnosticsData
     {
-        optional bytes diagnostics_byte = 1;
+        required bytes diagnostics_byte = 1;
     }
     message EnvironmentData
     {
@@ -166,34 +166,36 @@ message SensorBatch
     }
     message DoorData
     {
-        optional bool hood_open=1;
-        optional bool boot_open=2;
+        required bool hood_open=1;
+        required bool boot_open=2;
         repeated bool door_open=3;
     }
     message LightData
     {
-        enum HEADLIGHT_STATE
+        enum HeadlightState
         {
-            HEADLIGHT_STATE_0 = 0;
-            HEADLIGHT_STATE_1 = 1;
-            HEADLIGHT_STATE_2 = 2;
-            HEADLIGHT_STATE_3 = 3;
+            HEADLIGHT_0 = 0;
+            HEADLIGHT_1 = 1;
+            HEADLIGHT_2 = 2;
+            HEADLIGHT_3 = 3;
         }
-        enum TURN_INDICATOR_STATE
+        enum TurnIndicatorState
         {
-            TURN_INDICATOR_STATE_0 = 0;
-            TURN_INDICATOR_STATE_1 = 1;
-            TURN_INDICATOR_STATE_2 = 2;
-            TURN_INDICATOR_STATE_3 = 3;
+            INDICATOR_0 = 0;
+            INDICATOR_1 = 1;
+            INDICATOR_2 = 2;
+            INDICATOR_3 = 3;
         }
-        optional HEADLIGHT_STATE headlight = 1;
-        optional TURN_INDICATOR_STATE turn_indicator = 2;
+        optional HeadlightState headlight = 1;
+        optional TurnIndicatorState turn_indicator = 2;
         optional bool hazard_light_on = 3;
     }
+
     message PassengerData
     {
         optional bool passenger_present =1;
     }
+
     repeated LocationData location_data = 1; // Working
     repeated CompassData compass_data = 2; // Sensor not yet supported
     repeated SpeedData speed_data = 3; // Working - Aka data is received, but has no effect
@@ -219,8 +221,8 @@ message SensorBatch
 
 message SensorRequest
 {
-    optional SensorType type = 1;
-    optional int64 min_update_period = 2;
+    required SensorType type = 1;
+    required int64 min_update_period = 2;
 }
 
 message SensorResponse

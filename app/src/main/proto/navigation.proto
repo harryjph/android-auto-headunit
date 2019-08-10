@@ -1,42 +1,42 @@
 syntax = "proto2";
 
-package info.anodsplace.headunit.aap.protocol;
+package info.anodsplace.headunit.aap.protocol.proto;
 option java_outer_classname = "NavigationStatus";
 
 enum MsgType {
-    MSG_NEXTTURNDETAILS = 0x8004;
-    MSG_NEXTTURNDISTANCEANDTIME = 0x8005;
+    NEXTTURNDETAILS = 0x8004;
+    NEXTTURNDISTANCEANDTIME = 0x8005;
 }
 
 message NextTurnDetail
 {
     enum Side
     {
-        SIDE_LEFT = 0x01;
-        SIDE_RIGHT = 0x02;
-        SIDE_UNSPECIFIED = 0x03;
+        LEFT = 0x01;
+        RIGHT = 0x02;
+        UNSPECIFIED = 0x03;
     }
 
     enum NextEvent
     {
-        EVENT_UNKNOWN = 0x00;
-        EVENT_DEPARTE = 0x01;
-        EVENT_NAME_CHANGE = 0x02;
-        EVENT_SLIGHT_TURN = 0x03;
-        EVENT_TURN = 0x04;
-        EVENT_SHARP_TURN = 0x05;
-        EVENT_UTURN = 0x06;
-        EVENT_ONRAMPE = 0x07;
-        EVENT_OFFRAMP = 0x08;
-        EVENT_FORME = 0x09;
-        EVENT_MERGE = 0x0a;
-        EVENT_ROUNDABOUT_ENTER = 0x0b;
-        EVENT_ROUNDABOUT_EXIT = 0x0c;
-        EVENT_ROUNDABOUT_ENTER_AND_EXIT = 0x0d;
-        EVENT_STRAIGHTE = 0x0e;
-        EVENT_FERRY_BOAT = 0x10;
-        EVENT_FERRY_TRAINE = 0x11;
-        EVENT_DESTINATION = 0x12;
+        UNKNOWN = 0x00;
+        DEPARTE = 0x01;
+        NAME_CHANGE = 0x02;
+        SLIGHT_TURN = 0x03;
+        TURN = 0x04;
+        SHARP_TURN = 0x05;
+        UTURN = 0x06;
+        ONRAMPE = 0x07;
+        OFFRAMP = 0x08;
+        FORME = 0x09;
+        MERGE = 0x0a;
+        ROUNDABOUT_ENTER = 0x0b;
+        ROUNDABOUT_EXIT = 0x0c;
+        ROUNDABOUT_ENTER_AND_EXIT = 0x0d;
+        STRAIGHTE = 0x0e;
+        FERRY_BOAT = 0x10;
+        FERRY_TRAINE = 0x11;
+        DESTINATION = 0x12;
     }
 
     required string road = 1;
@@ -48,7 +48,7 @@ message NextTurnDetail
 
 }
 
-message NextTurnDistnaceEvent
+message NextTurnDistanceEvent
 {
     optional uint32 distance = 1;
     optional uint32 time = 2;

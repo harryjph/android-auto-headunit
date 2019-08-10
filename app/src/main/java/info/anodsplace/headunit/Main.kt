@@ -1,10 +1,8 @@
 package info.anodsplace.headunit
 
-import info.anodsplace.headunit.aap.protocol.nano.Control
-import info.anodsplace.headunit.aap.protocol.nano.Media
-import info.anodsplace.headunit.aap.protocol.nano.Sensors
-import com.google.protobuf.nano.InvalidProtocolBufferNanoException
-import com.google.protobuf.nano.MessageNano
+import info.anodsplace.headunit.aap.protocol.proto.Control
+import info.anodsplace.headunit.aap.protocol.proto.Media
+import info.anodsplace.headunit.aap.protocol.proto.Sensors
 
 import java.util.Locale
 
@@ -14,11 +12,11 @@ import java.util.Locale
  * @date 26/11/2016.
  */
 object Main {
-    @Throws(InvalidProtocolBufferNanoException::class)
+
     @JvmStatic fun main(args: Array<String>) {
         println("Main")
 
-
+/*
         val mediaAck = Media.Ack()
         mediaAck.clear()
         mediaAck.sessionId = Integer.MAX_VALUE
@@ -45,6 +43,7 @@ object Main {
         printByteArray(MessageNano.toByteArray(actual))
 
         print(actual.toString())
+        */
     }
 
 

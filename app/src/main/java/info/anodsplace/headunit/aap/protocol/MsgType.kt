@@ -1,7 +1,7 @@
 package info.anodsplace.headunit.aap.protocol
 
-import info.anodsplace.headunit.aap.protocol.nano.Control
-import info.anodsplace.headunit.aap.protocol.nano.Media
+import info.anodsplace.headunit.aap.protocol.proto.Control
+import info.anodsplace.headunit.aap.protocol.proto.Media
 
 /**
  * @author algavris
@@ -14,71 +14,65 @@ object MsgType {
     const val SIZE = 2
 
     fun isControl(type: Int): Boolean {
-        return type >= Control.MSG_CONTROL_MEDIADATA && type <= Control.MSG_CONTROL_AUDIOFOCUSNOTFICATION
+        return type >= Control.ControlMsgType.MEDIADATA.number && type <= Control.ControlMsgType.AUDIOFOCUSNOTFICATION.number
     }
 
     fun name(type: Int, channel: Int): String {
 
         when (type) {
-            Control.MSG_CONTROL_MEDIADATA -> return "Media Data"
-            Control.MSG_CONTROL_CODECDATA -> return "Codec Data"
-            Control.MSG_CONTROL_VERSIONRESPONSE ->
+            Control.ControlMsgType.MEDIADATA_VALUE -> return "Media Data"
+            Control.ControlMsgType.CODECDATA_VALUE -> return "Codec Data"
+            Control.ControlMsgType.VERSIONRESPONSE_VALUE ->
                 // short:major  short:minor   short:status
                 return "Version Response"
-            Control.MSG_CONTROL_HANDSHAKE -> return "SSL Handshake Data"
+            Control.ControlMsgType.HANDSHAKE_VALUE -> return "SSL Handshake Data"
             4 -> return "SSL Authentication Complete Notification"
-            Control.MSG_CONTROL_SERVICEDISCOVERYREQUEST -> return "Service Discovery Request"
-            Control.MSG_CONTROL_SERVICEDISCOVERYRESPONSE -> return "Service Discovery Response"
-            Control.MSG_CONTROL_CHANNELOPENREQUEST -> return "Channel Open Request"
-            Control.MSG_CONTROL_CHANNELOPENRESPONSE -> return "Channel Open Response"                       // byte:status
+            Control.ControlMsgType.SERVICEDISCOVERYREQUEST_VALUE -> return "Service Discovery Request"
+            Control.ControlMsgType.SERVICEDISCOVERYRESPONSE_VALUE -> return "Service Discovery Response"
+            Control.ControlMsgType.CHANNELOPENREQUEST_VALUE -> return "Channel Open Request"
+            Control.ControlMsgType.CHANNELOPENRESPONSE_VALUE -> return "Channel Open Response"                       // byte:status
             9 -> return "9 ??"
             10 -> return "10 ??"
-            Control.MSG_CONTROL_PINGREQUEST -> return "Ping Request"
-            Control.MSG_CONTROL_PINGRESPONSE -> return "Ping Response"
-            Control.MSG_CONTROL_NAVFOCUSREQUESTNOTIFICATION -> return "Navigation Focus Request"
-            Control.MSG_CONTROL_NAVFOCUSRNOTIFICATION -> return "Navigation Focus Notification"               // NavFocusType
-            Control.MSG_CONTROL_BYEYEREQUEST -> return "Byebye Request"
-            Control.MSG_CONTROL_BYEYERESPONSE -> return "Byebye Response"
-            Control.MSG_CONTROL_VOICESESSIONNOTIFICATION -> return "Voice Session Notification"
-            Control.MSG_CONTROL_AUDIOFOCUSREQUESTNOTFICATION -> return "Audio Focus Request"
-            Control.MSG_CONTROL_AUDIOFOCUSNOTFICATION -> return "Audio Focus Notification"                    // AudioFocusType   (AudioStreamType ?)
+            Control.ControlMsgType.PINGREQUEST_VALUE -> return "Ping Request"
+            Control.ControlMsgType.PINGRESPONSE_VALUE -> return "Ping Response"
+            Control.ControlMsgType.NAVFOCUSREQUESTNOTIFICATION_VALUE -> return "Navigation Focus Request"
+            Control.ControlMsgType.NAVFOCUSRNOTIFICATION_VALUE -> return "Navigation Focus Notification"               // NavFocusType
+            Control.ControlMsgType.BYEYEREQUEST_VALUE -> return "Byebye Request"
+            Control.ControlMsgType.BYEYERESPONSE_VALUE -> return "Byebye Response"
+            Control.ControlMsgType.VOICESESSIONNOTIFICATION_VALUE -> return "Voice Session Notification"
+            Control.ControlMsgType.AUDIOFOCUSREQUESTNOTFICATION_VALUE -> return "Audio Focus Request"
+            Control.ControlMsgType.AUDIOFOCUSNOTFICATION_VALUE -> return "Audio Focus Notification"                    // AudioFocusType   (AudioStreamType ?)
 
-            Media.MSG_MEDIA_SETUPREQUEST -> return "Media Setup Request"                        // Video and Audio sinks receive this and send k3 3 / 32771
-            Media.MSG_MEDIA_STARTREQUEST -> {
-                if (channel == Channel.ID_SEN) {
-                    return "Sensor Start Request"
-                } else if (channel == Channel.ID_INP) {
-                    return "Input Event"
-                } else if (channel == Channel.ID_MPB) {
-                    return "Media Playback Status"
+            Media.MsgType.SETUPREQUEST_VALUE -> return "Media Setup Request"                        // Video and Audio sinks receive this and send k3 3 / 32771
+            Media.MsgType.STARTREQUEST_VALUE -> {
+                return when (channel) {
+                    Channel.ID_SEN -> "Sensor Start Request"
+                    Channel.ID_INP -> "Input Event"
+                    Channel.ID_MPB -> "Media Playback Status"
+                    else -> "Media Start Request"
                 }
-                return "Media Start Request"
             }
-            Media.MSG_MEDIA_STOPREQUEST -> {
-                if (channel == Channel.ID_SEN) {
-                    return "Sensor Start Response"
-                } else if (channel == Channel.ID_INP) {
-                    return "Input Binding Request"
-                } else if (channel == Channel.ID_MPB) {
-                    return "Media Playback Status"
+            Media.MsgType.STOPREQUEST_VALUE -> {
+                return when (channel) {
+                    Channel.ID_SEN -> "Sensor Start Response"
+                    Channel.ID_INP -> "Input Binding Request"
+                    Channel.ID_MPB -> "Media Playback Status"
+                    else -> "Media Stop Request"
                 }
-                return "Media Stop Request"
             }
-            Media.MSG_MEDIA_CONFIGRESPONSE -> {
-                if (channel == Channel.ID_SEN) {
-                    return "Sensor Event"
-                } else if (channel == Channel.ID_INP) {
-                    return "Input Binding Response"
-                } else if (channel == Channel.ID_MPB) {
-                    return "Media Playback Status"
+            Media.MsgType.CONFIGRESPONSE_VALUE -> {
+                return when (channel) {
+                    Channel.ID_SEN -> "Sensor Event"
+                    Channel.ID_INP -> "Input Binding Response"
+                    Channel.ID_MPB -> "Media Playback Status"
+                    else -> "Media Config Response"
                 }
-                return "Media Config Response"
             }
-            Media.MSG_MEDIA_ACK -> return "Codec/Media Data Ack"
-            Media.MSG_MEDIA_MICREQUEST -> return "Mic Start/Stop Request"
-            Media.MSG_MEDIA_MICRESPONSE -> return "Mic Response"
-            Media.MSG_MEDIA_VIDEOFOCUSREQUESTNOTIFICATION -> return "Video Focus Request"
-            Media.MSG_MEDIA_VIDEOFOCUSNOTIFICATION -> return "Video Focus Notification"
+            Media.MsgType.ACK_VALUE -> return "Codec/Media Data Ack"
+            Media.MsgType.MICREQUEST_VALUE -> return "Mic Start/Stop Request"
+            Media.MsgType.MICRESPONSE_VALUE -> return "Mic Response"
+            Media.MsgType.VIDEOFOCUSREQUESTNOTIFICATION_VALUE -> return "Video Focus Request"
+            Media.MsgType.VIDEOFOCUSNOTIFICATION_VALUE -> return "Video Focus Notification"
 
             65535 -> return "Framing Error Notification"
         }

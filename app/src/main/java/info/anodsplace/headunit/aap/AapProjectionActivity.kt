@@ -10,18 +10,16 @@ import android.view.MotionEvent
 import android.view.SurfaceHolder
 
 import info.anodsplace.headunit.App
-import info.anodsplace.headunit.R
 import info.anodsplace.headunit.aap.protocol.Screen
 import info.anodsplace.headunit.aap.protocol.messages.TouchEvent
 import info.anodsplace.headunit.aap.protocol.messages.VideoFocusEvent
 import info.anodsplace.headunit.app.SurfaceActivity
 import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.utils.IntentFilters
-import info.anodsplace.headunit.view.ProjectionView
 import info.anodsplace.headunit.contract.KeyIntent
+import kotlinx.android.synthetic.main.activity_headunit.*
 
 class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
-    private val projectionView: ProjectionView by lazy { findViewById<ProjectionView>(R.id.surface) }
 
     private val disconnectReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -41,8 +39,8 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
         AppLog.i("HeadUnit for Android Auto (tm) - Copyright 2011-2015 Michael A. Reid. All Rights Reserved...")
 
-        projectionView.setSurfaceCallback(this)
-        projectionView.setOnTouchListener { _, event ->
+        surface.setSurfaceCallback(this)
+        surface.setOnTouchListener { _, event ->
             sendTouchEvent(event)
             true
         }
@@ -68,17 +66,17 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-        transport.send(VideoFocusEvent(true, true))
+        transport.send(VideoFocusEvent(gain = true, unsolicited = false))
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
-        transport.send(VideoFocusEvent(false, true))
+        transport.send(VideoFocusEvent(gain = false, unsolicited = false))
     }
 
     private fun sendTouchEvent(event: MotionEvent) {
 
-        val x = event.getX(0) / (projectionView.width / Screen.width.toFloat())
-        val y = event.getY(0) / (projectionView.height / Screen.height.toFloat())
+        val x = event.getX(0) / (surface.width / Screen.width.toFloat())
+        val y = event.getY(0) / (surface.height / Screen.height.toFloat())
 
         if (x < 0 || y < 0 || x >= 65535 || y >= 65535) {
             AppLog.e("Invalid x: $x  y: $y")

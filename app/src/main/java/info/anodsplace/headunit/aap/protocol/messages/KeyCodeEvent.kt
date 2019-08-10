@@ -1,9 +1,9 @@
 package info.anodsplace.headunit.aap.protocol.messages
 
+import com.google.protobuf.Message
 import info.anodsplace.headunit.aap.AapMessage
 import info.anodsplace.headunit.aap.protocol.Channel
-import info.anodsplace.headunit.aap.protocol.nano.Input
-import com.google.protobuf.nano.MessageNano
+import info.anodsplace.headunit.aap.protocol.proto.Input
 
 /**
  * @author algavris
@@ -12,22 +12,19 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class KeyCodeEvent(timeStamp: Long, keycode: Int, isPress: Boolean)
-    : AapMessage(Channel.ID_INP, Input.MSG_INPUT_EVENT, makeProto(timeStamp, keycode, isPress)) {
+    : AapMessage(Channel.ID_INP, Input.MsgType.EVENT_VALUE, makeProto(timeStamp, keycode, isPress)) {
 
     companion object {
-        private fun makeProto(timeStamp: Long, keycode: Int, isPress: Boolean): MessageNano {
-            val inputReport = Input.InputReport()
-            val keyEvent = Input.KeyEvent()
-            // Timestamp in nanoseconds = microseconds x 1,000,000
-            inputReport.timestamp = timeStamp * 1000000L
-            inputReport.keyEvent = keyEvent
-
-            keyEvent.keys = arrayOfNulls<Input.Key>(1)
-            keyEvent.keys[0] = Input.Key()
-            keyEvent.keys[0].keycode = keycode
-            keyEvent.keys[0].down = isPress
-
-            return inputReport
+        private fun makeProto(timeStamp: Long, keycode: Int, isPress: Boolean): Message {
+            return Input.InputReport.newBuilder().also {
+                it.timestamp = timeStamp * 1000000L
+                it.keyEvent = Input.KeyEvent.newBuilder().apply {
+                    addKeys(Input.Key.newBuilder().also { key ->
+                        key.keycode = keycode
+                        key.down = isPress
+                    })
+                }.build()
+            }.build()
         }
     }
 }

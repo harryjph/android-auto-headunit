@@ -1,9 +1,9 @@
 package info.anodsplace.headunit.aap.protocol.messages
 
+import com.google.protobuf.Message
 import info.anodsplace.headunit.aap.AapMessage
 import info.anodsplace.headunit.aap.protocol.Channel
-import info.anodsplace.headunit.aap.protocol.nano.Media
-import com.google.protobuf.nano.MessageNano
+import info.anodsplace.headunit.aap.protocol.proto.Media
 
 /**
  * @author algavris
@@ -12,15 +12,14 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class VideoFocusEvent(gain: Boolean, unsolicited: Boolean)
-    : AapMessage(Channel.ID_VID, Media.MSG_MEDIA_VIDEOFOCUSNOTIFICATION, makeProto(gain, unsolicited)) {
+    : AapMessage(Channel.ID_VID, Media.MsgType.VIDEOFOCUSNOTIFICATION_VALUE, makeProto(gain, unsolicited)) {
 
     companion object {
-        private fun makeProto(gain: Boolean, unsolicited: Boolean): MessageNano {
-            val videoFocus = Media.VideoFocusNotification()
-            videoFocus.mode = if (gain) 1 else 2
-            videoFocus.unsolicited = unsolicited
-
-            return videoFocus
+        private fun makeProto(gain: Boolean, unsolicited: Boolean): Message {
+            return Media.VideoFocusNotification.newBuilder().apply {
+                mode = if (gain) Media.VideoFocusMode.FOCUSED else Media.VideoFocusMode.UNFOCUSED
+                setUnsolicited(unsolicited)
+            }.build()
         }
     }
 }

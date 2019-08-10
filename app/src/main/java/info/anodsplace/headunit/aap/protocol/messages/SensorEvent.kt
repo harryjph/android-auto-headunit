@@ -1,9 +1,9 @@
 package info.anodsplace.headunit.aap.protocol.messages
 
+import com.google.protobuf.Message
 import info.anodsplace.headunit.aap.AapMessage
 import info.anodsplace.headunit.aap.protocol.Channel
-import info.anodsplace.headunit.aap.protocol.nano.Sensors
-import com.google.protobuf.nano.MessageNano
+import info.anodsplace.headunit.aap.protocol.proto.Sensors
 
 /**
  * @author algavris
@@ -11,5 +11,5 @@ import com.google.protobuf.nano.MessageNano
  * @date 24/02/2017.
  */
 
-open class SensorEvent(val sensorType: Int, proto: MessageNano)
-    : AapMessage(Channel.ID_SEN, Sensors.MSG_SENSORS_EVENT, proto)
+open class SensorEvent(val sensorType: Int, proto: Message)
+    : AapMessage(Channel.ID_SEN, Sensors.SensorsMsgType.SENSOR_EVENT_VALUE, proto)

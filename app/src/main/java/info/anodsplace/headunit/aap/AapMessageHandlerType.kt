@@ -5,7 +5,7 @@ import info.anodsplace.headunit.decoder.MicRecorder
 import info.anodsplace.headunit.main.BackgroundNotification
 import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.utils.Settings
-import com.google.protobuf.nano.InvalidProtocolBufferNanoException
+import java.lang.Exception
 
 /**
  * @author algavris
@@ -42,7 +42,7 @@ internal class AapMessageHandlerType(
         } else if (msgType in 0..31 || msgType in 32768..32799 || msgType in 65504..65535) {
             try {
                 aapControl.execute(message)
-            } catch (e: InvalidProtocolBufferNanoException) {
+            } catch (e: Exception) {
                 AppLog.e(e)
                 throw AapMessageHandler.HandleException(e)
             }

@@ -25,7 +25,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 dependencies {
-    implementation 'com.google.protobuf.nano:protobuf-javanano:3.1.0'
+    implementation 'com.google.protobuf:protobuf-java:3.9.1'
 
     implementation 'androidx.activity:activity:1.1.0-alpha02'
     implementation 'androidx.fragment:fragment:1.2.0-alpha02'

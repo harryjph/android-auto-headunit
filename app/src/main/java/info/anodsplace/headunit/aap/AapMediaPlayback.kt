@@ -1,10 +1,8 @@
 package info.anodsplace.headunit.aap
 
 import info.anodsplace.headunit.aap.protocol.messages.Messages
-import info.anodsplace.headunit.aap.protocol.nano.MediaPlayback
+import info.anodsplace.headunit.aap.protocol.proto.MediaPlayback
 import info.anodsplace.headunit.utils.AppLog
-import com.google.protobuf.nano.InvalidProtocolBufferNanoException
-import com.google.protobuf.nano.MessageNano
 import java.nio.ByteBuffer
 import info.anodsplace.headunit.main.BackgroundNotification
 
@@ -22,11 +20,11 @@ class AapMediaPlayback(private val notification: BackgroundNotification) {
         val flags = message.flags.toInt()
 
         when (message.type) {
-            MediaPlayback.MSG_PLAYBACK_METADATA -> {
-                val request = message.parse(MediaPlayback.MediaMetaData())
+            MediaPlayback.MsgType.MSG_PLAYBACK_METADATA_VALUE -> {
+                val request = message.parse(MediaPlayback.MediaMetaData.newBuilder()).build()
                 notifyRequest(request)
             }
-            MediaPlayback.MSG_PLAYBACK_METADATASTART -> {
+            MediaPlayback.MsgType.MSG_PLAYBACK_METADATASTART_VALUE -> {
                 if (flags == 0x09) {
                     messageBuffer.put(message.data, message.dataOffset, message.size - message.dataOffset)
                     this.started = true
@@ -42,9 +40,11 @@ class AapMediaPlayback(private val notification: BackgroundNotification) {
                         messageBuffer.put(message.data, 0 , message.size)
                         messageBuffer.flip()
                         try {
-                            val request = MessageNano.mergeFrom(MediaPlayback.MediaMetaData(), messageBuffer.array(), 0, messageBuffer.limit())
+                            val request = MediaPlayback.MediaMetaData.newBuilder()
+                                    .mergeFrom(messageBuffer.array(), 0, messageBuffer.limit())
+                                    .build()
                             notifyRequest(request)
-                        } catch (e: InvalidProtocolBufferNanoException) {
+                        } catch (e: Exception) {
                             AppLog.e(e)
                         }
                         this.started = false

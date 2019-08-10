@@ -1,7 +1,7 @@
 package info.anodsplace.headunit.aap.protocol.messages
 
-import info.anodsplace.headunit.aap.protocol.nano.Sensors
-import com.google.protobuf.nano.MessageNano
+import com.google.protobuf.Message
+import info.anodsplace.headunit.aap.protocol.proto.Sensors
 
 /**
  * @author algavris
@@ -10,15 +10,17 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class NightModeEvent(enabled: Boolean)
-    : SensorEvent(Sensors.SENSOR_TYPE_NIGHT, makeProto(enabled)) {
+    : SensorEvent(Sensors.SensorType.NIGHT_VALUE, makeProto(enabled)) {
 
     companion object {
-        private fun makeProto(enabled: Boolean): MessageNano {
-            val sensorBatch = Sensors.SensorBatch()
-            sensorBatch.nightMode = arrayOfNulls<Sensors.SensorBatch.NightModeData>(1)
-            sensorBatch.nightMode[0] = Sensors.SensorBatch.NightModeData()
-            sensorBatch.nightMode[0].isNight = enabled
-            return sensorBatch
+        private fun makeProto(enabled: Boolean): Message {
+            return Sensors.SensorBatch.newBuilder().also {
+                it.addNightMode(
+                        Sensors.SensorBatch.NightData.newBuilder().apply {
+                            isNightMode = enabled
+                        }
+                )
+            }.build()
         }
     }
 }

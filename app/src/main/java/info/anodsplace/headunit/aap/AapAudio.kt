@@ -4,7 +4,7 @@ import android.media.AudioManager
 
 import info.anodsplace.headunit.aap.protocol.AudioConfigs
 import info.anodsplace.headunit.aap.protocol.Channel
-import info.anodsplace.headunit.aap.protocol.nano.Control
+import info.anodsplace.headunit.aap.protocol.proto.Control
 import info.anodsplace.headunit.decoder.AudioDecoder
 import info.anodsplace.headunit.utils.AppLog
 
@@ -22,10 +22,10 @@ internal class AapAudio(
 
     fun requestFocusChange(stream: Int, focusRequest: Int, callback: AudioManager.OnAudioFocusChangeListener) {
         when (focusRequest) {
-            Control.AudioFocusRequestNotification.AUDIOFOCUS_RELEASE -> audioManager.abandonAudioFocus(callback)
-            Control.AudioFocusRequestNotification.AUDIOFOCUS_GAIN -> audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN)
-            Control.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT -> audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-            Control.AudioFocusRequestNotification.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK -> audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            Control.AudioFocusRequestNotification.AudioFocusRequestType.RELEASE_VALUE -> audioManager.abandonAudioFocus(callback)
+            Control.AudioFocusRequestNotification.AudioFocusRequestType.GAIN_VALUE -> audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN)
+            Control.AudioFocusRequestNotification.AudioFocusRequestType.GAIN_TRANSIENT_VALUE -> audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+            Control.AudioFocusRequestNotification.AudioFocusRequestType.GAIN_TRANSIENT_MAY_DUCK_VALUE -> audioManager.requestAudioFocus(callback, stream, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
         }
     }
 

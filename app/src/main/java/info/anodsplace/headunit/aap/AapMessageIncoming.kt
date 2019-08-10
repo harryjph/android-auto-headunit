@@ -10,7 +10,7 @@ import info.anodsplace.headunit.utils.AppLog
  * @date 13/02/2017.
  */
 
-internal class AapMessageIncoming(header: AapMessageIncoming.EncryptedHeader, ba: ByteArrayWithLimit)
+internal class AapMessageIncoming(header: EncryptedHeader, ba: ByteArrayWithLimit)
     : AapMessage(header.chan, header.flags.toByte(), Utils.bytesToInt(ba.data, 0, true), calcOffset(header), ba.limit, ba.data) {
 
     internal class EncryptedHeader {
@@ -49,12 +49,12 @@ internal class AapMessageIncoming(header: AapMessageIncoming.EncryptedHeader, ba
             val msg = AapMessageIncoming(header, ba)
 
             if (AppLog.LOG_VERBOSE) {
-                AppLog.d("RECV: ", msg.toString())
+                AppLog.d("RECV: %s", msg.toString())
             }
             return msg
         }
 
-        fun calcOffset(header: AapMessageIncoming.EncryptedHeader): Int {
+        fun calcOffset(header: EncryptedHeader): Int {
             return 2
         }
     }

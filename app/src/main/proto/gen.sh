@@ -1,9 +1,9 @@
 #!/bin/bash
 
-protoc common.proto --javanano_out=../java/
-protoc control.proto --javanano_out=../java/
-protoc input.proto --javanano_out=../java/
-protoc media.proto --javanano_out=../java/
-protoc navigation.proto --javanano_out=../java/
-protoc playback.proto --javanano_out=../java/
-protoc sensors.proto --javanano_out=../java/
+protoc common.proto --java_out=../java/
+protoc control.proto --java_out=../java/
+protoc input.proto --java_out=../java/
+protoc media.proto --java_out=../java/
+protoc navigation.proto --java_out=../java/
+protoc playback.proto --java_out=../java/
+protoc sensors.proto --java_out=../java/

@@ -6,7 +6,7 @@ import info.anodsplace.headunit.aap.protocol.messages.ScrollWheelEvent
 
 object KeyCode {
 
-    val supported = intArrayOf(
+    val supported = listOf(
         KeyEvent.KEYCODE_SOFT_LEFT,
         KeyEvent.KEYCODE_SOFT_RIGHT,
         KeyEvent.KEYCODE_BACK,

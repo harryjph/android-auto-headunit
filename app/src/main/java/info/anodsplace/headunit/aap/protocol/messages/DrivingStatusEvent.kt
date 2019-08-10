@@ -1,9 +1,9 @@
 package info.anodsplace.headunit.aap.protocol.messages
 
+import com.google.protobuf.Message
 import info.anodsplace.headunit.aap.AapMessage
 import info.anodsplace.headunit.aap.protocol.Channel
-import info.anodsplace.headunit.aap.protocol.nano.Sensors
-import com.google.protobuf.nano.MessageNano
+import info.anodsplace.headunit.aap.protocol.proto.Sensors
 
 /**
  * @author algavris
@@ -13,16 +13,15 @@ import com.google.protobuf.nano.MessageNano
  * * Driving status doesn't receive sensor start request
  */
 
-class DrivingStatusEvent(status: Int)
-    : AapMessage(Channel.ID_SEN, Sensors.MSG_SENSORS_EVENT, makeProto(status)) {
+class DrivingStatusEvent(status: Sensors.SensorBatch.DrivingStatusData.Status)
+    : AapMessage(Channel.ID_SEN, Sensors.SensorsMsgType.SENSOR_EVENT_VALUE, makeProto(status)) {
 
     companion object {
-        private fun makeProto(status: Int): MessageNano {
-            val sensorBatch = Sensors.SensorBatch()
-            sensorBatch.drivingStatus = arrayOfNulls<Sensors.SensorBatch.DrivingStatusData>(1)
-            sensorBatch.drivingStatus[0] = Sensors.SensorBatch.DrivingStatusData()
-            sensorBatch.drivingStatus[0].status = status
-            return sensorBatch
+        private fun makeProto(status: Sensors.SensorBatch.DrivingStatusData.Status): Message {
+            return Sensors.SensorBatch.newBuilder()
+                    .addDrivingStatus(Sensors.SensorBatch.DrivingStatusData.newBuilder()
+                            .setStatus(status.number))
+                    .build()
         }
     }
 }

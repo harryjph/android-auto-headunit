@@ -1,23 +1,23 @@
 syntax = "proto2";
 
-package info.anodsplace.headunit.aap.protocol;
+package info.anodsplace.headunit.aap.protocol.proto;
 option java_outer_classname = "Input";
 
 import "common.proto";
 
 enum MsgType
 {
-    MSG_INPUT_EVENT = 0x8001;
-    MSG_INPUT_BINDINGREQUEST = 0x8002;
-    MSG_INPUT_BINDINGRESPONSE = 0x8003;
+    EVENT = 0x8001;
+    BINDINGREQUEST = 0x8002;
+    BINDINGRESPONSE = 0x8003;
 }
 
 message Key
 {
     required uint32 keycode = 1;
     required bool down = 2;
-    required uint32 metastate = 3;
-    required bool longpress = 4;
+    optional uint32 metastate = 3;
+    optional bool longpress = 4;
 }
 
 message KeyEvent
@@ -41,13 +41,13 @@ message TouchEvent
 
     message Pointer
     {
-        optional uint32 x = 1;
-        optional uint32 y = 2;
-        optional uint32 pointer_id = 3;
+        required uint32 x = 1;
+        required uint32 y = 2;
+        required uint32 pointer_id = 3;
     }
     repeated Pointer pointer_data = 1;
     optional uint32 action_index = 2;
-    optional PointerAction action = 3;
+    required PointerAction action = 3;
 }
 
 message RelativeEvent_Rel
@@ -75,7 +75,7 @@ message AbsoluteEvent
 message InputReport
 {
     required uint64 timestamp = 1;
-    required int32 disp_channel_id = 2;
+    optional int32 disp_channel_id = 2;
     optional TouchEvent touch_event = 3;
     optional KeyEvent key_event = 4;
     optional AbsoluteEvent absolute_event = 5;

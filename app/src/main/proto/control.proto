@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package info.anodsplace.headunit.aap.protocol;
+package info.anodsplace.headunit.aap.protocol.proto;
 option java_outer_classname = "Control";
 
 import "common.proto";
@@ -9,36 +9,35 @@ import "sensors.proto";
 
 enum ControlMsgType
 {
-    MSG_CONTROL_MEDIADATA = 0x00;
-    MSG_CONTROL_CODECDATA = 0x01;
-    MSG_CONTROL_VERSIONRESPONSE = 0x02;
-    MSG_CONTROL_HANDSHAKE = 0x03;
-    MSG_CONTROL_SERVICEDISCOVERYREQUEST = 0x05;
-    MSG_CONTROL_SERVICEDISCOVERYRESPONSE = 0x06;
-    MSG_CONTROL_CHANNELOPENREQUEST = 0x07;
-    MSG_CONTROL_CHANNELOPENRESPONSE = 0x08;
-    MSG_CONTROL_PINGREQUEST = 0x0B;
-    MSG_CONTROL_PINGRESPONSE = 0x0C;
-    MSG_CONTROL_NAVFOCUSREQUESTNOTIFICATION = 0x0D;
-    MSG_CONTROL_NAVFOCUSRNOTIFICATION = 0x0E;
-    MSG_CONTROL_BYEYEREQUEST = 0x0F;
-    MSG_CONTROL_BYEYERESPONSE = 0x10;
-    MSG_CONTROL_VOICESESSIONNOTIFICATION = 0x11;
-    MSG_CONTROL_AUDIOFOCUSREQUESTNOTFICATION = 0x12;
-    MSG_CONTROL_AUDIOFOCUSNOTFICATION = 0x13;
+    MEDIADATA = 0x00;
+    CODECDATA = 0x01;
+    VERSIONRESPONSE = 0x02;
+    HANDSHAKE = 0x03;
+    SERVICEDISCOVERYREQUEST = 0x05;
+    SERVICEDISCOVERYRESPONSE = 0x06;
+    CHANNELOPENREQUEST = 0x07;
+    CHANNELOPENRESPONSE = 0x08;
+    PINGREQUEST = 0x0B;
+    PINGRESPONSE = 0x0C;
+    NAVFOCUSREQUESTNOTIFICATION = 0x0D;
+    NAVFOCUSRNOTIFICATION = 0x0E;
+    BYEYEREQUEST = 0x0F;
+    BYEYERESPONSE = 0x10;
+    VOICESESSIONNOTIFICATION = 0x11;
+    AUDIOFOCUSREQUESTNOTFICATION = 0x12;
+    AUDIOFOCUSNOTFICATION = 0x13;
 }
 
 enum BluetoothPairingMethod
 {
-    BLUETOOTH_PARING_METHOD_1 = 1;
-    BLUETOOTH_PARING_METHOD_A2DP = 2;
-    BLUETOOTH_PARING_METHOD_3 = 3;
-    BLUETOOTH_PARING_METHOD_HFP = 4;
+    METHOD_1 = 1;
+    A2DP = 2;
+    METHOD_3 = 3;
+    HFP = 4;
 }
 
 message Service
 {
-    optional uint32 id = 1;
     message SensorSourceService
     {
         message Sensor
@@ -47,27 +46,22 @@ message Service
         }
         repeated Sensor sensors = 1;
     }
-    optional SensorSourceService sensor_source_service = 2;
 
     message MediaSinkService
     {
-        required MediaCodecType available_type = 1;
-        required AudioStreamType audio_type = 2;
-        repeated AudioConfiguration audio_configs = 3;
-
         message VideoConfiguration
         {
             enum VideoCodecResolutionType
             {
-                VIDEO_RESOLUTION_800x480 = 1;
-                VIDEO_RESOLUTION_1280x720 = 2;
-                VIDEO_RESOLUTION_1920x1080 = 3;
+                _800x480 = 1;
+                _1280x720 = 2;
+                _1920x1080 = 3;
             }
 
             enum VideoFrameRateType
             {
-                VIDEO_FPS_30 = 1;
-                VIDEO_FPS_60 = 2;
+                _30 = 1;
+                _60 = 2;
             }
             required VideoCodecResolutionType codec_resolution = 1;
             required VideoFrameRateType frame_rate = 2;
@@ -76,10 +70,13 @@ message Service
             required uint32 density = 5;
             optional uint32 decoder_additional_depth = 6;
         }
+
+        required MediaCodecType available_type = 1;
+        optional AudioStreamType audio_type = 2;
+        repeated AudioConfiguration audio_configs = 3;
         repeated VideoConfiguration video_configs = 4;
         optional bool available_while_in_call = 5;
     }
-    optional MediaSinkService media_sink_service = 3;
 
     message InputSourceService
     {
@@ -89,11 +86,9 @@ message Service
             required uint32 height = 2;
         }
         repeated uint32 keycodes_supported = 1;
-        required TouchConfig touchscreen = 2;
-        required TouchConfig touchpad = 3;
+        optional TouchConfig touchscreen = 2;
+        optional TouchConfig touchpad = 3;
     }
-
-    optional InputSourceService input_source_service = 4;
 
     message MediaSourceService
     {
@@ -102,14 +97,11 @@ message Service
         optional bool available_while_in_call = 3;
     }
 
-    optional MediaSourceService media_source_service = 5;
-
     message BluetoothService
     {
         required string car_address = 1;
         repeated BluetoothPairingMethod supported_pairing_methods = 2;
     }
-    optional BluetoothService bluetooth_service = 6;
 
     message NavigationStatusService
     {
@@ -124,20 +116,18 @@ message Service
         required uint32 type = 2;
         optional ImageOptions image_options = 3;
     }
-    optional NavigationStatusService navigation_status_service = 8;
 
     message MediaPlaybackStatusService
     {
     }
-    optional MediaPlaybackStatusService media_playback_service = 9;
 
     enum PhoneStatus_State {
-       PhoneStatus_State_InCall = 1;
-       PhoneStatus_State_OnHold = 2;
-       PhoneStatus_State_HangingUp = 3;
-       PhoneStatus_State_Incoming = 4;
-       PhoneStatus_State_Muted = 5;
-       PhoneStatus_State_Conferenced = 6;
+       InCall = 1;
+       OnHold = 2;
+       HangingUp = 3;
+       Incoming = 4;
+       Muted = 5;
+       Conferenced = 6;
     }
 
     message PhoneStatus_Call
@@ -172,47 +162,57 @@ message Service
 
     optional PhoneStatusService phone_status_service = 10;
 
-    //radio_service = 7
-    //media_browser_service=11
     message VendorExtensionService
     {
         optional string name = 1;
         repeated string package_white_list = 2;
         optional bytes data = 3;
     }
-    optional VendorExtensionService vendor_extension_service = 12;
 
     message GenericNotificationService
     {
     }
+
+    required uint32 id = 1;
+    optional SensorSourceService sensor_source_service = 2;
+    optional MediaSinkService media_sink_service = 3;
+    optional InputSourceService input_source_service = 4;
+    optional MediaSourceService media_source_service = 5;
+    optional BluetoothService bluetooth_service = 6;
+    optional NavigationStatusService navigation_status_service = 8;
+    optional MediaPlaybackStatusService media_playback_service = 9;
+    optional VendorExtensionService vendor_extension_service = 12;
     optional GenericNotificationService generic_notification_service = 13;
+    //radio_service = 7
+    //media_browser_service=11
 }
 
 message ServiceDiscoveryRequest
 {
-    optional string phone_name = 4;
+    required string phone_name = 4;
+    required string phone_brand = 5;
 }
 
 message ServiceDiscoveryResponse
 {
     repeated Service services = 1;
-    optional string make = 2;
-    optional string model = 3;
-    optional string year = 4;
-    optional string vehicle_id = 5;
-    optional bool driver_position = 6;
-    optional string head_unit_make = 7;
-    optional string head_unit_model = 8;
-    optional string head_unit_software_build = 9;
-    optional string head_unit_software_version = 10;
-    optional bool can_play_native_media_during_vr = 11;
+    required string make = 2;
+    required string model = 3;
+    required string year = 4;
+    required string vehicle_id = 5;
+    required bool driver_position = 6;
+    required string head_unit_make = 7;
+    required string head_unit_model = 8;
+    required string head_unit_software_build = 9;
+    required string head_unit_software_version = 10;
+    required bool can_play_native_media_during_vr = 11;
     optional bool hide_projected_clock = 12;
 }
 
 message ChannelOpenRequest
 {
-    optional int32 priority = 1;
-    optional int32 service_id = 2;
+    required int32 priority = 1;
+    required int32 service_id = 2;
 }
 
 message ChannelOpenResponse
@@ -222,7 +222,7 @@ message ChannelOpenResponse
 
 message PingRequest
 {
-    optional int64 timestamp = 1;
+    required int64 timestamp = 1;
     optional int32 bug_report = 2;
 }
 
@@ -235,7 +235,7 @@ message ByeByeRequest
 {
     enum ByeByeReason
     {
-        REASON_QUIT = 1;
+        QUIT = 1;
     }
     required ByeByeReason reason = 1;
 }
@@ -259,11 +259,11 @@ message AudioFocusRequestNotification
 {
     enum AudioFocusRequestType
     {
-        AUDIOFOCUS_GAIN = 1;
-        AUDIOFOCUS_GAIN_TRANSIENT = 2;
-        AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK = 3;
-        AUDIOFOCUS_RELEASE = 4;
-        AUDIOFOCUS_NONE = 0;
+        NONE = 0;
+        GAIN = 1;
+        GAIN_TRANSIENT = 2;
+        GAIN_TRANSIENT_MAY_DUCK = 3;
+        RELEASE = 4;
     }
     optional AudioFocusRequestType request = 1;
 }
@@ -272,17 +272,18 @@ message AudioFocusNotification
 {
     enum AudioFocusStateType
     {
-        AUDIOFOCUS_STATE_GAIN = 1;
-        AUDIOFOCUS_STATE_GAIN_TRANSIENT = 2;
-        AUDIOFOCUS_STATE_LOSS = 3;
-        AUDIOFOCUS_STATE_LOSS_TRANSIENT_CAN_DUCK = 4;
-        AUDIOFOCUS_STATE_LOSS_TRANSIENT = 5;
-        AUDIOFOCUS_STATE_GAIN_MEDIA_ONLY = 6;
-        AUDIOFOCUS_STATE_GAIN_TRANSIENT_GUIDANCE_ONLY = 7;
+        STATE_GAIN = 1;
+        STATE_GAIN_TRANSIENT = 2;
+        STATE_LOSS = 3;
+        STATE_LOSS_TRANSIENT_CAN_DUCK = 4;
+        STATE_LOSS_TRANSIENT = 5;
+        STATE_GAIN_MEDIA_ONLY = 6;
+        STATE_GAIN_TRANSIENT_GUIDANCE_ONLY = 7;
     }
     required AudioFocusStateType focus_state = 1;
     optional bool unsolicited = 2;
 }
+
 
 enum NavFocusType
 {
@@ -324,15 +325,16 @@ message GenericNotificationsStop
 message BluetoothPairingRequest
 {
     required string phone_address = 1;
-    optional BluetoothPairingMethod pairing_method = 2;
+    required BluetoothPairingMethod pairing_method = 2;
 }
 
 message BluetoothPairingResponse
 {
     enum BluetoothPairingStatus
     {
-        BLUETOOTH_PAIRING_STATUS_1 = 1;
-        BLUETOOTH_PAIRING_STATUS_2 = 2;
+        NONE = 0;
+        OK = 1;
+        FAIL = 2;
     }
     optional bool already_paired = 1;
     optional BluetoothPairingStatus status = 2;

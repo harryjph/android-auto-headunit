@@ -47,7 +47,7 @@ class ProjectionView : SurfaceView, SurfaceHolder.Callback {
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
-        AppLog.i("holder " + holder)
+        AppLog.i("holder $holder")
         surfaceCallback?.surfaceCreated(holder)
     }
 
@@ -58,12 +58,8 @@ class ProjectionView : SurfaceView, SurfaceHolder.Callback {
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
-        AppLog.i("holder " + holder)
+        AppLog.i("holder $holder")
         videoDecoder?.stop("surfaceDestroyed")
         surfaceCallback?.surfaceDestroyed(holder)
-    }
-
-    override fun performClick(): Boolean {
-        return super.performClick()
     }
 }

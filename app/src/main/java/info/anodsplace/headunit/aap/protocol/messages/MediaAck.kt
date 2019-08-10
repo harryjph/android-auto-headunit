@@ -1,8 +1,8 @@
 package info.anodsplace.headunit.aap.protocol.messages
 
+import com.google.protobuf.Message
 import info.anodsplace.headunit.aap.AapMessage
-import info.anodsplace.headunit.aap.protocol.nano.Media
-import com.google.protobuf.nano.MessageNano
+import info.anodsplace.headunit.aap.protocol.proto.Media
 
 /**
  * @author algavris
@@ -11,18 +11,18 @@ import com.google.protobuf.nano.MessageNano
  */
 
 class MediaAck(channel: Int, sessionId: Int)
-    : AapMessage(channel, Media.MSG_MEDIA_ACK, makeProto(sessionId), ackBuf) {
+    : AapMessage(channel, Media.MsgType.ACK_VALUE, makeProto(sessionId), ackBuf) {
     companion object {
 
-        private val mediaAck = Media.Ack()
+        private val mediaAck = Media.Ack.newBuilder()
         private val ackBuf = ByteArray(20)
 
-        private fun makeProto(sessionId: Int): MessageNano {
+        private fun makeProto(sessionId: Int): Message {
             mediaAck.clear()
             mediaAck.sessionId = sessionId
             mediaAck.ack = 1
-
-            return mediaAck
+            // TODO: check creation of new object can be avoided
+            return mediaAck.build()
         }
     }
 }

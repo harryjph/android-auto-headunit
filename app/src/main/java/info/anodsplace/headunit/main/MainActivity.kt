@@ -1,10 +1,13 @@
 package info.anodsplace.headunit.main
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import android.widget.TextView
 import androidx.activity.viewModels
+import androidx.core.app.ActivityCompat
+import androidx.core.content.PermissionChecker
 import androidx.fragment.app.FragmentActivity
 import info.anodsplace.headunit.App
 import info.anodsplace.headunit.R
@@ -57,6 +60,11 @@ class MainActivity : FragmentActivity() {
             val ipView = findViewById<TextView>(R.id.ip_address)
             ipView.text = inet?.hostAddress ?: ""
         } catch (ignored: IOException) { }
+
+        ActivityCompat.requestPermissions(this, arrayOf(
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.ACCESS_FINE_LOCATION
+        ), permissionRequestCode)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -79,5 +87,9 @@ class MainActivity : FragmentActivity() {
         AppLog.i("onKeyUp: %d", keyCode)
 
         return keyListener?.onKeyEvent(event) ?: super.onKeyUp(keyCode, event)
+    }
+
+    companion object {
+        private const val permissionRequestCode = 97
     }
 }

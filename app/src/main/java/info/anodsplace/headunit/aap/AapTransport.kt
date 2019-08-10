@@ -48,7 +48,7 @@ class AapTransport(
         get() = pollThread.isAlive
 
     init {
-        micRecorder.setListener(this)
+        micRecorder.listener = this
         aapAudio = AapAudio(audioDecoder, audioManager)
         aapVideo = AapVideo(videoDecoder)
     }
@@ -105,7 +105,7 @@ class AapTransport(
     }
 
     internal fun quit() {
-        micRecorder.setListener(null)
+        micRecorder.listener = null
         pollThread.quit()
         aapRead = null
         handler = null

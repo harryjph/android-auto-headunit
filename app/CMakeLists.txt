@@ -14,12 +14,19 @@ else ()
 endif ()
 
 set(OPENSSL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/main/jni/headers")
-set(OPENSSL_LIBRARIES "ssl" "crypto")
 
 message("OPENSSL_LIBRARIES_DIR ${OPENSSL_LIBRARIES_DIR}")
 message("OPENSSL_INCLUDE_DIR ${OPENSSL_INCLUDE_DIR}")
 
 link_directories(${OPENSSL_LIBRARIES_DIR})
+
+add_library(libcrypto STATIC IMPORTED)
+set_target_properties(libcrypto PROPERTIES IMPORTED_LOCATION
+        ${OPENSSL_LIBRARIES_DIR}/libcrypto.a)
+
+add_library(libssl STATIC IMPORTED)
+set_target_properties(libssl PROPERTIES IMPORTED_LOCATION
+        ${OPENSSL_LIBRARIES_DIR}/libssl.a)
 
 add_library(hu_jni SHARED
         src/main/jni/hu_uti.c
@@ -28,8 +35,10 @@ add_library(hu_jni SHARED
 
 target_include_directories(hu_jni PUBLIC ${OPENSSL_INCLUDE_DIR})
 
-target_link_libraries(hu_jni log)
-target_link_libraries(hu_jni ${OPENSSL_LIBRARIES})
+target_link_libraries(hu_jni log libssl libcrypto)
+
+#target_link_libraries(hu_jni log)
+#target_link_libraries(hu_jni ${OPENSSL_LIBRARIES})
 #target_link_libraries(hu_jni libssl.so)
 #target_link_libraries(hu_jni libcrypto.so)
 

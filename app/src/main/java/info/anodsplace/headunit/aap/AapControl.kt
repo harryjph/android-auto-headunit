@@ -227,7 +227,7 @@ internal class AapControlService(
     }
 
     private fun navigationFocusRequest(request: Control.NavFocusRequestNotification, channel: Int): Int {
-        AppLog.i("Navigation Focus Request: %d", request.focusType)
+        AppLog.i("Navigation Focus Request: %s", request.focusType)
 
         // Send Navigation Focus Notification
         val response = Control.NavFocusNotification.newBuilder()

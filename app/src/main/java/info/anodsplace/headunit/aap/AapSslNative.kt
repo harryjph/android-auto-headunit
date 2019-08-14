@@ -11,10 +11,12 @@ import info.anodsplace.headunit.utils.AppLog
 
 internal class AapSslNative : AapSsl {
 
-    init {
-        System.loadLibrary("crypto")
-        System.loadLibrary("ssl")
-        System.loadLibrary("hu_jni")
+    companion object {
+        init {
+            System.loadLibrary("crypto")
+            System.loadLibrary("ssl")
+            System.loadLibrary("hu_jni")
+        }
     }
 
     private external fun native_ssl_prepare(): Int

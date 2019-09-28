@@ -75,7 +75,6 @@ internal class AapSslNative : AapSsl {
     }
 
     override fun encrypt(offset: Int, length: Int, buffer: ByteArray): ByteArrayWithLimit? {
-
         val bytes_written = native_ssl_write(offset, length, buffer)
         // Write plaintext to SSL
         if (bytes_written <= 0) {

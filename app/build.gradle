@@ -83,32 +83,16 @@ android {
         }
     }
 
-    signingConfigs {
-        debug {
-            storeFile file(HEADUNIT_KEYSTORE_FILE)
-            storePassword HEADUNIT_KEYSTORE_PASSWORD
-            keyAlias HEADUNIT_KEY_ALIAS
-            keyPassword HEADUNIT_KEY_PASSWORD
-        }
-
-        release {
-            storeFile file(HEADUNIT_KEYSTORE_FILE)
-            storePassword HEADUNIT_KEYSTORE_PASSWORD
-            keyAlias HEADUNIT_KEY_ALIAS
-            keyPassword HEADUNIT_KEY_PASSWORD
-        }
-    }
-
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            signingConfig signingConfigs.release
+            //signingConfig signingConfigs.release
         }
         debug {
             debuggable true
             jniDebuggable true
-            signingConfig signingConfigs.debug
+            //signingConfig signingConfigs.debug
         }
     }
 
@@ -116,9 +100,9 @@ android {
         abortOnError false
     }
 
-    task genSource(type: Exec) {
-        println "Executing " + HEADUNIT_SCRIPT_FILE
-        commandLine HEADUNIT_SCRIPT_FILE
+    task genSource() {
+        //println "Executing " + HEADUNIT_SCRIPT_FILE
+        //commandLine HEADUNIT_SCRIPT_FILE
     }
 
     preBuild.dependsOn genSource
@@ -126,7 +110,7 @@ android {
     // workaround for otlin tests
     task copyTestClasses(type: Copy) {
         from "build/tmp/kotlin-classes/debugUnitTest"
-        into "build/intermediates/classes/debug"
+        into "build/eintermediates/classes/debug"
     }
     task copySdkClasses(type: Copy) {
         from "build/tmp/kotlin-classes/debug"

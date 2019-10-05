@@ -12,17 +12,17 @@ internal class AapReadSingleMessage(connection: AccessoryConnection, ssl: AapSsl
     private val msg_buffer = ByteArray(65535) // unsigned short max
 
     override fun doRead(connection: AccessoryConnection): Int {
-        val header_size = connection.recv(recv_header.buf, recv_header.buf.size, 150)
+        val header_size = connection.read(recv_header.buf, recv_header.buf.size, 150)
         if (header_size != AapMessageIncoming.EncryptedHeader.SIZE) {
-            AppLog.d { "Header: recv $header_size" }
+            AppLog.d { "Header: read $header_size" }
             return -1
         }
 
         recv_header.decode()
 
-        val msg_size = connection.recv(msg_buffer, recv_header.enc_len, 150)
+        val msg_size = connection.read(msg_buffer, recv_header.enc_len, 150)
         if (msg_size != recv_header.enc_len) {
-            AppLog.d { "Message: recv $msg_size" }
+            AppLog.d { "Message: read $msg_size" }
             return -1
         }
 

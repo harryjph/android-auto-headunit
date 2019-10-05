@@ -3,14 +3,14 @@ package info.anodsplace.headunit.aap
 object Utils {
     fun putTime(offset: Int, arr: ByteArray, time: Long) {
         var time = time
-        for (ctr in 7 downTo 0) {                           // Fill 8 bytes backwards
+        for (ctr in 7 downTo 0) { // Fill 8 bytes backwards
             arr[offset + ctr] = (time and 0xFF).toByte()
             time = time shr 8
         }
     }
 
     fun intToBytes(value: Int, offset: Int, buf: ByteArray) {
-        buf[offset] = (value / 256).toByte()                                            // Encode length of following data:
+        buf[offset] = (value / 256).toByte() // Encode length of following data:
         buf[offset + 1] = (value % 256).toByte()
     }
 

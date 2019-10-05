@@ -91,7 +91,7 @@ class AapTransport(
         ba.data[1] = data[1]
         Utils.intToBytes(ba.limit - AapMessage.HEADER_SIZE, 2, ba.data)
 
-        val size = connection!!.send(ba.data, ba.limit, 250)
+        val size = connection!!.write(ba.data, ba.limit, 250)
         AppLog.d { "Sent size: $size" }
     }
 
@@ -127,18 +127,18 @@ class AapTransport(
         // Version request
 
         val version = Messages.createRawMessage(0, 3, 1, Messages.VERSION_REQUEST, Messages.VERSION_REQUEST.size) // Version Request
-        var ret = connection.send(version, version.size, 1000)
+        var ret = connection.write(version, version.size, 1000)
         if (ret < 0) {
             AppLog.e { "Version request sendEncrypted ret: $ret" }
             return false
         }
 
-        ret = connection.recv(buffer, buffer.size, 1000)
+        ret = connection.read(buffer, buffer.size, 1000)
         if (ret <= 0) {
-            AppLog.e { "Version request recv ret: $ret" }
+            AppLog.e { "Version request read ret: $ret" }
             return false
         }
-        AppLog.i { "Version response recv ret: $ret" }
+        AppLog.i { "Version response read ret: $ret" }
 
         // SSL
         ret = ssl.prepare()
@@ -155,10 +155,10 @@ class AapTransport(
             val ba = ssl.bioRead() ?: return false
 
             val bio = Messages.createRawMessage(Channel.ID_CTR, 3, 3, ba.data, ba.limit)
-            var size = connection.send(bio, bio.size, 1000)
+            var size = connection.write(bio, bio.size, 1000)
             AppLog.i { "SSL BIO sent: $size" }
 
-            size = connection.recv(buffer, buffer.size, 1000)
+            size = connection.read(buffer, buffer.size, 1000)
             AppLog.i { "SSL received: $size" }
             if (size <= 0) {
                 AppLog.i { "SSL receive error" }
@@ -172,7 +172,7 @@ class AapTransport(
         // Status = OK
         // byte ac_buf [] = {0, 3, 0, 4, 0, 4, 8, 0};
         val status = Messages.createRawMessage(0, 3, 4, byteArrayOf(8, 0), 2)
-        ret = connection.send(status, status.size, 1000)
+        ret = connection.write(status, status.size, 1000)
         if (ret < 0) {
             AppLog.e { "Status request sendEncrypted ret: $ret" }
             return false
@@ -250,7 +250,7 @@ class AapTransport(
     }
 
     override fun onMicDataAvailable(mic_buf: ByteArray, mic_audio_len: Int) {
-        if (mic_audio_len > 64) {  // If we read at least 64 bytes of audio data
+        if (mic_audio_len > 64) { // If we read at least 64 bytes of audio data
             val length = mic_audio_len + 10
             val data = ByteArray(length)
             data[0] = Channel.ID_MIC.toByte()

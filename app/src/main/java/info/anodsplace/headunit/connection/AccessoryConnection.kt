@@ -6,9 +6,9 @@ interface AccessoryConnection {
     }
 
     val isSingleMessage: Boolean
-    fun send(buf: ByteArray, length: Int, timeout: Int): Int
-    fun recv(buf: ByteArray, length: Int, timeout: Int): Int
     val isConnected: Boolean
     fun connect(listener: Listener)
     fun disconnect()
+    fun read(buf: ByteArray, length: Int, timeout: Int): Int
+    fun write(buf: ByteArray, length: Int, timeout: Int): Int
 }

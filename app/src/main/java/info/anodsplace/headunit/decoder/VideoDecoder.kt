@@ -49,16 +49,16 @@ class VideoDecoder {
     private fun codec_init() {
         synchronized(sLock) {
             try {
-                mCodec = MediaCodec.createDecoderByType("video/avc")       // Create video codec: ITU-T H.264 / ISO/IEC MPEG-4 Part 10, Advanced Video Coding (MPEG-4 AVC)
+                mCodec = MediaCodec.createDecoderByType("video/avc") // Create video codec: ITU-T H.264 / ISO/IEC MPEG-4 Part 10, Advanced Video Coding (MPEG-4 AVC)
             } catch (t: Throwable) {
                 AppLog.e { "Throwable creating video/avc decoder: $t" }
             }
 
             try {
-                mCodecBufferInfo = MediaCodec.BufferInfo()                         // Create Buffer Info
+                mCodecBufferInfo = MediaCodec.BufferInfo() // Create Buffer Info
                 val format = MediaFormat.createVideoFormat("video/avc", mWidth, mHeight)
-                mCodec!!.configure(format, mHolder!!.surface, null, 0)               // Configure codec for H.264 with given width and height, no crypto and no flag (ie decode)
-                mCodec!!.start()                                             // Start codec
+                mCodec!!.configure(format, mHolder!!.surface, null, 0) // Configure codec for H.264 with given width and height, no crypto and no flag (ie decode)
+                mCodec!!.start() // Start codec
                 mInputBuffers = mCodec!!.inputBuffers
             } catch (e: Exception) {
                 AppLog.e(e)
@@ -81,45 +81,45 @@ class VideoDecoder {
         }
     }
 
-    private fun codec_input_provide(content: ByteBuffer): Boolean {            // Called only by media_decode() with new NAL unit in Byte Buffer
+    private fun codec_input_provide(content: ByteBuffer): Boolean { // Called only by media_decode() with new NAL unit in Byte Buffer
         try {
-            val inputBufIndex = mCodec!!.dequeueInputBuffer(1000000)           // Get input buffer with 1 second timeout
+            val inputBufIndex = mCodec!!.dequeueInputBuffer(1000000) // Get input buffer with 1 second timeout
             if (inputBufIndex < 0) {
                 AppLog.e { "dequeueInputBuffer: $inputBufIndex" }
-                return false                                                 // Done with "No buffer" error
+                return false // Done with "No buffer" error
             }
 
             val buffer = mInputBuffers!![inputBufIndex]
 
             val capacity = buffer.capacity()
             buffer.clear()
-            if (content.remaining() <= capacity) {                           // If we can just put() the content...
-                buffer.put(content)                                           // Put the content
-            } else {                                                            // Else... (Should not happen ?)
+            if (content.remaining() <= capacity) { // If we can just put() the content...
+                buffer.put(content) // Put the content
+            } else { // Else... (Should not happen ?)
                 AppLog.e { "content.hasRemaining (): " + content.hasRemaining() + "  capacity: " + capacity }
 
                 val limit = content.limit()
-                content.limit(content.position() + capacity)                 // Temporarily set constrained limit
+                content.limit(content.position() + capacity) // Temporarily set constrained limit
                 buffer.put(content)
-                content.limit(limit)                                          // Restore original limit
+                content.limit(limit) // Restore original limit
             }
-            buffer.flip()                                                   // Flip buffer for reading
+            buffer.flip() // Flip buffer for reading
 
             mCodec!!.queueInputBuffer(inputBufIndex, 0 /* offset */, buffer.limit(), 0, 0)
-            return true                                                    // Processed
+            return true // Processed
         } catch (e: Exception) {
             AppLog.e(e)
         }
 
-        return false                                                     // Error: exception
+        return false // Error: exception
     }
 
-    private fun codecOutputConsume() {                                // Called only by media_decode() after codec_input_provide()
+    private fun codecOutputConsume() { // Called only by media_decode() after codec_input_provide()
         var index: Int
-        while (true) {                                                          // Until no more buffers...
-            index = mCodec!!.dequeueOutputBuffer(mCodecBufferInfo!!, 0)        // Dequeue an output buffer but do not wait
+        while (true) { // Until no more buffers...
+            index = mCodec!!.dequeueOutputBuffer(mCodecBufferInfo!!, 0) // Dequeue an output buffer but do not wait
             if (index >= 0)
-                mCodec!!.releaseOutputBuffer(index, true /*render*/)           // Return the buffer to the codec
+                mCodec!!.releaseOutputBuffer(index, true /*render*/) // Return the buffer to the codec
             else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
             // See this 1st shortly after start. API >= 21: Ignore as getOutputBuffers() deprecated
                 AppLog.i { "INFO_OUTPUT_BUFFERS_CHANGED" }

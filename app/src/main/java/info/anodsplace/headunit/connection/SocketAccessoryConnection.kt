@@ -14,7 +14,7 @@ class SocketAccessoryConnection(private val mIp: String) : AccessoryConnection {
     override val isSingleMessage: Boolean
         get() = true
 
-    override fun send(buf: ByteArray, length: Int, timeout: Int): Int {
+    override fun write(buf: ByteArray, length: Int, timeout: Int): Int {
         return try {
             mSocket.getOutputStream().write(buf, 0, length)
             mSocket.getOutputStream().flush()
@@ -25,7 +25,7 @@ class SocketAccessoryConnection(private val mIp: String) : AccessoryConnection {
         }
     }
 
-    override fun recv(buf: ByteArray, length: Int, timeout: Int): Int {
+    override fun read(buf: ByteArray, length: Int, timeout: Int): Int {
         return try {
             mSocket.soTimeout = timeout
             mInputStream!!.read(buf, 0, length)

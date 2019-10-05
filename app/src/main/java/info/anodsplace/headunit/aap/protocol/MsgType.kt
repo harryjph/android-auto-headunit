@@ -43,7 +43,7 @@ object MsgType {
             Control.ControlMsgType.AUDIOFOCUSREQUESTNOTFICATION_VALUE -> return "Audio Focus Request"
             Control.ControlMsgType.AUDIOFOCUSNOTFICATION_VALUE -> return "Audio Focus Notification"                    // AudioFocusType   (AudioStreamType ?)
 
-            Media.MediaMsgType.SETUPREQUEST_VALUE -> return "Media Setup Request"                        // Video and Audio sinks receive this and send k3 3 / 32771
+            Media.MediaMsgType.SETUPREQUEST_VALUE -> return "Media Setup Request"                        // Video and Audio sinks receive this and write k3 3 / 32771
             Media.MediaMsgType.STARTREQUEST_VALUE -> {
                 return when (channel) {
                     Channel.ID_SEN -> "Sensor Start Request"

@@ -59,7 +59,7 @@ internal class AapAudio(
     }
 
     companion object {
-        private const val AUDIO_BUFS_SIZE = 65536 * 4  // Up to 256 Kbytes
+        private const val AUDIO_BUFS_SIZE = 65536 * 4 // Up to 256 Kbytes
     }
 }
 

@@ -195,8 +195,8 @@ internal class AapControlService(
     }
 
 
-    private fun serviceDiscoveryRequest(request: Control.ServiceDiscoveryRequest): Int {                  // Service Discovery Request
-        AppLog.i { "Service Discovery Request: ${request.phoneName}" }                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
+    private fun serviceDiscoveryRequest(request: Control.ServiceDiscoveryRequest): Int { // Service Discovery Request
+        AppLog.i { "Service Discovery Request: ${request.phoneName}" } // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
         val msg = ServiceDiscoveryResponse(settings, context.resources.displayMetrics.densityDpi)
         AppLog.i { msg.toString() }

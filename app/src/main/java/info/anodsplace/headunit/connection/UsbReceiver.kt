@@ -9,7 +9,7 @@ import android.hardware.usb.UsbManager
 
 import info.anodsplace.headunit.utils.AppLog
 
-class UsbReceiver(private val mListener: Listener)          // USB Broadcast Receiver enabled by start() & disabled by stop()
+class UsbReceiver(private val mListener: Listener) // USB Broadcast Receiver enabled by start() & disabled by stop()
     : BroadcastReceiver() {
 
     init {

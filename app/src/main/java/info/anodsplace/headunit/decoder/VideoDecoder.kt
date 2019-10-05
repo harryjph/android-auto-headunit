@@ -163,14 +163,6 @@ class VideoDecoder {
             return getNalType(ba, offset) == 7
         }
 
-        // For coded slice NAL units of a primary
-        // coded picture having nal_unit_type equal to 5 (indicating a
-        // coded slice belonging to an IDR picture), an H.264 encoder
-        // SHOULD set the value of NRI to 11 (in binary format).
-        private fun isIdrSlice(ba: ByteArray): Boolean {
-            return ba[4] and 0x1f == 5
-        }
-
         private fun getNalType(ba: ByteArray, offset: Int): Int {
             // nal_unit_type
             // ba[4] == 0x67

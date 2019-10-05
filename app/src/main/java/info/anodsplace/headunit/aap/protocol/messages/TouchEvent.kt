@@ -8,18 +8,17 @@ import info.anodsplace.headunit.aap.protocol.proto.Input
 
 class TouchEvent(timeStamp: Long, action: Input.TouchEvent.PointerAction, pointerId: Int, x: Int, y: Int) : AapMessage(Channel.ID_INP, Input.InputMsgType.EVENT_VALUE, makeProto(timeStamp, action, pointerId, x, y)) {
 
-    constructor(timeStamp: Long, action: Int, pointerId: Int, x: Int, y: Int) : this(timeStamp, Input.TouchEvent.PointerAction.forNumber(action), pointerId, x, y)
-
     companion object {
-        fun motionEventToAction(event: MotionEvent): Int {
-            return when (event.actionMasked) {
-                MotionEvent.ACTION_POINTER_DOWN -> Input.TouchEvent.PointerAction.TOUCH_ACTION_DOWN_VALUE
-                MotionEvent.ACTION_POINTER_UP -> MotionEvent.ACTION_POINTER_UP
-                MotionEvent.ACTION_DOWN -> MotionEvent.ACTION_DOWN
-                MotionEvent.ACTION_MOVE -> MotionEvent.ACTION_MOVE
-                MotionEvent.ACTION_CANCEL -> MotionEvent.ACTION_UP
-                MotionEvent.ACTION_UP -> MotionEvent.ACTION_UP
-                else -> -1
+        fun motionEventToAction(event: Int): Input.TouchEvent.PointerAction? {
+            return when (event) {
+                MotionEvent.ACTION_POINTER_DOWN -> Input.TouchEvent.PointerAction.TOUCH_ACTION_POINTER_DOWN
+                MotionEvent.ACTION_POINTER_UP -> Input.TouchEvent.PointerAction.TOUCH_ACTION_POINTER_UP
+                MotionEvent.ACTION_DOWN -> Input.TouchEvent.PointerAction.TOUCH_ACTION_DOWN
+                MotionEvent.ACTION_UP -> Input.TouchEvent.PointerAction.TOUCH_ACTION_UP
+                MotionEvent.ACTION_MOVE -> Input.TouchEvent.PointerAction.TOUCH_ACTION_MOVE
+                MotionEvent.ACTION_CANCEL -> Input.TouchEvent.PointerAction.TOUCH_ACTION_CANCEL
+                MotionEvent.ACTION_OUTSIDE -> Input.TouchEvent.PointerAction.TOUCH_ACTION_OUTSIDE
+                else -> null
             }
         }
 

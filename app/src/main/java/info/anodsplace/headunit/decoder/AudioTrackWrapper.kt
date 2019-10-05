@@ -14,22 +14,15 @@ class AudioTrackWrapper(stream: Int, sampleRateInHz: Int, bitDepth: Int, channel
     }
 
     private fun createAudioTrack(stream: Int, sampleRateInHz: Int, bitDepth: Int, channelCount: Int): AudioTrack {
-        val pcmFrameSize = 2 * channelCount
         val channelConfig = if (channelCount == 2) AudioFormat.CHANNEL_OUT_STEREO else AudioFormat.CHANNEL_OUT_MONO
         val dataFormat = if (bitDepth == 16) AudioFormat.ENCODING_PCM_16BIT else AudioFormat.ENCODING_PCM_8BIT
-        val bufferSize = AudioBuffer.getSize(sampleRateInHz, channelConfig, dataFormat, pcmFrameSize)
-
+        val bufferSize = AudioBuffer.getSize(sampleRateInHz, channelConfig, dataFormat, 2 * channelCount)
         AppLog.i { "Audio stream: $stream buffer size: $bufferSize sampleRateInHz: $sampleRateInHz channelCount: $channelCount" }
-
         return AudioTrack(stream, sampleRateInHz, channelConfig, dataFormat, bufferSize, AudioTrack.MODE_STREAM)
     }
 
     fun write(buffer: ByteArray, offset: Int, size: Int): Int {
-        val written = audioTrack.write(buffer, offset, size)
-        if (written != size) {
-            AppLog.e { "Error AudioTrack written: $written  len: $size" }
-        }
-        return written
+        return audioTrack.write(buffer, offset, size)
     }
 
     fun stop() {
@@ -50,7 +43,8 @@ class AudioTrackWrapper(stream: Int, sampleRateInHz: Int, bitDepth: Int, channel
         /**
          * A minimum length for the [android.media.AudioTrack] buffer, in microseconds.
          */
-        private const val MIN_BUFFER_DURATION_US: Long = 250000
+        private const val MIN_BUFFER_DURATION_US: Long = 250 * 1000
+
         /**
          * A multiplication factor to apply to the minimum buffer size requested by the underlying
          * [android.media.AudioTrack].
@@ -59,19 +53,18 @@ class AudioTrackWrapper(stream: Int, sampleRateInHz: Int, bitDepth: Int, channel
         /**
          * A maximum length for the [android.media.AudioTrack] buffer, in microseconds.
          */
-        private const val MAX_BUFFER_DURATION_US: Long = 750000
+        private const val MAX_BUFFER_DURATION_US: Long = 1 * 1000
 
         /**
          * The number of microseconds in one second.
          */
-        private const val MICROS_PER_SECOND = 1000000L
+        private const val MICROS_PER_SECOND: Long = 1000 * 1000
 
         internal fun getSize(sampleRate: Int, channelConfig: Int, audioFormat: Int, pcmFrameSize: Int): Int {
             val minBufferSize = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat)
             val multipliedBufferSize = minBufferSize * BUFFER_MULTIPLICATION_FACTOR
             val minAppBufferSize = durationUsToFrames(MIN_BUFFER_DURATION_US, sampleRate) * pcmFrameSize
-            val maxAppBufferSize = Math.max(minBufferSize,
-                    durationUsToFrames(MAX_BUFFER_DURATION_US, sampleRate) * pcmFrameSize)
+            val maxAppBufferSize = Math.max(minBufferSize, durationUsToFrames(MAX_BUFFER_DURATION_US, sampleRate) * pcmFrameSize)
             return when {
                 multipliedBufferSize < minAppBufferSize -> minAppBufferSize
                 multipliedBufferSize > maxAppBufferSize -> maxAppBufferSize

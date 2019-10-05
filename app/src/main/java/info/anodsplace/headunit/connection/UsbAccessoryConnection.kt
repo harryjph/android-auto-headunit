@@ -148,8 +148,7 @@ class UsbAccessoryConnection(private val usbMgr: UsbManager, private val device:
     override val isConnected: Boolean
         get() = usbDeviceConnected != null
 
-    override val isSingleMessage: Boolean
-        get() = false
+    override val isSingleMessage = false
 
     /**
      * @return length of data transferred (or zero) for success,

@@ -187,7 +187,7 @@ class AapTransport(
         val mapped = keyCodes[keyCode] ?: keyCode
         val aapKeyCode = KeyCode.convert(mapped)
 
-        if (mapped == KeyEvent.KEYCODE_GUIDE) {
+        if (mapped == KeyEvent.KEYCODE_GUIDE) { // TODO what...?
             // Hack for navigation button to simulate touch
             val action = if (isPress) Input.TouchEvent.PointerAction.TOUCH_ACTION_DOWN else Input.TouchEvent.PointerAction.TOUCH_ACTION_UP
             this.send(TouchEvent(SystemClock.elapsedRealtime(), action, 0, 99, 444))
@@ -265,6 +265,5 @@ class AapTransport(
         private const val MSG_POLL = 1
         private const val MSG_SEND = 2
     }
-
 }
 

@@ -171,7 +171,6 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
         }
 
         private fun connectionFactory(intent: Intent?, context: Context): AccessoryConnection? {
-
             val connectionType = intent?.getIntExtra(EXTRA_CONNECTION_TYPE, 0) ?: 0
 
             if (connectionType == TYPE_USB) {

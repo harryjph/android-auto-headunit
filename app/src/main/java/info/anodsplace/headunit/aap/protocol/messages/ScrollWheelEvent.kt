@@ -22,8 +22,6 @@ class ScrollWheelEvent(timeStamp: Long, delta: Int)
                     })
                 }.build()
             }.build()
-
         }
     }
-
 }

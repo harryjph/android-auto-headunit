@@ -20,10 +20,8 @@ internal class AapReadMultipleMessages(
     private val msg_buffer = ByteArray(65535) // unsigned short max
 
     override fun doRead(connection: AccessoryConnection): Int {
-
         val size = connection.recv(recv_buffer, recv_buffer.size, 150)
         if (size <= 0) {
-            //            AppLog.v("recv %d", size);
             return 0
         }
         try {

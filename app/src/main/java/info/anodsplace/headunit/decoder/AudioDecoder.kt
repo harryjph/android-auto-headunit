@@ -1,12 +1,6 @@
 package info.anodsplace.headunit.decoder
 
 import android.util.SparseArray
-
-/**
- * @author algavris
- * *
- * @date 28/04/2016.
- */
 class AudioDecoder {
 
     private val audioTracks = SparseArray<AudioTrackWrapper>(3)
@@ -21,7 +15,7 @@ class AudioDecoder {
     }
 
     fun stop() {
-        for (i in 0..audioTracks.size() - 1) {
+        for (i in 0 until audioTracks.size()) {
             stop(audioTracks.keyAt(i))
         }
     }

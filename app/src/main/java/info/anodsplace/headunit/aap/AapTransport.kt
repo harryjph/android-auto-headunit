@@ -61,7 +61,6 @@ class AapTransport(
     }
 
     override fun handleMessage(msg: Message): Boolean {
-
         if (msg.what == MSG_SEND) {
             val size = msg.arg2
             this.sendEncryptedMessage(msg.obj as ByteArray, size)
@@ -74,8 +73,7 @@ class AapTransport(
                 return false
             }
             handler?.let {
-                if (!it.hasMessages(MSG_POLL))
-                {
+                if (!it.hasMessages(MSG_POLL)) {
                     it.sendEmptyMessage(MSG_POLL)
                 }
             }
@@ -266,7 +264,7 @@ class AapTransport(
             val data = ByteArray(length)
             data[0] = Channel.ID_MIC.toByte()
             data[1] = 0x0b
-            Utils.put_time(2, data, SystemClock.elapsedRealtime())
+            Utils.putTime(2, data, SystemClock.elapsedRealtime())
             System.arraycopy(mic_buf, 0, data, 10, mic_audio_len)
             send(AapMessage(Channel.ID_MIC, 0x0b.toByte(), -1, 2, length, data))
         }

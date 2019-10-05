@@ -9,7 +9,7 @@ import android.hardware.usb.UsbManager
 
 import info.anodsplace.headunit.utils.AppLog
 
-class UsbReceiver(private val mListener: UsbReceiver.Listener)          // USB Broadcast Receiver enabled by start() & disabled by stop()
+class UsbReceiver(private val mListener: Listener)          // USB Broadcast Receiver enabled by start() & disabled by stop()
     : BroadcastReceiver() {
 
     init {
@@ -26,8 +26,7 @@ class UsbReceiver(private val mListener: UsbReceiver.Listener)          // USB B
         val device: UsbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE) ?: return
         AppLog.i("USB Intent: $intent")
 
-        val action = intent.action
-        when (action) {
+        when (intent.action) {
             UsbManager.ACTION_USB_DEVICE_DETACHED -> // If detach...
                 mListener.onUsbDetach(device)
             // Handle detached device

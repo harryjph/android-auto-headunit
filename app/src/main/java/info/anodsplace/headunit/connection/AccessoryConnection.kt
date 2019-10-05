@@ -1,13 +1,6 @@
 package info.anodsplace.headunit.connection
 
-/**
- * @author algavris
- * *
- * @date 05/11/2016.
- */
-
 interface AccessoryConnection {
-
     interface Listener {
         fun onConnectionResult(success: Boolean)
     }

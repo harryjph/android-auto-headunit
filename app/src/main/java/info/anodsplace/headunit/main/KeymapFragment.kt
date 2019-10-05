@@ -140,8 +140,7 @@ class KeymapFragment : Fragment(), MainActivity.KeyListener, View.OnClickListene
         if (event.action == KeyEvent.ACTION_DOWN) {
             return true
         }
-        if (this.assignCode != KeyEvent.KEYCODE_UNKNOWN)
-        {
+        if (this.assignCode != KeyEvent.KEYCODE_UNKNOWN) {
             // clear previous values
             (codesMap.entries.find {
                 it.value == event.keyCode

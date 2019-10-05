@@ -14,7 +14,7 @@ import java.util.Locale
 class NightMode(private val settings: Settings, val hasGPSLocation: Boolean) {
     private val calculator = NightModeCalculator(settings)
 
-    var current: Boolean = false
+    val current: Boolean
         get()  {
             return when (settings.nightMode){
                 Settings.NightMode.AUTO -> calculator.current
@@ -44,18 +44,18 @@ private class NightModeCalculator(private val settings: Settings) {
     private val twilightCalculator = TwilightCalculator()
     private val format = SimpleDateFormat("HH:mm", Locale.US)
 
-    var current: Boolean = false
-        get()  {
+    val current: Boolean
+        get() {
             val time = Calendar.getInstance().time
             val location = settings.lastKnownLocation
             twilightCalculator.calculateTwilight(time.time, location.latitude, location.longitude)
-            return twilightCalculator.mState == TwilightCalculator.NIGHT
+            return twilightCalculator.mState == TwilightCalculator.State.NIGHT
         }
 
     override fun toString(): String {
         val sunrise = if (twilightCalculator.mSunrise > 0) format.format(Date(twilightCalculator.mSunrise)) else "-1"
         val sunset = if (twilightCalculator.mSunset > 0) format.format(Date(twilightCalculator.mSunset)) else "-1"
-        val mode = if (twilightCalculator.mState == TwilightCalculator.NIGHT) "NIGHT" else "DAY"
+        val mode = if (twilightCalculator.mState == TwilightCalculator.State.NIGHT) "NIGHT" else "DAY"
         return String.format(Locale.US, "%s, (%s - %s)", mode, sunrise, sunset)
     }
 }

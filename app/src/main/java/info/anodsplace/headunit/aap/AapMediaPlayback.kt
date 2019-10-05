@@ -6,11 +6,6 @@ import info.anodsplace.headunit.utils.AppLog
 import java.nio.ByteBuffer
 import info.anodsplace.headunit.main.BackgroundNotification
 
-/**
- * @author algavris
- * @date 08/07/2017
- */
-
 class AapMediaPlayback(private val notification: BackgroundNotification) {
     private val messageBuffer = ByteBuffer.allocate(Messages.DEF_BUFFER_LENGTH * 2)
     private var started = false
@@ -61,5 +56,4 @@ class AapMediaPlayback(private val notification: BackgroundNotification) {
     private fun notifyRequest(request: MediaPlayback.MediaMetaData) {
         notification.notify(request)
     }
-
 }

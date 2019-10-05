@@ -29,11 +29,11 @@ class MainViewModel(application: Application): AndroidViewModel(application), Us
         super.onCleared()
     }
 
-    override fun onUsbDetach(device: android.hardware.usb.UsbDevice) {
+    override fun onUsbDetach(device: UsbDevice) {
         usbDevices.value = createDeviceList(settings.allowedDevices)
     }
 
-    override fun onUsbAttach(device: android.hardware.usb.UsbDevice) {
+    override fun onUsbAttach(device: UsbDevice) {
         usbDevices.value = createDeviceList(settings.allowedDevices)
     }
 

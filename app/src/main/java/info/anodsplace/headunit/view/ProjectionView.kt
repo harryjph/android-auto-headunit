@@ -9,41 +9,27 @@ import info.anodsplace.headunit.App
 import info.anodsplace.headunit.decoder.VideoDecoder
 import info.anodsplace.headunit.utils.AppLog
 
-/**
- * @author algavris
- * *
- * @date 09/11/2016.
- */
-
 class ProjectionView : SurfaceView, SurfaceHolder.Callback {
-    private var videoDecoder: VideoDecoder? = null
+    private var videoDecoder = App.provide(context).videoDecoder
     private var surfaceCallback: SurfaceHolder.Callback? = null
 
-
-    constructor(context: Context) : super(context) {
-        init()
+    init {
+        holder.addCallback(this)
     }
 
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
-        init()
-    }
+    constructor(context: Context) : super(context)
 
-    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
-        init()
-    }
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
+
+    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
     fun setSurfaceCallback(surfaceCallback: SurfaceHolder.Callback) {
         this.surfaceCallback = surfaceCallback
     }
 
-    private fun init() {
-        videoDecoder = App.provide(context).videoDecoder
-        holder.addCallback(this)
-    }
-
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        videoDecoder?.stop("onDetachedFromWindow")
+        videoDecoder.stop("onDetachedFromWindow")
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
@@ -53,13 +39,13 @@ class ProjectionView : SurfaceView, SurfaceHolder.Callback {
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         AppLog.i("holder %s, format: %d, width: %d, height: %d", holder, format, width, height)
-        videoDecoder?.onSurfaceHolderAvailable(holder, width, height)
+        videoDecoder.onSurfaceHolderAvailable(holder, width, height)
         surfaceCallback?.surfaceChanged(holder, format, width, height)
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         AppLog.i("holder $holder")
-        videoDecoder?.stop("surfaceDestroyed")
+        videoDecoder.stop("surfaceDestroyed")
         surfaceCallback?.surfaceDestroyed(holder)
     }
 }

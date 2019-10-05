@@ -5,19 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 
-/**
- * @author algavris
- * @date 18/12/2016.
- */
 class GpsLocationService : Service() {
-    private var gpsLocation: GpsLocation? = null
+    private var gpsLocationListener: GpsLocationListener? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (gpsLocation == null) {
-            gpsLocation = GpsLocation(this)
+        if (gpsLocationListener == null) {
+            gpsLocationListener = GpsLocationListener(this)
         }
 
-        gpsLocation?.start()
+        gpsLocationListener?.start()
 
         return START_STICKY
     }
@@ -25,7 +21,7 @@ class GpsLocationService : Service() {
     override fun onDestroy() {
         super.onDestroy()
 
-        gpsLocation?.stop()
+        gpsLocationListener?.stop()
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -37,5 +33,4 @@ class GpsLocationService : Service() {
             return Intent(context, GpsLocationService::class.java)
         }
     }
-
 }

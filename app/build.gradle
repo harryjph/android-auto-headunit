@@ -35,7 +35,7 @@ android {
 
     defaultConfig {
         applicationId "info.anodsplace.headunit"
-        minSdkVersion 16
+        minSdkVersion 16 // TODO increase
         targetSdkVersion 28
 
         versionCode 22
@@ -83,6 +83,7 @@ android {
 
     kotlinOptions {
         jvmTarget = '1.8'
+        freeCompilerArgs = ["-progressive"]
     }
 }
 repositories {

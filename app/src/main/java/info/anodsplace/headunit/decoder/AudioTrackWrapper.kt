@@ -5,12 +5,6 @@ import android.media.AudioTrack
 
 import info.anodsplace.headunit.utils.AppLog
 
-
-/**
- * @author algavris
- * *
- * @date 26/10/2016.
- */
 class AudioTrackWrapper(stream: Int, sampleRateInHz: Int, bitDepth: Int, channelCount: Int) {
     private val audioTrack: AudioTrack
 
@@ -39,7 +33,7 @@ class AudioTrackWrapper(stream: Int, sampleRateInHz: Int, bitDepth: Int, channel
     }
 
     fun stop() {
-        if (audioTrack.playState == android.media.AudioTrack.PLAYSTATE_PLAYING) {
+        if (audioTrack.playState == AudioTrack.PLAYSTATE_PLAYING) {
             audioTrack.pause()
         }
         val toRelease = audioTrack
@@ -56,34 +50,33 @@ class AudioTrackWrapper(stream: Int, sampleRateInHz: Int, bitDepth: Int, channel
         /**
          * A minimum length for the [android.media.AudioTrack] buffer, in microseconds.
          */
-        private val MIN_BUFFER_DURATION_US: Long = 250000
+        private const val MIN_BUFFER_DURATION_US: Long = 250000
         /**
          * A multiplication factor to apply to the minimum buffer size requested by the underlying
          * [android.media.AudioTrack].
          */
-        private val BUFFER_MULTIPLICATION_FACTOR = 4
+        private const val BUFFER_MULTIPLICATION_FACTOR = 4
         /**
          * A maximum length for the [android.media.AudioTrack] buffer, in microseconds.
          */
-        private val MAX_BUFFER_DURATION_US: Long = 750000
+        private const val MAX_BUFFER_DURATION_US: Long = 750000
 
         /**
          * The number of microseconds in one second.
          */
-        private val MICROS_PER_SECOND = 1000000L
+        private const val MICROS_PER_SECOND = 1000000L
 
         internal fun getSize(sampleRate: Int, channelConfig: Int, audioFormat: Int, pcmFrameSize: Int): Int {
-            val minBufferSize = android.media.AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+            val minBufferSize = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat)
             val multipliedBufferSize = minBufferSize * BUFFER_MULTIPLICATION_FACTOR
             val minAppBufferSize = durationUsToFrames(MIN_BUFFER_DURATION_US, sampleRate) * pcmFrameSize
             val maxAppBufferSize = Math.max(minBufferSize,
                     durationUsToFrames(MAX_BUFFER_DURATION_US, sampleRate) * pcmFrameSize)
-            return if (multipliedBufferSize < minAppBufferSize)
-                minAppBufferSize
-            else if (multipliedBufferSize > maxAppBufferSize)
-                maxAppBufferSize
-            else
-                multipliedBufferSize
+            return when {
+                multipliedBufferSize < minAppBufferSize -> minAppBufferSize
+                multipliedBufferSize > maxAppBufferSize -> maxAppBufferSize
+                else -> multipliedBufferSize
+            }
         }
 
         private fun durationUsToFrames(durationUs: Long, sampleRate: Int): Int {

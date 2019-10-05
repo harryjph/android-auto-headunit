@@ -20,14 +20,12 @@ class TouchEvent(timeStamp: Long, action: Input.TouchEvent.PointerAction, x: Int
         fun motionEventToAction(event: MotionEvent): Int {
             return when (event.actionMasked) {
                 MotionEvent.ACTION_POINTER_DOWN -> Input.TouchEvent.PointerAction.TOUCH_ACTION_DOWN_VALUE
+                MotionEvent.ACTION_POINTER_UP -> MotionEvent.ACTION_POINTER_UP
                 MotionEvent.ACTION_DOWN -> MotionEvent.ACTION_DOWN
                 MotionEvent.ACTION_MOVE -> MotionEvent.ACTION_MOVE
                 MotionEvent.ACTION_CANCEL -> MotionEvent.ACTION_UP
-                MotionEvent.ACTION_POINTER_UP -> MotionEvent.ACTION_POINTER_UP
                 MotionEvent.ACTION_UP -> MotionEvent.ACTION_UP
-                else -> {
-                    -1
-                }
+                else -> -1
             }
         }
 

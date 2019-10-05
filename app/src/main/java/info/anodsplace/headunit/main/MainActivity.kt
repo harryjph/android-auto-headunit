@@ -7,14 +7,13 @@ import android.view.KeyEvent
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
-import androidx.core.content.PermissionChecker
 import androidx.fragment.app.FragmentActivity
 import info.anodsplace.headunit.App
 import info.anodsplace.headunit.R
 import info.anodsplace.headunit.aap.AapProjectionActivity
 import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.utils.NetworkUtils
-import info.anodsplace.headunit.utils.SystemUI
+import info.anodsplace.headunit.utils.hideSystemUI
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.IOException
 
@@ -23,8 +22,7 @@ class MainActivity : FragmentActivity() {
     var keyListener: KeyListener? = null
     private val viewModel: MainViewModel by viewModels()
 
-    interface KeyListener
-    {
+    interface KeyListener {
         fun onKeyEvent(event: KeyEvent): Boolean
     }
 
@@ -69,7 +67,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        SystemUI.hide(window.decorView)
+        window.decorView.hideSystemUI()
     }
 
     override fun onResume() {

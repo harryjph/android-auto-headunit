@@ -1,11 +1,5 @@
 package info.anodsplace.headunit.aap
-
-/**
- * @author algavris
- * *
- * @date 14/02/2017.
- */
-internal interface AapSsl {
+internal interface AapSsl { // TODO replace this
     fun prepare(): Int
     fun handshake()
     fun bioRead(): ByteArrayWithLimit?

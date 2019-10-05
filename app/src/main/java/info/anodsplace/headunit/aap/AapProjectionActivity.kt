@@ -20,7 +20,6 @@ import info.anodsplace.headunit.contract.KeyIntent
 import kotlinx.android.synthetic.main.activity_headunit.*
 
 class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
-
     private lateinit var screen: Screen
     private val disconnectReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -76,12 +75,16 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
         transport.send(VideoFocusEvent(gain = false, unsolicited = false))
     }
 
-    private fun sendTouchEvent(event: MotionEvent) {
+    private fun sendTouchEvent(event: MotionEvent) { // TODO multi touch
         val x = event.getX(0) / (surface.width / screen.width.toFloat())
         val y = event.getY(0) / (surface.height / screen.height.toFloat())
 
-        if (x < 0 || y < 0 || x >= 65535 || y >= 65535) {
-            AppLog.e("Invalid x: $x  y: $y")
+        if (x < 0 || x >= 65535) {
+            AppLog.e("Invalid touch x: $x")
+            return
+        }
+        if (y < 0 || y >= 65535) {
+            AppLog.e("Invalid touch y: $y")
             return
         }
 
@@ -96,7 +99,6 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         AppLog.i("KeyCode: %d", keyCode)
-        // PRes navigation on the screen
         onKeyEvent(keyCode, true)
         return super.onKeyDown(keyCode, event)
     }

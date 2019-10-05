@@ -24,12 +24,6 @@ import info.anodsplace.headunit.aap.AapService
 import info.anodsplace.headunit.utils.NetworkUtils
 import info.anodsplace.headunit.utils.Settings
 
-/**
- * @author algavris
- * *
- * @date 05/11/2016.
- */
-
 class NetworkListFragment : Fragment() {
     private lateinit var mAdapter: AddressAdapter
 
@@ -46,7 +40,7 @@ class NetworkListFragment : Fragment() {
         super.onResume()
 
         try {
-            val currentIp = NetworkUtils.getWifiIpAddress(activity)
+            val currentIp = NetworkUtils.getWifiIpAddress(activity!!)
             val inet = NetworkUtils.intToInetAddress(currentIp)
             mAdapter.setCurrentAddress(inet)
         } catch (ignored: IOException) {
@@ -131,7 +125,7 @@ class NetworkListFragment : Fragment() {
 
         private fun addCurrentAddress() {
             if (mCurrentAddress != null) {
-                mAddressList.add(mCurrentAddress!!.getHostAddress())
+                mAddressList.add(mCurrentAddress!!.hostAddress)
             } else {
                 mAddressList.add("")
             }

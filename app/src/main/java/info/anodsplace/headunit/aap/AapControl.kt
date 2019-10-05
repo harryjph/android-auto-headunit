@@ -250,7 +250,7 @@ internal class AapControlService(
         val msg = AapMessage(channel, Control.ControlMsgType.BYEYERESPONSE_VALUE, Control.ByeByeResponse.newBuilder().build())
         AppLog.i(msg.toString())
         aapTransport.send(msg)
-        Utils.ms_sleep(100)
+        Thread.sleep(100)
         aapTransport.quit()
         return -1
     }
@@ -352,7 +352,7 @@ internal class AapControlGateway(
         aapTransport.send(msg)
 
         if (channel == Channel.ID_SEN) {
-            Utils.ms_sleep(2)
+            Thread.sleep(2)
             AppLog.i("Send driving status")
             aapTransport.send(DrivingStatusEvent(Sensors.SensorBatch.DrivingStatusData.Status.UNRESTRICTED))
         }

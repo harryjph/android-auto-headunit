@@ -6,6 +6,11 @@ import ca.anodsplace.headunit.aap.protocol.Channel
 import ca.anodsplace.headunit.aap.protocol.MsgType
 import ca.anodsplace.headunit.connection.AccessoryConnection
 import ca.anodsplace.headunit.utils.AppLog
+import info.anodsplace.headunit.aap.*
+import info.anodsplace.headunit.aap.protocol.Channel
+import info.anodsplace.headunit.aap.protocol.MsgType
+import info.anodsplace.headunit.connection.AccessoryConnection
+import info.anodsplace.headunit.utils.AppLog
 
 import org.junit.Assert.assertEquals
 

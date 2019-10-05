@@ -41,7 +41,7 @@ class MicRecorder(private val micSampleRate: Int, private val context: Context) 
 
         if (audioRecord != null) {
             audioRecord!!.stop()
-            audioRecord!!.release()                                     // Release AudioTrack resources
+            audioRecord!!.release()
             audioRecord = null
         }
     }
@@ -89,7 +89,5 @@ class MicRecorder(private val micSampleRate: Int, private val context: Context) 
             audioRecord = null
             return -2
         }
-
     }
-
 }

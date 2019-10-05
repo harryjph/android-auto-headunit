@@ -14,12 +14,6 @@ import android.os.Build
 import info.anodsplace.headunit.main.BackgroundNotification
 import java.io.File
 
-/**
- * @author algavris
- * *
- * @date 30/05/2016.
- */
-
 class App : Application() {
 
     private val component: AppComponent by lazy {

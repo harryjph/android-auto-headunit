@@ -7,12 +7,6 @@ import android.view.SurfaceHolder
 import java.nio.ByteBuffer
 
 import info.anodsplace.headunit.utils.AppLog
-
-/**
- * @author algavris
- * *
- * @date 28/04/2016.
- */
 class VideoDecoder {
     private var mCodec: MediaCodec? = null
     private var mCodecBufferInfo: MediaCodec.BufferInfo? = null
@@ -24,9 +18,7 @@ class VideoDecoder {
     private var mCodecConfigured: Boolean = false
 
     fun decode(buffer: ByteArray, offset: Int, size: Int) {
-
         synchronized(sLock) {
-
             if (mCodec == null) {
                 AppLog.v("Codec is not initialized")
                 return
@@ -45,12 +37,10 @@ class VideoDecoder {
             val content = ByteBuffer.wrap(buffer, offset, size)
 
             while (content.hasRemaining()) {
-
                 if (!codec_input_provide(content)) {
                     AppLog.e("Dropping content because there are no available buffers.")
                     return
                 }
-
                 codecOutputConsume()
             }
         }
@@ -127,7 +117,7 @@ class VideoDecoder {
     private fun codecOutputConsume() {                                // Called only by media_decode() after codec_input_provide()
         var index: Int
         while (true) {                                                          // Until no more buffers...
-            index = mCodec!!.dequeueOutputBuffer(mCodecBufferInfo, 0)        // Dequeue an output buffer but do not wait
+            index = mCodec!!.dequeueOutputBuffer(mCodecBufferInfo!!, 0)        // Dequeue an output buffer but do not wait
             if (index >= 0)
                 mCodec!!.releaseOutputBuffer(index, true /*render*/)           // Return the buffer to the codec
             else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
@@ -194,4 +184,4 @@ class VideoDecoder {
     }
 }
 
-private infix fun  Byte.and(i: Int): Int = this.toInt() and i
+private infix fun Byte.and(i: Int): Int = this.toInt() and i

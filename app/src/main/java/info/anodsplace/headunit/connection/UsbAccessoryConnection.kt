@@ -81,10 +81,10 @@ class UsbAccessoryConnection(private val usbMgr: UsbManager, private val device:
         try {
             val interfaceCount = device.interfaceCount
             if (interfaceCount <= 0) {
-                AppLog.e("interfaceCount: " + interfaceCount)
+                AppLog.e("interfaceCount: $interfaceCount")
                 throw UsbOpenException("No usb interfaces")
             }
-            AppLog.i("interfaceCount: " + interfaceCount)
+            AppLog.i("interfaceCount: $interfaceCount")
             usbInterface = device.getInterface(0)                            // java.lang.ArrayIndexOutOfBoundsException: length=0; index=0
 
             if (!usbDeviceConnection!!.claimInterface(usbInterface, true)) {        // Claim interface, if error...   true = take from kernel
@@ -184,12 +184,12 @@ class UsbAccessoryConnection(private val usbMgr: UsbManager, private val device:
                 AppLog.e("Not connected")
                 return -1
             }
-            try {
-                return usbDeviceConnection!!.bulkTransfer(endpointIn, buf, buf.size, timeout)
+            return try {
+                usbDeviceConnection!!.bulkTransfer(endpointIn, buf, buf.size, timeout)
             } catch (e: NullPointerException) {
                 disconnect()
                 AppLog.e(e)
-                return -1
+                -1
             }
 
         }

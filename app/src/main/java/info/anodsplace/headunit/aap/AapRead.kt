@@ -34,7 +34,7 @@ internal interface AapRead {
 
     object Factory {
         fun create(connection: AccessoryConnection, transport: AapTransport, recorder: MicRecorder, aapAudio: AapAudio, aapVideo: AapVideo, settings: Settings, notification: BackgroundNotification, context: Context): AapRead {
-            val handler = AapMessageHandlerType(transport, recorder, aapAudio, aapVideo, settings, notification, context)
+            val handler = AapMessageHandlerImpl(transport, recorder, aapAudio, aapVideo, settings, notification, context)
 
             return if (connection.isSingleMessage)
                 AapReadSingleMessage(connection, AapSslNative(), handler)

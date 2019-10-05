@@ -5,12 +5,6 @@ import android.location.Location
 import android.location.LocationManager
 import android.view.KeyEvent
 
-/**
- * @author algavris
- * *
- * @date 30/05/2016.
- */
-
 object HeadUnit {
     const val packageName = "info.anodsplace.info.headunit"
 }

@@ -14,7 +14,7 @@ import java.lang.Exception
  * @date 13/02/2017.
  */
 
-internal class AapMessageHandlerType(
+internal class AapMessageHandlerImpl (
         private val transport: AapTransport,
         recorder: MicRecorder,
         private val aapAudio: AapAudio,
@@ -28,7 +28,6 @@ internal class AapMessageHandlerType(
 
     @Throws(AapMessageHandler.HandleException::class)
     override fun handle(message: AapMessage) {
-
         val msgType = message.type
         val flags = message.flags
 
@@ -51,6 +50,5 @@ internal class AapMessageHandlerType(
         } else {
             AppLog.e("Unknown msg_type: %d, flags: %d", msgType, flags)
         }
-
     }
 }

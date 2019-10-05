@@ -65,7 +65,6 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
         accessoryConnection = connectionFactory(intent, this)
         if (accessoryConnection == null) {
             AppLog.e("Cannot create connection $intent")
@@ -144,21 +143,14 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
         private var lastValue = false
 
         override fun onReceive(context: Context, intent: Intent) {
-
-            if (!nightMode.hasGPSLocation && intent.action == LocationUpdateIntent.action)
-            {
-                nightMode = NightMode(settings, true)
-            }
+            if (!nightMode.hasGPSLocation && intent.action == LocationUpdateIntent.action) nightMode = NightMode(settings, true)
 
             val isCurrent = nightMode.current
             if (!initialized || lastValue != isCurrent) {
                 lastValue = isCurrent
                 AppLog.i(nightMode.toString())
                 initialized = App.provide(context).transport.send(NightModeEvent(isCurrent))
-                if (initialized)
-                {
-                    modeManager.nightMode = if (isCurrent) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO
-                }
+                if (initialized) modeManager.nightMode = if (isCurrent) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO
             }
         }
     }
@@ -188,9 +180,9 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
             val connectionType = intent?.getIntExtra(EXTRA_CONNECTION_TYPE, 0) ?: 0
 
             if (connectionType == TYPE_USB) {
-                val device = DeviceIntent(intent).device
+                val device = intent.usbDevice
                 if (device == null) {
-                    AppLog.e("No device in " + intent)
+                    AppLog.e("No device in $intent")
                     return null
                 }
                 val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager

@@ -14,13 +14,7 @@ import info.anodsplace.headunit.App
 import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.contract.LocationUpdateIntent
 
-/**
- * @author algavris
- * *
- * @date 06/12/2016.
- */
-
-class GpsLocation constructor(private val context: Context): LocationListener {
+class GpsLocationListener constructor(private val context: Context): LocationListener {
     private val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     private val broadcastManager = App.provide(context).localBroadcastManager
     private var requested: Boolean = false

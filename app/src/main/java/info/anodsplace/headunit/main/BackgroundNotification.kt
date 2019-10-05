@@ -17,14 +17,12 @@ import info.anodsplace.headunit.contract.MediaKeyIntent
  * @date 17/07/2017
  */
 class BackgroundNotification(private val context: Context) {
-
     companion object {
         private const val NOTIFICATION_MEDIA = 1
         const val mediaChannel = "media"
     }
 
     fun notify(metadata: MediaPlayback.MediaMetaData) {
-
         val playPauseKey = KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
         val nextKey = KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT)
         val prevKey = KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
@@ -55,5 +53,4 @@ class BackgroundNotification(private val context: Context) {
         }
         App.provide(context).notificationManager.notify(NOTIFICATION_MEDIA, notification.build())
     }
-
 }

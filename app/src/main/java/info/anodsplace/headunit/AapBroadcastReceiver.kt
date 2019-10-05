@@ -18,7 +18,6 @@ import info.anodsplace.headunit.contract.ProjectionActivityRequest
  * @date 22/12/2017
  */
 class AapBroadcastReceiver : BroadcastReceiver() {
-
     companion object {
         val filter: IntentFilter by lazy {
             val filter = IntentFilter()

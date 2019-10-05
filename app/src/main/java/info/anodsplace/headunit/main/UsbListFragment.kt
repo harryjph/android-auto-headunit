@@ -23,22 +23,15 @@ import info.anodsplace.headunit.connection.UsbDeviceCompat
 import info.anodsplace.headunit.connection.UsbReceiver
 import info.anodsplace.headunit.utils.Settings
 
-/**
- * @author algavris
- * *
- * @date 05/11/2016.
- */
-
 class UsbListFragment : Fragment() {
-    private lateinit var adapter: UsbListFragment.DeviceAdapter
+    private lateinit var adapter: DeviceAdapter
     private lateinit var settings: Settings
-    private lateinit var usbReceiver: UsbReceiver
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val recyclerView = inflater.inflate(R.layout.fragment_list, container, false) as RecyclerView
 
         settings = Settings(context!!)
-        adapter = UsbListFragment.DeviceAdapter(context!!, settings)
+        adapter = DeviceAdapter(context!!, settings)
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
 
@@ -65,16 +58,16 @@ class UsbListFragment : Fragment() {
         internal val startButton = itemView.findViewById<Button>(android.R.id.button2)
     }
 
-    private class DeviceAdapter internal constructor(private val mContext: Context, private val mSettings: info.anodsplace.headunit.utils.Settings) : androidx.recyclerview.widget.RecyclerView.Adapter<DeviceViewHolder>(), android.view.View.OnClickListener {
+    private class DeviceAdapter internal constructor(private val mContext: Context, private val mSettings: Settings) : RecyclerView.Adapter<DeviceViewHolder>(), android.view.View.OnClickListener {
         private var allowedDevices: MutableSet<String> = mutableSetOf()
         private var deviceList: List<UsbDeviceCompat> = listOf()
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UsbListFragment.DeviceViewHolder {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DeviceViewHolder {
             val view = LayoutInflater.from(mContext).inflate(R.layout.list_item_device, parent, false)
-            return UsbListFragment.DeviceViewHolder(view)
+            return DeviceViewHolder(view)
         }
 
-        override fun onBindViewHolder(holder: UsbListFragment.DeviceViewHolder, position: Int) {
+        override fun onBindViewHolder(holder: DeviceViewHolder, position: Int) {
             val device = deviceList[position]
 
             holder.startButton.text = Html.fromHtml(String.format(
@@ -107,7 +100,7 @@ class UsbListFragment : Fragment() {
         }
 
         override fun onClick(v: View) {
-            val device = deviceList.get(v.tag as Int)
+            val device = deviceList[v.tag as Int]
             if (v.id == android.R.id.button1) {
                 if (allowedDevices.contains(device.uniqueName)) {
                     allowedDevices.remove(device.uniqueName)

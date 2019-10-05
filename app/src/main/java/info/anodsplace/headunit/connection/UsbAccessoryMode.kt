@@ -7,52 +7,52 @@ import android.hardware.usb.UsbManager
 
 import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.aap.Utils
+import java.lang.Exception
 
 /**
  * @author algavris
  * *
  * @date 29/05/2016.
  */
-class UsbAccessoryMode(private val usbMgr: UsbManager) {
-
+class UsbAccessoryMode(private val usbManager: UsbManager) {
     fun connectAndSwitch(device: UsbDevice): Boolean {
         val connection: UsbDeviceConnection?
         try {
-            connection = usbMgr.openDevice(device)                 // Open device for connection
-        } catch (e: Throwable) {
+            connection = usbManager.openDevice(device)
+        } catch (e: Exception) {
             AppLog.e(e)
             return false
         }
 
         if (connection == null) {
-            AppLog.e("Cannot open device")
+            AppLog.e("Failed to open device")
             return false
         }
 
         val result = switch(connection)
         connection.close()
 
-        AppLog.i("Result: " + result)
+        AppLog.i("Result: $result")
         return result
     }
 
     private fun switch(connection: UsbDeviceConnection): Boolean {
-        // Do accessory negotiation and attempt to switch to accessory mode. Called only by usb_connect()
+        // Do accessory negotiation and attempt to switch to accessory mode
         val buffer = ByteArray(2)
         var len = connection.controlTransfer(UsbConstants.USB_DIR_IN or UsbConstants.USB_TYPE_VENDOR, ACC_REQ_GET_PROTOCOL, 0, 0, buffer, 2, USB_TIMEOUT_IN_MS)
         if (len != 2) {
-            AppLog.e("Error controlTransfer len: " + len)
+            AppLog.e("Error controlTransfer len: $len")
             return false
         }
-        val acc_ver = Utils.getAccVersion(buffer)
+        val accessoryVersion = Utils.getAccessoryVersion(buffer)
         // Get OAP / ACC protocol version
-        AppLog.i("Success controlTransfer len: $len  acc_ver: $acc_ver")
-        if (acc_ver < 1) {
+        AppLog.i("Success controlTransfer len: $len acc_ver: $accessoryVersion")
+        if (accessoryVersion < 1) {
             // If error or version too low...
             AppLog.e("No support acc")
             return false
         }
-        AppLog.i("acc_ver: " + acc_ver)
+        AppLog.i("acc_ver: $accessoryVersion")
 
         // Send all accessory identification strings
         initStringControlTransfer(connection, ACC_IDX_MAN, MANUFACTURER)
@@ -71,9 +71,7 @@ class UsbAccessoryMode(private val usbMgr: UsbManager) {
     private fun initStringControlTransfer(conn: UsbDeviceConnection, index: Int, string: String) {
         val len = conn.controlTransfer(UsbConstants.USB_TYPE_VENDOR, ACC_REQ_SEND_STRING, 0, index, string.toByteArray(), string.length, USB_TIMEOUT_IN_MS)
         if (len != string.length) {
-            AppLog.e("Error controlTransfer len: $len  index: $index  string: \"$string\"")
-        } else {
-            AppLog.i("Success controlTransfer len: $len  index: $index  string: \"$string\"")
+            AppLog.e("controlTransfer did not transfer whole string. Transferred: $len Index: $index String: \"$string\"")
         }
     }
 
@@ -81,7 +79,7 @@ class UsbAccessoryMode(private val usbMgr: UsbManager) {
         private const val USB_TIMEOUT_IN_MS = 100
         private const val MANUFACTURER = "Android"
         private const val MODEL = "Android Auto"
-        private const val DESCRIPTION = "Android Auto"//"Android Open Automotive Protocol"
+        private const val DESCRIPTION = "Android Auto" //"Android Open Automotive Protocol"
         private const val VERSION = "2.0.1"
         private const val URI = "https://developer.android.com/auto/index.html"
         private const val SERIAL = "HU-AAAAAA001"

@@ -15,8 +15,7 @@ import info.anodsplace.headunit.decoder.AudioDecoder
 object AudioConfigs {
     private val audioTracks = SparseArray<Media.AudioConfiguration>(3)
 
-    fun stream(channel: Int) : Int
-    {
+    fun stream(channel: Int) : Int {
 //        when(channel) {
 //            Channel.ID_AUD -> return AudioManager.STREAM_MUSIC
 //            Channel.ID_AU1 -> return AudioManager.STREAM_SYSTEM

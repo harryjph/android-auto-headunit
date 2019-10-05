@@ -7,53 +7,41 @@ import java.net.InetSocketAddress
 import java.net.Socket
 
 import info.anodsplace.headunit.utils.AppLog
-
-/**
- * @author algavris
- * *
- * @date 05/11/2016.
- */
-class SocketAccessoryConnection(internal val mIp: String) : AccessoryConnection {
-    internal val mSocket: Socket = Socket()
+class SocketAccessoryConnection(private val mIp: String) : AccessoryConnection {
+    private val mSocket: Socket = Socket()
     private var mInputStream: BufferedInputStream? = null
 
     override val isSingleMessage: Boolean
         get() = true
 
     override fun send(buf: ByteArray, length: Int, timeout: Int): Int {
-        try {
-            //            mSocket.setSendBufferSize(length);
+        return try {
             mSocket.getOutputStream().write(buf, 0, length)
             mSocket.getOutputStream().flush()
-            return length
+            length
         } catch (e: IOException) {
             AppLog.e(e)
-            return -1
+            -1
         }
-
     }
 
     override fun recv(buf: ByteArray, length: Int, timeout: Int): Int {
-
-        try {
+        return try {
             mSocket.soTimeout = timeout
-            return mInputStream!!.read(buf, 0, length)
+            mInputStream!!.read(buf, 0, length)
         } catch (e: IOException) {
-            return -1
+            -1
         }
-
     }
 
     override val isConnected: Boolean
         get() = mSocket.isConnected
 
     override fun connect(listener: AccessoryConnection.Listener) {
-
         Thread(Runnable {
             try {
                 mSocket.tcpNoDelay = true
                 mSocket.reuseAddress = true
-                //                    mSocket.setReceiveBufferSize(DEF_BUFFER_LENGTH);
                 mSocket.connect(InetSocketAddress(mIp, 5277), 3000)
                 mInputStream = BufferedInputStream(mSocket.getInputStream(), DEF_BUFFER_LENGTH)
                 listener.onConnectionResult(mSocket.isConnected)

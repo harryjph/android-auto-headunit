@@ -12,14 +12,9 @@ import info.anodsplace.headunit.aap.AapService
 import info.anodsplace.headunit.connection.UsbDeviceCompat
 import info.anodsplace.headunit.connection.UsbAccessoryMode
 import info.anodsplace.headunit.utils.AppLog
-import info.anodsplace.headunit.utils.DeviceIntent
 import info.anodsplace.headunit.utils.Settings
+import info.anodsplace.headunit.utils.usbDevice
 
-/**
- * @author algavris
- * *
- * @date 30/05/2016.
- */
 class UsbAttachedActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +22,7 @@ class UsbAttachedActivity : Activity() {
 
         AppLog.i("USB Intent: $intent")
 
-        val device = DeviceIntent(intent).device
+        val device = intent.usbDevice
         if (device == null) {
             AppLog.e("No USB device")
             finish()
@@ -71,7 +66,7 @@ class UsbAttachedActivity : Activity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
-        val device = DeviceIntent(getIntent()).device
+        val device = intent.usbDevice
         if (device == null) {
             AppLog.e("No USB device")
             finish()

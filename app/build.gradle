@@ -83,7 +83,7 @@ android {
 
     kotlinOptions {
         jvmTarget = '1.8'
-        freeCompilerArgs = ["-progressive"]
+        freeCompilerArgs = ["-XXLanguage:+InlineClasses", "-progressive"]
     }
 }
 repositories {

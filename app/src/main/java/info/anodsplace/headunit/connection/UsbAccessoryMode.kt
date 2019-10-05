@@ -9,12 +9,7 @@ import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.aap.Utils
 import java.lang.Exception
 
-/**
- * @author algavris
- * *
- * @date 29/05/2016.
- */
-class UsbAccessoryMode(private val usbManager: UsbManager) {
+inline class UsbAccessoryMode(private val usbManager: UsbManager) {
     fun connectAndSwitch(device: UsbDevice): Boolean {
         val connection: UsbDeviceConnection?
         try {

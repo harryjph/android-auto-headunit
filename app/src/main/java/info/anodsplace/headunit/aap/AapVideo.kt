@@ -5,11 +5,6 @@ import info.anodsplace.headunit.decoder.VideoDecoder
 import info.anodsplace.headunit.utils.AppLog
 import java.nio.ByteBuffer
 
-/**
- * @author algavris
- * *
- * @date 01/10/2016.
- */
 internal class AapVideo(private val videoDecoder: VideoDecoder) {
     private val messageBuffer = ByteBuffer.allocate(Messages.DEF_BUFFER_LENGTH * 8)
 

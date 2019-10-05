@@ -11,11 +11,6 @@ import info.anodsplace.headunit.decoder.MicRecorder
 import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.utils.Settings
 
-/**
- * @author algavris
- * *
- * @date 01/10/2016.
- */
 
 interface AapControl {
     fun execute(message: AapMessage): Int
@@ -73,7 +68,6 @@ internal class AapControlMedia(
         }.build()
         AppLog.i("Config response: %s", configResponse)
         val msg = AapMessage(channel, Media.MsgType.CONFIGRESPONSE_VALUE, configResponse)
-        AppLog.i(AapDump.logHex(msg))
         aapTransport.send(msg)
 
         if (channel == Channel.ID_VID) {

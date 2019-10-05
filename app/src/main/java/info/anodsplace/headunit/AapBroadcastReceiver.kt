@@ -13,10 +13,6 @@ import info.anodsplace.headunit.contract.LocationUpdateIntent
 import info.anodsplace.headunit.contract.MediaKeyIntent
 import info.anodsplace.headunit.contract.ProjectionActivityRequest
 
-/**
- * @author algavris
- * @date 22/12/2017
- */
 class AapBroadcastReceiver : BroadcastReceiver() {
     companion object {
         val filter: IntentFilter by lazy {

@@ -7,15 +7,8 @@ import android.os.Handler
 import info.anodsplace.headunit.App
 
 import info.anodsplace.headunit.location.GpsLocationService
-
-/**
- * @author algavris
- * *
- * @date 18/12/2016.
- */
-class BootCompleteReceiver : BroadcastReceiver() {
+class BootCompleteReceiver : BroadcastReceiver() { // TODO don't always be using gps...
     override fun onReceive(context: Context, intent: Intent) {
-
         val h = Handler()
         h.postDelayed({
             App.get(context).startService(GpsLocationService.intent(context))

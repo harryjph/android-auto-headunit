@@ -16,7 +16,6 @@ import info.anodsplace.headunit.utils.Settings
 import info.anodsplace.headunit.utils.usbDevice
 
 class UsbAttachedActivity : Activity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -43,17 +42,10 @@ class UsbAttachedActivity : Activity() {
         }
 
         val deviceCompat = UsbDeviceCompat(device)
-        val settings = Settings(this)
-        if (!settings.isConnectingDevice(deviceCompat)) {
-            AppLog.i("Skipping device " + deviceCompat.uniqueName)
-            finish()
-            return
-        }
-
         val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
         val usbMode = UsbAccessoryMode(usbManager)
-        AppLog.i("Switching USB device to accessory mode " + deviceCompat.uniqueName)
-        Toast.makeText(this, "Switching USB device to accessory mode " + deviceCompat.uniqueName, Toast.LENGTH_SHORT).show()
+        AppLog.i("Switching USB device to accessory mode ${deviceCompat.uniqueName}")
+        Toast.makeText(this, "Switching USB device to accessory mode ${deviceCompat.uniqueName}", Toast.LENGTH_SHORT).show()
         if (usbMode.connectAndSwitch(device)) {
             Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show()
         } else {

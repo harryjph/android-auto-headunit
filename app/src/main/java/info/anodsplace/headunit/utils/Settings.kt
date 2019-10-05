@@ -20,17 +20,6 @@ class Settings(context: Context) {
 
     private val prefs: SharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
-    fun isConnectingDevice(deviceCompat: UsbDeviceCompat): Boolean {
-        val allowDevices = prefs.getStringSet("allow-devices", null) ?: return false
-        return allowDevices.contains(deviceCompat.uniqueName)
-    }
-
-    var allowedDevices: Set<String>
-        get() = prefs.getStringSet("allow-devices", HashSet<String>())!!
-        set(devices) {
-            prefs.edit().putStringSet("allow-devices", devices).apply()
-        }
-
     var networkAddresses: Set<String>
         get() = prefs.getStringSet("network-addresses", HashSet<String>())!!
         set(addrs) {

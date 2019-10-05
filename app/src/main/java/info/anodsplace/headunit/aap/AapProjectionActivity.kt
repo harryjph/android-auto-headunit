@@ -36,9 +36,6 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        AppLog.i("HeadUnit for Android Auto (tm) - Copyright 2011-2015 Michael A. Reid. All Rights Reserved...")
-
         screen = Screen.forResolution(App.provide(this).settings.resolution)
 
         surface.setSurfaceCallback(this)
@@ -79,12 +76,7 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
         val x = event.getX(0) / (surface.width / screen.width.toFloat())
         val y = event.getY(0) / (surface.height / screen.height.toFloat())
 
-        if (x < 0 || x >= 65535) {
-            AppLog.e("Invalid touch x: $x")
-            return
-        }
-        if (y < 0 || y >= 65535) {
-            AppLog.e("Invalid touch y: $y")
+        if (x < 0 || x >= 65535 || y < 0 || y >= 65535) {
             return
         }
 

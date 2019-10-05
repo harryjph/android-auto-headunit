@@ -3,7 +3,6 @@ package info.anodsplace.headunit.aap
 import android.content.Context
 import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.decoder.MicRecorder
-import info.anodsplace.headunit.main.BackgroundNotification
 import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.utils.Settings
 import java.lang.Exception
@@ -20,11 +19,9 @@ internal class AapMessageHandlerImpl (
         private val aapAudio: AapAudio,
         private val aapVideo: AapVideo,
         settings: Settings,
-        backgroundNotification: BackgroundNotification,
         context: Context) : AapMessageHandler {
 
     private val aapControl: AapControl = AapControlGateway(transport, recorder, aapAudio, settings, context)
-    private val mediaPlayback = AapMediaPlayback(backgroundNotification)
 
     @Throws(AapMessageHandler.HandleException::class)
     override fun handle(message: AapMessage) {
@@ -38,8 +35,6 @@ internal class AapMessageHandlerImpl (
         } else if (message.isVideo && (msgType == 0 || msgType == 1 || flags.toInt() == 8 || flags.toInt() == 9 || flags.toInt() == 10)) {
             transport.sendMediaAck(message.channel)
             aapVideo.process(message)
-        } else if (message.channel == Channel.ID_MPB && msgType > 31) {
-            mediaPlayback.process(message)
         } else if (msgType in 0..31 || msgType in 32768..32799 || msgType in 65504..65535) {
             try {
                 aapControl.execute(message)

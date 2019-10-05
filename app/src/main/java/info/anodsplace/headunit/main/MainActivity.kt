@@ -18,9 +18,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.io.IOException
 
 class MainActivity : FragmentActivity() {
-
     var keyListener: KeyListener? = null
-    private val viewModel: MainViewModel by viewModels()
 
     interface KeyListener {
         fun onKeyEvent(event: KeyEvent): Boolean
@@ -30,34 +28,10 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        video_button.setOnClickListener {
-            val aapIntent = Intent(this@MainActivity, AapProjectionActivity::class.java)
-            aapIntent.putExtra(AapProjectionActivity.EXTRA_FOCUS, true)
-            startActivity(aapIntent)
-        }
-
-        usb.setOnClickListener {
-            supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.main_content, UsbListFragment())
-                    .commit()
-        }
-
-        settings.setOnClickListener {
-            supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.main_content, SettingsFragment())
-                    .commit()
-        }
-
-        viewModel.register()
-
-        try {
-            val currentIp = NetworkUtils.getWifiIpAddress(this)
-            val inet = NetworkUtils.intToInetAddress(currentIp)
-            val ipView = findViewById<TextView>(R.id.ip_address)
-            ipView.text = inet?.hostAddress ?: ""
-        } catch (ignored: IOException) { }
+        supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.main_content, SettingsFragment())
+                .commit()
 
         ActivityCompat.requestPermissions(this, arrayOf(
                 Manifest.permission.RECORD_AUDIO,
@@ -68,11 +42,6 @@ class MainActivity : FragmentActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         window.decorView.hideSystemUI()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        video_button.isEnabled = App.provide(this).transport.isAlive
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {

@@ -16,7 +16,6 @@ import info.anodsplace.headunit.contract.ProjectionActivityRequest
 import info.anodsplace.headunit.decoder.AudioDecoder
 import info.anodsplace.headunit.decoder.MicRecorder
 import info.anodsplace.headunit.decoder.VideoDecoder
-import info.anodsplace.headunit.main.BackgroundNotification
 import info.anodsplace.headunit.utils.*
 import java.util.*
 
@@ -25,7 +24,6 @@ class AapTransport(
         videoDecoder: VideoDecoder,
         audioManager: AudioManager,
         private val settings: Settings,
-        private val notification: BackgroundNotification,
         private val context: Context)
     : Handler.Callback, MicRecorder.Listener {
 
@@ -97,7 +95,6 @@ class AapTransport(
 
         if (AppLog.LOG_VERBOSE) {
             AppLog.v("Sent size: %d", size)
-            AapDump.logvHex("US", 0, ba.data, ba.limit)
         }
         return 0
     }
@@ -119,7 +116,7 @@ class AapTransport(
 
         this.connection = connection
 
-        aapRead = AapRead.Factory.create(connection, this, micRecorder, aapAudio, aapVideo, settings, notification, context)
+        aapRead = AapRead.Factory.create(connection, this, micRecorder, aapAudio, aapVideo, settings, context)
 
         pollThread.start()
         handler = Handler(pollThread.looper, this)

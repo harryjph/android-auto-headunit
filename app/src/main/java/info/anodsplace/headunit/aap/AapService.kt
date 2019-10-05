@@ -74,7 +74,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
 
         uiModeManager.enableCarMode(0)
 
-        val noty = NotificationCompat.Builder(this, App.defaultChannel)
+        val notification = NotificationCompat.Builder(this, App.defaultChannel)
                 .setSmallIcon(R.drawable.ic_stat_aa)
                 .setTicker("HeadUnit is running")
                 .setWhen(System.currentTimeMillis())
@@ -88,7 +88,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
 
         startService(GpsLocationService.intent(this))
 
-        startForeground(1, noty)
+        startForeground(1, notification)
 
         accessoryConnection!!.connect(this)
 

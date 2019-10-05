@@ -3,7 +3,6 @@ package info.anodsplace.headunit.aap
 import android.content.Context
 import info.anodsplace.headunit.connection.AccessoryConnection
 import info.anodsplace.headunit.decoder.MicRecorder
-import info.anodsplace.headunit.main.BackgroundNotification
 import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.utils.Settings
 
@@ -33,8 +32,8 @@ internal interface AapRead {
     }
 
     object Factory {
-        fun create(connection: AccessoryConnection, transport: AapTransport, recorder: MicRecorder, aapAudio: AapAudio, aapVideo: AapVideo, settings: Settings, notification: BackgroundNotification, context: Context): AapRead {
-            val handler = AapMessageHandlerImpl(transport, recorder, aapAudio, aapVideo, settings, notification, context)
+        fun create(connection: AccessoryConnection, transport: AapTransport, recorder: MicRecorder, aapAudio: AapAudio, aapVideo: AapVideo, settings: Settings, context: Context): AapRead {
+            val handler = AapMessageHandlerImpl(transport, recorder, aapAudio, aapVideo, settings, context)
 
             return if (connection.isSingleMessage)
                 AapReadSingleMessage(connection, AapSslNative(), handler)

@@ -5,11 +5,6 @@ import info.anodsplace.headunit.aap.AapMessage
 import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.proto.Input
 
-/**
- * @author algavris
- * *
- * @date 13/02/2017.
- */
 
 class KeyCodeEvent(timeStamp: Long, keycode: Int, isPress: Boolean)
     : AapMessage(Channel.ID_INP, Input.MsgType.EVENT_VALUE, makeProto(timeStamp, keycode, isPress)) {

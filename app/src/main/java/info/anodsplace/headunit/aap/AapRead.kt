@@ -6,11 +6,6 @@ import info.anodsplace.headunit.decoder.MicRecorder
 import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.utils.Settings
 
-/**
- * @author algavris
- * *
- * @date 13/02/2017.
- */
 internal interface AapRead {
     fun read(): Int
 
@@ -21,7 +16,7 @@ internal interface AapRead {
 
         override fun read(): Int {
             if (connection == null) {
-                AppLog.e("No connection.")
+                AppLog.e { "No connection." }
                 return -1
             }
 

@@ -23,11 +23,6 @@ import info.anodsplace.headunit.utils.*
 import info.anodsplace.headunit.contract.DisconnectIntent
 import info.anodsplace.headunit.contract.LocationUpdateIntent
 
-/**
- * @author algavris
- * *
- * @date 03/06/2016.
- */
 
 class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener {
 
@@ -67,7 +62,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         accessoryConnection = connectionFactory(intent, this)
         if (accessoryConnection == null) {
-            AppLog.e("Cannot create connection $intent")
+            AppLog.e { "Cannot create connection $intent" }
             stopSelf()
             return START_NOT_STICKY
         }
@@ -102,7 +97,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
                 sendBroadcast(ConnectedIntent())
             }
         } else {
-            AppLog.e("Cannot connect to device")
+            AppLog.e { "Cannot connect to device" }
             Toast.makeText(this, "Cannot connect to the device", Toast.LENGTH_SHORT).show()
             stopSelf()
         }
@@ -148,7 +143,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
             val isCurrent = nightMode.current
             if (!initialized || lastValue != isCurrent) {
                 lastValue = isCurrent
-                AppLog.i(nightMode.toString())
+                AppLog.i { nightMode.toString() }
                 initialized = App.provide(context).transport.send(NightModeEvent(isCurrent))
                 if (initialized) modeManager.nightMode = if (isCurrent) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO
             }
@@ -182,7 +177,7 @@ class AapService : Service(), UsbReceiver.Listener, AccessoryConnection.Listener
             if (connectionType == TYPE_USB) {
                 val device = intent.usbDevice
                 if (device == null) {
-                    AppLog.e("No device in $intent")
+                    AppLog.e { "No device in $intent" }
                     return null
                 }
                 val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager

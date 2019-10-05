@@ -70,21 +70,21 @@ class UsbAccessoryConnection(private val usbMgr: UsbManager, private val device:
             throw UsbOpenException("openDevice: connection is null")
         }
 
-        AppLog.i("Established connection: " + usbDeviceConnection!!)
+        AppLog.i { "Established connection: " + usbDeviceConnection!! }
 
         try {
             val interfaceCount = device.interfaceCount
             if (interfaceCount <= 0) {
-                AppLog.e("interfaceCount: $interfaceCount")
+                AppLog.e { "interfaceCount: $interfaceCount" }
                 throw UsbOpenException("No usb interfaces")
             }
-            AppLog.i("interfaceCount: $interfaceCount")
+            AppLog.i { "interfaceCount: $interfaceCount" }
             usbInterface = device.getInterface(0)                            // java.lang.ArrayIndexOutOfBoundsException: length=0; index=0
 
             if (!usbDeviceConnection!!.claimInterface(usbInterface, true)) {        // Claim interface, if error...   true = take from kernel
                 throw UsbOpenException("Error claiming interface")
             }
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
             AppLog.e(e)           // Nexus 7 2013:    Throwable: java.lang.ArrayIndexOutOfBoundsException: length=0; index=0
             throw UsbOpenException(e)
         }
@@ -92,7 +92,7 @@ class UsbAccessoryConnection(private val usbMgr: UsbManager, private val device:
     }
 
     private fun initEndpoint(): Int {                               // Set Accessory mode Endpoints. Called only by usb_connect()
-        AppLog.i("Check accessory endpoints")
+        AppLog.i { "Check accessory endpoints" }
         endpointIn = null                                               // Setup bulk endpoints.
         endpointOut = null
 
@@ -110,18 +110,18 @@ class UsbAccessoryConnection(private val usbMgr: UsbManager, private val device:
             }
         }
         if (endpointIn == null || endpointOut == null) {
-            AppLog.e("Unable to find bulk endpoints")
+            AppLog.e { "Unable to find bulk endpoints" }
             return -1                                                      // Done error
         }
 
-        AppLog.i("Connected have EPs")
+        AppLog.i { "Connected have EPs" }
         return 0                                                         // Done success
     }
 
     override fun disconnect() {                                           // Release interface and close USB device connection. Called only by usb_disconnect()
         synchronized(sLock) {
             if (usbDeviceConnected != null) {
-                AppLog.i(usbDeviceConnected!!.toString())
+                AppLog.i { usbDeviceConnected!!.toString() }
             }
             endpointIn = null                                               // Input  EP
             endpointOut = null                                               // Output EP
@@ -132,9 +132,9 @@ class UsbAccessoryConnection(private val usbMgr: UsbManager, private val device:
                     bret = usbDeviceConnection!!.releaseInterface(usbInterface)
                 }
                 if (bret) {
-                    AppLog.i("OK releaseInterface()")
+                    AppLog.i { "OK releaseInterface()" }
                 } else {
-                    AppLog.e("Error releaseInterface()")
+                    AppLog.e { "Error releaseInterface()" }
                 }
 
                 usbDeviceConnection!!.close()                                        //
@@ -158,7 +158,7 @@ class UsbAccessoryConnection(private val usbMgr: UsbManager, private val device:
     override fun send(buf: ByteArray, length: Int, timeout: Int): Int {
         synchronized(sLock) {
             if (usbDeviceConnected == null) {
-                AppLog.e("Not connected")
+                AppLog.e { "Not connected" }
                 return -1
             }
             try {
@@ -175,7 +175,7 @@ class UsbAccessoryConnection(private val usbMgr: UsbManager, private val device:
     override fun recv(buf: ByteArray, length: Int, timeout: Int): Int {
         synchronized(sLock) {
             if (usbDeviceConnected == null) {
-                AppLog.e("Not connected")
+                AppLog.e { "Not connected" }
                 return -1
             }
             return try {

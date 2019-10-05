@@ -35,7 +35,7 @@ internal class AapControlMedia(
             Media.MsgType.STOPREQUEST_VALUE -> return mediaSinkStopRequest(message.channel)
             Media.MsgType.VIDEOFOCUSREQUESTNOTIFICATION_VALUE -> {
                 val focusRequest = message.parse(Media.VideoFocusRequestNotification.newBuilder()).build()
-                AppLog.i("Video Focus Request - disp_id: %d, mode: %d, reason: %d", focusRequest.dispChannelId, focusRequest.mode, focusRequest.reason)
+                AppLog.i { "Video Focus Request - disp_id: ${focusRequest.dispChannelId}, mode: ${focusRequest.mode}, reason: ${focusRequest.reason}" }
                 return 0
             }
             Media.MsgType.MICREQUEST_VALUE -> {
@@ -43,13 +43,13 @@ internal class AapControlMedia(
                 return micRequest(micRequest)
             }
             Media.MsgType.ACK_VALUE -> return 0
-            else -> AppLog.e("Unsupported")
+            else -> AppLog.e { "Unsupported" }
         }
         return 0
     }
 
     private fun mediaStartRequest(request: Media.Start, channel: Int): Int {
-        AppLog.i("Media Start Request %s: %s", Channel.name(channel), request)
+        AppLog.i { "Media Start Request ${Channel.name(channel)}: $request" }
 
         aapTransport.setSessionId(channel, request.sessionId)
         return 0
@@ -57,7 +57,7 @@ internal class AapControlMedia(
 
     private fun mediaSinkSetupRequest(request: Media.MediaSetupRequest, channel: Int): Int {
 
-        AppLog.i("Media Sink Setup Request: %d", request.type)
+        AppLog.i { "Media Sink Setup Request: ${request.type}" }
         // R 2 VID b 00000000 08 03
         // R 4 AUD b 00000000 08 01
 
@@ -66,7 +66,7 @@ internal class AapControlMedia(
             maxUnacked = 1
             addConfigurationIndices(0)
         }.build()
-        AppLog.i("Config response: %s", configResponse)
+        AppLog.i { "Config response: $configResponse" }
         val msg = AapMessage(channel, Media.MsgType.CONFIGRESPONSE_VALUE, configResponse)
         aapTransport.send(msg)
 
@@ -78,7 +78,7 @@ internal class AapControlMedia(
     }
 
     private fun mediaSinkStopRequest(channel: Int): Int {
-        AppLog.i("Media Sink Stop Request: " + Channel.name(channel))
+        AppLog.i { "Media Sink Stop Request: " + Channel.name(channel) }
         if (Channel.isAudio(channel)) {
             aapAudio.stopAudio(channel)
         }
@@ -86,7 +86,7 @@ internal class AapControlMedia(
     }
 
     private fun micRequest(micRequest: Media.MicrophoneRequest): Int {
-        AppLog.d("Mic request: %s", micRequest)
+        AppLog.d { "Mic request: $micRequest" }
 
         if (micRequest.open) {
             micRecorder.start()
@@ -106,13 +106,13 @@ internal class AapControlTouch(private val aapTransport: AapTransport): AapContr
                 val request = message.parse(Input.KeyBindingRequest.newBuilder()).build()
                 return inputBinding(request, message.channel)
             }
-            else -> AppLog.e("Unsupported")
+            else -> AppLog.e { "Unsupported" }
         }
         return 0
     }
 
     private fun inputBinding(request: Input.KeyBindingRequest, channel: Int): Int {
-        AppLog.i("Input binding request %s", request)
+        AppLog.i { "Input binding request $request" }
         aapTransport.send(AapMessage(channel, Input.MsgType.BINDINGRESPONSE_VALUE, Input.BindingResponse.newBuilder()
                 .setStatus(Common.MessageStatus.STATUS_OK)
                 .build()))
@@ -130,13 +130,13 @@ internal class AapControlSensor(private val aapTransport: AapTransport): AapCont
                 val request = message.parse(Sensors.SensorRequest.newBuilder()).build()
                 return sensorStartRequest(request, message.channel)
             }
-            else -> AppLog.e("Unsupported")
+            else -> AppLog.e { "Unsupported" }
         }
         return 0
     }
 
     private fun sensorStartRequest(request: Sensors.SensorRequest, channel: Int): Int {
-        AppLog.i("Sensor Start Request sensor: %s, minUpdatePeriod: %d", request.type.name, request.minUpdatePeriod)
+        AppLog.i { "Sensor Start Request sensor: ${request.type.name}, minUpdatePeriod: ${request.minUpdatePeriod}" }
 
         // R 1 SEN b 00000000 08 01 10 00     Sen: 1, 10, 3, 8, 7
         // Yes: SENSOR_TYPE_COMPASS/LOCATION/RPM/DIAGNOSTICS/GEAR      No: SENSOR_TYPE_DRIVING_STATUS
@@ -144,7 +144,7 @@ internal class AapControlSensor(private val aapTransport: AapTransport): AapCont
         val msg = AapMessage(channel, Sensors.SensorsMsgType.SENSOR_STARTRESPONSE_VALUE, Sensors.SensorResponse.newBuilder()
                 .setStatus(Common.MessageStatus.STATUS_OK)
                 .build())
-        AppLog.i(msg.toString())
+        AppLog.i { msg.toString() }
 
         aapTransport.send(msg)
         aapTransport.startSensor(request.type.number)
@@ -178,7 +178,7 @@ internal class AapControlService(
                 return byebyeRequest(shutdownRequest, message.channel)
             }
             Control.ControlMsgType.BYEYERESPONSE_VALUE -> {
-                AppLog.i("Byebye Response")
+                AppLog.i { "Byebye Response" }
                 return -1
             }
             Control.ControlMsgType.VOICESESSIONNOTIFICATION_VALUE -> {
@@ -189,24 +189,24 @@ internal class AapControlService(
                 val audioFocusRequest = message.parse(Control.AudioFocusRequestNotification.newBuilder()).build()
                 return audioFocusRequest(audioFocusRequest, message.channel)
             }
-            else -> AppLog.e("Unsupported")
+            else -> AppLog.e { "Unsupported" }
         }
         return 0
     }
 
 
     private fun serviceDiscoveryRequest(request: Control.ServiceDiscoveryRequest): Int {                  // Service Discovery Request
-        AppLog.i("Service Discovery Request: %s", request.phoneName)                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
+        AppLog.i { "Service Discovery Request: ${request.phoneName}" }                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
         val msg = ServiceDiscoveryResponse(settings, context.resources.displayMetrics.densityDpi)
-        AppLog.i(msg.toString())
+        AppLog.i { msg.toString() }
 
         aapTransport.send(msg)
         return 0
     }
 
     private fun pingRequest(request: Control.PingRequest, channel: Int): Int {
-        AppLog.i("Ping Request: %d", request.timestamp)
+        AppLog.i { "Ping Request: ${request.timestamp}" }
 
         // Channel Open Response
         val response = Control.PingResponse.newBuilder()
@@ -214,14 +214,14 @@ internal class AapControlService(
                 .build()
 
         val msg = AapMessage(channel, Control.ControlMsgType.PINGRESPONSE_VALUE, response)
-        AppLog.i(msg.toString())
+        AppLog.i { msg.toString() }
 
         aapTransport.send(msg)
         return 0
     }
 
     private fun navigationFocusRequest(request: Control.NavFocusRequestNotification, channel: Int): Int {
-        AppLog.i("Navigation Focus Request: %s", request.focusType)
+        AppLog.i { "Navigation Focus Request: ${request.focusType}" }
 
         // Send Navigation Focus Notification
         val response = Control.NavFocusNotification.newBuilder()
@@ -229,7 +229,7 @@ internal class AapControlService(
                 .build()
 
         val msg = AapMessage(channel, Control.ControlMsgType.NAVFOCUSRNOTIFICATION_VALUE, response)
-        AppLog.i(msg.toString())
+        AppLog.i { msg.toString() }
 
         aapTransport.send(msg)
         return 0
@@ -237,12 +237,12 @@ internal class AapControlService(
 
     private fun byebyeRequest(request: Control.ByeByeRequest, channel: Int): Int {
         if (request.reason == Control.ByeByeRequest.ByeByeReason.QUIT)
-            AppLog.i("Byebye Request reason: 1 AA Exit Car Mode")
+            AppLog.i { "Byebye Request reason: 1 AA Exit Car Mode" }
         else
-            AppLog.e("Byebye Request reason: %s", request.reason)
+            AppLog.e { "Byebye Request reason: ${request.reason}" }
 
         val msg = AapMessage(channel, Control.ControlMsgType.BYEYERESPONSE_VALUE, Control.ByeByeResponse.newBuilder().build())
-        AppLog.i(msg.toString())
+        AppLog.i { msg.toString() }
         aapTransport.send(msg)
         Thread.sleep(100)
         aapTransport.quit()
@@ -252,26 +252,26 @@ internal class AapControlService(
     private fun voiceSessionNotification(request: Control.VoiceSessionNotification): Int {
         // sr:  00000000 00 11 08 01      Microphone voice search usage     sr:  00000000 00 11 08 02
         if (request.status == Control.VoiceSessionNotification.VoiceSessionStatus.VOICE_STATUS_START)
-            AppLog.i("Voice Session Notification: 1 START")
+            AppLog.i { "Voice Session Notification: 1 START" }
         else if (request.status == Control.VoiceSessionNotification.VoiceSessionStatus.VOICE_STATUS_STOP)
-            AppLog.i("Voice Session Notification: 2 STOP")
+            AppLog.i { "Voice Session Notification: 2 STOP" }
         else
-            AppLog.e("Voice Session Notification: %d", request.status)
+            AppLog.e { "Voice Session Notification: ${request.status}" }
         return 0
     }
 
     private fun audioFocusRequest(notification: Control.AudioFocusRequestNotification, channel: Int): Int {
-        AppLog.i("Audio Focus Request: ${notification.request}")
+        AppLog.i { "Audio Focus Request: ${notification.request}" }
 
         aapAudio.requestFocusChange(AudioConfigs.stream(channel), notification.request.number, AudioManager.OnAudioFocusChangeListener {
             val response = Control.AudioFocusNotification.newBuilder()
 
             focusResponse[notification.request]?.let { newSate ->
                 response.focusState = newSate
-                AppLog.i("Audio Focus new state: $newSate, system focus change: $it ${systemFocusName[it]}")
+                AppLog.i { "Audio Focus new state: $newSate, system focus change: $it ${systemFocusName[it]}" }
 
                 val msg = AapMessage(channel, Control.ControlMsgType.AUDIOFOCUSNOTFICATION_VALUE, response.build())
-                AppLog.i(msg.toString())
+                AppLog.i { msg.toString() }
                 aapTransport.send(msg)
             }
         })
@@ -336,18 +336,18 @@ internal class AapControlGateway(
 
     private fun channelOpenRequest(request: Control.ChannelOpenRequest, channel: Int): Int {
         // Channel Open Request
-        AppLog.i("Channel Open Request - priority: %d  chan: %d %s", request.priority, request.serviceId, Channel.name(request.serviceId))
+        AppLog.i { "Channel Open Request - priority: ${request.priority} chan: ${request.serviceId} ${Channel.name(request.serviceId)}" }
 
         val msg = AapMessage(channel, Control.ControlMsgType.CHANNELOPENRESPONSE_VALUE, Control.ChannelOpenResponse.newBuilder()
                 .setStatus(Common.MessageStatus.STATUS_OK)
                 .build())
-        AppLog.i(msg.toString())
+        AppLog.i { msg.toString() }
 
         aapTransport.send(msg)
 
         if (channel == Channel.ID_SEN) {
             Thread.sleep(2)
-            AppLog.i("Send driving status")
+            AppLog.i { "Send driving status" }
             aapTransport.send(DrivingStatusEvent(Sensors.SensorBatch.DrivingStatusData.Status.UNRESTRICTED))
         }
         return 0

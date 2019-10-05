@@ -51,7 +51,7 @@ internal class AapVideo(private val videoDecoder: VideoDecoder) {
             }
         }
 
-        AppLog.e("Video process error for: %s", message.toString())
+        AppLog.e { "Video process error for: $message" }
         return false
     }
 }

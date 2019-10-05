@@ -92,10 +92,7 @@ class AapTransport(
         Utils.intToBytes(ba.limit - AapMessage.HEADER_SIZE, 2, ba.data)
 
         val size = connection!!.send(ba.data, ba.limit, 250)
-
-        if (AppLog.LOG_VERBOSE) {
-            AppLog.v("Sent size: %d", size)
-        }
+        AppLog.d { "Sent size: $size" }
         return 0
     }
 
@@ -107,10 +104,10 @@ class AapTransport(
     }
 
     internal fun start(connection: AccessoryConnection): Boolean {
-        AppLog.i("Start Aap transport for $connection")
+        AppLog.i { "Start Aap transport for $connection" }
 
         if (!handshake(connection)) {
-            AppLog.e("Handshake failed")
+            AppLog.e { "Handshake failed" }
             return false
         }
 
@@ -133,21 +130,21 @@ class AapTransport(
         val version = Messages.createRawMessage(0, 3, 1, Messages.VERSION_REQUEST, Messages.VERSION_REQUEST.size) // Version Request
         var ret = connection.send(version, version.size, 1000)
         if (ret < 0) {
-            AppLog.e("Version request sendEncrypted ret: $ret")
+            AppLog.e { "Version request sendEncrypted ret: $ret" }
             return false
         }
 
         ret = connection.recv(buffer, buffer.size, 1000)
         if (ret <= 0) {
-            AppLog.e("Version request recv ret: $ret")
+            AppLog.e { "Version request recv ret: $ret" }
             return false
         }
-        AppLog.i("Version response recv ret: %d", ret)
+        AppLog.i { "Version response recv ret: $ret" }
 
         // SSL
         ret = ssl.prepare()
         if (ret < 0) {
-            AppLog.e("SSL prepare failed: $ret")
+            AppLog.e { "SSL prepare failed: $ret" }
             return false
         }
 
@@ -160,17 +157,17 @@ class AapTransport(
 
             val bio = Messages.createRawMessage(Channel.ID_CTR, 3, 3, ba.data, ba.limit)
             var size = connection.send(bio, bio.size, 1000)
-            AppLog.i("SSL BIO sent: %d", size)
+            AppLog.i { "SSL BIO sent: $size" }
 
             size = connection.recv(buffer, buffer.size, 1000)
-            AppLog.i("SSL received: %d", size)
+            AppLog.i { "SSL received: $size" }
             if (size <= 0) {
-                AppLog.i("SSL receive error")
+                AppLog.i { "SSL receive error" }
                 return false
             }
 
             ret = ssl.bioWrite(6, size - 6, buffer)
-            AppLog.i("SSL BIO write: %d", ret)
+            AppLog.i { "SSL BIO write: $ret" }
         }
 
         // Status = OK
@@ -178,11 +175,11 @@ class AapTransport(
         val status = Messages.createRawMessage(0, 3, 4, byteArrayOf(8, 0), 2)
         ret = connection.send(status, status.size, 1000)
         if (ret < 0) {
-            AppLog.e("Status request sendEncrypted ret: $ret")
+            AppLog.e { "Status request sendEncrypted ret: $ret" }
             return false
         }
 
-        AppLog.i("Status OK sent: %d", ret)
+        AppLog.i { "Status OK sent: $ret" }
 
         return true
     }
@@ -206,7 +203,7 @@ class AapTransport(
         }
 
         if (aapKeyCode == KeyEvent.KEYCODE_UNKNOWN) {
-            AppLog.i("Unknown: $keyCode")
+            AppLog.i { "Unknown: $keyCode" }
         }
 
         val ts = SystemClock.elapsedRealtime()
@@ -226,18 +223,16 @@ class AapTransport(
             send(sensor as AapMessage)
             true
         } else {
-            AppLog.e("Sensor " + sensor.sensorType + " is not started yet")
+            AppLog.e { "Sensor " + sensor.sensorType + " is not started yet" }
             false
         }
     }
 
     fun send(message: AapMessage) {
         if (handler == null) {
-            AppLog.e("Handler is null")
+            AppLog.e { "Handler is null" }
         } else {
-            if (AppLog.LOG_VERBOSE) {
-                AppLog.v(message.toString())
-            }
+            AppLog.d { message.toString() }
             val msg = handler!!.obtainMessage(MSG_SEND, 0, message.size, message.data)
             handler!!.sendMessage(msg)
         }

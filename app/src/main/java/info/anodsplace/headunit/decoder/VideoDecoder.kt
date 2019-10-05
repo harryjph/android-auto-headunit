@@ -20,17 +20,17 @@ class VideoDecoder {
     fun decode(buffer: ByteArray, offset: Int, size: Int) {
         synchronized(sLock) {
             if (mCodec == null) {
-                AppLog.v("Codec is not initialized")
+                AppLog.d { "Codec is not initialized" }
                 return
             }
 
             if (!mCodecConfigured && isSps(buffer, offset)) {
-                AppLog.i("Got SPS sequence...")
+                AppLog.i { "Got SPS sequence..." }
                 mCodecConfigured = true
             }
 
             if (!mCodecConfigured) {
-                AppLog.v("Codec is not configured")
+                AppLog.d { "Codec is not configured" }
                 return
             }
 
@@ -38,7 +38,7 @@ class VideoDecoder {
 
             while (content.hasRemaining()) {
                 if (!codec_input_provide(content)) {
-                    AppLog.e("Dropping content because there are no available buffers.")
+                    AppLog.e { "Dropping content because there are no available buffers." }
                     return
                 }
                 codecOutputConsume()
@@ -51,7 +51,7 @@ class VideoDecoder {
             try {
                 mCodec = MediaCodec.createDecoderByType("video/avc")       // Create video codec: ITU-T H.264 / ISO/IEC MPEG-4 Part 10, Advanced Video Coding (MPEG-4 AVC)
             } catch (t: Throwable) {
-                AppLog.e("Throwable creating video/avc decoder: $t")
+                AppLog.e { "Throwable creating video/avc decoder: $t" }
             }
 
             try {
@@ -60,11 +60,11 @@ class VideoDecoder {
                 mCodec!!.configure(format, mHolder!!.surface, null, 0)               // Configure codec for H.264 with given width and height, no crypto and no flag (ie decode)
                 mCodec!!.start()                                             // Start codec
                 mInputBuffers = mCodec!!.inputBuffers
-            } catch (t: Throwable) {
-                AppLog.e(t)
+            } catch (e: Exception) {
+                AppLog.e(e)
             }
 
-            AppLog.i("Codec started")
+            AppLog.i { "Codec started" }
         }
     }
 
@@ -77,7 +77,7 @@ class VideoDecoder {
             mInputBuffers = null
             mCodecBufferInfo = null
             mCodecConfigured = false
-            AppLog.i("Reason: $reason")
+            AppLog.i { "Reason: $reason" }
         }
     }
 
@@ -85,7 +85,7 @@ class VideoDecoder {
         try {
             val inputBufIndex = mCodec!!.dequeueInputBuffer(1000000)           // Get input buffer with 1 second timeout
             if (inputBufIndex < 0) {
-                AppLog.e("dequeueInputBuffer: $inputBufIndex")
+                AppLog.e { "dequeueInputBuffer: $inputBufIndex" }
                 return false                                                 // Done with "No buffer" error
             }
 
@@ -96,7 +96,7 @@ class VideoDecoder {
             if (content.remaining() <= capacity) {                           // If we can just put() the content...
                 buffer.put(content)                                           // Put the content
             } else {                                                            // Else... (Should not happen ?)
-                AppLog.e("content.hasRemaining (): " + content.hasRemaining() + "  capacity: " + capacity)
+                AppLog.e { "content.hasRemaining (): " + content.hasRemaining() + "  capacity: " + capacity }
 
                 val limit = content.limit()
                 content.limit(content.position() + capacity)                 // Temporarily set constrained limit
@@ -107,8 +107,8 @@ class VideoDecoder {
 
             mCodec!!.queueInputBuffer(inputBufIndex, 0 /* offset */, buffer.limit(), 0, 0)
             return true                                                    // Processed
-        } catch (t: Throwable) {
-            AppLog.e(t)
+        } catch (e: Exception) {
+            AppLog.e(e)
         }
 
         return false                                                     // Error: exception
@@ -122,23 +122,23 @@ class VideoDecoder {
                 mCodec!!.releaseOutputBuffer(index, true /*render*/)           // Return the buffer to the codec
             else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
             // See this 1st shortly after start. API >= 21: Ignore as getOutputBuffers() deprecated
-                AppLog.i("INFO_OUTPUT_BUFFERS_CHANGED")
+                AppLog.i { "INFO_OUTPUT_BUFFERS_CHANGED" }
             else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
             // See this 2nd shortly after start. Output format changed for subsequent data. See getOutputFormat()
-                AppLog.i("INFO_OUTPUT_FORMAT_CHANGED")
+                AppLog.i { "INFO_OUTPUT_FORMAT_CHANGED" }
             else if (index == MediaCodec.INFO_TRY_AGAIN_LATER) {
                 break
             } else
                 break
         }
         if (index != MediaCodec.INFO_TRY_AGAIN_LATER)
-            AppLog.e("index: $index")
+            AppLog.e { "index: $index" }
     }
 
     fun onSurfaceHolderAvailable(holder: SurfaceHolder, width: Int, height: Int) {
         synchronized(sLock) {
             if (mCodec != null) {
-                AppLog.i("Codec is running")
+                AppLog.i { "Codec is running" }
                 return
             }
         }

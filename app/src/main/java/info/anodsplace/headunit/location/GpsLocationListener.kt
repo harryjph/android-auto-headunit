@@ -24,12 +24,12 @@ class GpsLocationListener constructor(private val context: Context): LocationLis
         if (requested) {
             return
         }
-        AppLog.i("Request location updates")
+        AppLog.i { "Request location updates" }
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 0.0f, this)
             val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-            AppLog.i("Last known location:  ${location?.toString() ?: "Unknown"}")
+            AppLog.i { "Last known location:  ${location?.toString() ?: "Unknown"}" }
             requested = true
         }
     }
@@ -39,19 +39,19 @@ class GpsLocationListener constructor(private val context: Context): LocationLis
     }
 
     override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
-        AppLog.i("$provider: $status")
+        AppLog.i { "$provider: $status" }
     }
 
     override fun onProviderEnabled(provider: String) {
-        AppLog.i(provider)
+        AppLog.i { provider }
     }
 
     override fun onProviderDisabled(provider: String) {
-        AppLog.i(provider)
+        AppLog.i { provider }
     }
 
     fun stop() {
-        AppLog.i("Remove location updates")
+        AppLog.i { "Remove location updates" }
         requested = false
         locationManager.removeUpdates(this)
     }

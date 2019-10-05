@@ -4,11 +4,6 @@ import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.MsgType
 import info.anodsplace.headunit.utils.AppLog
 
-/**
- * @author algavris
- * *
- * @date 13/02/2017.
- */
 
 internal class AapMessageIncoming(header: EncryptedHeader, ba: ByteArrayWithLimit)
     : AapMessage(header.chan, header.flags.toByte(), Utils.bytesToInt(ba.data, 0, true), calcOffset(header), ba.limit, ba.data) {
@@ -39,8 +34,7 @@ internal class AapMessageIncoming(header: EncryptedHeader, ba: ByteArrayWithLimi
 
         fun decrypt(header: EncryptedHeader, offset: Int, buf: ByteArray, ssl: AapSsl): AapMessage? {
             if (header.flags and 0x08 != 0x08) {
-                AppLog.e("WRONG FLAG: enc_len: %d  chan: %d %s flags: 0x%02x  msg_type: 0x%02x %s",
-                        header.enc_len, header.chan, Channel.name(header.chan), header.flags, header.msg_type, MsgType.name(header.msg_type, header.chan))
+                AppLog.e { "WRONG FLAG: enc_len: ${header.enc_len}  chan: ${header.chan} ${Channel.name(header.chan)} flags: 0x${header.flags.toString(16)}  msg_type: 0x${header.msg_type.toString(16)} ${MsgType.name(header.msg_type, header.chan)}" }
                 return null
             }
 
@@ -48,9 +42,7 @@ internal class AapMessageIncoming(header: EncryptedHeader, ba: ByteArrayWithLimi
 
             val msg = AapMessageIncoming(header, ba)
 
-            if (AppLog.LOG_VERBOSE) {
-                AppLog.d("RECV: %s", msg.toString())
-            }
+            AppLog.d { "RECV: $msg" }
             return msg
         }
 

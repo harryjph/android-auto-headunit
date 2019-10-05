@@ -19,7 +19,7 @@ class AudioTrackWrapper(stream: Int, sampleRateInHz: Int, bitDepth: Int, channel
         val dataFormat = if (bitDepth == 16) AudioFormat.ENCODING_PCM_16BIT else AudioFormat.ENCODING_PCM_8BIT
         val bufferSize = AudioBuffer.getSize(sampleRateInHz, channelConfig, dataFormat, pcmFrameSize)
 
-        AppLog.i("Audio stream: $stream buffer size: $bufferSize sampleRateInHz: $sampleRateInHz channelCount: $channelCount")
+        AppLog.i { "Audio stream: $stream buffer size: $bufferSize sampleRateInHz: $sampleRateInHz channelCount: $channelCount" }
 
         return AudioTrack(stream, sampleRateInHz, channelConfig, dataFormat, bufferSize, AudioTrack.MODE_STREAM)
     }
@@ -27,7 +27,7 @@ class AudioTrackWrapper(stream: Int, sampleRateInHz: Int, bitDepth: Int, channel
     fun write(buffer: ByteArray, offset: Int, size: Int): Int {
         val written = audioTrack.write(buffer, offset, size)
         if (written != size) {
-            AppLog.e("Error AudioTrack written: $written  len: $size")
+            AppLog.e { "Error AudioTrack written: $written  len: $size" }
         }
         return written
     }

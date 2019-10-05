@@ -33,18 +33,18 @@ class ProjectionView : SurfaceView, SurfaceHolder.Callback {
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
-        AppLog.i("holder $holder")
+        AppLog.i { "holder $holder" }
         surfaceCallback?.surfaceCreated(holder)
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-        AppLog.i("holder %s, format: %d, width: %d, height: %d", holder, format, width, height)
+        AppLog.i { "holder $holder, format: $format, width: $width, height: $height" }
         videoDecoder.onSurfaceHolderAvailable(holder, width, height)
         surfaceCallback?.surfaceChanged(holder, format, width, height)
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
-        AppLog.i("holder $holder")
+        AppLog.i { "holder $holder" }
         videoDecoder.stop("surfaceDestroyed")
         surfaceCallback?.surfaceDestroyed(holder)
     }

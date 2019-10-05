@@ -7,11 +7,6 @@ import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.utils.Settings
 import java.lang.Exception
 
-/**
- * @author algavris
- * *
- * @date 13/02/2017.
- */
 
 internal class AapMessageHandlerImpl (
         private val transport: AapTransport,
@@ -43,7 +38,7 @@ internal class AapMessageHandlerImpl (
                 throw AapMessageHandler.HandleException(e)
             }
         } else {
-            AppLog.e("Unknown msg_type: %d, flags: %d", msgType, flags)
+            AppLog.e { "Unknown msg_type: $msgType, flags: $flags" }
         }
     }
 }

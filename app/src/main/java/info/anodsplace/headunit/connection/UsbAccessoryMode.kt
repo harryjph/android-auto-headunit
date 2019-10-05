@@ -20,14 +20,14 @@ inline class UsbAccessoryMode(private val usbManager: UsbManager) {
         }
 
         if (connection == null) {
-            AppLog.e("Failed to open device")
+            AppLog.e { "Failed to open device" }
             return false
         }
 
         val result = switch(connection)
         connection.close()
 
-        AppLog.i("Result: $result")
+        AppLog.i { "Result: $result" }
         return result
     }
 
@@ -36,18 +36,18 @@ inline class UsbAccessoryMode(private val usbManager: UsbManager) {
         val buffer = ByteArray(2)
         var len = connection.controlTransfer(UsbConstants.USB_DIR_IN or UsbConstants.USB_TYPE_VENDOR, ACC_REQ_GET_PROTOCOL, 0, 0, buffer, 2, USB_TIMEOUT_IN_MS)
         if (len != 2) {
-            AppLog.e("Error controlTransfer len: $len")
+            AppLog.e { "Error controlTransfer len: $len" }
             return false
         }
         val accessoryVersion = Utils.getAccessoryVersion(buffer)
         // Get OAP / ACC protocol version
-        AppLog.i("Success controlTransfer len: $len acc_ver: $accessoryVersion")
+        AppLog.i { "Success controlTransfer len: $len acc_ver: $accessoryVersion" }
         if (accessoryVersion < 1) {
             // If error or version too low...
-            AppLog.e("No support acc")
+            AppLog.e { "No support acc" }
             return false
         }
-        AppLog.i("acc_ver: $accessoryVersion")
+        AppLog.i { "acc_ver: $accessoryVersion" }
 
         // Send all accessory identification strings
         initStringControlTransfer(connection, ACC_IDX_MAN, MANUFACTURER)
@@ -57,7 +57,7 @@ inline class UsbAccessoryMode(private val usbManager: UsbManager) {
         initStringControlTransfer(connection, ACC_IDX_URI, URI)
         initStringControlTransfer(connection, ACC_IDX_SER, SERIAL)
 
-        AppLog.i("Sending acc start")
+        AppLog.i { "Sending acc start" }
         // Send accessory start request. Device should re-enumerate as an accessory.
         len = connection.controlTransfer(UsbConstants.USB_TYPE_VENDOR, ACC_REQ_START, 0, 0, byteArrayOf(), 0, USB_TIMEOUT_IN_MS)
         return len == 0
@@ -66,7 +66,7 @@ inline class UsbAccessoryMode(private val usbManager: UsbManager) {
     private fun initStringControlTransfer(conn: UsbDeviceConnection, index: Int, string: String) {
         val len = conn.controlTransfer(UsbConstants.USB_TYPE_VENDOR, ACC_REQ_SEND_STRING, 0, index, string.toByteArray(), string.length, USB_TIMEOUT_IN_MS)
         if (len != string.length) {
-            AppLog.e("controlTransfer did not transfer whole string. Transferred: $len Index: $index String: \"$string\"")
+            AppLog.e { "controlTransfer did not transfer whole string. Transferred: $len Index: $index String: \"$string\"" }
         }
     }
 

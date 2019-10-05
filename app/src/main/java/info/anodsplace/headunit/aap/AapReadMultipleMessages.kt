@@ -7,11 +7,6 @@ import info.anodsplace.headunit.utils.AppLog
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 
-/**
- * @author algavris
- * *
- * @date 13/02/2017.
- */
 
 internal class AapReadMultipleMessages(
         connection: AccessoryConnection,
@@ -54,7 +49,7 @@ internal class AapReadMultipleMessages(
                 fifo.get(recv_header.buf, 0, recv_header.buf.size)
             } catch (e: BufferUnderflowException) {
                 // we'll come back later for more data
-                AppLog.e("BufferUnderflowException whilst trying to read 4 bytes capacity = %d, position = %d", fifo.capacity(), fifo.position())
+                AppLog.e { "BufferUnderflowException whilst trying to read 4 bytes capacity = ${fifo.capacity()}, position = ${fifo.position()}" }
                 fifo.reset()
                 break
             }
@@ -67,7 +62,7 @@ internal class AapReadMultipleMessages(
                 // If First fragment Video...
                 // (Packet is encrypted so we can't get the real msg_type or check for 0, 0, 0, 1)
                 val total_size = Utils.bytesToInt(size_buf, 0, false)
-                AppLog.v("First fragment total_size: %d", total_size)
+                AppLog.d { "First fragment total_size: $total_size" }
             }
 
             // Retrieve the entire message now we know the length
@@ -75,7 +70,7 @@ internal class AapReadMultipleMessages(
                 fifo.get(msg_buffer, 0, recv_header.enc_len)
             } catch (e: BufferUnderflowException) {
                 // rewind so we process the header again next time
-                AppLog.e("BufferUnderflowException whilst trying to read %d bytes limit = %d, position = %d", recv_header.enc_len, fifo.limit(), fifo.position())
+                AppLog.e { "BufferUnderflowException whilst trying to read ${recv_header.enc_len} bytes limit = ${fifo.limit()}, position = ${fifo.position()}" }
                 fifo.reset()
                 break
             }
@@ -84,8 +79,7 @@ internal class AapReadMultipleMessages(
 
             // Decrypt & Process 1 received encrypted message
             if (msg == null) {
-                // If error...
-                AppLog.e("enc_len: %d chan: %d %s flags: %01x msg_type: %d", recv_header.enc_len, recv_header.chan, Channel.name(recv_header.chan), recv_header.flags, recv_header.msg_type)
+                AppLog.e { "enc_len: ${recv_header.enc_len} chan: ${recv_header.chan} ${Channel.name(recv_header.chan)} flags: ${recv_header.flags.toString(16)} msg_type: ${recv_header.msg_type}" }
                 break
             }
 

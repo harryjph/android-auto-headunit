@@ -45,13 +45,13 @@ class MainActivity : FragmentActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        AppLog.i("onKeyDown: %d", keyCode)
+        AppLog.i { "onKeyDown: $keyCode "}
 
         return keyListener?.onKeyEvent(event) ?: super.onKeyDown(keyCode, event)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
-        AppLog.i("onKeyUp: %d", keyCode)
+        AppLog.i { "onKeyUp: $keyCode" }
 
         return keyListener?.onKeyEvent(event) ?: super.onKeyUp(keyCode, event)
     }

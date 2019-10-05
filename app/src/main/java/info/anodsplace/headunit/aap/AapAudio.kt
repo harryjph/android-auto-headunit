@@ -40,7 +40,7 @@ internal class AapAudio(
     private fun decode(channel: Int, start: Int, buf: ByteArray, len: Int) {
         var length = len
         if (length > AUDIO_BUFS_SIZE) {
-            AppLog.e("Error audio len: %d  aud_buf_BUFS_SIZE: %d", length, AUDIO_BUFS_SIZE)
+            AppLog.e { "Error audio len: $length aud_buf_BUFS_SIZE: $AUDIO_BUFS_SIZE" }
             length = AUDIO_BUFS_SIZE
         }
 
@@ -54,7 +54,7 @@ internal class AapAudio(
     }
 
     fun stopAudio(channel: Int) {
-        AppLog.i("Audio Stop: " + Channel.name(channel))
+        AppLog.i { "Audio Stop: " + Channel.name(channel) }
         audioDecoder.stop(channel)
     }
 

@@ -10,11 +10,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.PermissionChecker
 import info.anodsplace.headunit.utils.AppLog
 
-/**
- * @author algavris
- * *
- * @date 12/05/2016.
- */
 class MicRecorder(private val micSampleRate: Int, private val context: Context) {
 
     private var audioRecord: AudioRecord? = null
@@ -31,7 +26,7 @@ class MicRecorder(private val micSampleRate: Int, private val context: Context) 
     }
 
     fun stop() {
-        AppLog.i("threadMicAudio: $threadMicAudio  threadMicAudioActive: $threadMicAudioActive")
+        AppLog.i { "threadMicAudio: $threadMicAudio  threadMicAudioActive: $threadMicAudioActive" }
         if (threadMicAudioActive) {
             threadMicAudioActive = false
             if (threadMicAudio != null) {
@@ -56,7 +51,7 @@ class MicRecorder(private val micSampleRate: Int, private val context: Context) 
             // If no audio data...
             if (len == AudioRecord.ERROR_INVALID_OPERATION)
             // -3
-                AppLog.e("get expected interruption error due to shutdown: $len")
+                AppLog.e { "get expected interruption error due to shutdown: $len" }
             return len
         }
 
@@ -67,7 +62,7 @@ class MicRecorder(private val micSampleRate: Int, private val context: Context) 
     fun start(): Int {
         try {
             if (PermissionChecker.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                AppLog.e("No permission")
+                AppLog.e { "No permission" }
                 audioRecord = null
                 return -3
             }

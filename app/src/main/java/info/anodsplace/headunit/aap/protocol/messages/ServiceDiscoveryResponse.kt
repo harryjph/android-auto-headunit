@@ -127,7 +127,7 @@ class ServiceDiscoveryResponse(settings: Settings, densityDpi: Int)
                 }.build()
                 services.add(bluetooth)
             } else {
-                AppLog.i("BT MAC Address is empty. Skip bluetooth service")
+                AppLog.i { "BT MAC Address is empty. Skip bluetooth service" }
             }
 
             val mediaPlaybackStatus = Control.Service.newBuilder().also { service ->

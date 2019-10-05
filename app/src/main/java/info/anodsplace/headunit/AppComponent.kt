@@ -10,10 +10,6 @@ import info.anodsplace.headunit.decoder.AudioDecoder
 import info.anodsplace.headunit.decoder.VideoDecoder
 import info.anodsplace.headunit.utils.Settings
 
-/**
- * @author algavris
- * @date 23/06/2017
- */
 class AppComponent(private val app: App) {
 
     private var _transport: AapTransport? = null

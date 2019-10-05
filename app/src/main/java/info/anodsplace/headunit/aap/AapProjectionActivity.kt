@@ -82,7 +82,7 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
 
         val action = TouchEvent.motionEventToAction(event)
         if (action == -1) {
-            AppLog.e("event: $event (Unknown: ${event.actionMasked})  x: $x  y: $y")
+            AppLog.e { "event: $event (Unknown: ${event.actionMasked})  x: $x  y: $y" }
             return
         }
         val ts = SystemClock.elapsedRealtime()
@@ -90,13 +90,13 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        AppLog.i("KeyCode: %d", keyCode)
+        AppLog.i { "KeyCode: $keyCode" }
         onKeyEvent(keyCode, true)
         return super.onKeyDown(keyCode, event)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
-        AppLog.i("KeyCode: %d", keyCode)
+        AppLog.i { "KeyCode: $keyCode" }
         onKeyEvent(keyCode, false)
         return super.onKeyUp(keyCode, event)
     }

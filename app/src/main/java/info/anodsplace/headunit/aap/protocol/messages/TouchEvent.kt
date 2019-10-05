@@ -6,12 +6,7 @@ import info.anodsplace.headunit.aap.AapMessage
 import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.proto.Input
 
-/**
- * @author algavris
- * @date 13/02/2017.
- */
-class TouchEvent(timeStamp: Long, action: Input.TouchEvent.PointerAction, x: Int, y: Int)
-    : AapMessage(Channel.ID_INP, Input.MsgType.EVENT_VALUE, makeProto(timeStamp, action, x, y)) {
+class TouchEvent(timeStamp: Long, action: Input.TouchEvent.PointerAction, x: Int, y: Int) : AapMessage(Channel.ID_INP, Input.MsgType.EVENT_VALUE, makeProto(timeStamp, action, x, y)) {
 
     constructor(timeStamp: Long, action: Int, x: Int, y: Int)
         : this(timeStamp, Input.TouchEvent.PointerAction.forNumber(action), x, y)

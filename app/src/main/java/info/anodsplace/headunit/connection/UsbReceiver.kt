@@ -13,7 +13,7 @@ class UsbReceiver(private val mListener: Listener)          // USB Broadcast Rec
     : BroadcastReceiver() {
 
     init {
-        AppLog.d("UsbReceiver registered")
+        AppLog.d { "UsbReceiver registered" }
     }
 
     interface Listener {
@@ -24,7 +24,7 @@ class UsbReceiver(private val mListener: Listener)          // USB Broadcast Rec
 
     override fun onReceive(context: Context, intent: Intent) {
         val device: UsbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE) ?: return
-        AppLog.i("USB Intent: $intent")
+        AppLog.i { "USB Intent: $intent" }
 
         when (intent.action) {
             UsbManager.ACTION_USB_DEVICE_DETACHED -> // If detach...

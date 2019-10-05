@@ -190,7 +190,7 @@ class AapTransport(
         if (mapped == KeyEvent.KEYCODE_GUIDE) { // TODO what...?
             // Hack for navigation button to simulate touch
             val action = if (isPress) Input.TouchEvent.PointerAction.TOUCH_ACTION_DOWN else Input.TouchEvent.PointerAction.TOUCH_ACTION_UP
-            this.send(TouchEvent(SystemClock.elapsedRealtime(), action, 0, 99, 444))
+            this.send(TouchEvent(SystemClock.elapsedRealtime(), action, 0, listOf(Triple(0, 99, 444))))
             return
         }
 

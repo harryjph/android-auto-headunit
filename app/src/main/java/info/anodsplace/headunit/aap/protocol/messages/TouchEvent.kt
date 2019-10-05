@@ -6,7 +6,7 @@ import info.anodsplace.headunit.aap.AapMessage
 import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.proto.Input
 
-class TouchEvent(timeStamp: Long, action: Input.TouchEvent.PointerAction, pointerId: Int, x: Int, y: Int) : AapMessage(Channel.ID_INP, Input.InputMsgType.EVENT_VALUE, makeProto(timeStamp, action, pointerId, x, y)) {
+class TouchEvent(timeStamp: Long, action: Input.TouchEvent.PointerAction, actionIndex: Int, pointerData: Iterable<Triple<Int, Int, Int>>) : AapMessage(Channel.ID_INP, Input.InputMsgType.EVENT_VALUE, makeProto(timeStamp, action, actionIndex, pointerData)) {
 
     companion object {
         fun motionEventToAction(event: Int): Input.TouchEvent.PointerAction? {
@@ -22,15 +22,18 @@ class TouchEvent(timeStamp: Long, action: Input.TouchEvent.PointerAction, pointe
             }
         }
 
-        private fun makeProto(timeStamp: Long, action: Input.TouchEvent.PointerAction, pointerId: Int, x: Int, y: Int): MessageLite {
+        private fun makeProto(timeStamp: Long, action: Input.TouchEvent.PointerAction, actionIndex: Int, pointerData: Iterable<Triple<Int, Int, Int>>): MessageLite {
             val touchEvent = Input.TouchEvent.newBuilder()
                     .also {
-                        it.addPointerData(
-                                Input.TouchEvent.Pointer.newBuilder().also { pointer ->
-                                    pointer.x = x
-                                    pointer.y = y
-                                    pointer.pointerId = pointerId
-                                })
+                        pointerData.forEach { data ->
+                            it.addPointerData(
+                                    Input.TouchEvent.Pointer.newBuilder().also { pointer ->
+                                        pointer.pointerId = data.first
+                                        pointer.x = data.second
+                                        pointer.y = data.third
+                                    })
+                        }
+                        it.actionIndex = actionIndex
                         it.action = action
                     }
 

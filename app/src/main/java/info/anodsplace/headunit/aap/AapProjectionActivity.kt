@@ -77,14 +77,16 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
         val action = TouchEvent.motionEventToAction(actionMasked) ?: return
         val ts = SystemClock.elapsedRealtime()
 
-        val pointerIndex = if (actionMasked == MotionEvent.ACTION_POINTER_DOWN || actionMasked == MotionEvent.ACTION_POINTER_UP) event.actionIndex else 0
-        val pointerId = event.getPointerId(pointerIndex)
+        val pointerData = mutableListOf<Triple<Int, Int, Int>>()
+        repeat(event.pointerCount) { pointerIndex ->
+            val pointerId = event.getPointerId(pointerIndex)
+            val x = event.getX(pointerIndex) / (surface.width / screen.width.toFloat())
+            val y = event.getY(pointerIndex) / (surface.height / screen.height.toFloat())
+            if (x < 0 || x >= 65535 || y < 0 || y >= 65535) return
+            pointerData.add(Triple(pointerId, x.toInt(), y.toInt()))
+        }
 
-        val x = event.getX(pointerIndex) / (surface.width / screen.width.toFloat())
-        val y = event.getY(pointerIndex) / (surface.height / screen.height.toFloat())
-
-        if (x < 0 || x >= 65535 || y < 0 || y >= 65535) return
-        transport.send(TouchEvent(ts, action, pointerIndex, x.toInt(), y.toInt()))
+        transport.send(TouchEvent(ts, action, event.actionIndex, pointerData))
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {

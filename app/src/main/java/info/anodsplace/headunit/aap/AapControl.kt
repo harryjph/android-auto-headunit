@@ -24,25 +24,25 @@ internal class AapControlMedia(
     override fun execute(message: AapMessage): Int {
 
         when (message.type) {
-            Media.MsgType.SETUPREQUEST_VALUE -> {
+            Media.MediaMsgType.SETUPREQUEST_VALUE -> {
                 val setupRequest = message.parse(Media.MediaSetupRequest.newBuilder()).build()
                 return mediaSinkSetupRequest(setupRequest, message.channel)
             }
-            Media.MsgType.STARTREQUEST_VALUE -> {
+            Media.MediaMsgType.STARTREQUEST_VALUE -> {
                 val startRequest = message.parse(Media.Start.newBuilder()).build()
                 return mediaStartRequest(startRequest, message.channel)
             }
-            Media.MsgType.STOPREQUEST_VALUE -> return mediaSinkStopRequest(message.channel)
-            Media.MsgType.VIDEOFOCUSREQUESTNOTIFICATION_VALUE -> {
+            Media.MediaMsgType.STOPREQUEST_VALUE -> return mediaSinkStopRequest(message.channel)
+            Media.MediaMsgType.VIDEOFOCUSREQUESTNOTIFICATION_VALUE -> {
                 val focusRequest = message.parse(Media.VideoFocusRequestNotification.newBuilder()).build()
                 AppLog.i { "Video Focus Request - disp_id: ${focusRequest.dispChannelId}, mode: ${focusRequest.mode}, reason: ${focusRequest.reason}" }
                 return 0
             }
-            Media.MsgType.MICREQUEST_VALUE -> {
+            Media.MediaMsgType.MICREQUEST_VALUE -> {
                 val micRequest = message.parse(Media.MicrophoneRequest.newBuilder()).build()
                 return micRequest(micRequest)
             }
-            Media.MsgType.ACK_VALUE -> return 0
+            Media.MediaMsgType.ACK_VALUE -> return 0
             else -> AppLog.e { "Unsupported" }
         }
         return 0
@@ -67,7 +67,7 @@ internal class AapControlMedia(
             addConfigurationIndices(0)
         }.build()
         AppLog.i { "Config response: $configResponse" }
-        val msg = AapMessage(channel, Media.MsgType.CONFIGRESPONSE_VALUE, configResponse)
+        val msg = AapMessage(channel, Media.MediaMsgType.CONFIGRESPONSE_VALUE, configResponse)
         aapTransport.send(msg)
 
         if (channel == Channel.ID_VID) {
@@ -102,7 +102,7 @@ internal class AapControlTouch(private val aapTransport: AapTransport): AapContr
     override fun execute(message: AapMessage): Int {
 
         when (message.type) {
-            Input.MsgType.BINDINGREQUEST_VALUE -> {
+            Input.InputMsgType.BINDINGREQUEST_VALUE -> {
                 val request = message.parse(Input.KeyBindingRequest.newBuilder()).build()
                 return inputBinding(request, message.channel)
             }
@@ -113,7 +113,7 @@ internal class AapControlTouch(private val aapTransport: AapTransport): AapContr
 
     private fun inputBinding(request: Input.KeyBindingRequest, channel: Int): Int {
         AppLog.i { "Input binding request $request" }
-        aapTransport.send(AapMessage(channel, Input.MsgType.BINDINGRESPONSE_VALUE, Input.BindingResponse.newBuilder()
+        aapTransport.send(AapMessage(channel, Input.InputMsgType.BINDINGRESPONSE_VALUE, Input.BindingResponse.newBuilder()
                 .setStatus(Common.MessageStatus.STATUS_OK)
                 .build()))
         return 0

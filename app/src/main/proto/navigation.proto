@@ -3,7 +3,7 @@ syntax = "proto2";
 package info.anodsplace.headunit.aap.protocol.proto;
 option java_outer_classname = "NavigationStatus";
 
-enum MsgType {
+enum NavigationMsgType {
     NEXTTURNDETAILS = 0x8004;
     NEXTTURNDISTANCEANDTIME = 0x8005;
 }

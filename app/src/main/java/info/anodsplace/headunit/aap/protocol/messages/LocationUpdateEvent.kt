@@ -1,7 +1,7 @@
 package info.anodsplace.headunit.aap.protocol.messages
 
 import android.location.Location
-import com.google.protobuf.Message
+import com.google.protobuf.MessageLite
 import info.anodsplace.headunit.aap.protocol.proto.Sensors
 
 /**
@@ -14,7 +14,7 @@ class LocationUpdateEvent(location: Location)
     : SensorEvent(Sensors.SensorType.LOCATION_VALUE, makeProto(location)) {
 
     companion object {
-        private fun makeProto(location: Location): Message {
+        private fun makeProto(location: Location): MessageLite {
             return Sensors.SensorBatch.newBuilder().also {
                 it.addLocationData(
                         Sensors.SensorBatch.LocationData.newBuilder().apply {

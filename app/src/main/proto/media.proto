@@ -3,7 +3,7 @@ syntax = "proto2";
 package info.anodsplace.headunit.aap.protocol.proto;
 option java_outer_classname = "Media";
 
-enum MsgType
+enum MediaMsgType
 {
     SETUPREQUEST = 0x8000;
     STARTREQUEST = 0x8001;

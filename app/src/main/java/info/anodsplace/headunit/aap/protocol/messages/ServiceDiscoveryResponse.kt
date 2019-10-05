@@ -1,6 +1,6 @@
 package info.anodsplace.headunit.aap.protocol.messages
 
-import com.google.protobuf.Message
+import com.google.protobuf.MessageLite
 import info.anodsplace.headunit.aap.AapMessage
 import info.anodsplace.headunit.aap.KeyCode
 import info.anodsplace.headunit.aap.protocol.AudioConfigs
@@ -20,7 +20,7 @@ import info.anodsplace.headunit.utils.Settings
 class ServiceDiscoveryResponse(settings: Settings, densityDpi: Int) : AapMessage(Channel.ID_CTR, Control.ControlMsgType.SERVICEDISCOVERYRESPONSE_VALUE, makeProto(settings, densityDpi)) {
 
     companion object {
-        private fun makeProto(settings: Settings, densityDpi: Int): Message {
+        private fun makeProto(settings: Settings, densityDpi: Int): MessageLite {
             val services = mutableListOf<Control.Service>()
 
             val sensors = Control.Service.newBuilder().also { service ->

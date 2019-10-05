@@ -2,7 +2,7 @@ package info.anodsplace.headunit.aap
 
 
 import com.google.protobuf.CodedOutputStream
-import com.google.protobuf.Message
+import com.google.protobuf.MessageLite
 import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.MsgType
 
@@ -19,7 +19,7 @@ open class AapMessage(
         internal val size: Int,
         val data: ByteArray) {
 
-    @JvmOverloads constructor(channel: Int, type: Int, proto: Message, buf: ByteArray = ByteArray(size(proto)))
+    @JvmOverloads constructor(channel: Int, type: Int, proto: MessageLite, buf: ByteArray = ByteArray(size(proto)))
             : this(channel, flags(channel, type), type, HEADER_SIZE + MsgType.SIZE, size(proto), buf) {
 
         val msgType = this.type
@@ -95,12 +95,12 @@ open class AapMessage(
     }
 
 
-    internal fun <T : Message.Builder> parse(builder: T): T {
+    internal fun <T : MessageLite.Builder> parse(builder: T): T {
         builder.mergeFrom(this.data, this.dataOffset, this.size - this.dataOffset)
         return builder
     }
 
-    private fun toByteArray(msg: Message, data: ByteArray, offset: Int, length: Int) {
+    private fun toByteArray(msg: MessageLite, data: ByteArray, offset: Int, length: Int) {
         val output = CodedOutputStream.newInstance(data, offset, length)
         msg.writeTo(output)
         output.checkNoSpaceLeft()
@@ -109,7 +109,7 @@ open class AapMessage(
     companion object {
         const val HEADER_SIZE = 4
 
-        private fun size(proto: Message): Int {
+        private fun size(proto: MessageLite): Int {
             return proto.serializedSize + MsgType.SIZE + HEADER_SIZE
         }
 

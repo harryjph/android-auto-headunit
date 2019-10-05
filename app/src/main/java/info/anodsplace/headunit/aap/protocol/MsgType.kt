@@ -43,8 +43,8 @@ object MsgType {
             Control.ControlMsgType.AUDIOFOCUSREQUESTNOTFICATION_VALUE -> return "Audio Focus Request"
             Control.ControlMsgType.AUDIOFOCUSNOTFICATION_VALUE -> return "Audio Focus Notification"                    // AudioFocusType   (AudioStreamType ?)
 
-            Media.MsgType.SETUPREQUEST_VALUE -> return "Media Setup Request"                        // Video and Audio sinks receive this and send k3 3 / 32771
-            Media.MsgType.STARTREQUEST_VALUE -> {
+            Media.MediaMsgType.SETUPREQUEST_VALUE -> return "Media Setup Request"                        // Video and Audio sinks receive this and send k3 3 / 32771
+            Media.MediaMsgType.STARTREQUEST_VALUE -> {
                 return when (channel) {
                     Channel.ID_SEN -> "Sensor Start Request"
                     Channel.ID_INP -> "Input Event"
@@ -52,7 +52,7 @@ object MsgType {
                     else -> "Media Start Request"
                 }
             }
-            Media.MsgType.STOPREQUEST_VALUE -> {
+            Media.MediaMsgType.STOPREQUEST_VALUE -> {
                 return when (channel) {
                     Channel.ID_SEN -> "Sensor Start Response"
                     Channel.ID_INP -> "Input Binding Request"
@@ -60,7 +60,7 @@ object MsgType {
                     else -> "Media Stop Request"
                 }
             }
-            Media.MsgType.CONFIGRESPONSE_VALUE -> {
+            Media.MediaMsgType.CONFIGRESPONSE_VALUE -> {
                 return when (channel) {
                     Channel.ID_SEN -> "Sensor Event"
                     Channel.ID_INP -> "Input Binding Response"
@@ -68,11 +68,11 @@ object MsgType {
                     else -> "Media Config Response"
                 }
             }
-            Media.MsgType.ACK_VALUE -> return "Codec/Media Data Ack"
-            Media.MsgType.MICREQUEST_VALUE -> return "Mic Start/Stop Request"
-            Media.MsgType.MICRESPONSE_VALUE -> return "Mic Response"
-            Media.MsgType.VIDEOFOCUSREQUESTNOTIFICATION_VALUE -> return "Video Focus Request"
-            Media.MsgType.VIDEOFOCUSNOTIFICATION_VALUE -> return "Video Focus Notification"
+            Media.MediaMsgType.ACK_VALUE -> return "Codec/Media Data Ack"
+            Media.MediaMsgType.MICREQUEST_VALUE -> return "Mic Start/Stop Request"
+            Media.MediaMsgType.MICRESPONSE_VALUE -> return "Mic Response"
+            Media.MediaMsgType.VIDEOFOCUSREQUESTNOTIFICATION_VALUE -> return "Video Focus Request"
+            Media.MediaMsgType.VIDEOFOCUSNOTIFICATION_VALUE -> return "Video Focus Notification"
 
             65535 -> return "Framing Error Notification"
         }

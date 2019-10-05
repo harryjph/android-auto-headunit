@@ -1,12 +1,12 @@
 package info.anodsplace.headunit.aap.protocol.messages
 
 import android.view.MotionEvent
-import com.google.protobuf.Message
+import com.google.protobuf.MessageLite
 import info.anodsplace.headunit.aap.AapMessage
 import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.proto.Input
 
-class TouchEvent(timeStamp: Long, action: Input.TouchEvent.PointerAction, pointerId: Int, x: Int, y: Int) : AapMessage(Channel.ID_INP, Input.MsgType.EVENT_VALUE, makeProto(timeStamp, action, pointerId, x, y)) {
+class TouchEvent(timeStamp: Long, action: Input.TouchEvent.PointerAction, pointerId: Int, x: Int, y: Int) : AapMessage(Channel.ID_INP, Input.InputMsgType.EVENT_VALUE, makeProto(timeStamp, action, pointerId, x, y)) {
 
     constructor(timeStamp: Long, action: Int, pointerId: Int, x: Int, y: Int) : this(timeStamp, Input.TouchEvent.PointerAction.forNumber(action), pointerId, x, y)
 
@@ -23,7 +23,7 @@ class TouchEvent(timeStamp: Long, action: Input.TouchEvent.PointerAction, pointe
             }
         }
 
-        private fun makeProto(timeStamp: Long, action: Input.TouchEvent.PointerAction, pointerId: Int, x: Int, y: Int): Message {
+        private fun makeProto(timeStamp: Long, action: Input.TouchEvent.PointerAction, pointerId: Int, x: Int, y: Int): MessageLite {
             val touchEvent = Input.TouchEvent.newBuilder()
                     .also {
                         it.addPointerData(
@@ -36,7 +36,6 @@ class TouchEvent(timeStamp: Long, action: Input.TouchEvent.PointerAction, pointe
                     }
 
             return Input.InputReport.newBuilder()
-                    .setDispChannelId(pointerId)
                     .setTimestamp(timeStamp * 1000000L)
                     .setTouchEvent(touchEvent).build()
         }

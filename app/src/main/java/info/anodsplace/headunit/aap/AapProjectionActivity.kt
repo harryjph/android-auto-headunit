@@ -77,7 +77,6 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
     }
 
     private fun sendTouchEvent(event: MotionEvent) {
-
         val x = event.getX(0) / (surface.width / screen.width.toFloat())
         val y = event.getY(0) / (surface.height / screen.height.toFloat())
 

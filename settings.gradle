@@ -1,1 +1,1 @@
-include ':app', ':contract'
+include ':app'

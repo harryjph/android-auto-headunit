@@ -17,24 +17,18 @@ import info.anodsplace.headunit.utils.Settings
  *
  * @date 13/02/2017.
  */
-class ServiceDiscoveryResponse(settings: Settings, densityDpi: Int)
-    : AapMessage(Channel.ID_CTR, Control.ControlMsgType.SERVICEDISCOVERYRESPONSE_VALUE, makeProto(settings, densityDpi)) {
+class ServiceDiscoveryResponse(settings: Settings, densityDpi: Int) : AapMessage(Channel.ID_CTR, Control.ControlMsgType.SERVICEDISCOVERYRESPONSE_VALUE, makeProto(settings, densityDpi)) {
 
     companion object {
         private fun makeProto(settings: Settings, densityDpi: Int): Message {
-
             val services = mutableListOf<Control.Service>()
 
             val sensors = Control.Service.newBuilder().also { service ->
                 service.id = Channel.ID_SEN
                 service.sensorSourceService = Control.Service.SensorSourceService.newBuilder().also { sources ->
                     sources.addSensors(makeSensorType(Sensors.SensorType.DRIVING_STATUS))
-                    if (settings.useGpsForNavigation) {
-                        sources.addSensors(makeSensorType(Sensors.SensorType.LOCATION))
-                    }
-                    if (settings.nightMode != Settings.NightMode.NONE){
-                        sources.addSensors(makeSensorType(Sensors.SensorType.NIGHT))
-                    }
+                    if (settings.useGpsForNavigation) sources.addSensors(makeSensorType(Sensors.SensorType.LOCATION))
+                    if (settings.nightMode != Settings.NightMode.NONE) sources.addSensors(makeSensorType(Sensors.SensorType.NIGHT))
                 }.build()
             }.build()
 
@@ -50,8 +44,8 @@ class ServiceDiscoveryResponse(settings: Settings, densityDpi: Int)
                         marginHeight = 0
                         marginWidth = 0
                         codecResolution = settings.resolution
-                        frameRate = Control.Service.MediaSinkService.VideoConfiguration.VideoFrameRateType._60
-                        density = 140 //densityDpi
+                        frameRate = Control.Service.MediaSinkService.VideoConfiguration.VideoFrameRateType._30 // TODO settings option
+                        density = densityDpi // TODO maybe this needs adjusting?
                     }.build())
                 }.build()
             }.build()
@@ -71,37 +65,37 @@ class ServiceDiscoveryResponse(settings: Settings, densityDpi: Int)
 
             services.add(input)
 
-            val audio1 = Control.Service.newBuilder().also { service ->
-                service.id = Channel.ID_AU1
-                service.mediaSinkService = Control.Service.MediaSinkService.newBuilder().also {
-                    it.availableType = Media.MediaCodecType.AUDIO
-                    it.audioType = Media.AudioStreamType.SPEECH
-                    it.addAudioConfigs(AudioConfigs.get(Channel.ID_AU1))
-                }.build()
-            }.build()
-            services.add(audio1)
-
-            val audio2 = Control.Service.newBuilder().also { service ->
-                service.id = Channel.ID_AU2
-                service.mediaSinkService = Control.Service.MediaSinkService.newBuilder().also {
-                    it.availableType = Media.MediaCodecType.AUDIO
-                    it.audioType = Media.AudioStreamType.SYSTEM
-                    it.addAudioConfigs(AudioConfigs.get(Channel.ID_AU2))
-                }.build()
-            }.build()
-            services.add(audio2)
-
-            val audio0 = Control.Service.newBuilder().also { service ->
+            val mediaAudio = Control.Service.newBuilder().also { service ->
                 service.id = Channel.ID_AUD
                 service.mediaSinkService = Control.Service.MediaSinkService.newBuilder().also {
                     it.availableType = Media.MediaCodecType.AUDIO
                     it.audioType = Media.AudioStreamType.MEDIA
-                    it.addAudioConfigs(AudioConfigs.get(Channel.ID_AUD))
+                    it.addAudioConfigs(AudioConfigs[Channel.ID_AUD])
                 }.build()
             }.build()
-            services.add(audio0)
+            services.add(mediaAudio)
 
-            val mic = Control.Service.newBuilder().also { service ->
+            val speechAudio = Control.Service.newBuilder().also { service ->
+                service.id = Channel.ID_AU1
+                service.mediaSinkService = Control.Service.MediaSinkService.newBuilder().also {
+                    it.availableType = Media.MediaCodecType.AUDIO
+                    it.audioType = Media.AudioStreamType.SPEECH
+                    it.addAudioConfigs(AudioConfigs[Channel.ID_AU1])
+                }.build()
+            }.build()
+            services.add(speechAudio)
+
+            val systemAudio = Control.Service.newBuilder().also { service ->
+                service.id = Channel.ID_AU2
+                service.mediaSinkService = Control.Service.MediaSinkService.newBuilder().also {
+                    it.availableType = Media.MediaCodecType.AUDIO
+                    it.audioType = Media.AudioStreamType.SYSTEM
+                    it.addAudioConfigs(AudioConfigs[Channel.ID_AU2])
+                }.build()
+            }.build()
+            services.add(systemAudio)
+
+            val microphone = Control.Service.newBuilder().also { service ->
                 service.id = Channel.ID_MIC
                 service.mediaSourceService = Control.Service.MediaSourceService.newBuilder().also {
                     it.type = Media.MediaCodecType.AUDIO
@@ -112,9 +106,9 @@ class ServiceDiscoveryResponse(settings: Settings, densityDpi: Int)
                     }.build()
                 }.build()
             }.build()
-            services.add(mic)
+            services.add(microphone)
 
-            if (settings.bluetoothAddress.isNotEmpty()) {
+            if (settings.bluetoothAddress.isNotEmpty() && false) { // TODO find out what exactly this does
                 val bluetooth = Control.Service.newBuilder().also { service ->
                     service.id = Channel.ID_BTH
                     service.bluetoothService = Control.Service.BluetoothService.newBuilder().also {
@@ -137,24 +131,23 @@ class ServiceDiscoveryResponse(settings: Settings, densityDpi: Int)
             services.add(mediaPlaybackStatus)
 
             return Control.ServiceDiscoveryResponse.newBuilder().apply {
-                make = "AACar"
-                model = "0001"
-                year = "2016"
-                vehicleId = "20190810"
-                headUnitModel = "ChangAn S"
-                headUnitMake = "Roadrover"
-                headUnitSoftwareBuild = "SWB1"
-                headUnitSoftwareVersion = "SWV1"
-                driverPosition = true
-                canPlayNativeMediaDuringVr = false
+                make = "Android Auto HeadUnit"
+                model = "Harry Phillips"
+                year = "2019"
+                vehicleId = "Harry Phillips"
+                headUnitModel = "Harry Phillips"
+                headUnitMake = "Android Auto HeadUnit"
+                headUnitSoftwareBuild = "1.0"
+                headUnitSoftwareVersion = "1.0"
+                driverPosition = true // true for RHS, false for LHS
+                canPlayNativeMediaDuringVr = false // TODO what does this do?
                 hideProjectedClock = false
                 addAllServices(services)
             }.build()
         }
 
         private fun makeSensorType(type: Sensors.SensorType): Control.Service.SensorSourceService.Sensor {
-            return Control.Service.SensorSourceService.Sensor.newBuilder()
-                    .setType(type).build()
+            return Control.Service.SensorSourceService.Sensor.newBuilder().setType(type).build()
         }
     }
 }

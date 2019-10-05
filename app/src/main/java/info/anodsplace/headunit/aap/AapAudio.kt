@@ -45,7 +45,7 @@ internal class AapAudio(
         }
 
         if (audioDecoder.getTrack(channel) == null) {
-            val config = AudioConfigs.get(channel)
+            val config = AudioConfigs[channel] ?: error("Audio channel $channel does not have a configuration registered.")
             val stream = AudioManager.STREAM_MUSIC
             audioDecoder.start(channel, stream, config.sampleRate, config.numberOfBits, config.numberOfChannels)
         }

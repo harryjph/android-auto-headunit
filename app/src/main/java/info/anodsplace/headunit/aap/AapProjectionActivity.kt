@@ -72,21 +72,24 @@ class AapProjectionActivity : SurfaceActivity(), SurfaceHolder.Callback {
         transport.send(VideoFocusEvent(gain = false, unsolicited = false))
     }
 
-    private fun sendTouchEvent(event: MotionEvent) { // TODO multi touch
-        val x = event.getX(0) / (surface.width / screen.width.toFloat())
-        val y = event.getY(0) / (surface.height / screen.height.toFloat())
-
-        if (x < 0 || x >= 65535 || y < 0 || y >= 65535) {
-            return
-        }
-
+    private fun sendTouchEvent(event: MotionEvent) {
         val action = TouchEvent.motionEventToAction(event)
         if (action == -1) {
-            AppLog.e { "event: $event (Unknown: ${event.actionMasked})  x: $x  y: $y" }
+            AppLog.e { "event: $event (Unknown: ${event.actionMasked})" }
             return
         }
         val ts = SystemClock.elapsedRealtime()
-        transport.send(TouchEvent(ts, action, x.toInt(), y.toInt()))
+
+        repeat(event.pointerCount) { pointerIndex -> // TODO this doesn't work for multitouch :(
+            val x = event.getX(pointerIndex) / (surface.width / screen.width.toFloat())
+            val y = event.getY(pointerIndex) / (surface.height / screen.height.toFloat())
+
+            if (x < 0 || x >= 65535 || y < 0 || y >= 65535) {
+                return
+            }
+
+            transport.send(TouchEvent(ts, action, pointerIndex, x.toInt(), y.toInt()))
+        }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {

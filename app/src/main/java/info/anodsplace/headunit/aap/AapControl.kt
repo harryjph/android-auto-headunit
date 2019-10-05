@@ -251,19 +251,18 @@ internal class AapControlService(
 
     private fun voiceSessionNotification(request: Control.VoiceSessionNotification): Int {
         // sr:  00000000 00 11 08 01      Microphone voice search usage     sr:  00000000 00 11 08 02
-        if (request.status == Control.VoiceSessionNotification.VoiceSessionStatus.VOICE_STATUS_START)
-            AppLog.i { "Voice Session Notification: 1 START" }
-        else if (request.status == Control.VoiceSessionNotification.VoiceSessionStatus.VOICE_STATUS_STOP)
-            AppLog.i { "Voice Session Notification: 2 STOP" }
-        else
-            AppLog.e { "Voice Session Notification: ${request.status}" }
+        when (request.status) {
+            Control.VoiceSessionNotification.VoiceSessionStatus.VOICE_STATUS_START -> AppLog.i { "Voice Session Notification: 1 START" }
+            Control.VoiceSessionNotification.VoiceSessionStatus.VOICE_STATUS_STOP -> AppLog.i { "Voice Session Notification: 2 STOP" }
+            else -> AppLog.e { "Voice Session Notification: ${request.status}" }
+        }
         return 0
     }
 
     private fun audioFocusRequest(notification: Control.AudioFocusRequestNotification, channel: Int): Int {
         AppLog.i { "Audio Focus Request: ${notification.request}" }
 
-        aapAudio.requestFocusChange(AudioConfigs.stream(channel), notification.request.number, AudioManager.OnAudioFocusChangeListener {
+        aapAudio.requestFocusChange(AudioManager.STREAM_MUSIC, notification.request.number, AudioManager.OnAudioFocusChangeListener {
             val response = Control.AudioFocusNotification.newBuilder()
 
             focusResponse[notification.request]?.let { newSate ->

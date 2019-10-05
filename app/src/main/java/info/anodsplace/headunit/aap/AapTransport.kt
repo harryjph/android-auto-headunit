@@ -84,8 +84,8 @@ class AapTransport(
         return true
     }
 
-    private fun sendEncryptedMessage(data: ByteArray, length: Int): Int {
-        val ba = ssl.encrypt(AapMessage.HEADER_SIZE, length - AapMessage.HEADER_SIZE, data) ?: return -1
+    private fun sendEncryptedMessage(data: ByteArray, length: Int) {
+        val ba = ssl.encrypt(AapMessage.HEADER_SIZE, length - AapMessage.HEADER_SIZE, data) ?: return
 
         ba.data[0] = data[0]
         ba.data[1] = data[1]
@@ -93,7 +93,6 @@ class AapTransport(
 
         val size = connection!!.send(ba.data, ba.limit, 250)
         AppLog.d { "Sent size: $size" }
-        return 0
     }
 
     internal fun quit() {
@@ -191,7 +190,7 @@ class AapTransport(
         if (mapped == KeyEvent.KEYCODE_GUIDE) {
             // Hack for navigation button to simulate touch
             val action = if (isPress) Input.TouchEvent.PointerAction.TOUCH_ACTION_DOWN else Input.TouchEvent.PointerAction.TOUCH_ACTION_UP
-            this.send(TouchEvent(SystemClock.elapsedRealtime(), action, 99, 444))
+            this.send(TouchEvent(SystemClock.elapsedRealtime(), action, 0, 99, 444))
             return
         }
 

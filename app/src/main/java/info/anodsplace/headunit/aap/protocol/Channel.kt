@@ -1,7 +1,6 @@
 package info.anodsplace.headunit.aap.protocol
 
 object Channel {
-
     const val ID_CTR = 0
     const val ID_SEN = 1
     const val ID_VID = 2
@@ -13,7 +12,6 @@ object Channel {
     const val ID_BTH = 8
     const val ID_MPB = 9
     const val ID_NAV = 10
-    const val ID_NOT = 11
     const val ID_NOTI = 11
     const val ID_PHONE = 12
 
@@ -37,6 +35,6 @@ object Channel {
     }
 
     fun isAudio(chan: Int): Boolean {
-        return chan == Channel.ID_AUD || chan == Channel.ID_AU1 || chan == Channel.ID_AU2
+        return chan == ID_AUD || chan == ID_AU1 || chan == ID_AU2
     }
 }

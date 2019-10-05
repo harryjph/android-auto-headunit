@@ -45,10 +45,8 @@ class UsbAttachedActivity : Activity() {
         val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
         val usbMode = UsbAccessoryMode(usbManager)
         AppLog.i { "Switching USB device to accessory mode ${deviceCompat.uniqueName}" }
-        if (usbMode.connectAndSwitch(device)) {
-            Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show()
+        if (!usbMode.connectAndSwitch(device)) {
+            Toast.makeText(this, "Failed to connect", Toast.LENGTH_SHORT).show()
         }
 
         finish()

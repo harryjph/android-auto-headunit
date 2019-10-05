@@ -148,13 +148,12 @@ class AapTransport(
         }
 
         var hs_ctr = 0
-        // SSL_is_init_finished (hu_ssl_ssl)
+        // SSL_is_init_finished (ssl)
 
         while (hs_ctr++ < 2) {
-            ssl.handshake()
-            val ba = ssl.bioRead() ?: return false
+            val certificate = ssl.getMyCertificate() ?: return false
 
-            val bio = Messages.createRawMessage(Channel.ID_CTR, 3, 3, ba.data, ba.limit)
+            val bio = Messages.createRawMessage(Channel.ID_CTR, 3, 3, certificate.data, certificate.limit)
             var size = connection.write(bio, bio.size, 1000)
             AppLog.i { "SSL BIO sent: $size" }
 
@@ -165,7 +164,9 @@ class AapTransport(
                 return false
             }
 
-            ret = ssl.bioWrite(6, size - 6, buffer)
+            val theirCertificate = ByteArray(size - 6)
+            System.arraycopy(buffer, 6, theirCertificate, 0, size - 6)
+            ssl.setTheirCertificate(theirCertificate)
             AppLog.i { "SSL BIO write: $ret" }
         }
 

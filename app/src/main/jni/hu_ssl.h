@@ -7,9 +7,9 @@
 
 #define byte unsigned char
 
-extern SSL *hu_ssl_ssl;//  = NULL;
-extern BIO *hu_ssl_rm_bio;//  = NULL;
-extern BIO *hu_ssl_wm_bio;//  = NULL;
+extern SSL *ssl;//  = NULL;
+extern BIO *readBio;//  = NULL;
+extern BIO *writeBio;//  = NULL;
 
 void hu_ssl_ret_log(int ret);
 void hu_ssl_inf_log();

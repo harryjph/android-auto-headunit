@@ -6,27 +6,27 @@
 #include "hu_ssl.h"
 #include "hu_ssl_cert.h"
 
-SSL_METHOD *hu_ssl_method = NULL;
-SSL_CTX *hu_ssl_ctx = NULL;
-SSL *hu_ssl_ssl = NULL;
-BIO *hu_ssl_rm_bio = NULL;
-BIO *hu_ssl_wm_bio = NULL;
+SSL_METHOD *sslMethod = NULL;
+SSL_CTX *sslContext = NULL;
+SSL *ssl = NULL;
+BIO *readBio = NULL;
+BIO *writeBio = NULL;
 
 void hu_ssl_inf_log() {
 
-    const char *ssl_state_string_long = SSL_state_string_long(hu_ssl_ssl);   // "SSLv3 write client hello B"
+    const char *ssl_state_string_long = SSL_state_string_long(ssl);   // "SSLv3 write client hello B"
     logd ("ssl_state_string_long: %s", ssl_state_string_long);
 
-    const char *ssl_version = SSL_get_version(hu_ssl_ssl);                   // "TLSv1.2"
+    const char *ssl_version = SSL_get_version(ssl);                   // "TLSv1.2"
     logd ("ssl_version: %s", ssl_version);
 
-    const SSL_CIPHER *ssl_cipher = SSL_get_current_cipher(hu_ssl_ssl);
+    const SSL_CIPHER *ssl_cipher = SSL_get_current_cipher(ssl);
     const char *ssl_cipher_name = SSL_CIPHER_get_name(ssl_cipher);    // "(NONE)"
     logd ("ssl_cipher_name: %s", ssl_cipher_name);
 }
 
 void hu_ssl_ret_log(int ret) {
-    int ssl_err = SSL_get_error(hu_ssl_ssl, ret);
+    int ssl_err = SSL_get_error(ssl, ret);
     char *err_str;
 
     switch (ssl_err) {
@@ -125,27 +125,27 @@ int hu_ssl_prepare()
     else
         logd ("BIO_free(pkey_bio) ret: %d", ret);
 
-    hu_ssl_method = (SSL_METHOD *) TLSv1_2_client_method();
-    if (hu_ssl_method == NULL) {
+    sslMethod = (SSL_METHOD *) TLSv1_2_client_method();
+    if (sslMethod == NULL) {
         loge ("TLSv1_2_client_method() error");
         return -1;
     }
-    logd ("TLSv1_2_client_method() hu_ssl_method: %p", hu_ssl_method);
+    logd ("TLSv1_2_client_method() sslMethod: %p", sslMethod);
 
-    hu_ssl_ctx = SSL_CTX_new(hu_ssl_method);
-    if (hu_ssl_ctx == NULL) {
+    sslContext = SSL_CTX_new(sslMethod);
+    if (sslContext == NULL) {
         loge ("SSL_CTX_new() error");
         return -1;
     }
-    logd ("SSL_CTX_new() hu_ssl_ctx: %p", hu_ssl_ctx);
+    logd ("SSL_CTX_new() sslContext: %p", sslContext);
 
-    ret = SSL_CTX_use_certificate(hu_ssl_ctx, x509_cert);
+    ret = SSL_CTX_use_certificate(sslContext, x509_cert);
     if (ret != 1)
         loge ("SSL_CTX_use_certificate() ret: %d", ret);
     else
         logd ("SSL_CTX_use_certificate() ret: %d", ret);
 
-    ret = SSL_CTX_use_PrivateKey(hu_ssl_ctx, priv_key);
+    ret = SSL_CTX_use_PrivateKey(sslContext, priv_key);
     if (ret != 1)
         loge ("SSL_CTX_use_PrivateKey() ret: %d", ret);
     else
@@ -153,14 +153,14 @@ int hu_ssl_prepare()
 
 
     // Must do all CTX setup before SSL_new() !!
-    hu_ssl_ssl = SSL_new(hu_ssl_ctx);
-    if (hu_ssl_ssl == NULL) {
-        loge ("SSL_new() hu_ssl_ssl: %p", hu_ssl_ssl);
+    ssl = SSL_new(sslContext);
+    if (ssl == NULL) {
+        loge ("SSL_new() ssl: %p", ssl);
         return -1;
     }
-    logd ("SSL_new() hu_ssl_ssl: %p", hu_ssl_ssl);
+    logd ("SSL_new() ssl: %p", ssl);
 
-    ret = SSL_check_private_key(hu_ssl_ssl);
+    ret = SSL_check_private_key(ssl);
     if (ret != 1) {
         loge ("SSL_check_private_key() ret: %d", ret);
         return -1;
@@ -168,37 +168,37 @@ int hu_ssl_prepare()
     logd ("SSL_check_private_key() ret: %d", ret);
 
 
-    hu_ssl_rm_bio = BIO_new(BIO_s_mem());
-    if (hu_ssl_rm_bio == NULL) {
-        loge ("BIO_new() hu_ssl_rm_bio: %p", hu_ssl_rm_bio);
+    readBio = BIO_new(BIO_s_mem());
+    if (readBio == NULL) {
+        loge ("BIO_new() readBio: %p", readBio);
         return -1;
     }
-    logd ("BIO_new() hu_ssl_rm_bio: %p", hu_ssl_rm_bio);
+    logd ("BIO_new() readBio: %p", readBio);
 
-    hu_ssl_wm_bio = BIO_new(BIO_s_mem());
-    if (hu_ssl_wm_bio == NULL) {
-        loge ("BIO_new() hu_ssl_wm_bio: %p", hu_ssl_wm_bio);
+    writeBio = BIO_new(BIO_s_mem());
+    if (writeBio == NULL) {
+        loge ("BIO_new() writeBio: %p", writeBio);
         return -1;
     }
-    logd ("BIO_new() hu_ssl_wm_bio: %p", hu_ssl_wm_bio);
+    logd ("BIO_new() writeBio: %p", writeBio);
 
-    SSL_set_bio(hu_ssl_ssl, hu_ssl_rm_bio, hu_ssl_wm_bio);
+    SSL_set_bio(ssl, readBio, writeBio);
 
-    BIO_set_write_buf_size (hu_ssl_rm_bio, DEFBUF);
-    BIO_set_write_buf_size (hu_ssl_wm_bio, DEFBUF);
+    BIO_set_write_buf_size (readBio, DEFBUF);
+    BIO_set_write_buf_size (writeBio, DEFBUF);
 
-    SSL_set_connect_state(hu_ssl_ssl);                                        // Set ssl to work in client mode
+    SSL_set_connect_state(ssl);                                        // Set ssl to work in client mode
 
-    SSL_set_verify(hu_ssl_ssl, SSL_VERIFY_NONE, NULL);
+    SSL_set_verify(ssl, SSL_VERIFY_NONE, NULL);
     return 0;
 }
 
 int hu_ssl_do_handshake()
 {
-    int ret = SSL_do_handshake(hu_ssl_ssl);                             // Do current handshake step processing
-    logd ("hu_ssl_handshake ret: %d, error: %d", ret, SSL_get_error(hu_ssl_ssl, ret));
+    int ret = SSL_do_handshake(ssl);                             // Do current handshake step processing
+    logd ("hu_ssl_handshake ret: %d, error: %d", ret, SSL_get_error(ssl, ret));
 
-    if (SSL_get_error(hu_ssl_ssl, ret) != SSL_ERROR_WANT_READ) {
+    if (SSL_get_error(ssl, ret) != SSL_ERROR_WANT_READ) {
         hu_ssl_ret_log(ret);
         hu_ssl_inf_log();
     }
@@ -207,7 +207,7 @@ int hu_ssl_do_handshake()
 
 int hu_ssl_bio_read(int offset, int res_max, byte *res_buf)
 {
-    int ret = BIO_read(hu_ssl_wm_bio, &res_buf[offset], res_max);
+    int ret = BIO_read(writeBio, &res_buf[offset], res_max);
     // Read from the BIO Client request: Hello/Key Exchange
     if (ret <= 0) {
         loge ("BIO_read read ret: %d", ret);
@@ -218,12 +218,12 @@ int hu_ssl_bio_read(int offset, int res_max, byte *res_buf)
 
 int hu_ssl_bio_write(int offset, int msg_len, byte *msg_buf)
 {
-    return BIO_write(hu_ssl_rm_bio, &msg_buf[offset], msg_len);
+    return BIO_write(readBio, &msg_buf[offset], msg_len);
 }
 
 int hu_ssl_read(int offset, int res_max, byte *res_buf)
 {
-    int ret = SSL_read(hu_ssl_ssl, &res_buf[offset], res_max);
+    int ret = SSL_read(ssl, &res_buf[offset], res_max);
     if (ret < 0)
     {
        loge ("SSL_read() result: %d", ret);
@@ -234,5 +234,5 @@ int hu_ssl_read(int offset, int res_max, byte *res_buf)
 
 int hu_ssl_write(int offset, int msg_len, byte *msg_buf)
 {
-    return SSL_write(hu_ssl_ssl, &msg_buf[offset], msg_len);
+    return SSL_write(ssl, &msg_buf[offset], msg_len);
 }

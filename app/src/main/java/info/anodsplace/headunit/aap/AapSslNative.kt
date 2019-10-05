@@ -38,11 +38,7 @@ internal class AapSslNative : AapSsl {
         return ret
     }
 
-    override fun handshake() {
-        native_ssl_do_handshake()
-    }
-
-    override fun bioRead(): ByteArrayWithLimit? {
+    private fun bioRead(): ByteArrayWithLimit? {
         val size = native_ssl_bio_read(0, Messages.DEF_BUFFER_LENGTH, bio_read)
         AppLog.i { "SSL BIO read: $size" }
         if (size <= 0) {
@@ -52,8 +48,17 @@ internal class AapSslNative : AapSsl {
         return ByteArrayWithLimit(bio_read, size)
     }
 
-    override fun bioWrite(start: Int, length: Int, buffer: ByteArray): Int {
+    private fun bioWrite(start: Int, length: Int, buffer: ByteArray): Int {
         return native_ssl_bio_write(start, length, buffer)
+    }
+
+    override fun getMyCertificate(): ByteArrayWithLimit? {
+        native_ssl_do_handshake()
+        return bioRead()
+    }
+
+    override fun setTheirCertificate(certificate: ByteArray) {
+        bioWrite(0, certificate.size, certificate)
     }
 
     override fun decrypt(start: Int, length: Int, buffer: ByteArray): ByteArrayWithLimit? {

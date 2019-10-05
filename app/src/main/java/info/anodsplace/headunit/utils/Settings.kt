@@ -8,14 +8,6 @@ import info.anodsplace.headunit.aap.protocol.proto.Control
 
 import java.util.HashSet
 
-import info.anodsplace.headunit.connection.UsbDeviceCompat
-
-/**
- * @author algavris
- * *
- * @date 21/05/2016.
- */
-
 class Settings(context: Context) {
 
     private val prefs: SharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)

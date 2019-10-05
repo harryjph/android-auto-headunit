@@ -41,10 +41,11 @@ private val VENDOR_NAMES = mapOf(
         USB_VID_WIL to "Wileyfox"
 )
 
-fun isInAccessoryMode(device: UsbDevice): Boolean {
-    val productId = device.productId.toShort()
-    return device.vendorId.toShort() == USB_VID_GOO && (productId == USB_PID_ACC || productId == USB_PID_ACC_ADB)
-}
+val UsbDevice.isInAccessoryMode: Boolean
+    get() {
+        val productId = this.productId.toShort()
+        return this.vendorId.toShort() == USB_VID_GOO && (productId == USB_PID_ACC || productId == USB_PID_ACC_ADB)
+    }
 
 val UsbDevice.uniqueName: String
     get() {

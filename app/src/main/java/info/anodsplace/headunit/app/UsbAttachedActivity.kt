@@ -9,8 +9,9 @@ import android.widget.Toast
 
 import info.anodsplace.headunit.App
 import info.anodsplace.headunit.aap.AapService
-import info.anodsplace.headunit.connection.UsbDeviceCompat
 import info.anodsplace.headunit.connection.UsbAccessoryMode
+import info.anodsplace.headunit.connection.isInAccessoryMode
+import info.anodsplace.headunit.connection.uniqueName
 import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.utils.Settings
 import info.anodsplace.headunit.utils.usbDevice
@@ -34,17 +35,16 @@ class UsbAttachedActivity : Activity() {
             return
         }
 
-        if (UsbDeviceCompat.isInAccessoryMode(device)) {
+        if (device.isInAccessoryMode) {
             AppLog.e { "Usb in accessory mode" }
             startService(AapService.createIntent(device, this))
             finish()
             return
         }
 
-        val deviceCompat = UsbDeviceCompat(device)
         val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
         val usbMode = UsbAccessoryMode(usbManager)
-        AppLog.i { "Switching USB device to accessory mode ${deviceCompat.uniqueName}" }
+        AppLog.i { "Switching USB device to accessory mode ${device.uniqueName}" }
         if (!usbMode.connectAndSwitch(device)) {
             Toast.makeText(this, "Failed to connect", Toast.LENGTH_SHORT).show()
         }
@@ -62,10 +62,10 @@ class UsbAttachedActivity : Activity() {
             return
         }
 
-        AppLog.i { UsbDeviceCompat.getUniqueName(device) }
+        AppLog.i { device.uniqueName }
 
         if (!App.provide(this).transport.isAlive) {
-            if (UsbDeviceCompat.isInAccessoryMode(device)) {
+            if (device.isInAccessoryMode) {
                 AppLog.e { "Usb in accessory mode" }
                 startService(AapService.createIntent(device, this))
             }

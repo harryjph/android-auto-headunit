@@ -61,37 +61,14 @@ android {
         minSdkVersion 18
         targetSdkVersion 28
 
-        versionCode 22
+        versionCode 1
         versionName "1.0"
-
-        ndk {
-            moduleName "hu_jni"
-        }
-
-        externalNativeBuild {
-            cmake {
-                version "3.10.2"
-                cppFlags ""
-                arguments "-DANDROID_TOOLCHAIN=clang"
-                abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
-            }
-        }
-    }
-
-    externalNativeBuild {
-        cmake{
-            path "CMakeLists.txt"
-        }
     }
 
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-        }
-        debug {
-            debuggable true
-            jniDebuggable true
         }
     }
 
@@ -108,7 +85,4 @@ android {
         jvmTarget = '1.8'
         freeCompilerArgs = ["-XXLanguage:+InlineClasses", "-progressive"]
     }
-}
-repositories {
-    mavenCentral()
 }

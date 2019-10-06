@@ -25,8 +25,8 @@ object AapSslImpl: AapSsl {
         val netBufferMax = session.packetBufferSize
 
         sslEngine = newSslEngine
-        txBuffer = ByteBuffer.allocate(netBufferMax)
-        rxBuffer = ByteBuffer.allocate(DEF_BUFFER_LENGTH.coerceAtLeast(appBufferMax + 50))
+        txBuffer = ByteBuffer.allocateDirect(netBufferMax)
+        rxBuffer = ByteBuffer.allocateDirect(DEF_BUFFER_LENGTH.coerceAtLeast(appBufferMax + 50))
     }
 
     private fun runDelegatedTasks(result: SSLEngineResult, engine: SSLEngine) {
@@ -48,7 +48,10 @@ object AapSslImpl: AapSsl {
         txBuffer!!.clear()
         val result = sslEngine!!.wrap(emptyArray(), txBuffer)
         runDelegatedTasks(result, sslEngine!!)
-        return txBuffer!!.array().copyOfRange(0, result.bytesProduced())
+        val resultBuffer = ByteArray(result.bytesProduced())
+        txBuffer!!.flip()
+        txBuffer!!.get(resultBuffer)
+        return resultBuffer
     }
 
     override fun handshakeWrite(handshakeData: ByteArray) {
@@ -65,7 +68,10 @@ object AapSslImpl: AapSsl {
         val encrypted = ByteBuffer.wrap(buffer, start, length)
         val result = sslEngine!!.unwrap(encrypted, rxBuffer)
         runDelegatedTasks(result, sslEngine!!)
-        return rxBuffer!!.array().copyOfRange(0, result.bytesProduced())
+        val resultBuffer = ByteArray(result.bytesProduced())
+        rxBuffer!!.flip()
+        rxBuffer!!.get(resultBuffer)
+        return resultBuffer
     }
 
     override fun encrypt(offset: Int, length: Int, buffer: ByteArray): ByteArray {
@@ -75,7 +81,8 @@ object AapSslImpl: AapSsl {
         val result = sslEngine!!.wrap(byteBuffer, txBuffer)
         runDelegatedTasks(result, sslEngine!!)
         val resultBuffer = ByteArray(result.bytesProduced() + offset)
-        System.arraycopy(txBuffer!!.array(), 0, resultBuffer, offset, result.bytesProduced())
+        txBuffer!!.flip()
+        txBuffer!!.get(resultBuffer, offset, result.bytesProduced())
         return resultBuffer
     }
 }

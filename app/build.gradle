@@ -58,7 +58,7 @@ android {
 
     defaultConfig {
         applicationId "info.anodsplace.headunit"
-        minSdkVersion 16 // TODO increase
+        minSdkVersion 18
         targetSdkVersion 28
 
         versionCode 22

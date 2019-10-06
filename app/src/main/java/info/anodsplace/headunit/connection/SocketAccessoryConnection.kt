@@ -14,9 +14,9 @@ class SocketAccessoryConnection(private val mIp: String) : AccessoryConnection {
     override val isSingleMessage: Boolean
         get() = true
 
-    override fun write(buf: ByteArray, length: Int, timeout: Int): Int {
+    override fun write(buf: ByteArray, offset: Int, length: Int, timeout: Int): Int {
         return try {
-            mSocket.getOutputStream().write(buf, 0, length)
+            mSocket.getOutputStream().write(buf, offset, length)
             mSocket.getOutputStream().flush()
             length
         } catch (e: IOException) {
@@ -25,10 +25,10 @@ class SocketAccessoryConnection(private val mIp: String) : AccessoryConnection {
         }
     }
 
-    override fun read(buf: ByteArray, length: Int, timeout: Int): Int {
+    override fun read(buf: ByteArray, offset: Int, length: Int, timeout: Int): Int {
         return try {
             mSocket.soTimeout = timeout
-            mInputStream!!.read(buf, 0, length)
+            mInputStream!!.read(buf, offset, length)
         } catch (e: IOException) {
             -1
         }

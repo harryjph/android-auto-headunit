@@ -5,7 +5,7 @@ import android.util.Log
 typealias MessageProducer = () -> String
 
 object AppLog {
-    const val LOG_LEVEL = Log.INFO
+    const val LOG_LEVEL = Log.ERROR
 
     const val TAG = "HeadUnit"
 

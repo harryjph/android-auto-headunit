@@ -125,9 +125,9 @@ class UsbAccessoryConnection(private val usbMgr: UsbManager, private val device:
     /**
      * @return length of data transferred (or zero) for success, or negative value for failure
      */
-    override fun write(buf: ByteArray, length: Int, timeout: Int) = useUsbDeviceConnection {
+    override fun write(buf: ByteArray, offset: Int, length: Int, timeout: Int) = useUsbDeviceConnection {
         try {
-            it.bulkTransfer(outEndpoint, buf, length, timeout)
+            it.bulkTransfer(outEndpoint, buf, offset, length, timeout)
         } catch (e: NullPointerException) {
             disconnect()
             AppLog.e(e)
@@ -135,9 +135,9 @@ class UsbAccessoryConnection(private val usbMgr: UsbManager, private val device:
         }
     }
 
-    override fun read(buf: ByteArray, length: Int, timeout: Int) = useUsbDeviceConnection {
+    override fun read(buf: ByteArray, offset: Int, length: Int, timeout: Int) = useUsbDeviceConnection {
         try {
-            it.bulkTransfer(inEndpoint, buf, length, timeout)
+            it.bulkTransfer(inEndpoint, buf, offset, length, timeout)
         } catch (e: NullPointerException) {
             disconnect()
             AppLog.e(e)

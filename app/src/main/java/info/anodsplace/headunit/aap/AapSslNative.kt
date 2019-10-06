@@ -52,12 +52,12 @@ internal class AapSslNative : AapSsl {
         return native_ssl_bio_write(start, length, buffer)
     }
 
-    override fun getMyCertificate(): ByteArrayWithLimit? {
+    override fun handshakeRead(): ByteArrayWithLimit? {
         native_ssl_do_handshake()
         return bioRead()
     }
 
-    override fun setTheirCertificate(certificate: ByteArray) {
+    override fun handshakeWrite(certificate: ByteArray) {
         bioWrite(0, certificate.size, certificate)
     }
 

@@ -33,7 +33,7 @@ class AapTransport(
     private val micRecorder: MicRecorder = MicRecorder(settings.micSampleRate, context)
     private val sessionIds = SparseIntArray(4)
     private val startedSensors = HashSet<Int>(4)
-    private val ssl = AapSslNative()
+    private val ssl: AapSsl = AapSslImpl()
     private val keyCodes = settings.keyCodes.entries.associateTo(mutableMapOf()) {
         it.value to it.key
     }
@@ -85,13 +85,19 @@ class AapTransport(
     }
 
     private fun sendEncryptedMessage(data: ByteArray, length: Int) {
+        // Encrypt from data[4] onwards
         val ba = ssl.encrypt(AapMessage.HEADER_SIZE, length - AapMessage.HEADER_SIZE, data) ?: return
 
+        // Copy data[0->4] into buffer
+        // TODO what is this?
         ba.data[0] = data[0]
+        // TODO what is this?
         ba.data[1] = data[1]
+        // Length
         Utils.intToBytes(ba.limit - AapMessage.HEADER_SIZE, 2, ba.data)
 
-        val size = connection!!.write(ba.data, ba.limit, 250)
+        // Write 4 bytes of header and the encrypted data
+        val size = connection!!.write(ba.data, 0, ba.limit, 250)
         AppLog.d { "Sent size: $size" }
     }
 
@@ -126,14 +132,14 @@ class AapTransport(
 
         // Version request
 
-        val version = Messages.createRawMessage(0, 3, 1, Messages.VERSION_REQUEST, Messages.VERSION_REQUEST.size) // Version Request
-        var ret = connection.write(version, version.size, 1000)
+        val versionRequest = Messages.createRawMessage(0, 3, 1, Messages.VERSION_REQUEST, Messages.VERSION_REQUEST.size) // Version Request
+        var ret = connection.write(versionRequest, 0, versionRequest.size, 1000)
         if (ret < 0) {
             AppLog.e { "Version request sendEncrypted ret: $ret" }
             return false
         }
 
-        ret = connection.read(buffer, buffer.size, 1000)
+        ret = connection.read(buffer, 0, buffer.size, 1000)
         if (ret <= 0) {
             AppLog.e { "Version request read ret: $ret" }
             return false
@@ -148,32 +154,32 @@ class AapTransport(
         }
 
         var hs_ctr = 0
-        // SSL_is_init_finished (ssl)
-
         while (hs_ctr++ < 2) {
-            val certificate = ssl.getMyCertificate() ?: return false
+            val data = ssl.handshakeRead() ?: return false
 
-            val bio = Messages.createRawMessage(Channel.ID_CTR, 3, 3, certificate.data, certificate.limit)
-            var size = connection.write(bio, bio.size, 1000)
+            val bio = Messages.createRawMessage(Channel.ID_CTR, 3, 3, data.data, data.limit)
+            var size = connection.write(bio, 0, bio.size, 1000)
             AppLog.i { "SSL BIO sent: $size" }
+            AppLog.e { "Data was: ${bytesToHex(data.data, data.limit)}"}
 
-            size = connection.read(buffer, buffer.size, 1000)
+            size = connection.read(buffer, 0, buffer.size, 1000)
             AppLog.i { "SSL received: $size" }
             if (size <= 0) {
-                AppLog.i { "SSL receive error" }
+                AppLog.e { "SSL receive error: $size" }
                 return false
             }
 
             val theirCertificate = ByteArray(size - 6)
             System.arraycopy(buffer, 6, theirCertificate, 0, size - 6)
-            ssl.setTheirCertificate(theirCertificate)
+            AppLog.e { "Rxda was: ${bytesToHex(theirCertificate, theirCertificate.size)}" }
+            ssl.handshakeWrite(theirCertificate)
             AppLog.i { "SSL BIO write: $ret" }
         }
 
         // Status = OK
         // byte ac_buf [] = {0, 3, 0, 4, 0, 4, 8, 0};
         val status = Messages.createRawMessage(0, 3, 4, byteArrayOf(8, 0), 2)
-        ret = connection.write(status, status.size, 1000)
+        ret = connection.write(status, 0, status.size, 1000)
         if (ret < 0) {
             AppLog.e { "Status request sendEncrypted ret: $ret" }
             return false

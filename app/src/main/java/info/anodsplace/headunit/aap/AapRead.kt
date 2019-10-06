@@ -31,9 +31,9 @@ internal interface AapRead {
             val handler = AapMessageHandlerImpl(transport, recorder, aapAudio, aapVideo, settings, context)
 
             return if (connection.isSingleMessage)
-                AapReadSingleMessage(connection, AapSslNative(), handler)
+                AapReadSingleMessage(connection, AapSsl.INSTANCE, handler)
             else
-                AapReadMultipleMessages(connection, AapSslNative(), handler)
+                AapReadMultipleMessages(connection, AapSsl.INSTANCE, handler)
         }
     }
 }

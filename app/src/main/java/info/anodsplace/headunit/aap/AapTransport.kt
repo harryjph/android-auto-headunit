@@ -34,7 +34,7 @@ class AapTransport(
     private val micRecorder: MicRecorder = MicRecorder(settings.micSampleRate, context)
     private val sessionIds = SparseIntArray(4)
     private val startedSensors = HashSet<Int>(4)
-    private val ssl: AapSsl = AapSslImpl()
+    private val ssl: AapSsl = AapSsl.INSTANCE
     private val keyCodes = settings.keyCodes.entries.associateTo(mutableMapOf()) {
         it.value to it.key
     }
@@ -60,29 +60,30 @@ class AapTransport(
     }
 
     override fun handleMessage(msg: Message): Boolean {
-        if (msg.what == MSG_SEND) {
-            val size = msg.arg2
-            this.sendEncryptedMessage(msg.obj as ByteArray, size)
-            return true
-        }
-
-        if (msg.what == MSG_POLL) {
-            val ret = aapRead?.read() ?: -1
-            if (handler == null) {
-                return false
+        return when (msg.what) {
+            MSG_SEND -> {
+                val size = msg.arg2
+                this.sendEncryptedMessage(msg.obj as ByteArray, size)
+                true
             }
-            handler?.let {
-                if (!it.hasMessages(MSG_POLL)) {
-                    it.sendEmptyMessage(MSG_POLL)
+            MSG_POLL -> {
+                val ret = aapRead?.read() ?: -1
+                if (handler == null) {
+                    return false
                 }
-            }
+                handler?.let {
+                    if (!it.hasMessages(MSG_POLL)) {
+                        it.sendEmptyMessage(MSG_POLL) // TODO is this recursion?
+                    }
+                }
 
-            if (ret < 0) {
-                this.quit()
+                if (ret < 0) {
+                    this.quit()
+                }
+                true
             }
+            else -> true
         }
-
-        return true
     }
 
     private fun sendEncryptedMessage(data: ByteArray, length: Int) {
@@ -144,13 +145,7 @@ class AapTransport(
         }
         AppLog.i { "Version response read ret: $ret" }
 
-        // SSL
-        ret = ssl.prepare()
-        if (ret < 0) {
-            AppLog.e { "SSL prepare failed: $ret" }
-            return false
-        }
-
+        ssl.prepare()
         var handshakeCounter = 0
         while (handshakeCounter++ < 2) {
             val sentHandshakeData = ssl.handshakeRead()

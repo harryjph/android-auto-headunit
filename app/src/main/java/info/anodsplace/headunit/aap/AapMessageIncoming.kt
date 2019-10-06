@@ -33,7 +33,7 @@ internal class AapMessageIncoming(header: EncryptedHeader, data: ByteArray) : Aa
                 return null
             }
 
-            val ba = ssl.decrypt(offset, header.enc_len, buf) ?: return null
+            val ba = ssl.decrypt(offset, header.enc_len, buf)
 
             val msg = AapMessageIncoming(header, ba)
 

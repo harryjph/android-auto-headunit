@@ -3,20 +3,11 @@ package info.anodsplace.headunit.aap
 import info.anodsplace.headunit.aap.protocol.messages.Messages
 import info.anodsplace.headunit.utils.AppLog
 
-/**
- * @author algavris
- * *
- * @date 20/10/2016.
- */
-
-internal class AapSslNative : AapSsl {
-
-    companion object {
-        init {
-            System.loadLibrary("crypto")
-            System.loadLibrary("ssl")
-            System.loadLibrary("hu_jni")
-        }
+internal object AapSslNative : AapSsl {
+    init {
+        System.loadLibrary("crypto")
+        System.loadLibrary("ssl")
+        System.loadLibrary("hu_jni")
     }
 
     private external fun native_ssl_prepare(): Int
@@ -30,12 +21,12 @@ internal class AapSslNative : AapSsl {
     private val enc_buf = ByteArray(Messages.DEF_BUFFER_LENGTH)
     private val dec_buf = ByteArray(Messages.DEF_BUFFER_LENGTH)
 
-    override fun prepare(): Int {
+    override fun prepare() {
         val ret = native_ssl_prepare()
         if (ret < 0) {
             AppLog.e { "SSL prepare failed: $ret" }
+            throw IllegalStateException("SSL Prepare Failed: $ret")
         }
-        return ret
     }
 
     private fun bioRead(): ByteArray {
@@ -74,7 +65,6 @@ internal class AapSslNative : AapSsl {
             AppLog.e { "SSL_read bytes_read: $bytes_read" }
             throw IllegalArgumentException("Return <= 0")
         }
-
         return ByteArrayWithLimit(dec_buf, bytes_read).copy()
     }
 

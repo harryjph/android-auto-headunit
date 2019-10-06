@@ -13,8 +13,8 @@ object Messages {
     const val DEF_BUFFER_LENGTH = 131080
     var VERSION_REQUEST = byteArrayOf(0, 1, 0, 1)
 
-    fun createRawMessage(chan: Int, flags: Int, type: Int, data: ByteArray, size: Int): ByteArray {
-
+    fun createRawMessage(chan: Int, flags: Int, type: Int, data: ByteArray): ByteArray {
+        val size = data.size
         val total = 6 + size
         val buffer = ByteArray(total)
 

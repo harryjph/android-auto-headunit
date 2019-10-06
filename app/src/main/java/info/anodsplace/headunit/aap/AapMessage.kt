@@ -5,12 +5,8 @@ import com.google.protobuf.CodedOutputStream
 import com.google.protobuf.MessageLite
 import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.MsgType
+import java.util.*
 
-/**
- * @author algavris
- * *
- * @date 04/10/2016.
- */
 open class AapMessage(
         internal val channel: Int,
         internal val flags: Byte,
@@ -19,9 +15,8 @@ open class AapMessage(
         internal val size: Int,
         val data: ByteArray) {
 
-    @JvmOverloads constructor(channel: Int, type: Int, proto: MessageLite, buf: ByteArray = ByteArray(size(proto)))
+    constructor(channel: Int, type: Int, proto: MessageLite, buf: ByteArray = ByteArray(size(proto)))
             : this(channel, flags(channel, type), type, HEADER_SIZE + MsgType.SIZE, size(proto), buf) {
-
         val msgType = this.type
         this.data[0] = channel.toByte()
         this.data[1] = flags
@@ -38,63 +33,6 @@ open class AapMessage(
     val isVideo: Boolean
         get() = this.channel == Channel.ID_VID
 
-    override fun toString(): String {
-        val sb = StringBuilder()
-        sb.append(Channel.name(channel))
-        sb.append(' ')
-        sb.append(MsgType.name(type, channel))
-        sb.append(" type: ")
-        sb.append(type)
-        sb.append(" flags: ")
-        sb.append(flags)
-        sb.append(" size: ")
-        sb.append(size)
-        sb.append(" dataOffset: ")
-        sb.append(dataOffset)
-
-//        sb.append('\n')
-//        AapDump.logHex("", 0, data, this.size, sb)
-
-        return sb.toString()
-    }
-
-    override fun equals(other: Any?): Boolean {
-        val msg = other as AapMessage
-
-        if (msg.channel != this.channel) {
-            return false
-        }
-        if (msg.flags != this.flags) {
-            return false
-        }
-        if (msg.type != this.type) {
-            return false
-        }
-        if (msg.size != this.size || msg.data.size < this.size) {
-            return false
-        }
-        if (msg.dataOffset != this.dataOffset) {
-            return false
-        }
-        for (i in 0 until this.size) {
-            if (msg.data[i] != this.data[i]) {
-                return false
-            }
-        }
-        return true
-    }
-
-    override fun hashCode(): Int{
-        var result = channel
-        result = 31 * result + flags
-        result = 31 * result + type
-        result = 31 * result + dataOffset
-        result = 31 * result + size
- //       result = 31 * result + Arrays.hashCode(data)
-        return result
-    }
-
-
     internal fun <T : MessageLite.Builder> parse(builder: T): T {
         builder.mergeFrom(this.data, this.dataOffset, this.size - this.dataOffset)
         return builder
@@ -105,6 +43,35 @@ open class AapMessage(
         msg.writeTo(output)
         output.checkNoSpaceLeft()
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is AapMessage) return false
+
+        if (channel != other.channel) return false
+        if (flags != other.flags) return false
+        if (type != other.type) return false
+        if (dataOffset != other.dataOffset) return false
+        if (size != other.size) return false
+        if (!data.contentEquals(other.data)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = channel
+        result = 31 * result + flags
+        result = 31 * result + type
+        result = 31 * result + dataOffset
+        result = 31 * result + size
+        result = 31 * result + data.contentHashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "AapMessage(channel=$channel, flags=$flags, type=$type, dataOffset=$dataOffset, size=$size, data=${Arrays.toString(data)})"
+    }
+
 
     companion object {
         const val HEADER_SIZE = 4

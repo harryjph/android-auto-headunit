@@ -1,43 +1,37 @@
 package info.anodsplace.headunit.aap
 
-import android.util.Base64
-import java.nio.ByteBuffer
-import javax.net.ssl.*
 import info.anodsplace.headunit.utils.AppLog
-import java.io.ByteArrayInputStream
-import java.security.KeyFactory
-import java.security.KeyStore
-import java.security.PrivateKey
-import java.security.cert.CertificateFactory
-import java.security.cert.X509Certificate
-import java.security.spec.PKCS8EncodedKeySpec
+import java.nio.ByteBuffer
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLEngine
+import javax.net.ssl.SSLEngineResult
 
 class AapSslImpl: AapSsl {
-    val sslc: SSLContext
-    val engine: SSLEngine
-    val cTOs: ByteBuffer
-    val rxBuffer: ByteBuffer
+    private val sslContext: SSLContext
+    private val sslEngine: SSLEngine
+    private val txBuffer: ByteBuffer
+    private val rxBuffer: ByteBuffer
 
     init {
         // Handshake in client mode.
         val sslCtx = SSLContext.getInstance("TLSv1.2")
         sslCtx.init(arrayOf(SingleKeyKeyManager), arrayOf(NoCheckTrustManager), null)
 
-        sslc = sslCtx
+        sslContext = sslCtx
 
-        engine = sslc.createSSLEngine()
-        engine.useClientMode = true
+        sslEngine = sslContext.createSSLEngine()
+        sslEngine.useClientMode = true
 
-        val session = engine.session
+        val session = sslEngine.session
         val appBufferMax = session.applicationBufferSize
         val netBufferMax = session.packetBufferSize
 
-        cTOs = ByteBuffer.allocate(netBufferMax)
+        txBuffer = ByteBuffer.allocate(netBufferMax)
         rxBuffer = ByteBuffer.allocate(appBufferMax + 50)
     }
 
     override fun prepare(): Int {
-        engine.beginHandshake()
+        sslEngine.beginHandshake()
         return 0
     }
 
@@ -58,33 +52,33 @@ class AapSslImpl: AapSsl {
         }
     }
 
-    override fun handshakeRead(): ByteArrayWithLimit? {
-        cTOs.clear()
-        val result = engine.wrap(ByteBuffer.allocate(0), cTOs)
-        runDelegatedTasks("wrap", result, engine)
-        return ByteArrayWithLimit(cTOs.array(), result.bytesProduced())
+    override fun handshakeRead(): ByteArray {
+        txBuffer.clear()
+        val result = sslEngine.wrap(emptyArray(), txBuffer)
+        runDelegatedTasks("wrap", result, sslEngine)
+        return txBuffer.array().copyOfRange(0, result.bytesProduced())
     }
 
-    override fun handshakeWrite(certificate: ByteArray) {
-        val data = ByteBuffer.wrap(certificate)
+    override fun handshakeWrite(handshakeData: ByteArray) {
         rxBuffer.clear()
-        val result = engine.unwrap(data, rxBuffer)
-        runDelegatedTasks("unwrap", result, engine)
+        val data = ByteBuffer.wrap(handshakeData)
+        val result = sslEngine.unwrap(data, rxBuffer)
+        runDelegatedTasks("unwrap", result, sslEngine)
     }
 
-    override fun decrypt(start: Int, length: Int, buffer: ByteArray): ByteArrayWithLimit? {
-        val sTOc = ByteBuffer.wrap(buffer, start, length)
-        val byteBuffer = ByteBuffer.allocate(engine.session.packetBufferSize)
-        runDelegatedTasks("decrypt", engine.unwrap(sTOc, byteBuffer), engine)
-        byteBuffer.flip()
-        return ByteArrayWithLimit(byteBuffer.array(), byteBuffer.limit())
+    override fun decrypt(start: Int, length: Int, buffer: ByteArray): ByteArray {
+        rxBuffer.clear()
+        val encrypted = ByteBuffer.wrap(buffer, start, length)
+        val result = sslEngine.unwrap(encrypted, rxBuffer)
+        runDelegatedTasks("decrypt", result, sslEngine)
+        return rxBuffer.array().copyOfRange(0, result.bytesProduced())
     }
 
-    override fun encrypt(offset: Int, length: Int, buffer: ByteArray): ByteArrayWithLimit? {
+    override fun encrypt(offset: Int, length: Int, buffer: ByteArray): ByteArray {
+        txBuffer.clear()
         val byteBuffer = ByteBuffer.wrap(buffer, offset, length)
-        val cTOs = ByteBuffer.allocate(engine.session.packetBufferSize)
-        runDelegatedTasks("encrypt", engine.wrap(byteBuffer, cTOs), engine)
-        cTOs.flip()
-        return ByteArrayWithLimit(cTOs.array(), cTOs.limit())
+        val result = sslEngine.wrap(byteBuffer, txBuffer)
+        runDelegatedTasks("encrypt", result, sslEngine)
+        return txBuffer.array().copyOfRange(0, result.bytesProduced())
     }
 }

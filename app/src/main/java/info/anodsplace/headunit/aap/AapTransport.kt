@@ -87,18 +87,15 @@ class AapTransport(
 
     private fun sendEncryptedMessage(data: ByteArray, length: Int) {
         // Encrypt from data[4] onwards
-        val ba = ssl.encrypt(AapMessage.HEADER_SIZE, length - AapMessage.HEADER_SIZE, data) ?: return
+        val encryptedData = ssl.encrypt(AapMessage.HEADER_SIZE, length - AapMessage.HEADER_SIZE, data)
 
-        // Copy data[0->4] into buffer
-        // TODO what is this?
-        ba.data[0] = data[0]
-        // TODO what is this?
-        ba.data[1] = data[1]
-        // Length
-        Utils.intToBytes(ba.limit - AapMessage.HEADER_SIZE, 2, ba.data)
+        // Copy data[0->4] into buffer. 3, 4 are length.
+        encryptedData[0] = data[0]
+        encryptedData[1] = data[1]
+        Utils.intToBytes(encryptedData.size - AapMessage.HEADER_SIZE, 2, encryptedData)
 
         // Write 4 bytes of header and the encrypted data
-        val size = connection!!.write(ba.data, 0, ba.limit)
+        val size = connection!!.write(encryptedData)
         AppLog.d { "Sent size: $size" }
     }
 
@@ -133,7 +130,7 @@ class AapTransport(
 
         // Version request
 
-        val versionRequest = Messages.createRawMessage(0, 3, 1, Messages.VERSION_REQUEST, Messages.VERSION_REQUEST.size) // Version Request
+        val versionRequest = Messages.createRawMessage(0, 3, 1, Messages.VERSION_REQUEST) // Version Request
         var ret = connection.write(versionRequest, 0, versionRequest.size, CONNECT_TIMEOUT)
         if (ret < 0) {
             AppLog.e { "Version request sendEncrypted ret: $ret" }
@@ -156,11 +153,11 @@ class AapTransport(
 
         var handshakeCounter = 0
         while (handshakeCounter++ < 2) {
-            val sentHandshakeData = ssl.handshakeRead() ?: return false
+            val sentHandshakeData = ssl.handshakeRead()
 
-            val bio = Messages.createRawMessage(Channel.ID_CTR, 3, 3, sentHandshakeData.data, sentHandshakeData.limit)
+            val bio = Messages.createRawMessage(Channel.ID_CTR, 3, 3, sentHandshakeData)
             connection.write(bio, 0, bio.size)
-            AppLog.i { "TxData was: ${bytesToHex(sentHandshakeData.data, sentHandshakeData.limit)}"}
+            AppLog.i { "TxData was: ${bytesToHex(sentHandshakeData)}"}
 
             val size = connection.read(buffer, 0, buffer.size)
             if (size <= 0) {
@@ -170,13 +167,13 @@ class AapTransport(
 
             val receivedHandshakeData = ByteArray(size - 6)
             System.arraycopy(buffer, 6, receivedHandshakeData, 0, size - 6)
-            AppLog.i { "RxData was: ${bytesToHex(receivedHandshakeData, receivedHandshakeData.size)}" }
+            AppLog.i { "RxData was: ${bytesToHex(receivedHandshakeData)}" }
             ssl.handshakeWrite(receivedHandshakeData)
         }
 
         // Status = OK
         // byte ac_buf [] = {0, 3, 0, 4, 0, 4, 8, 0};
-        val status = Messages.createRawMessage(0, 3, 4, byteArrayOf(8, 0), 2)
+        val status = Messages.createRawMessage(0, 3, 4, byteArrayOf(8, 0))
         ret = connection.write(status, 0, status.size)
         if (ret < 0) {
             AppLog.e { "Status request sendEncrypted ret: $ret" }

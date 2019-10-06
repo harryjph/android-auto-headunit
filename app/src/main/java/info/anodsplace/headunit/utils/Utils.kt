@@ -11,9 +11,9 @@ fun View.hideSystemUI() { // TODO this is called too often...
     }
 }
 
-fun bytesToHex(bytes: ByteArray, limit: Int): String {
+fun bytesToHex(bytes: ByteArray): String {
     val hexChars = StringBuilder()
-    repeat(limit) {
+    repeat(bytes.size) {
         val formatted = String.format("%02X", bytes[it])
         if (formatted.length == 1) {
             hexChars.append('0')

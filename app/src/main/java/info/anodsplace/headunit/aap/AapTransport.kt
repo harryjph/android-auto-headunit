@@ -12,6 +12,7 @@ import info.anodsplace.headunit.aap.protocol.messages.*
 import info.anodsplace.headunit.aap.protocol.proto.Input
 import info.anodsplace.headunit.aap.protocol.proto.Sensors
 import info.anodsplace.headunit.connection.AccessoryConnection
+import info.anodsplace.headunit.connection.AccessoryConnection.Companion.CONNECT_TIMEOUT
 import info.anodsplace.headunit.contract.ProjectionActivityRequest
 import info.anodsplace.headunit.decoder.AudioDecoder
 import info.anodsplace.headunit.decoder.MicRecorder
@@ -97,7 +98,7 @@ class AapTransport(
         Utils.intToBytes(ba.limit - AapMessage.HEADER_SIZE, 2, ba.data)
 
         // Write 4 bytes of header and the encrypted data
-        val size = connection!!.write(ba.data, 0, ba.limit, 250)
+        val size = connection!!.write(ba.data, 0, ba.limit)
         AppLog.d { "Sent size: $size" }
     }
 
@@ -133,13 +134,13 @@ class AapTransport(
         // Version request
 
         val versionRequest = Messages.createRawMessage(0, 3, 1, Messages.VERSION_REQUEST, Messages.VERSION_REQUEST.size) // Version Request
-        var ret = connection.write(versionRequest, 0, versionRequest.size, 1000)
+        var ret = connection.write(versionRequest, 0, versionRequest.size, CONNECT_TIMEOUT)
         if (ret < 0) {
             AppLog.e { "Version request sendEncrypted ret: $ret" }
             return false
         }
 
-        ret = connection.read(buffer, 0, buffer.size, 1000)
+        ret = connection.read(buffer, 0, buffer.size, CONNECT_TIMEOUT)
         if (ret <= 0) {
             AppLog.e { "Version request read ret: $ret" }
             return false
@@ -153,33 +154,30 @@ class AapTransport(
             return false
         }
 
-        var hs_ctr = 0
-        while (hs_ctr++ < 2) {
-            val data = ssl.handshakeRead() ?: return false
+        var handshakeCounter = 0
+        while (handshakeCounter++ < 2) {
+            val sentHandshakeData = ssl.handshakeRead() ?: return false
 
-            val bio = Messages.createRawMessage(Channel.ID_CTR, 3, 3, data.data, data.limit)
-            var size = connection.write(bio, 0, bio.size, 1000)
-            AppLog.i { "SSL BIO sent: $size" }
-            AppLog.e { "Data was: ${bytesToHex(data.data, data.limit)}"}
+            val bio = Messages.createRawMessage(Channel.ID_CTR, 3, 3, sentHandshakeData.data, sentHandshakeData.limit)
+            connection.write(bio, 0, bio.size)
+            AppLog.i { "TxData was: ${bytesToHex(sentHandshakeData.data, sentHandshakeData.limit)}"}
 
-            size = connection.read(buffer, 0, buffer.size, 1000)
-            AppLog.i { "SSL received: $size" }
+            val size = connection.read(buffer, 0, buffer.size)
             if (size <= 0) {
                 AppLog.e { "SSL receive error: $size" }
                 return false
             }
 
-            val theirCertificate = ByteArray(size - 6)
-            System.arraycopy(buffer, 6, theirCertificate, 0, size - 6)
-            AppLog.e { "Rxda was: ${bytesToHex(theirCertificate, theirCertificate.size)}" }
-            ssl.handshakeWrite(theirCertificate)
-            AppLog.i { "SSL BIO write: $ret" }
+            val receivedHandshakeData = ByteArray(size - 6)
+            System.arraycopy(buffer, 6, receivedHandshakeData, 0, size - 6)
+            AppLog.i { "RxData was: ${bytesToHex(receivedHandshakeData, receivedHandshakeData.size)}" }
+            ssl.handshakeWrite(receivedHandshakeData)
         }
 
         // Status = OK
         // byte ac_buf [] = {0, 3, 0, 4, 0, 4, 8, 0};
         val status = Messages.createRawMessage(0, 3, 4, byteArrayOf(8, 0), 2)
-        ret = connection.write(status, 0, status.size, 1000)
+        ret = connection.write(status, 0, status.size)
         if (ret < 0) {
             AppLog.e { "Status request sendEncrypted ret: $ret" }
             return false

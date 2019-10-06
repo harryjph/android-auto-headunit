@@ -66,5 +66,6 @@ interface AccessoryConnection {
 
     companion object {
         const val DEFAULT_TIMEOUT = 150 // ms
+        const val CONNECT_TIMEOUT = 1000 // ms
     }
 }

@@ -5,7 +5,7 @@ import com.google.protobuf.CodedOutputStream
 import com.google.protobuf.MessageLite
 import info.anodsplace.headunit.aap.protocol.Channel
 import info.anodsplace.headunit.aap.protocol.MsgType
-import java.util.*
+import info.anodsplace.headunit.utils.bytesToHex
 
 open class AapMessage(
         internal val channel: Int,
@@ -69,7 +69,7 @@ open class AapMessage(
     }
 
     override fun toString(): String {
-        return "AapMessage(channel=$channel, flags=$flags, type=$type, dataOffset=$dataOffset, size=$size, data=${Arrays.toString(data)})"
+        return "AapMessage(channel=$channel, flags=$flags, type=$type, dataOffset=$dataOffset, size=$size, data=${bytesToHex(data)})"
     }
 
 

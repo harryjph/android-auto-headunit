@@ -35,7 +35,6 @@ internal class AapReadMultipleMessages(
 
     @Throws(AapMessageHandler.HandleException::class)
     private fun processBulk(size: Int, buf: ByteArray) {
-
         fifo.put(buf, 0, size)
         fifo.flip()
 

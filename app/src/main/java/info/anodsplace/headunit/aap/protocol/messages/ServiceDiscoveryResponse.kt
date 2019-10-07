@@ -108,7 +108,7 @@ class ServiceDiscoveryResponse(settings: Settings, densityDpi: Int) : AapMessage
             }.build()
             services.add(microphone)
 
-            if (settings.bluetoothAddress.isNotEmpty() && false) { // TODO find out what exactly this does
+            if (settings.bluetoothAddress.isNotEmpty()) { // TODO find out what exactly this does
                 val bluetooth = Control.Service.newBuilder().also { service ->
                     service.id = Channel.ID_BTH
                     service.bluetoothService = Control.Service.BluetoothService.newBuilder().also {

@@ -11,12 +11,11 @@ import info.anodsplace.headunit.decoder.MicRecorder
 import info.anodsplace.headunit.utils.AppLog
 import info.anodsplace.headunit.utils.Settings
 
-
 interface AapControl {
     fun execute(message: AapMessage): Int
 }
 
-internal class AapControlMedia(
+internal class AapControlMedia (
     private val aapTransport: AapTransport,
     private val micRecorder: MicRecorder,
     private val aapAudio: AapAudio): AapControl {

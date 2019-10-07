@@ -17,12 +17,6 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        AppLog.d {  "native library dir ${applicationInfo.nativeLibraryDir}" }
-
-        File(applicationInfo.nativeLibraryDir).listFiles().forEach { file ->
-            AppLog.d {  "   ${file.name}" }
-        }
-
         registerReceiver(AapBroadcastReceiver(), AapBroadcastReceiver.filter)
     }
 

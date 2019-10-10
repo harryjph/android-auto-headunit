@@ -1,6 +1,6 @@
 # Headunit
 
-This is an Android Auto Headunit emulator, based off of work of the owners of the upstream repositories.
+This is an Android Auto Headunit emulator, based off of the work of [Mike Reidis](https://github.com/mikereidis/headunit) and [Alex Gavrishev](https://github.com/anod/headunit).
 
 Things I've changed / added:
 * Cleaner & more performant codebase

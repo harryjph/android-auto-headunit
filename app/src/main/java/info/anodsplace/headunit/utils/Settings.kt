@@ -8,7 +8,7 @@ import info.anodsplace.headunit.aap.protocol.proto.Control
 
 import java.util.HashSet
 
-class Settings(context: Context) {
+class Settings(context: Context) { // TODO more settings
 
     private val prefs: SharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 

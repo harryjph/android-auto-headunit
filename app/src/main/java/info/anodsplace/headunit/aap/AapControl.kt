@@ -143,7 +143,6 @@ internal class AapControlSensor(private val aapTransport: AapTransport): AapCont
         val msg = AapMessage(channel, Sensors.SensorsMsgType.SENSOR_STARTRESPONSE_VALUE, Sensors.SensorResponse.newBuilder()
                 .setStatus(Common.MessageStatus.STATUS_OK)
                 .build())
-        AppLog.i { msg.toString() }
 
         aapTransport.send(msg)
         aapTransport.startSensor(request.type.number)
@@ -198,7 +197,6 @@ internal class AapControlService(
         AppLog.i { "Service Discovery Request: ${request.phoneName}" } // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
         val msg = ServiceDiscoveryResponse(settings, context.resources.displayMetrics.densityDpi)
-        AppLog.i { msg.toString() }
 
         aapTransport.send(msg)
         return 0
